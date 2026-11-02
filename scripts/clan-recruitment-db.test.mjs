@@ -189,3 +189,20 @@ test("each game's tier catalog is accepted in rank order and foreign tiers are r
   const legacy=await ok(f.service.from("clans").select("id,games!inner(slug)").eq("games.slug","overwatch").contains("tier_range",["challenger"]));
   assert.equal(legacy.length,0,"QA Overwatch's old Challenger values should have been migrated");
 });
+test("clan favorites belong to the viewer and lead filtered discovery results", async t => {
+  const f = await createIsolatedBalanceFixture(2);
+  t.after(() => f.cleanup());
+  const owner = await f.memberClient(0);
+  const other = await f.memberClient(1);
+  const row = { user_id: f.users[0].id, clan_id: f.clanId };
+  await denied(other.from("clan_favorites").insert(row));
+  await ok(owner.from("clan_favorites").insert(row));
+  assert.deepEqual(await ok(other.from("clan_favorites").select().eq("clan_id", f.clanId)), []);
+  await ok(other.from("clan_favorites").delete().eq("clan_id", f.clanId));
+  const filters = { p_game_id: f.gameId, p_seed: randomUUID(), p_query: "", p_style: "", p_tier: "", p_recommended: false };
+  const first = await ok(owner.rpc("discover_clans", filters).order("is_favorite", { ascending: false }).order("shuffle_key").limit(1).single());
+  assert.equal(first.clan_id, f.clanId);
+  assert.equal(first.is_favorite, true);
+  await ok(owner.from("clan_favorites").delete().eq("clan_id", f.clanId));
+  assert.deepEqual(await ok(owner.from("clan_favorites").select().eq("clan_id", f.clanId)), []);
+});

@@ -77,6 +77,7 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     expect((await profile(2)).data).toMatchObject({ battle_tag: "ManualNewcomer#3003", is_verified: false, verified_at: null });
     const clan = await f.service.from("clans").select("name").eq("id", f.clanId).single();
     await page.goto(`/games/overwatch/clan?q=${encodeURIComponent(clan.data!.name)}`);
+    await page.getByTestId(`clan-details-${f.clanId}`).click();
     await page.getByTestId(`clan-join-open-${f.clanId}`).click();
     await page.getByTestId(`clan-join-send-${f.clanId}`).click();
     await expect(page.getByText("가입 신청을 보냈습니다.", { exact: true })).toBeVisible();

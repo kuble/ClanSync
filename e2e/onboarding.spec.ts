@@ -14,6 +14,9 @@ test("isolated onboarding links a BattleTag and requests the intended clan", asy
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill(`NewPlayer#${String(Date.now()).slice(-8)}`);
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
     await page.waitForURL(/\/games\/overwatch\/clan/);
+    const clan = await f.service.from("clans").select("name").eq("id", f.clanId).single();
+    await page.goto("/games/overwatch/clan?q=" + encodeURIComponent(clan.data!.name));
+    await page.getByTestId(`clan-details-${f.clanId}`).click();
     await page.getByTestId(`clan-join-open-${f.clanId}`).click();
     await page.getByTestId(`clan-join-send-${f.clanId}`).click();
     await expect(page.getByText("가입 신청을 보냈습니다.", { exact: true })).toBeVisible();

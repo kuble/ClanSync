@@ -1393,6 +1393,36 @@ export type Database = {
           },
         ]
       }
+      clan_favorites: {
+        Row: {
+          clan_id: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          user_id?: string
+        }
+        Update: {
+          clan_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_favorites_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_hof_comment_reactions: {
         Row: {
           comment_id: string
@@ -3599,6 +3629,7 @@ export type Database = {
         }
         Returns: {
           clan_id: string
+          is_favorite: boolean
           shuffle_key: string
         }[]
       }

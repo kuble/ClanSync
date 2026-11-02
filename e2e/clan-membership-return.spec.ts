@@ -48,6 +48,9 @@ test("자진 탈퇴·이전 구성원·기록 유지 재가입·강퇴 후 허�
     expect((await f.service.from("user_game_profiles").update({ battle_tag: f.users[1].nickname }).eq("user_id", f.users[1].id).eq("game_id", f.gameId)).error).toBeNull();
     const apply = async () => {
       await memberPage.goto("/games/overwatch/clan");
+      const clan = await f.service.from("clans").select("name").eq("id", f.clanId).single();
+      await memberPage.goto("/games/overwatch/clan?q=" + encodeURIComponent(clan.data!.name));
+      await memberPage.getByTestId(`clan-details-${f.clanId}`).click();
       await memberPage.getByTestId(`clan-join-open-${f.clanId}`).click();
       await memberPage.getByTestId(`clan-join-send-${f.clanId}`).click();
     };

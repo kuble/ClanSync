@@ -21,7 +21,7 @@ import { CLAN_STYLES, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/c
 
 const PAGE_SIZE = 5;
 const UUID = /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i;
-const CLAN_FIELDS = "id, name, icon_url, description, rules, tags, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, interview_url, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
+const CLAN_FIELDS = "id, name, icon_url, description, rules, tags, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, interview_url, discord_url, kakao_url, subscription_tier, favorites:clan_favorites(clan_id), promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
 export const metadata = { title: "클랜 찾기 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
@@ -56,7 +56,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   const [listing, pinnedResult, requestedPromotion] = await Promise.all([
     supabase.rpc("discover_clans", {
       p_game_id: game.id, p_seed: seed, p_recommended: eligibleOnly, p_query: term, p_style: style, p_tier: tier,
-    }, { count: "exact" }).order("shuffle_key").order("clan_id").range(from, from + PAGE_SIZE - 1),
+    }, { count: "exact" }).order("is_favorite",{ascending:false}).order("shuffle_key").order("clan_id").range(from, from + PAGE_SIZE - 1),
     pendingBrief?.clanId ? clanQuery().eq("id", pendingBrief.clanId).maybeSingle() : Promise.resolve({ data: null, error: null }),
     promotion ? supabase.from("board_posts").select("id,clan_id,title,content,content_blocks,created_at,updated_at").eq("id",promotion).eq("game_id",game.id).eq("post_type","promotion").maybeSingle() : Promise.resolve({data:null,error:null}),
   ]);
@@ -79,8 +79,8 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   if (listError) console.error("[clan-onboarding] 목록 조회 실패:", listError.message);
   const counts = new Map<string, number>((countResult.data ?? []).map((item: { clan_id: string; n: number }) => [item.clan_id, Number(item.n)]));
   function toListClan(clan: NonNullable<typeof rows.data>[number]): ClanListRow {
-    const {promotions,...row} = clan;
-    return {...row,promotion:promotions[0] ?? null,active_members:countResult.error ? null : counts.get(row.id) ?? 0};
+    const {promotions,favorites,...row} = clan;
+    return {...row,isFavorite:favorites.length > 0,promotion:promotions[0] ?? null,active_members:countResult.error ? null : counts.get(row.id) ?? 0};
   }
   const initialDetails: ClanListRow | null = previewRow ? {...toListClan(previewRow),promotion:requestedPromotion.data} : null;
   const clans = (rows.data ?? []).map(toListClan).sort((a,b) => ids.indexOf(a.id) - ids.indexOf(b.id));

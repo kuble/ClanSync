@@ -64,31 +64,12 @@ test.describe("가입 신청 · 리더 거절 토스트", () => {
         return;
       }
 
-      let openBtn = clanRow.locator('[data-testid^="clan-join-open-"]');
-      if ((await openBtn.count()) === 0) {
-        const stuckPending = clanRow.locator('[data-testid^="clan-join-pending-"]');
-        if ((await stuckPending.count()) > 0) {
-          await memberPage.getByRole("button", { name: "신청 취소" }).click();
-          await memberPage.waitForTimeout(900);
-          openBtn = clanRow.locator('[data-testid^="clan-join-open-"]');
-        }
+      if (await clanRow.getByText("신청 대기 중", {exact:true}).count()) {
+        await memberPage.getByRole("button", {name:"신청 취소"}).click();
       }
-      await expect(openBtn.first()).toBeVisible({ timeout: 12_000 });
-      await openBtn.first().click();
-      const send = clanRow.locator('[data-testid^="clan-join-send-"]');
-      await expect(send).toBeVisible({ timeout: 12_000 });
-
-      const replaceDialog = memberPage.getByRole("dialog", {
-        name: /진행 중인 신청이 있습니다/,
-      });
-      try {
-        await replaceDialog.waitFor({ state: "visible", timeout: 2000 });
-        await memberPage.getByRole("button", { name: "취소 후 새로 신청" }).click();
-      } catch {
-        /* 없음 */
-      }
-
-      await send.click();
+      await clanRow.getByRole("button", {name:"QA_01_Clan 클랜 상세 보기"}).click();
+      await memberPage.getByRole("dialog").getByRole("button", {name:"가입 신청", exact:true}).click();
+      await memberPage.getByRole("dialog").locator('[data-testid^="clan-join-send-"]').click();
 
       await expect(
         memberPage
