@@ -87,22 +87,23 @@ export function ManageJoinRequestsPanel({
       {rows.map((row) => (
         <li
           key={row.id}
-          className="@container p-4 sm:p-5"
+          className="px-4 py-3 sm:px-5"
         >
-          <div className="flex flex-col gap-3 @lg:flex-row @lg:items-start @lg:justify-between @lg:gap-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:gap-5">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <p className="min-w-0 text-base font-semibold wrap-anywhere">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
                 <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">{playerProfileDetails(row.profile)}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span>{playerProfileDetails(row.profile)}</span>
+                <time dateTime={row.appliedAt}>
+                  신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
+                </time>
+              </div>
               {row.returningMember && <p className="mt-1 text-xs font-medium text-primary">재가입 · 기존 내전 기록 유지</p>}
             </div>
-            <time dateTime={row.appliedAt} className="shrink-0 text-xs text-muted-foreground @lg:pt-1">
-              신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
-            </time>
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 size="sm"
@@ -125,6 +126,7 @@ export function ManageJoinRequestsPanel({
               >
                 가입 승인
               </Button>
+            </div>
           </div>
           {rejectId === row.id ? (
             <div id={`reject-form-${row.id}`} className="mt-4 space-y-2 border-t pt-4">
