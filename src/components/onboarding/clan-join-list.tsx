@@ -16,9 +16,9 @@ import type { PromotionPost } from "@/lib/clan/promotion";
 import { ClanPromotionDialogContent } from "./clan-promotion-dialog-content";
 
 export type ClanListRow = {
-  id: string; name: string; icon_url?: string | null; description: string | null; tags: string[]; max_members: number;
+  id: string; name: string; icon_url?: string | null; description: string | null; max_members: number;
   active_members?: number | null; rules?: string | null; style?: string | null; tier_range?: string[]; recruitment_positions?: string[];
-  created_at?: string; discord_url?: string | null; kakao_url?: string | null; subscription_tier?: string;
+  created_at?: string; subscription_tier?: string;
   birth_year_from?: number | null; min_birth_year?: number | null; gender_policy?: "all" | "male" | "female";
   isFavorite?: boolean;
   interview_url?: string | null;

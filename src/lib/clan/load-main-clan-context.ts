@@ -23,7 +23,6 @@ export type MainClanContext = {
   memberCount: number | null;
   pendingJoinRequestCount: number;
   styleLabel: string | null;
-  tags: string[];
   canStartBalance: boolean;
   sidebarDots: {
     balance: boolean;
@@ -77,7 +76,7 @@ async function loadMainClanContextData(
     supabase
       .from("clans")
       .select(
-        "id, name, subscription_tier, banner_url, icon_url, style, tags, games!inner(slug, name_ko)",
+        "id, name, subscription_tier, banner_url, icon_url, style, games!inner(slug, name_ko)",
       )
       .eq("id", clanId)
       .maybeSingle(),
@@ -134,7 +133,6 @@ async function loadMainClanContextData(
     memberCount: members.error ? null : members.count,
     pendingJoinRequestCount: requests.count ?? 0,
     styleLabel: clan.style ? styles[clan.style] : null,
-    tags: clan.tags ?? [],
     canStartBalance,
     sidebarDots: {
       balance: !balance.error && (balance.data?.length ?? 0) > 0,

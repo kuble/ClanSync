@@ -60,7 +60,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
     if (!years.ok) { setError(years.error); return; }
     const positions = form.getAll("recruitment_positions").map(String);
     setPreview({
-      clan: { ...initial, ...(creating ? { name: String(form.get("name") || "클랜명"), rules: String(form.get("rules") ?? ""), tags: String(form.get("tags") ?? "").split(",").map(tag => tag.trim()).filter(Boolean) } : {}), birth_year_from: years.birth_year_from, min_birth_year: years.min_birth_year, style: String(form.get("style") ?? "") || null,
+      clan: { ...initial, ...(creating ? { name: String(form.get("name") || "클랜명") } : {}), birth_year_from: years.birth_year_from, min_birth_year: years.min_birth_year, style: String(form.get("style") ?? "") || null,
         gender_policy: String(form.get("gender_policy") ?? "all") as ClanRecruitment["gender_policy"],
         tier_range: selectedTiers.map(([tier]) => tier), recruitment_positions: positions.includes("all") ? [] : positions },
       title: title.trim() || String(form.get("name") || "홍보글 미리보기"),
@@ -186,16 +186,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               </div>
               <Input id="interview-url" name="interview_url" type="url" maxLength={1000} value={contactUrl} onChange={event => setContactUrl(event.target.value)} placeholder="https://…" />
             </div>
-            {creating && <details className="rounded-lg border border-border p-4">
-              <summary className="cursor-pointer text-sm font-medium">클랜 추가 설정</summary>
-              <fieldset disabled={!!createdId} className="mt-4 grid gap-4">
-                <label className="grid gap-2 text-xs">클랜 규칙<textarea name="rules" rows={3} className="rounded-lg border border-border bg-background p-3" /></label>
-                <label className="grid gap-2 text-xs">태그<Input name="tags" placeholder="쉼표로 구분해 최대 5개" /></label>
-                <label className="grid gap-2 text-xs">최대 인원 (2~200)<Input name="max_members" type="number" min={2} max={200} defaultValue={30} required /></label>
-                <label className="grid gap-2 text-xs">디스코드 URL<Input name="discord_url" type="url" placeholder="https://" /></label>
-                <label className="grid gap-2 text-xs">카카오 URL<Input name="kakao_url" type="url" placeholder="https://" /></label>
-              </fieldset>
-            </details>}
             <div className={styles.previewActions}>
               <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
               <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button>

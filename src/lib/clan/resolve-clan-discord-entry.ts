@@ -14,7 +14,7 @@ export async function resolveClanDiscordEntry(client: SupabaseClient<Database>, 
   if (authError || !user) return { ok: false, reason: "forbidden" };
   const membership = await client.rpc("select_my_clan_membership", { p_clan_id: clanId });
   if (membership.error || membership.data?.[0]?.status !== "active") return { ok: false, reason: "forbidden" };
-  const clan = await client.from("clans").select("discord_url,kakao_url,games!inner(slug)").eq("id", clanId).single();
+  const clan = await client.from("clans").select("games!inner(slug)").eq("id", clanId).single();
   const game = Array.isArray(clan.data?.games) ? clan.data.games[0] : clan.data?.games;
   if (clan.error || !game || game.slug !== gameSlug) return { ok: false, reason: "forbidden" };
   const connection = await createServiceRoleClient().from("clan_discord_connections").select("guild_id,channel_id").eq("clan_id", clanId).maybeSingle();
@@ -28,6 +28,6 @@ export async function resolveClanDiscordEntry(client: SupabaseClient<Database>, 
   }
   const settings = await client.from("clan_settings").select("community_links").eq("clan_id", clanId).single();
   if (settings.error) return { ok: false, reason: "unavailable" };
-  const href = readClanCommunityLinks(settings.data.community_links, clan.data).discord;
+  const href = readClanCommunityLinks(settings.data.community_links).discord;
   return href ? { ok: true, href } : { ok: false, reason: "no-link" };
 }

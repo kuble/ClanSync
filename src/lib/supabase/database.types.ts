@@ -2140,13 +2140,11 @@ export type Database = {
           coin_balance: number
           created_at: string
           description: string | null
-          discord_url: string | null
           game_id: string
           gender_policy: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url: string | null
           id: string
           interview_url: string | null
-          kakao_url: string | null
           last_activity_at: string | null
           lifecycle_status: Database["public"]["Enums"]["clan_lifecycle"]
           max_members: number
@@ -2159,7 +2157,6 @@ export type Database = {
           rules: string | null
           style: Database["public"]["Enums"]["clan_style"] | null
           subscription_tier: Database["public"]["Enums"]["clan_subscription_tier"]
-          tags: string[]
           tier_range: string[]
           updated_at: string
         }
@@ -2173,13 +2170,11 @@ export type Database = {
           coin_balance?: number
           created_at?: string
           description?: string | null
-          discord_url?: string | null
           game_id: string
           gender_policy?: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url?: string | null
           id?: string
           interview_url?: string | null
-          kakao_url?: string | null
           last_activity_at?: string | null
           lifecycle_status?: Database["public"]["Enums"]["clan_lifecycle"]
           max_members?: number
@@ -2192,7 +2187,6 @@ export type Database = {
           rules?: string | null
           style?: Database["public"]["Enums"]["clan_style"] | null
           subscription_tier?: Database["public"]["Enums"]["clan_subscription_tier"]
-          tags?: string[]
           tier_range?: string[]
           updated_at?: string
         }
@@ -2206,13 +2200,11 @@ export type Database = {
           coin_balance?: number
           created_at?: string
           description?: string | null
-          discord_url?: string | null
           game_id?: string
           gender_policy?: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url?: string | null
           id?: string
           interview_url?: string | null
-          kakao_url?: string | null
           last_activity_at?: string | null
           lifecycle_status?: Database["public"]["Enums"]["clan_lifecycle"]
           max_members?: number
@@ -2225,7 +2217,6 @@ export type Database = {
           rules?: string | null
           style?: Database["public"]["Enums"]["clan_style"] | null
           subscription_tier?: Database["public"]["Enums"]["clan_subscription_tier"]
-          tags?: string[]
           tier_range?: string[]
           updated_at?: string
         }

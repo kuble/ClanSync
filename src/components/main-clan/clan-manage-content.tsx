@@ -58,7 +58,7 @@ export async function ClanManageContent({ ctx, selected, connectionResult }: Pro
 async function Promotion({ ctx }: Pick<Props, "ctx">) {
   const client = await getRequestClient();
   const [conditions, posts] = await Promise.all([
-    client.from("clans").select("id,name,description,tags,max_members,rules,interview_url,discord_url,kakao_url,birth_year_from,min_birth_year,gender_policy,tier_range,style,recruitment_positions,promotion_public").eq("id",ctx.clanId).single(),
+    client.from("clans").select("id,name,description,max_members,rules,interview_url,birth_year_from,min_birth_year,gender_policy,tier_range,style,recruitment_positions,promotion_public").eq("id",ctx.clanId).single(),
     client.from("board_posts").select("id,title,content,content_blocks,created_at,updated_at").eq("clan_id",ctx.clanId).eq("post_type","promotion").order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1),
   ]);
   if (conditions.error || posts.error) throw new Error("클랜 홍보 정보를 불러오지 못했습니다.");
@@ -67,15 +67,14 @@ async function Promotion({ ctx }: Pick<Props, "ctx">) {
 
 async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx" | "connectionResult">) {
   const svc = createServiceRoleClient();
-  const [settings, connection, profile] = await Promise.all([
+  const [settings, connection] = await Promise.all([
     svc.from("clan_settings").select("event_notify,community_links").eq("clan_id", ctx.clanId).single(),
     svc.from("clan_discord_connections").select("guild_name,channel_id,channel_name").eq("clan_id", ctx.clanId).maybeSingle(),
-    svc.from("clans").select("discord_url,kakao_url").eq("id", ctx.clanId).single(),
   ]);
-  if (settings.error || connection.error || profile.error) throw new Error("알림 설정을 불러오지 못했습니다.");
+  if (settings.error || connection.error) throw new Error("알림 설정을 불러오지 못했습니다.");
   const notify = readClanEventNotifySettings(settings.data.event_notify);
   return <div className="space-y-5">
-    <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links, profile.data)} discordConnected={!!connection.data} />
+    <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links)} discordConnected={!!connection.data} />
     <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
     botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
     routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />

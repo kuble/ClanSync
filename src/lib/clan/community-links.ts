@@ -44,11 +44,10 @@ export function parseClanCommunityLinks(input: unknown): { ok: true; links: Clan
   return { ok: true, links };
 }
 
-/** Explicit blanks override legacy onboarding fields; invalid stored URLs never become links. */
-export function readClanCommunityLinks(input: unknown, legacy?: { discord_url: string | null; kakao_url: string | null }): ClanCommunityLinks {
+export function readClanCommunityLinks(input: unknown): ClanCommunityLinks {
   const source = input && typeof input === "object" && !Array.isArray(input) ? input as Record<string, unknown> : {};
   return Object.fromEntries(CHAT_SERVICES.map(({ id }) => {
-    const value = Object.hasOwn(source, id) ? source[id] : id === "discord" ? legacy?.discord_url : id === "kakao" ? legacy?.kakao_url : "";
+    const value = source[id];
     return [id, typeof value === "string" ? normalizeChatInviteUrl(id, value) ?? "" : ""];
   })) as ClanCommunityLinks;
 }

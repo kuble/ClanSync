@@ -21,7 +21,7 @@ import { CLAN_STYLES, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/c
 
 const PAGE_SIZE = 5;
 const UUID = /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i;
-const CLAN_FIELDS = "id, name, icon_url, description, rules, tags, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, interview_url, discord_url, kakao_url, subscription_tier, favorites:clan_favorites(clan_id), promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
+const CLAN_FIELDS = "id, name, icon_url, description, rules, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, interview_url, subscription_tier, favorites:clan_favorites(clan_id), promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
 export const metadata = { title: "클랜 찾기 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {

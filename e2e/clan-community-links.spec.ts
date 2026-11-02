@@ -27,10 +27,9 @@ test("chat invite links accept official formats and reject spoofed destinations"
   expect(parseClanCommunityLinks({ unknown:"https://example.com" }).ok).toBe(false);
   expect(parseClanCommunityLinks({ discord:[] }).ok).toBe(false);
   expect(parseClanCommunityLinks([]).ok).toBe(false);
-  const legacy = { discord_url:links.discord, kakao_url:links.kakao };
-  expect(readClanCommunityLinks({}, legacy).discord).toBe(links.discord);
-  expect(readClanCommunityLinks({ discord:"", kakao:"javascript:alert(1)" }, legacy).discord).toBe("");
-  expect(readClanCommunityLinks({ discord:"", kakao:"javascript:alert(1)" }, legacy).kakao).toBe("");
+  expect(readClanCommunityLinks({}).discord).toBe("");
+  expect(readClanCommunityLinks({ discord:"", kakao:"javascript:alert(1)" }).discord).toBe("");
+  expect(readClanCommunityLinks({ discord:"", kakao:"javascript:alert(1)" }).kakao).toBe("");
 });
 
 test("leaders manage chat links and active members open dashboard icons", async ({ page, browser }) => {
@@ -39,15 +38,15 @@ test("leaders manage chat links and active members open dashboard icons", async 
   const { service:svc, clanId } = fixture;
   const base = `/games/overwatch/clan/${clanId}`;
   try {
-    expect((await svc.from("clans").update({ subscription_tier:"free", discord_url:links.discord, kakao_url:links.kakao }).eq("id",clanId)).error).toBeNull();
+    expect((await svc.from("clans").update({ subscription_tier:"free" }).eq("id",clanId)).error).toBeNull();
     expect((await svc.from("clan_members").update({ role:"officer" }).eq("clan_id",clanId).eq("user_id",fixture.users[1].id)).error).toBeNull();
     expect((await svc.from("clan_members").delete().eq("clan_id",clanId).eq("user_id",fixture.users[3].id)).error).toBeNull();
     const { data:original } = await svc.from("clan_settings").select("event_notify").eq("clan_id",clanId).single();
     await loginIsolatedBalanceUser(page,fixture.users[0]);
     await page.goto(base+"/manage?tab=notifications");
     const form = page.getByRole("region",{ name:"클랜 채팅방",exact:true });
-    await expect(form.getByLabel("Discord",{ exact:true })).toHaveValue(links.discord);
-    await expect(form.getByLabel("카카오톡 오픈채팅",{ exact:true })).toHaveValue(links.kakao);
+    await expect(form.getByLabel("Discord",{ exact:true })).toHaveValue("");
+    await expect(form.getByLabel("카카오톡 오픈채팅",{ exact:true })).toHaveValue("");
     for (const { id,label } of CHAT_SERVICES) await form.getByLabel(label,{ exact:true }).fill(links[id]);
     await form.getByLabel("카카오톡 오픈채팅",{ exact:true }).fill("https://discord.gg/wrong-service");
     await form.getByRole("button",{ name:"링크 저장",exact:true }).click();

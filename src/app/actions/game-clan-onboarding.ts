@@ -17,18 +17,6 @@ import {
 } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
-function normalizeTags(raw: string[]): string[] {
-  const out: string[] = [];
-  for (const t of raw) {
-    const s = t.trim();
-    if (!s) continue;
-    if (s.length > 12 || out.length >= 5) return [];
-    if (!/^[가-힣a-zA-Z0-9\s]+$/.test(s)) return [];
-    out.push(s);
-  }
-  return out;
-}
-
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 /** 개발·QA용 게임 인증 완료 시뮬레이션 (실 OAuth 콜백 전 단계). */
@@ -158,13 +146,7 @@ export async function createClanAndLeadAction(
     return { ok: false, error: "클랜명은 1~24자여야 합니다." };
   }
 
-  const maxMembersRaw = Number(formData.get("max_members") ?? 30);
-  const max_members = Math.min(200, Math.max(2, maxMembersRaw || 30));
-
   const description = String(formData.get("description") ?? "").trim() || null;
-  const rules = String(formData.get("rules") ?? "").trim() || null;
-  const discord_url = String(formData.get("discord_url") ?? "").trim() || null;
-  const kakao_url = String(formData.get("kakao_url") ?? "").trim() || null;
 
   const gender_policy =
     (formData.get("gender_policy") as string) === "male" ||
@@ -180,16 +162,6 @@ export async function createClanAndLeadAction(
     styleRaw === "pro"
       ? styleRaw
       : null;
-
-  const tags = normalizeTags(
-    String(formData.get("tags") ?? "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-  );
-  if (tags.length === 0 && String(formData.get("tags") ?? "").trim()) {
-    return { ok: false, error: "태그 형식이 올바르지 않습니다." };
-  }
 
   const tierRaw = formData.getAll("tier_range");
   const tierSet = new Set(recruitmentTiers(gameSlug).map(([tier]) => tier));
@@ -212,19 +184,14 @@ export async function createClanAndLeadAction(
       game_id: game.id,
       name,
       description,
-      rules,
       style,
       tier_range,
       birth_year_from: years.birth_year_from,
       min_birth_year: years.min_birth_year,
-      tags,
       gender_policy,
       promotion_public: !formData.has("create_private") && formData.has("promotion_public"),
       recruitment_positions: gameSlug === "overwatch" ? OVERWATCH_POSITIONS.filter(option => positions.includes(option.value)).map(option => option.value) : [],
       interview_url,
-      max_members,
-      discord_url,
-      kakao_url,
       last_activity_at: now,
     })
     .select("id")

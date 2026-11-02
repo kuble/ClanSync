@@ -119,9 +119,6 @@ export function ClanHero({
             </span>
           ) : null}
           {ctx.styleLabel ? <span>{ctx.styleLabel}</span> : null}
-          {ctx.tags.slice(0, 2).map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
         </div>
         {communityLinks}
       </div>

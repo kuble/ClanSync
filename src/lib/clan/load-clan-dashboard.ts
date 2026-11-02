@@ -81,7 +81,7 @@ export async function loadClanDashboard(
   const [clan, polls, events, settings, notices, history, discord] = await Promise.all([
     supabase
       .from("clans")
-      .select("rules, created_at, discord_url, kakao_url")
+      .select("rules, created_at")
       .eq("id", clanId)
       .maybeSingle(),
     eventClient
@@ -152,7 +152,7 @@ export async function loadClanDashboard(
     createdAt: clan.data.created_at,
     completedIntraCount: history.completedRegular,
     previousMonth: `${month.y}년 ${month.m}월`,
-    communityLinks: readClanCommunityLinks(settings.data?.community_links, settings.data ? clan.data : undefined),
+    communityLinks: readClanCommunityLinks(settings.data?.community_links),
     discordConnected: discord.error ? null : !!discord.data,
     mvp: { winRate: [], participation: [], prediction: [] },
     errors: {
