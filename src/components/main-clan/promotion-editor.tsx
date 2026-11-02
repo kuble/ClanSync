@@ -10,6 +10,7 @@ import { ImagePlus, Redo2, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PROMOTION_IMAGE_COUNT, PROMOTION_IMAGE_LIMIT, promotionImageUrl } from "@/lib/clan/promotion";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { promotionDocument, readPromotionDocument, type PromotionDraftBlock, type PromotionDraftImage } from "@/lib/clan/promotion-document";
 import styles from "./promotion-editor.module.css";
 
@@ -110,7 +111,19 @@ export function PromotionEditor({ gameSlug, clanId, blocks, onChange, disabled }
   }
   return <div className={styles.editor}>
     <div className={styles.toolbar}>
-      <div><Button type="button" variant="ghost" size="sm" disabled={disabled || !editor || photos >= 6} onMouseDown={event => event.preventDefault()} onClick={choosePhoto}><ImagePlus size={16} aria-hidden />사진 넣기</Button><span className={styles.divider} /><Button type="button" size="icon" variant="ghost" aria-label="실행 취소" disabled={disabled || !selection?.undo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().undo().run()}><Undo2 size={15} /></Button><Button type="button" size="icon" variant="ghost" aria-label="다시 실행" disabled={disabled || !selection?.redo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().redo().run()}><Redo2 size={15} /></Button></div><span>{photos} / 6장</span>
+      <div>
+        <Tooltip>
+          <TooltipTrigger render={<Button type="button" variant="ghost" size="sm" />}
+            disabled={disabled || !editor} aria-disabled={disabled || !editor || photos >= PROMOTION_IMAGE_COUNT}
+            onMouseDown={event => event.preventDefault()} onClick={() => { if (photos < PROMOTION_IMAGE_COUNT) choosePhoto(); }}>
+            <ImagePlus size={16} aria-hidden />사진 넣기
+          </TooltipTrigger>
+          <TooltipContent>사진은 최대 {PROMOTION_IMAGE_COUNT}장까지 넣을 수 있습니다.</TooltipContent>
+        </Tooltip>
+        <span className={styles.divider} />
+        <Button type="button" size="icon" variant="ghost" aria-label="실행 취소" disabled={disabled || !selection?.undo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().undo().run()}><Undo2 size={15} /></Button>
+        <Button type="button" size="icon" variant="ghost" aria-label="다시 실행" disabled={disabled || !selection?.redo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().redo().run()}><Redo2 size={15} /></Button>
+      </div>
     </div>
     <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden aria-label="홍보 사진 선택" disabled={disabled} onChange={event => { insertPhotos(Array.from(event.target.files ?? []),insertion.current); insertion.current=null; event.target.value = ""; }} />
     {selection?.image && <div className={styles.imageTools}><input aria-label="사진 설명" placeholder="사진 설명 (선택)" maxLength={160} value={selection.alt} disabled={disabled} onChange={event => editor?.commands.updateAttributes("image", { alt: event.target.value })} /><Button type="button" size="sm" variant="ghost" disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().command(({tr})=>{closeHistory(tr);return true;}).deleteSelection().run()}><Trash2 size={14} aria-hidden />선택한 사진 삭제</Button></div>}
