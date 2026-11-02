@@ -71,6 +71,8 @@ fieldset.board-scroll,
 }
 
 :root {
+  --toggle-duration: 200ms;
+  --toggle-easing: cubic-bezier(.2, .8, .2, 1);
   --background: #f4f7f6;
   --foreground: #0f1720;
   --surface: #eef3f1;
@@ -161,4 +163,12 @@ fieldset.board-scroll,
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* State controls share timing without animating layout or delaying input. */
+:where(button[aria-pressed], button[role="switch"], [role="radio"], [data-slot="tabs-trigger"], label:has(> input[type="radio"])) {
+  transition: background-color var(--toggle-duration) var(--toggle-easing), color var(--toggle-duration) var(--toggle-easing), border-color var(--toggle-duration) var(--toggle-easing), box-shadow var(--toggle-duration) var(--toggle-easing), opacity var(--toggle-duration) var(--toggle-easing);
+}
+:where([data-slot="switch"] ~ span, button[role="switch"] span) {
+  transition: background-color var(--toggle-duration) var(--toggle-easing), border-color var(--toggle-duration) var(--toggle-easing), transform var(--toggle-duration) var(--toggle-easing), translate var(--toggle-duration) var(--toggle-easing), opacity var(--toggle-duration) var(--toggle-easing);
 }

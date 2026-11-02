@@ -7,8 +7,8 @@
 .publishControl { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .visibility { position: relative; display: inline-flex; align-items: center; min-height: 32px; cursor: pointer; }
 .visibility input { position: absolute; right: 0; opacity: 0; }
-.visibility span { width: 30px; height: 18px; padding: 3px; border-radius: 99px; background: var(--muted-foreground); pointer-events: none; }
-.visibility span::after { content: ""; display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--background); }
+.visibility span { width: 30px; height: 18px; padding: 3px; border-radius: 99px; background: var(--muted-foreground); pointer-events: none; transition: background-color var(--toggle-duration) var(--toggle-easing); }
+.visibility span::after { content: ""; display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--background); transition: transform var(--toggle-duration) var(--toggle-easing); }
 .visibility input:checked + span { background: var(--primary); }
 .visibility input:checked + span::after { transform: translateX(12px); }
 .visibility input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 3px; }
