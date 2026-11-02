@@ -99,6 +99,7 @@
 - `clan_active_member_counts`
 - `clan_cosmetic_access`
 - `clan_emoji_reaction_counts`
+- `clan_inquiry`
 - `clan_peer_nicknames`
 - `close_balance_session_series`
 - `close_stale_balance_sessions`
@@ -121,7 +122,6 @@
 - `is_member_of_balance_session`
 - `issue_clan_participant_invite`
 - `join_clan_by_invite`
-- `join_inquiry`
 - `link_clan_participant`
 - `list_balance_roster_pool`
 - `list_board_comment_reactions`

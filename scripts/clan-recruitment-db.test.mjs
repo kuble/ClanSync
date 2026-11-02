@@ -10,6 +10,64 @@ import { readFile } from "node:fs/promises";
 async function ok(query) { const {data,error}=await query; assert.equal(error,null,error?.message); return data; }
 async function denied(query) { const {error}=await query; assert.ok(error,"Restricted operation unexpectedly succeeded"); return error; }
 
+test("clan inquiry is shared by current applicants and staff and closes individually on resolution", async t => {
+  const f = await createIsolatedBalanceFixture(5);
+  const clients = await Promise.all(f.users.map((_, i) => f.memberClient(i)));
+  const [leader, officer, first, second, member] = clients;
+  let otherId;
+  t.after(async () => {
+    await Promise.all(clients.map(client => client.auth.signOut()));
+    if (otherId) await ok(f.service.from("clans").delete().eq("id", otherId));
+    await f.cleanup();
+  });
+  const { clanId, gameId, service, users } = f;
+  const inquiry = (client, body, id = clanId) => client.rpc("clan_inquiry", { p_clan_id: id, p_body: body });
+  const apply = i => ok(clients[i].from("clan_join_requests").insert({ clan_id: clanId, game_id: gameId, user_id: users[i].id }).select("id").single());
+  const resolve = (request, decision) => ok(leader.rpc("resolve_clan_join_request", { p_clan_id: clanId, p_request_id: request.id, p_decision: decision }));
+  const closed = async (client, id = clanId) => {
+    assert.equal((await denied(inquiry(client, undefined, id))).code, "42501");
+    assert.equal((await denied(inquiry(client, "차단 확인", id))).code, "42501");
+  };
+
+  await ok(service.from("clan_members").update({ role: "officer" }).eq("clan_id", clanId).eq("user_id", users[1].id));
+  await ok(service.from("clan_members").delete().eq("clan_id", clanId).in("user_id", [users[2].id, users[3].id]));
+  otherId = (await ok(service.from("clans").insert({ game_id: gameId, name: "Inquiry-" + clanId.slice(0, 8) }).select("id").single())).id;
+  assert.deepEqual(await ok(inquiry(leader)), { messages: [] });
+  await closed(member);
+  await closed(second);
+  await closed(officer, otherId);
+
+  const firstRequest = await apply(2);
+  await ok(inquiry(first, "안녕하세요"));
+  const secondRequest = await apply(3);
+  const reply = await ok(inquiry(second, "두 번째 신청자입니다."));
+  assert.deepEqual(reply.messages.map(m => [m.body, m.isMine]), [["안녕하세요", false], ["두 번째 신청자입니다.", true]]);
+  assert.equal(reply.messages[0].nickname, users[2].nickname);
+  assert.ok(Number.isFinite(Date.parse(reply.messages[0].createdAt)));
+  assert.ok(!("canDelete" in reply.messages[0]) && !("expires" in reply));
+  await closed(second, otherId);
+  for (const emoji of ["👍🏽", "🇰🇷", "3️⃣", "👨‍👩‍👧", `[e:${randomUUID()}]`]) {
+    assert.equal((await denied(inquiry(second, "메시지 " + emoji))).code, "23514");
+  }
+  const staffReply = await ok(inquiry(officer, "#1 * 금요일 8시\n참여할게요!"));
+  assert.equal(staffReply.messages.at(-1).authorId, users[1].id);
+  assert.equal((await denied(officer.rpc("join_inquiry", { p_request: firstRequest.id, p_delete_id: reply.messages[0].id }))).code, "PGRST202");
+  assert.equal((await denied(first.rpc("clan_inquiry", { p_clan_id: clanId, p_delete_id: reply.messages[0].id }))).code, "PGRST202");
+
+  await resolve(firstRequest, "approved");
+  await closed(first);
+  assert.equal((await ok(inquiry(second))).messages.length, 3);
+  await resolve(secondRequest, "rejected");
+  await closed(second);
+  assert.equal((await ok(inquiry(officer))).messages.length, 3);
+  const reapplied = await apply(3);
+  await ok(second.from("clan_join_requests").update({ status: "canceled", resolved_by: users[3].id }).eq("id", reapplied.id));
+  await closed(second);
+  await ok(service.from("clan_members").update({ role: "member" }).eq("clan_id", clanId).eq("user_id", users[1].id));
+  await closed(officer);
+  assert.equal((await ok(inquiry(leader))).messages.length, 3);
+});
+
 test("birth-year ranges are advisory for applications and approvals and validated in atomic promotion saves",async t=>{
   const f=await createIsolatedBalanceFixture(4), svc=f.service;
   const clients=await Promise.all(f.users.map((_,index)=>f.memberClient(index))), [leader]=clients;
@@ -24,31 +82,8 @@ test("birth-year ranges are advisory for applications and approvals and validate
   await ok(save(1991,2004));
   for(const index of [1,3]) {const request=await ok(apply(index));await cancel(index,request.id);}
   const pending=await ok(apply(2));
-  const inquiry=(client,body)=>client.rpc("join_inquiry",{p_request:pending.id,p_body:body});
-  await denied(inquiry(clients[1],"다른 신청자"));
-  const room=await ok(inquiry(clients[2],"안녕하세요"));
-  assert.ok(Math.abs(Date.parse(room.expires)-Date.now()-86400000)<60000);
-  const reply=await ok(inquiry(leader,"반갑습니다"));
-  assert.equal(reply.expires,room.expires);
-  assert.deepEqual(reply.messages.map(m=>[m.applicant,m.body]),[[true,"안녕하세요"],[false,"반갑습니다"]]);
-  const [question, response] = reply.messages;
-  assert.deepEqual([question.authorId, question.nickname, question.isMine, question.canDelete], [f.users[2].id, f.users[2].nickname, false, true]);
-  assert.ok(Number.isFinite(Date.parse(question.createdAt)));
-  assert.equal(response.isMine, true);
-  const applicantView = await ok(inquiry(clients[2]));
-  assert.deepEqual(applicantView.messages.map(m => [m.isMine, m.canDelete]), [[true, true], [false, false]]);
-  for (const emoji of ["👍🏽", "🇰🇷", "3️⃣", "👨‍👩‍👧", `[e:${randomUUID()}]`]) {
-    assert.equal((await denied(inquiry(clients[2], "안녕하세요 " + emoji))).code, "23514");
-  }
-  const remove = (client, id) => client.rpc("join_inquiry", {p_request: pending.id, p_delete_id: id});
-  await denied(remove(clients[1], question.id));
-  await denied(remove(clients[2], response.id));
-  const text = await ok(inquiry(clients[2], "#1 * 금요일 8시\n참여할게요!"));
-  assert.equal((await ok(remove(clients[2], text.messages.at(-1).id))).messages.length, 2);
-  assert.deepEqual((await ok(remove(leader, question.id))).messages.map(m => m.id), [response.id]);
   await ok(save(2001,2004));
   await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
-  await denied(inquiry(clients[2],"종료 후"));
   assert.equal((await ok(svc.from("clan_members").select("status").eq("clan_id",f.clanId).eq("user_id",f.users[2].id).single())).status,"active");
   await denied(save(2001,1999));
   await denied(save(1949,null));

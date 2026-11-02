@@ -3547,6 +3547,10 @@ export type Database = {
           total: number
         }[]
       }
+      clan_inquiry: {
+        Args: { p_body?: string; p_clan_id: string }
+        Returns: Json
+      }
       clan_peer_nicknames: {
         Args: { p_clan_id: string }
         Returns: {
@@ -3683,10 +3687,6 @@ export type Database = {
           game_slug: string
           joined_clan_id: string
         }[]
-      }
-      join_inquiry: {
-        Args: { p_body?: string; p_delete_id?: number; p_request: string }
-        Returns: Json
       }
       link_clan_participant: {
         Args: { p_clan_id: string; p_participant_id: string; p_user_id: string }
