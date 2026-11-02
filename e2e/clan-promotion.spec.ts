@@ -121,8 +121,14 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await page.screenshot({path:testInfo.outputPath("clan-promotion-range.png"),fullPage:true});
     await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
     await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-dark.png"),fullPage:true});
-    for (const width of [1304,744,390]) {
+    for (const width of [1304,976,744,390]) {
       await page.setViewportSize({width,height:844});
+      if (width === 976) {
+        const styleBox = await styleSelect.boundingBox();
+        const positionBox = await roleButton("전체").boundingBox();
+        expect(positionBox!.x).toBeGreaterThan(styleBox!.x + styleBox!.width);
+        expect(Math.abs(positionBox!.y - styleBox!.y)).toBeLessThan(5);
+      }
       await year.scrollIntoViewIfNeeded();
       await expect(gender.getByRole("radio",{name:"남성",exact:true})).toBeVisible();
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);

@@ -37,8 +37,8 @@
 .tierSection { min-width: 0; margin-top: 16px; }
 .tierHeading { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
 .tierValue { margin-inline-start: auto; font-size: 13px; font-weight: 600; color: var(--primary); }
-@container recruitment (min-width: 404px) {
-  .audienceFields { grid-template-columns: minmax(100px, .65fr) minmax(176px, 1fr); }
+@container recruitment (min-width: 304px) {
+  .audienceFields:has(.positions) { grid-template-columns: minmax(100px, .65fr) minmax(176px, 1fr); }
 }
 @media (pointer: coarse) { .positionToggle button { min-height: 38px; } .styleField select { height: 44px; } }
 .invitePanel { grid-column: 1 / -1; }
