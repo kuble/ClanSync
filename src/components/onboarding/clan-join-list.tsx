@@ -77,8 +77,26 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     } finally { setBusy(false); }
   }
 
-  function renderCard(clan: ClanListRow, pinned = false) {
+  function renderFavorite(clan: ClanListRow) {
     const isFavorite = savedFavorites[clan.id] ?? !!clan.isFavorite;
+    return <Button type="button" variant="ghost" size="icon-sm" aria-label={clan.name + " 즐겨찾기"} aria-pressed={isFavorite} title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"} disabled={savingFavorite}
+      onClick={async () => {
+        setSavingFavorite(true);
+        try {
+          if (!await setClanFavorite(clan.id, !isFavorite)) throw new Error();
+          setSavedFavorites(previous => ({ ...previous, [clan.id]: !isFavorite }));
+          router.refresh();
+        } catch {
+          toast.error("즐겨찾기를 저장하지 못했습니다. 다시 시도해 주세요.");
+        } finally {
+          setSavingFavorite(false);
+        }
+      }}>
+      <Star aria-hidden className={isFavorite ? "fill-primary text-primary" : "text-muted-foreground"} />
+    </Button>;
+  }
+
+  function renderCard(clan: ClanListRow, pinned = false) {
     const isPending = effectivePendingId === clan.id;
     return <article className={styles.clanCard}>
       <button type="button" className={styles.overview} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}>
@@ -99,21 +117,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </button>
       <div className={styles.clanFooter}>
         {isPending && <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden />신청 대기 중</Badge>}
-        <Button type="button" variant="ghost" size="icon-sm" aria-label={clan.name + " 즐겨찾기"} aria-pressed={isFavorite} title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"} disabled={savingFavorite}
-          onClick={async () => {
-            setSavingFavorite(true);
-            try {
-              if (!await setClanFavorite(clan.id, !isFavorite)) throw new Error();
-              setSavedFavorites(previous => ({ ...previous, [clan.id]: !isFavorite }));
-              router.refresh();
-            } catch {
-              toast.error("즐겨찾기를 저장하지 못했습니다. 다시 시도해 주세요.");
-            } finally {
-              setSavingFavorite(false);
-            }
-          }}>
-          <Star aria-hidden className={isFavorite ? "fill-primary text-primary" : "text-muted-foreground"} />
-        </Button>
+        {renderFavorite(clan)}
       </div>
     </article>;
   }
@@ -141,7 +145,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`} disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} favorite={renderFavorite(details)} onClose={closeDetails} action={canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`} disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
     </Dialog>
   </>;
 }

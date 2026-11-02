@@ -271,7 +271,13 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page.locator("article").first()).toContainText(clanName);
     await page.reload();
     await expect(favorite).toHaveAttribute("aria-pressed","true");
-    await favorite.click();
+    await page.getByRole("button",{name:clanName+" 클랜 상세 보기",exact:true}).click();
+    const favoriteDialog = page.getByRole("dialog");
+    const detailFavorite = favoriteDialog.getByRole("button",{name:clanName+" 즐겨찾기",exact:true});
+    await expect(detailFavorite).toHaveAttribute("aria-pressed","true");
+    await detailFavorite.click();
+    await expect(detailFavorite).toHaveAttribute("aria-pressed","false");
+    await favoriteDialog.getByRole("button",{name:"닫기",exact:true}).last().click();
     await expect(page.getByRole("button",{name:clanName+" 즐겨찾기",exact:true}).and(page.locator('[aria-pressed="true"]'))).toHaveCount(0);
     await expect.poll(async () => (await f.service.from("clan_favorites").select("clan_id").eq("clan_id",f.clanId)).data, {timeout:20000}).toEqual([]);
     await page.goto("/games/overwatch/clan?q="+encodeURIComponent(clanName)+"&style=casual");
