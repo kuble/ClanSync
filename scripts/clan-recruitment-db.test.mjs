@@ -31,6 +31,21 @@ test("birth-year ranges are advisory for applications and approvals and validate
   const reply=await ok(inquiry(leader,"반갑습니다"));
   assert.equal(reply.expires,room.expires);
   assert.deepEqual(reply.messages.map(m=>[m.applicant,m.body]),[[true,"안녕하세요"],[false,"반갑습니다"]]);
+  const [question, response] = reply.messages;
+  assert.deepEqual([question.authorId, question.nickname, question.isMine, question.canDelete], [f.users[2].id, f.users[2].nickname, false, true]);
+  assert.ok(Number.isFinite(Date.parse(question.createdAt)));
+  assert.equal(response.isMine, true);
+  const applicantView = await ok(inquiry(clients[2]));
+  assert.deepEqual(applicantView.messages.map(m => [m.isMine, m.canDelete]), [[true, true], [false, false]]);
+  for (const emoji of ["👍🏽", "🇰🇷", "3️⃣", "👨‍👩‍👧", `[e:${randomUUID()}]`]) {
+    assert.equal((await denied(inquiry(clients[2], "안녕하세요 " + emoji))).code, "23514");
+  }
+  const remove = (client, id) => client.rpc("join_inquiry", {p_request: pending.id, p_delete_id: id});
+  await denied(remove(clients[1], question.id));
+  await denied(remove(clients[2], response.id));
+  const text = await ok(inquiry(clients[2], "#1 * 금요일 8시\n참여할게요!"));
+  assert.equal((await ok(remove(clients[2], text.messages.at(-1).id))).messages.length, 2);
+  assert.deepEqual((await ok(remove(leader, question.id))).messages.map(m => m.id), [response.id]);
   await ok(save(2001,2004));
   await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
   await denied(inquiry(clients[2],"종료 후"));

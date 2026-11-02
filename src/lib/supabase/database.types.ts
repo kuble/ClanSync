@@ -3685,7 +3685,7 @@ export type Database = {
         }[]
       }
       join_inquiry: {
-        Args: { p_body?: string; p_request: string }
+        Args: { p_body?: string; p_delete_id?: number; p_request: string }
         Returns: Json
       }
       link_clan_participant: {

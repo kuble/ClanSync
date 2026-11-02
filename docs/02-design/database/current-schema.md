@@ -7,7 +7,7 @@
 - QA 확인: `npm run db:test:types` → 생성 타입 대조·동기화 → `npm run db:schema:index`.
 - RLS·제약·함수 본문은 타입에 포함되지 않으므로 해당 마이그레이션을 확인한다. 운영 반영은 별도 승인 범위다.
 
-테이블 66개 · 함수 108개 · 열거형 35개.
+테이블 67개 · 함수 113개 · 열거형 35개.
 
 ## 테이블
 
@@ -41,6 +41,7 @@
 | `clan_emoji_reactions` | 7 | 6 |
 | `clan_emojis` | 6 | 1 |
 | `clan_events` | 18 | 3 |
+| `clan_favorites` | 2 | 2 |
 | `clan_hof_comment_reactions` | 3 | 2 |
 | `clan_hof_comments` | 7 | 2 |
 | `clan_join_requests` | 12 | 4 |
@@ -55,7 +56,7 @@
 | `clan_personal_emblem_picks` | 4 | 2 |
 | `clan_polls` | 15 | 3 |
 | `clan_settings` | 8 | 2 |
-| `clans` | 28 | 1 |
+| `clans` | 27 | 1 |
 | `coin_transactions` | 13 | 4 |
 | `event_rsvps` | 5 | 2 |
 | `games` | 8 | 0 |
@@ -106,17 +107,21 @@
 - `count_lfg_applications`
 - `create_balance_room`
 - `delegate_balance_room`
+- `discover_clans`
 - `dispatch_inapp_notification_batch`
 - `edit_clan_match_record`
 - `effective_view_alt_account_roles`
 - `expire_open_lfg_posts_batch`
 - `finalize_clan_personal_emblem_awards`
 - `finalize_discord_bot_notification`
+- `get_clan_join_invite`
 - `get_clan_namecards`
 - `is_active_clan_member`
 - `is_clan_officer_plus`
 - `is_member_of_balance_session`
 - `issue_clan_participant_invite`
+- `join_clan_by_invite`
+- `join_inquiry`
 - `link_clan_participant`
 - `list_balance_roster_pool`
 - `list_board_comment_reactions`
@@ -138,6 +143,7 @@
 - `read_balance_analysis_context`
 - `read_balance_prediction_pool`
 - `read_clan_badge_metrics`
+- `read_clan_join_invite`
 - `read_clan_match_record_corrections`
 - `read_clan_participant_invite`
 - `read_clan_personal_emblem_award_source`
