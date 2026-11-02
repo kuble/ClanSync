@@ -131,8 +131,8 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(panel.getByRole("listitem").locator("p")).toHaveText(chronological);
     expect(Math.abs((await anchor.boundingBox())!.y - anchorY)).toBeLessThan(2);
     await expect(panel.getByRole("separator")).toHaveText(["2024년 12월 31일 화요일", "2025년 1월 1일 수요일"]);
-    await expect(panel.getByRole("listitem").filter({ hasText: "한국 자정 이전" }).locator("time")).toHaveText("오후 11:59");
-    await expect(panel.getByRole("listitem").filter({ hasText: "한국 자정 이후" }).locator("time")).toHaveText("오전 12:00");
+    await expect(panel.getByRole("listitem").filter({ hasText: "한국 자정 이전" }).locator("time")).toHaveText("23:59");
+    await expect(panel.getByRole("listitem").filter({ hasText: "한국 자정 이후" }).locator("time")).toHaveText("00:00");
     await expect(panel.getByRole("button", { name: /댓글 삭제/ })).toHaveCount(0);
     await page.getByLabel("순위 보고 한마디").fill(draft);
     await panel.getByRole("button", { name: "댓글 이모티콘 선택", exact: true }).click();
@@ -145,7 +145,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction", "row-reverse");
     await expect(panel.getByRole("listitem").first().locator("[data-comment-row]")).toHaveCSS("flex-direction", "row");
     await expect(panel.getByRole("separator")).toHaveCount(3);
-    await expect(reply.locator("time")).toHaveText(/^(오전|오후) \d{1,2}:\d{2}$/);
+    await expect(reply.locator("time")).toHaveText(/^\d{2}:\d{2}$/);
     await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true })).toHaveText("");
     await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).locator("svg")).toBeVisible();
     await expect(viewport).toHaveAttribute("data-more-below", "false");
@@ -312,6 +312,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     try {
       const touchPage = await touchContext.newPage();
       await touchPage.goto(path);
+      await touchPage.getByRole("button", { name: "반응", exact: true }).tap();
       const touchReply = touchPage.getByRole("listitem").filter({ has: touchPage.getByText(content, { exact: true }) });
       const touchPicker = touchReply.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true });
       await expect(touchPicker).toHaveCSS("opacity", "1");
@@ -353,7 +354,25 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(leaderPage.getByText(content, { exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "반응 새로고침", exact: true }).click();
     await expect(page.getByText(content, { exact: true })).toHaveCount(0);
+    await page.setViewportSize({ width: 999, height: 844 });
+    const reactionTrigger = page.getByRole("button", { name: "반응", exact: true });
+    await expect(reactionTrigger).toBeVisible();
+    await expect(page.getByLabel("순위 보고 한마디")).toBeHidden();
+    await reactionTrigger.click();
+    const drawer = page.getByRole("dialog", { name: "전체 기간 · 승률 반응", exact: true });
+    await expect(drawer).toHaveAttribute("data-side", "right");
+    await page.getByLabel("순위 보고 한마디").fill("화면을 바꿔도 남아 있는 초안");
+    await drawer.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(drawer).toBeHidden();
+    await expect(reactionTrigger).toBeFocused();
+    await reactionTrigger.click();
+    await expect(page.getByLabel("순위 보고 한마디")).toHaveText("화면을 바꿔도 남아 있는 초안");
+    await page.setViewportSize({ width: 1000, height: 844 });
+    await expect(drawer).toHaveCount(0);
+    await expect(reactionTrigger).toBeHidden();
+    await expect(page.getByLabel("순위 보고 한마디")).toHaveText("화면을 바꿔도 남아 있는 초안");
     await page.setViewportSize({ width: 390, height: 844 });
+    await expect(drawer).toBeVisible();
     await expect(page.getByLabel("순위 보고 한마디")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally {

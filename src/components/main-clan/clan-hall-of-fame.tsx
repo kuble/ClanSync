@@ -4,7 +4,8 @@ import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
-import { Crown, Trophy } from "lucide-react";
+import { Crown, MessageSquare, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
@@ -38,6 +39,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const month = `${period.year}-${period.month}`, year = period.year;
   const [ranking, setRanking] = useState<(typeof RANKINGS)[number]["id"]>("rate");
+  const [reactionsOpen, setReactionsOpen] = useState(false);
   const selectedBlock = period.mode === "all" ? model.hof.periods.all
     : period.mode === "month" ? (month === currentMonth ? model.hof.periods.month : model.hof.historyMonths[month])
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
@@ -71,7 +73,10 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
       {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
       <div className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto sm:flex-1 sm:gap-3">
         <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
-        <div className="ml-auto shrink-0">{settings}</div>
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+          {active && !block.undisclosed && !reactions && <Button type="button" size="sm" variant="outline" className="min-[1000px]:hidden" onClick={() => setReactionsOpen(true)} aria-haspopup="dialog"><MessageSquare aria-hidden />반응</Button>}
+          {settings}
+        </div>
       </div>
     </section>
     {loaded.feedback}
@@ -111,7 +116,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                 </StatsScrollArea>
             </CardContent>
           </Card>
-          {reactions ?? <HofComments clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />}
+          {reactions ?? <HofComments clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} drawerOpen={reactionsOpen} onDrawerOpenChange={setReactionsOpen} />}
       </div>
     </>}
   </div>;

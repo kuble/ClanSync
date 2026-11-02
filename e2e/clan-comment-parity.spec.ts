@@ -124,14 +124,17 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       expect(pickerBox!.x + pickerBox!.width).toBeLessThanOrEqual(customBox!.x);
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-desktop.png`), animations: "disabled" });
       await current.setViewportSize({ width: 390, height: 844 });
+      if (surface.name === "stats") await current.getByRole("button", { name: "반응", exact: true }).click();
       const peer = scope.getByRole("listitem").filter({ hasText: peerContent });
       await peer.hover();const peerBubble = (await peer.locator("p").boundingBox())!, peerPicker = (await peer.getByRole("button", { name: /댓글 공감 선택$/ }).boundingBox())!;
       expect(peerPicker.x).toBeGreaterThanOrEqual(peerBubble.x + peerBubble.width);
       expect(await current.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-mobile.png`), animations: "disabled" });
       for (const row of [own, peer]) await readableConversation(row);
+      if (surface.name === "stats") await current.keyboard.press("Escape");
       await current.getByRole("button", { name: "라이트 테마", exact: true }).click();
       await expect(current.locator("html")).toHaveClass(/\blight\b/);
+      if (surface.name === "stats") await current.getByRole("button", { name: "반응", exact: true }).click();
       for (const row of [own, peer]) await readableConversation(row);
       await peer.hover();
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-light-mobile.png`), animations: "disabled" });
@@ -206,7 +209,9 @@ test("comment groups share identity until the author or KST day changes", async 
       await expect(rows[2].locator("time")).toHaveCount(0);
       await expect(rows[5].locator("time")).toHaveCount(1);
       for (const width of [1015, 390]) {
-        await surface.page.setViewportSize({ width, height: 884 });await rows[1].hover();
+        await surface.page.setViewportSize({ width, height: 884 });
+        if (surface.name === "stats" && width < 1000) await surface.page.getByRole("button", { name: "반응", exact: true }).click();
+        await rows[1].hover();
         expect(await surface.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         await surface.page.screenshot({ path: test.info().outputPath(`${surface.name}-groups-${width}.png`), animations: "disabled" });
       }

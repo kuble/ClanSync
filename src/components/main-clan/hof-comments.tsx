@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { MessageSquare, RefreshCw } from "lucide-react";
 import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, listHofCommentReactionPeopleAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
 import { HOF_COMMENT_MAX_LENGTH, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
@@ -8,30 +8,48 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+type DrawerProps = { drawerOpen?: boolean; onDrawerOpenChange?: (open: boolean) => void };
+const narrowQuery = "(width < 1000px)";
+function subscribeNarrow(onChange: () => void) {
+  const query = window.matchMedia(narrowQuery);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const isNarrow = () => window.matchMedia(narrowQuery).matches;
+const serverNarrow = () => false;
 
 /** Preserve the card and controls; only a thread's draft/replies reset on a scope change. */
-export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThread & { label: string }) {
+export function HofComments(props: HofCommentThread & { label: string } & DrawerProps) {
+  const { clanId, ranking, periodKey } = props;
   const key = clanId + ":" + ranking + ":" + periodKey;
-  const [refresh, setRefresh] = useState(0);
-  const [status, setStatus] = useState<{ key: string; loading: boolean; busy: boolean }>();
-  const onStatus = useCallback((loading: boolean, busy: boolean) => setStatus({ key, loading, busy }), [key]);
-  const disabled = status?.key !== key || status.loading || status.busy;
-  return <HofCommentsCard label={label} disabled={disabled} onRefresh={() => setRefresh(value => value + 1)}>
-    <HofCommentsThread key={key} clanId={clanId} ranking={ranking} periodKey={periodKey} refresh={refresh} onStatus={onStatus} />
-  </HofCommentsCard>;
+  return <HofCommentsThread key={key} {...props} />;
 }
 
-export function HofCommentsCard({ label, disabled, onRefresh, children }: { label: string; disabled: boolean; onRefresh: () => void; children: ReactNode }) {
-  return <Card size="sm" className="h-[36rem] min-w-0 overflow-hidden" aria-label={label + " 반응"}>
+export function HofCommentsCard({ label, disabled, onRefresh, children, drawerOpen = false, onDrawerOpenChange }: { label: string; disabled: boolean; onRefresh: () => void; children: ReactNode } & DrawerProps) {
+  const narrow = useSyncExternalStore(subscribeNarrow, isNarrow, serverNarrow);
+  const refreshButton = <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={onRefresh}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>;
+  if (narrow) return <Sheet open={drawerOpen} onOpenChange={onDrawerOpenChange}>
+    <SheetContent keepMounted aria-label={label + " 반응"} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
+      <SheetHeader className="shrink-0 border-b pr-12">
+        <div className="flex items-center justify-between gap-3"><SheetTitle className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden /><span className="sr-only">{label} </span>반응</SheetTitle>{refreshButton}</div>
+        <SheetDescription>{label}</SheetDescription>
+      </SheetHeader>
+      {children}
+    </SheetContent>
+  </Sheet>;
+  return <Card size="sm" className="hidden h-[36rem] min-w-0 overflow-hidden min-[1000px]:flex" aria-label={label + " 반응"}>
     <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
       <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응</h4></CardTitle>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={onRefresh}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>
+      {refreshButton}
     </CardHeader>
     {children}
   </Card>;
 }
 
-function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: HofCommentThread & { refresh: number; onStatus: (loading: boolean, busy: boolean) => void }) {
+function HofCommentsThread({ clanId, ranking, periodKey, label, drawerOpen, onDrawerOpenChange }: HofCommentThread & { label: string } & DrawerProps) {
+  const [refresh, setRefresh] = useState(0);
   const [comments, setComments] = useState<HofComment[]>([]);
   const [cursor, setCursor] = useState<{ createdAt: string; id: string } | null>(null);
   const [draft, setDraft] = useState("");
@@ -45,12 +63,11 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
   useLayoutEffect(() => {
     const el = viewport.current;
     const update = scrollUpdate.current;
-    if (loading || !el || !update) return;
+    if (loading || !el || !update || !el.getClientRects().length) return;
     el.scrollTop = update === "latest" ? el.scrollHeight : update.top + el.scrollHeight - update.height;
     scrollUpdate.current = null;
-  }, [comments, loading]);
+  }, [comments, loading, drawerOpen]);
 
-  useEffect(() => { onStatus(loading, busy); }, [loading, busy, onStatus]);
   useEffect(() => {
     let active = true;
     setLoading(true); setError("");
@@ -114,6 +131,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
   const chronological = [...comments].reverse();
 
   return (
+    <HofCommentsCard label={label} disabled={loading || busy} onRefresh={() => setRefresh(value => value + 1)} drawerOpen={drawerOpen} onDrawerOpenChange={onDrawerOpenChange}>
     <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <StatsScrollArea label="순위 댓글 목록" className="min-h-0 flex-1" viewportRef={viewport}>
@@ -124,5 +142,6 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       </StatsScrollArea>
       <ClanCommentComposer pickerLabel="댓글 이모티콘 선택" id="hof-comment" label="순위 보고 한마디" value={draft} onChange={setDraft} onSubmit={submit} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} submitDisabled={loading} placeholder="이번 순위에 한마디 남겨보십시오." />
     </CardContent>
+    </HofCommentsCard>
   );
 }
