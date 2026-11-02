@@ -45,7 +45,6 @@
 .clanSubtitle[data-style="casual"] { --style-tint: #55a18a; }
 .clanSubtitle[data-style="tryhard"] { --style-tint: #bd8752; }
 .clanSubtitle[data-style="pro"] { --style-tint: #608eb8; }
-.clanTitle { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .cardTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .cardTags > span { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 7px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); font-size: 11px; overflow-wrap: anywhere; }
 .cardTags svg { flex-shrink: 0; }

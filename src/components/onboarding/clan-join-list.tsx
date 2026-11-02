@@ -84,7 +84,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
             <strong>{clan.name}</strong>
             {clan.style && <span className={styles.clanSubtitle} data-style={clan.style}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}
           </span>
-          {clan.promotion?.title && <span className={styles.clanTitle}>{clan.promotion.title}</span>}
           <span className={styles.cardTags}>
             <span><CalendarDays size={12} aria-hidden />{recruitmentYearLabel({birth_year_from:clan.birth_year_from ?? null,min_birth_year:clan.min_birth_year ?? null})}</span>
             <span><Trophy size={12} aria-hidden />{recruitmentTierSummary(gameSlug, clan.tier_range ?? [])}</span>

@@ -44,7 +44,7 @@ test("discovery filters account demographics before pagination and preserves oth
     for (const tag of ["티어 무관","골드~마스터","다이아몬드"]) {
       await expect(tierResults.getByText(tag,{exact:true})).toBeVisible();
     }
-    await expect(tierResults.getByText("주말 오버워치 내전 멤버 모집")).toBeVisible();
+    await expect(tierResults.getByText("주말 오버워치 내전 멤버 모집")).toHaveCount(0);
     for (const width of [1074,390]) {
       await page.setViewportSize({width,height:884});
       const heights = await tierResults.evaluateAll(rows => rows.map(row => row.getBoundingClientRect().height));

@@ -262,7 +262,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page.getByTestId(`clan-join-open-${f.clanId}`)).toBeEnabled();
     const card=page.getByRole("button",{name:`${clanName} 클랜 상세 보기`,exact:true});
     await expect(card.getByText("골드",{exact:true})).toBeVisible();
-    await expect(card).toContainText(title);
+    await expect(card).not.toContainText(title);
     await expect(card).toContainText("즐겜");
     await expect(card.locator("..")).not.toContainText("탱커·힐러 모집");
     await expect(card).toContainText("1990~1999년생");
@@ -301,7 +301,8 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page).not.toHaveURL(/promotion=/);
     await page.getByRole("dialog").getByTestId(`clan-join-send-${f.clanId}`).click();
     await expect(page.getByText("가입 신청을 보냈습니다.",{exact:true})).toBeVisible();
-    await expect(page.getByTestId("clan-join-pinned-pending-section")).toContainText(title);
+    await expect(page.getByTestId("clan-join-pinned-pending-section")).toContainText(clanName);
+    await expect(page.getByTestId("clan-join-pinned-pending-section")).not.toContainText(title);
     const pending=await f.service.from("clan_join_requests").select("status").eq("clan_id",f.clanId).eq("user_id",f.users[1].id).single(); expect(pending.error).toBeNull(); expect(pending.data?.status).toBe("pending");
     await page.goto(`/games/overwatch/clan?promotion=${scrim.data!.id}`);
     await expect(page.getByRole("heading",{name:"404",exact:true})).toBeVisible();
