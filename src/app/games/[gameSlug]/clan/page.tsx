@@ -112,7 +112,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
         clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"}
         pendingActions={pendingBrief && <>
           <InquiryButton clanId={pendingBrief.clanId} />
-          <form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form>
+          <form action={cancelBound}><Button type="submit" variant="destructive" size="sm">신청 취소</Button></form>
         </>}
         filters={<ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
           <div className={discover.filterHeader}>
