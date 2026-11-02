@@ -41,6 +41,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   const [postId] = useState(() => post?.id ?? crypto.randomUUID());
   const [version, setVersion] = useState(post?.updated_at ?? "");
   const [title, setTitle] = useState(post?.title ?? "");
+  const [contactUrl, setContactUrl] = useState(initial.interview_url ?? "");
   const [blocks, setBlocks] = useState(() => draftPromotionBlocks(promotionBlocks(post)));
   const [tierRange, setTierRange] = useState<number[]>(() => {
     const initialTiers = initial.tier_range.map(tier => normalizeRecruitmentTier(gameSlug,tier));
@@ -152,7 +153,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
                   <CircleHelp size={14} aria-hidden />
                 </StatTooltip>
               </div>
-              <Input id="interview-url" name="interview_url" type="url" maxLength={1000} defaultValue={initial.interview_url ?? ""} placeholder="https://…" />
+              <Input id="interview-url" name="interview_url" type="url" maxLength={1000} value={contactUrl} onChange={event => setContactUrl(event.target.value)} placeholder="https://…" />
             </div>
             <div className={styles.previewActions}>
               <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
