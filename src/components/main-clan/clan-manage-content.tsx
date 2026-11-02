@@ -62,7 +62,7 @@ async function Promotion({ ctx }: Pick<Props, "ctx">) {
     client.from("board_posts").select("id,title,content,content_blocks,created_at,updated_at").eq("clan_id",ctx.clanId).eq("post_type","promotion").order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1),
   ]);
   if (conditions.error || posts.error) throw new Error("클랜 홍보 정보를 불러오지 못했습니다.");
-  return <ClanPromotionSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initial={{...conditions.data,active_members:ctx.memberCount}} post={posts.data[0] ?? null} />;
+  return <ClanPromotionSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initial={{...conditions.data,icon_url:ctx.iconUrl,active_members:ctx.memberCount}} post={posts.data[0] ?? null} />;
 }
 
 async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx" | "connectionResult">) {

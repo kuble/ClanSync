@@ -1,5 +1,6 @@
 "use client";
 
+import { Shield } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { CalendarDays, Compass, ExternalLink, Hash, Layers, Trophy, UsersRound } from "lucide-react";
@@ -36,7 +37,7 @@ export function ClanPromotionDialogContent({ gameSlug, clan, title, blocks, onCl
     ...clan.tags.map(label => ({ icon: Hash, label })),
   ];
   return <DialogContent className={`sm:max-w-3xl ${styles.dialog}`}>
-    <DialogHeader><div className={styles.detailHeading}><span className={styles.clanEmblem} aria-hidden="true">{clan.name.slice(0, 1)}</span><div className="min-w-0">
+    <DialogHeader><div className={styles.detailHeading}><span className={styles.clanEmblem} aria-hidden="true">{clan.icon_url ? <Image src={clan.icon_url} alt="" width={44} height={44} unoptimized className="size-full rounded-[inherit] object-cover" /> : <Shield size={22} />}</span><div className="min-w-0">
       <DialogTitle className="break-words">{title ?? clan.promotion?.title ?? clan.name}</DialogTitle>
       <DialogDescription className="mt-2">{clan.name}</DialogDescription>
     </div></div></DialogHeader>

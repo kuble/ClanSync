@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { Shield } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Clock3 } from "lucide-react";
@@ -14,7 +15,7 @@ import { promotionBlocks, promotionImageUrl, type PromotionPost } from "@/lib/cl
 import { ClanPromotionDialogContent } from "./clan-promotion-dialog-content";
 
 export type ClanListRow = {
-  id: string; name: string; description: string | null; tags: string[]; max_members: number;
+  id: string; name: string; icon_url?: string | null; description: string | null; tags: string[]; max_members: number;
   active_members?: number | null; rules?: string | null; style?: string | null; tier_range?: string[]; recruitment_positions?: string[];
   created_at?: string; discord_url?: string | null; kakao_url?: string | null; subscription_tier?: string;
   birth_year_from?: number | null; min_birth_year?: number | null; gender_policy?: "all" | "male" | "female"; eligibilityError?: string | null;
@@ -79,7 +80,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       <button type="button" className={styles.overview} data-has-photo={!!cover} onClick={() => setDetails(clan)} aria-label={`${clan.name} 클랜 상세 보기`}>
         {cover?.type === "image" && <span className={styles.cover}><Image src={promotionImageUrl(gameSlug,clan.id,cover.path)} alt={cover.alt || `${clan.name}의 활동 사진`} width={600} height={400} loading={pinned || (!pinnedPendingClan && clan.id === displayClans[0]?.id) ? "eager" : "lazy"} unoptimized /></span>}
         <span className={styles.clanText}>
-          <span className={styles.clanIdentity}><span className={styles.miniEmblem} aria-hidden>{clan.name.slice(0,1)}</span>{clan.name}{clan.style && <span className={styles.clanSubtitle}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}</span>
+          <span className={styles.clanIdentity}><span className={styles.miniEmblem} aria-hidden="true">{clan.icon_url ? <Image src={clan.icon_url} alt="" width={26} height={26} unoptimized className="size-full rounded-[inherit] object-cover" /> : <Shield size={13} />}</span>{clan.name}{clan.style && <span className={styles.clanSubtitle}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}</span>
           <span className={styles.clanTitle}>{clan.promotion?.title || `${clan.name}에서 함께할 클랜원을 찾습니다`}</span>
         </span>
       </button>
