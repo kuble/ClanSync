@@ -105,6 +105,11 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           <span className={styles.clanIdentity}>
             <button type="button" className={styles.detailTrigger} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}><strong>{clan.name}</strong></button>
             {renderFavorite(clan)}
+            {isPending && (
+              <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}>
+                <Clock3 size={12} aria-hidden />신청 대기 중
+              </Badge>
+            )}
           </span>
           <span className={styles.cardTags}>
             <span data-style={clan.style || undefined}><Compass size={12} aria-hidden /><span className="sr-only">클랜 지향 </span>{clan.style ? STYLE_LABEL[clan.style] ?? clan.style : "무관"}</span>
@@ -114,7 +119,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         </span>
         <ChevronRight size={16} aria-hidden className={styles.detailArrow} />
       </div>
-      {isPending && <div className={styles.clanFooter}><Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden />신청 대기 중</Badge></div>}
     </article>;
   }
 

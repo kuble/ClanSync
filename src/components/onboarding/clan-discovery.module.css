@@ -54,8 +54,6 @@
 .cardTags svg { flex-shrink: 0; }
 .detailArrow { flex: none; color: var(--muted-foreground); }
 .overview:hover .clanIdentity strong, .overview:hover .detailArrow { color: var(--primary); }
-.clanCard:has(.clanFooter) .clanIdentity { padding-right: 88px; }
-.clanFooter { position: absolute; top: 6px; right: 16px; pointer-events: none; display: flex; align-items: center; gap: 4px; justify-self: end; }
 .error { color: var(--destructive); font-size: 12px; }
 .empty { padding: 48px 20px; border: 1px dashed var(--border); border-radius: 12px; text-align: center; color: var(--muted-foreground); font-size: 13px; }
 .dialog { gap: 0; padding: 0; overflow: hidden; }
@@ -91,7 +89,6 @@
   .overview { gap: 10px; }
   .miniEmblem { width: 44px; height: 44px; }
   .clanIdentity strong { font-size: 16px; }
-  .clanFooter { flex-direction: column-reverse; }
 }
 @media (max-width: 700px) {
   .dialog > [data-slot="dialog-header"] { padding: 24px 20px 18px; }
