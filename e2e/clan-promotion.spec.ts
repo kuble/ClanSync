@@ -264,8 +264,15 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page).toHaveURL(url => url.searchParams.get("q") === clanName && url.searchParams.get("style") === "casual");
     await expect(page.getByRole("button",{name:"가입 신청",exact:true})).toHaveCount(0);
     const favorite = page.getByRole("button",{name:clanName+" 즐겨찾기",exact:true});
-    await page.getByRole("article").filter({has:favorite}).hover();
-    await favorite.click();
+    await page.setViewportSize({width:390,height:844});
+    await expect(favorite).toBeHidden();
+    await page.getByRole("button",{name:clanName+" 클랜 상세 보기",exact:true}).click();
+    const mobileDialog = page.getByRole("dialog");
+    const mobileFavorite = mobileDialog.getByRole("button",{name:clanName+" 즐겨찾기",exact:true});
+    await mobileFavorite.click();
+    await expect(mobileFavorite).toHaveAttribute("aria-pressed","true");
+    await mobileDialog.getByRole("button",{name:"닫기",exact:true}).last().click();
+    await expect(favorite).toBeVisible();
     await expect(favorite).toHaveAttribute("aria-pressed","true");
     await expect(favorite).toBeEnabled({timeout:20000});
     await page.goto("/games/overwatch/clan");
@@ -279,6 +286,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await detailFavorite.click();
     await expect(detailFavorite).toHaveAttribute("aria-pressed","false");
     await favoriteDialog.getByRole("button",{name:"닫기",exact:true}).last().click();
+    await expect(favorite).toBeHidden();
     await expect(page.getByRole("button",{name:clanName+" 즐겨찾기",exact:true}).and(page.locator('[aria-pressed="true"]'))).toHaveCount(0);
     await expect.poll(async () => (await f.service.from("clan_favorites").select("clan_id").eq("clan_id",f.clanId)).data, {timeout:20000}).toEqual([]);
     await page.goto("/games/overwatch/clan?q="+encodeURIComponent(clanName)+"&style=casual");

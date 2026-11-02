@@ -39,6 +39,9 @@
 .detailTrigger { min-width: 0; text-align: start; cursor: pointer; }
 .detailTrigger::after { content: ""; position: absolute; inset: 0; border-radius: 12px; }
 .clanIdentity > [aria-pressed] { position: relative; z-index: 1; }
+@media (max-width: 820px), (hover: none), (pointer: coarse) {
+  .clanIdentity > [aria-pressed="false"] { display: none; }
+}
 @media (hover: hover) and (pointer: fine) {
   .clanCard:not(:hover):not(:focus-within) .clanIdentity > [aria-pressed="false"] { opacity: 0; pointer-events: none; }
 }
