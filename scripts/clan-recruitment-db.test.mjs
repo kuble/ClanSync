@@ -22,6 +22,8 @@ test("clan inquiry is shared by current applicants and staff and closes individu
   });
   const { clanId, gameId, service, users } = f;
   const inquiry = (client, body, id = clanId) => client.rpc("clan_inquiry", { p_clan_id: id, p_body: body });
+  const notices = client => ok(client.from("notifications").select("id,recipient_user_id,read_at,payload")
+    .eq("kind", "clan_inquiry_comment").eq("clan_id", clanId));
   const apply = i => ok(clients[i].from("clan_join_requests").insert({ clan_id: clanId, game_id: gameId, user_id: users[i].id }).select("id").single());
   const resolve = (request, decision) => ok(leader.rpc("resolve_clan_join_request", { p_clan_id: clanId, p_request_id: request.id, p_decision: decision }));
   const closed = async (client, id = clanId) => {
@@ -39,6 +41,10 @@ test("clan inquiry is shared by current applicants and staff and closes individu
 
   const firstRequest = await apply(2);
   await ok(inquiry(first, "안녕하세요"));
+  assert.deepEqual((await notices(service)).map(n => n.recipient_user_id).sort(), [users[0].id, users[1].id].sort());
+  const [firstNotice] = await notices(officer);
+  assert.equal(firstNotice.read_at, null);
+  assert.deepEqual(firstNotice.payload, {});
   const secondRequest = await apply(3);
   const reply = await ok(inquiry(second, "두 번째 신청자입니다."));
   assert.deepEqual(reply.messages.map(m => [m.body, m.isMine]), [["안녕하세요", false], ["두 번째 신청자입니다.", true]]);
@@ -51,6 +57,11 @@ test("clan inquiry is shared by current applicants and staff and closes individu
   }
   const staffReply = await ok(inquiry(officer, "#1 * 금요일 8시\n참여할게요!"));
   assert.equal(staffReply.messages.at(-1).authorId, users[1].id);
+  const officerNotices = await notices(officer);
+  assert.equal(officerNotices.length, 2);
+  assert.ok(officerNotices.every(n => n.read_at !== null));
+  assert.equal((await notices(second)).filter(n => n.read_at === null).length, 1);
+  assert.deepEqual(await notices(member), []);
   assert.equal((await denied(officer.rpc("join_inquiry", { p_request: firstRequest.id, p_delete_id: reply.messages[0].id }))).code, "PGRST202");
   assert.equal((await denied(first.rpc("clan_inquiry", { p_clan_id: clanId, p_delete_id: reply.messages[0].id }))).code, "PGRST202");
 
@@ -66,6 +77,9 @@ test("clan inquiry is shared by current applicants and staff and closes individu
   await ok(service.from("clan_members").update({ role: "member" }).eq("clan_id", clanId).eq("user_id", users[1].id));
   await closed(officer);
   assert.equal((await ok(inquiry(leader))).messages.length, 3);
+  const existing = (await notices(service)).length;
+  await ok(inquiry(leader, "권한 변경 후 확인"));
+  assert.equal((await notices(service)).length, existing);
 });
 
 test("birth-year ranges are advisory for applications and approvals and validated in atomic promotion saves",async t=>{
