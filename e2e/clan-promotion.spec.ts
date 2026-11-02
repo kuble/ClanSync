@@ -190,7 +190,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await page.getByLabel("홍보 사진 선택",{exact:true}).setInputFiles("public/images/overwatch/maps/busan.webp");
     await page.locator("#promotion-content img[data-promotion-key]").click();
     await page.getByPlaceholder("사진 설명 (선택)",{exact:true}).fill("함께하는 금요일 내전");
-    await page.getByLabel("면접 링크 (선택)",{exact:true}).fill(interviewUrl);
+    await page.getByLabel("클랜 연락 링크 (선택)",{exact:true}).fill(interviewUrl);
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
     await expect(page.getByRole("status").filter({hasText:"홍보글과 가입 조건을 저장했습니다."})).toBeVisible();
     await expect(page.getByRole("heading",{name:"최근 홍보글",exact:true})).toHaveCount(0);
@@ -211,7 +211,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect.poll(readable).toBe(0);
     await page.reload();
     await expect(visibility).not.toBeChecked();
-    await expect(page.getByLabel("면접 링크 (선택)",{exact:true})).toHaveValue(interviewUrl);
+    await expect(page.getByLabel("클랜 연락 링크 (선택)",{exact:true})).toHaveValue(interviewUrl);
     await expect(page.getByLabel("제목",{exact:true})).toHaveValue(title);
     await visibility.check();
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
@@ -300,13 +300,17 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page.getByRole("combobox",{name:"모집 티어",exact:true})).toBeVisible();
     await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
     await page.context().route(interviewUrl, route => route.fulfill({ body: "QA interview" }));
+    const tabCount = page.context().pages().length;
+    await detail.getByRole("button",{name:"가입 신청",exact:true}).click();
+    const contactLink = page.getByRole("dialog").getByRole("link",{name:/클랜에 연락하기/});
+    await expect(contactLink).toHaveAttribute("href", interviewUrl);
+    expect(page.context().pages()).toHaveLength(tabCount);
     const [interviewTab] = await Promise.all([
       page.context().waitForEvent("page"),
-      detail.getByRole("button",{name:"가입 신청",exact:true}).click(),
+      contactLink.click(),
     ]);
     await expect(interviewTab).toHaveURL(interviewUrl);
     await interviewTab.close();
-    await expect(page.getByRole("link",{name:/면접 링크 열기/})).toHaveAttribute("href", interviewUrl);
     await expect(detail).toBeHidden();
     await expect(page).not.toHaveURL(/promotion=/);
     await page.getByRole("dialog").getByTestId(`clan-join-send-${f.clanId}`).click();

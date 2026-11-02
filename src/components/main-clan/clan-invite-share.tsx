@@ -6,6 +6,7 @@ import { Copy, Download, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { getClanJoinInvite } from "@/app/actions/clan-invites";
 import { Button } from "@/components/ui/button";
+import { StatHelp } from "./stat-help";
 import styles from "./clan-promotion-settings.module.css";
 
 type Invite = { url: string; remainingMs: number; receivedAt: number };
@@ -59,14 +60,13 @@ export function ClanInviteShare({ gameSlug, clanId }: { gameSlug: string; clanId
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return <section className={`${styles.panel} ${styles.invitePanel}`} aria-labelledby="invite-share-heading">
-    <header className={styles.panelHeader}><span className={styles.sectionIcon}><QrCode size={20} aria-hidden /></span><h4 id="invite-share-heading">클랜 초대</h4></header>
+    <header className={styles.panelHeader}><span className={styles.sectionIcon}><QrCode size={20} aria-hidden /></span><h4 id="invite-share-heading" aria-label="클랜 초대"><StatHelp title="클랜 초대">승인 대기 없이 클랜에 가입할 수 있습니다. QR코드는 30분 동안 유효하며, 만료 후 새 QR코드가 발급됩니다.</StatHelp></h4></header>
     <div className={styles.inviteBody}>
       <div ref={qr} className={styles.inviteQr}>
         {ready ? <QRCodeSVG value={invite.url} size={176} level="M" marginSize={4} role="img" aria-label="승인 없이 클랜에 가입하는 초대 QR코드" /> : <p className="text-center text-xs text-muted-foreground">{error ? "초대를 불러오지 못했습니다." : "QR코드를 준비하고 있습니다."}</p>}
       </div>
       <div className={styles.inviteDetails}>
         <p className="text-sm">초대 링크나 QR코드를 공유해 클랜원을 초대하세요.</p>
-        <p className="text-xs leading-relaxed text-muted-foreground">승인 대기 없이 클랜에 가입할 수 있습니다. QR코드는 30분 동안 유효하며, 만료 후 새 QR코드가 발급됩니다.</p>
         <label className="sr-only" htmlFor="clan-invite-url">초대 링크</label>
         <input id="clan-invite-url" readOnly value={ready ? invite.url : ""} placeholder="초대 링크를 준비하고 있습니다." className={styles.inviteUrl} onFocus={event => event.target.select()} />
         <div className={styles.inviteActions}>

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Megaphone, Eye, Check, Save } from "lucide-react";
+import { CircleHelp, Megaphone, Eye, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@base-ui/react/slider";
 import { saveClanPromotionAction } from "@/app/actions/clan-promotion";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { ClanRecruitmentFields } from "@/components/onboarding/clan-recruitment-fields";
 import { PromotionAudienceFields } from "./promotion-audience-fields";
 import { ClanInviteShare } from "./clan-invite-share";
-import { StatHelp } from "./stat-help";
+import { StatHelp, StatTooltip } from "./stat-help";
 import { Dialog } from "@/components/ui/dialog";
 import { ClanPromotionDialogContent, type PromotionDisplayBlock } from "@/components/onboarding/clan-promotion-dialog-content";
 import type { ClanListRow } from "@/components/onboarding/clan-join-list";
@@ -129,9 +129,13 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               </section>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="interview-url">면접 링크 (선택)</Label>
-              <Input id="interview-url" name="interview_url" type="url" maxLength={1000} defaultValue={initial.interview_url ?? ""} placeholder="https://…" aria-describedby="interview-hint" />
-              <p id="interview-hint" className="text-xs text-muted-foreground">가입 신청을 누르면 면접 링크가 새 탭에서 열립니다.</p>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="interview-url">클랜 연락 링크 (선택)</Label>
+                <StatTooltip label="클랜 연락 링크 도움말" description="가입 신청 창에서 ‘클랜에 연락하기’를 누르면 이 주소가 새 탭에서 열립니다." className="inline-flex items-center justify-center size-5 text-muted-foreground">
+                  <CircleHelp size={14} aria-hidden />
+                </StatTooltip>
+              </div>
+              <Input id="interview-url" name="interview_url" type="url" maxLength={1000} defaultValue={initial.interview_url ?? ""} placeholder="https://…" />
             </div>
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
             <div className={styles.previewActions}>

@@ -24,7 +24,7 @@ export async function saveClanPromotionAction(gameSlug: string, clanId: string, 
   const rawInterviewUrl = String(form.get("interview_url") ?? "").trim();
   const interviewUrl = safeBoardUrl(rawInterviewUrl);
   if (rawInterviewUrl && (!interviewUrl || interviewUrl.length > 1000))
-    return { ok: false as const, error: "면접 링크에 유효한 HTTPS 주소를 입력해 주세요." };
+    return { ok: false as const, error: "클랜 연락 링크에 유효한 HTTPS 주소를 입력해 주세요." };
   const title = String(form.get("title") ?? "").trim();
   const postId = String(form.get("post_id") ?? "");
   const version = String(form.get("updated_at") ?? "");

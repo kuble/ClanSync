@@ -15,7 +15,9 @@ test("promotion shares a QR invite and recipients join immediately after login a
     await page.goto(f.path.replace("/balance", "/manage?tab=promotion"));
     const share = page.getByRole("region", { name: "클랜 초대", exact: true });
     await expect(share.getByText("초대 링크나 QR코드를 공유해 클랜원을 초대하세요.", { exact: true })).toBeVisible();
-    await expect(share.getByText("승인 대기 없이 클랜에 가입할 수 있습니다. QR코드는 30분 동안 유효하며, 만료 후 새 QR코드가 발급됩니다.", { exact: true })).toBeVisible();
+    await share.getByRole("button", { name: "클랜 초대 도움말" }).focus();
+    await expect(page.getByRole("tooltip")).toContainText("QR코드는 30분 동안 유효");
+    await page.keyboard.press("Escape");
     const urlInput = share.getByRole("textbox", { name: "초대 링크", exact: true });
     await expect(urlInput).toHaveValue(/\/games\/overwatch\/invite\/[0-9a-f-]{36}$/);
     let url = await urlInput.inputValue();

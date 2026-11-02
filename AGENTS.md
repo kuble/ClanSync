@@ -35,6 +35,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 현재는 **QA 우선, 운영 DB·배포 보류**다. QA 스키마 변경은 `db:test:push` → `db:test:types`로 적용·타입 확인한다. 연결 DB를 바꾸는 `db:push`·`db:sync`를 QA 명령 대신 사용하지 않는다. 사용자가 테스트 중인 QA 명단에는 시드를 다시 실행하지 않으며 E2E는 `E2E_SKIP_SEED=1`과 별도 임시 데이터를 사용한다.
 
+# UI 도움말
+
+- 입력 항목과 버튼의 부가 설명은 공용 툴팁으로 제공한다. 마우스·키보드·터치로 열 수 있게 하고, 선택 항목 표시는 레이블에 한 번만 둔다.
+
 # 데이터 갱신 UI
 
 - 기간·필터·데이터 갱신 시 기존 카드·제목·컨트롤을 유지하고 숫자·그래프·목록만 갱신한다. 갱신 중 화면 전체를 로딩 UI로 교체하거나 기간 값을 카드의 `key`로 사용해 재생성하지 않는다.

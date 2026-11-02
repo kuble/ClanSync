@@ -50,8 +50,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   }
   function openApply(clan: ClanListRow) {
     if (!canApply) return;
-    const interview = safeBoardUrl(clan.interview_url);
-    if (interview) window.open(interview, "_blank", "noopener,noreferrer");
     setSelected(clan); setMessage(""); setError(null);
     if (effectivePendingId && effectivePendingId !== clan.id) {
       setBlockName(blockingClanName ?? selected?.name ?? "다른 클랜");
@@ -97,7 +95,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         <ChevronRight size={16} aria-hidden className={styles.detailArrow} />
       </button>
       <div className={styles.clanFooter}>
-        {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} title={clan.interview_url && !full ? "면접 링크가 새 탭에서 열립니다" : undefined} aria-haspopup="dialog" onClick={() => openApply(clan)}>{full ? "정원 마감" : otherPending ? "이 클랜으로 신청 바꾸기" : "가입 신청"}{clan.interview_url && !full && <ExternalLink size={12} aria-hidden />}</Button>}
+        {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-haspopup="dialog" onClick={() => openApply(clan)}>{full ? "정원 마감" : otherPending ? "이 클랜으로 신청 바꾸기" : "가입 신청"}</Button>}
       </div>
     </article>;
   }
@@ -109,15 +107,13 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       {selected && <DialogContent showCloseButton={!busy}>
         <DialogHeader>
           <DialogTitle>{replaceOpen ? "진행 중인 신청이 있습니다" : selected.name + " 가입 신청"}</DialogTitle>
-          <DialogDescription>{replaceOpen
-            ? `현재 「${blockName}」에 가입 신청 중입니다. 취소하고 「${selected.name}」에 새로 신청하시겠습니까?`
-            : "운영진에게 전달할 메시지를 함께 보낼 수 있습니다."}</DialogDescription>
+          {replaceOpen && <DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected.name}」에 새로 신청하시겠습니까?</DialogDescription>}
         </DialogHeader>
         {selectedInterview && <a href={selectedInterview} target="_blank" rel="noopener noreferrer" className="inline-flex w-fit items-center gap-1 text-sm text-primary underline underline-offset-4">
-          면접 링크 열기 <ExternalLink size={14} aria-hidden /><span className="sr-only">(새 탭)</span>
+          클랜에 연락하기 <ExternalLink size={14} aria-hidden /><span className="sr-only">(새 탭)</span>
         </a>}
         <label className="grid gap-2 text-xs">가입 메시지 (선택)
-          <textarea className="border-border min-h-24 rounded-md border p-3 text-sm" placeholder="자기소개 (선택)" value={message} maxLength={2000} disabled={busy} onChange={event => setMessage(event.target.value)} />
+          <textarea className="border-border min-h-24 rounded-md border p-3 text-sm" placeholder="자기소개" value={message} maxLength={2000} disabled={busy} onChange={event => setMessage(event.target.value)} />
         </label>
         {error && <p className={styles.error} role="alert">{error}</p>}
         <DialogFooter>
@@ -127,7 +123,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} title={details.interview_url ? "면접 링크가 새 탭에서 열립니다" : undefined} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
     </Dialog>
   </>;
 }
