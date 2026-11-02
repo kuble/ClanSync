@@ -88,28 +88,41 @@ export function ManageJoinRequestsPanel({
       {rows.map((row) => (
         <li
           key={row.id}
-          className="p-4 sm:px-5"
+          className="@container p-4 sm:p-5"
         >
-          <div className="grid gap-x-5 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+          <div className="flex flex-col gap-3 @lg:flex-row @lg:items-start @lg:justify-between @lg:gap-5">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="break-words font-semibold">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
+                <p className="min-w-0 text-base font-semibold wrap-anywhere">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
                 <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
               </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span>{playerProfileDetails(row.profile)}</span>
-                <time dateTime={row.appliedAt}>
-                  신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
-                </time>
-              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{playerProfileDetails(row.profile)}</p>
               {row.returningMember && <p className="mt-1 text-xs font-medium text-primary">재가입 · 기존 내전 기록 유지</p>}
-              {row.message ? (
-                <p className="mt-3 border-l-2 pl-3 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">
-                  {row.message}
-                </p>
-              ) : null}
             </div>
-            <div className="flex justify-end gap-2">
+            <time dateTime={row.appliedAt} className="shrink-0 text-xs text-muted-foreground @lg:pt-1">
+              신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
+            </time>
+          </div>
+          {row.message ? (
+            <div className="mt-4 rounded-lg border border-border/60 bg-background/40 px-4 py-3">
+              <p className="mb-1.5 text-xs text-muted-foreground">가입 메시지</p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{row.message}</p>
+            </div>
+          ) : null}
+          <div className="mt-4 flex justify-end gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                disabled={busy}
+                aria-expanded={rejectId === row.id}
+                aria-controls={rejectId === row.id ? `reject-form-${row.id}` : undefined}
+                onClick={() =>
+                  setRejectId((v) => (v === row.id ? null : row.id))
+                }
+              >
+                거절
+              </Button>
               <Button
                 type="button"
                 size="sm"
@@ -119,21 +132,9 @@ export function ManageJoinRequestsPanel({
               >
                 가입 승인
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={() =>
-                  setRejectId((v) => (v === row.id ? null : row.id))
-                }
-              >
-                거절
-              </Button>
-            </div>
           </div>
           {rejectId === row.id ? (
-            <div className="mt-4 space-y-2 border-t pt-4">
+            <div id={`reject-form-${row.id}`} className="mt-4 space-y-2 border-t pt-4">
               <Label htmlFor={`reject-${row.id}`}>거절 사유 (선택)</Label>
               <Input
                 id={`reject-${row.id}`}

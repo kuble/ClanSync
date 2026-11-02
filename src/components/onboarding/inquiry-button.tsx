@@ -58,9 +58,9 @@ export function InquiryButton({ clanId, management = false }: { clanId: string; 
   const label = unread ? "클랜 문의방 · 새 댓글" : "클랜 문의방";
   return <Dialog open={open} onOpenChange={changeOpen}>
     <DialogTrigger aria-label={label} title={label}
-      render={<Button type="button" variant="outline" size={management ? "icon" : "sm"} className="relative" />}>
+      render={<Button type="button" variant="outline" size="sm" className="relative" />}>
       <MessageSquare aria-hidden />
-      {!management && "클랜 문의방"}
+      클랜 문의방
       {unread && <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-destructive ring-2 ring-card" />}
     </DialogTrigger>
     {open && <DialogContent className="flex h-[min(36rem,calc(100dvh-2rem))] min-w-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
