@@ -61,7 +61,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   if (!peer) return <aside aria-label="시너지 승률 차트" className="flex h-80 items-center justify-center rounded-xl border border-dashed px-5 text-center text-sm text-muted-foreground">멤버 이름에 마우스를 올리거나 선택하면 시너지 승률이 표시됩니다.</aside>;
   const percentage = Math.round(peer.wins / peer.matches * 1000) / 10;
   return <aside aria-label="시너지 승률 차트" className="flex h-80 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
-    <h3 className="mb-2 max-w-full truncate px-1 text-sm font-semibold" title={peer.nickname}>{peer.nickname}</h3>
+    <h3 className="mb-2 max-w-full truncate px-1 text-sm font-medium text-foreground/90" title={peer.nickname}>{peer.nickname}</h3>
     <div className="relative size-44 text-team-red">
       <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${formatPercent(percentage)}, ${peer.matches}경기`} className="size-full overflow-visible">
         <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
@@ -71,9 +71,9 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
         <span aria-label="기본 프로필 이미지" className="absolute inset-0 grid place-items-center"><UserRound className="size-16" aria-hidden="true" /></span>
       </div>
     </div>
-    <strong className="-mt-1 text-2xl tabular-nums">{formatPercent(percentage)}</strong>
-    <p className="mt-1 text-sm font-semibold text-team-red">{synergyVerdict(percentage, relation)}</p>
-    <p className="mt-1 text-[11px] text-muted-foreground">{peer.matches}경기 · {peer.wins}승 {peer.draws}무 {peer.losses}패</p>
+    <strong className="-mt-1 text-3xl font-bold tracking-tight tabular-nums">{formatPercent(percentage)}</strong>
+    <p className="mt-1 text-xs font-medium text-team-red">{synergyVerdict(percentage, relation)}</p>
+    <p className="mt-2 text-xs text-muted-foreground">{peer.matches}경기 · {peer.wins}승 {peer.draws}무 {peer.losses}패</p>
   </aside>;
 }
 
@@ -139,32 +139,32 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
       <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2"><Button type="button" variant="outline" size="sm" className="size-8 px-0 sm:h-7 sm:w-auto sm:px-2.5" aria-label="멤버 선택" title="멤버 선택" onClick={onBack}><UserRound className="size-3.5 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">멤버 선택</span></Button>{settings}</div></div></section>
       {banner !== undefined ? banner : <StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} awards={person.emblems} showEmblems={visible("emblems")} hof={model.hof} userId={person.userId} nickname={person.nickname} profile={person.profile} />}
       {visible("records") && <><Card size="sm" role="region" aria-label="플레이어 요약">
-        <CardHeader><CardTitle className="flex items-center gap-2"><UserRound className="size-4 shrink-0 text-primary" aria-hidden="true" />플레이어 요약</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><UserRound className="size-4 shrink-0 text-primary" aria-hidden="true" />플레이어 요약</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <section aria-label="역할별 승률" className="min-w-0">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">역할별 승률</h3><span className="text-xs text-muted-foreground">참여 내전 {value(totals.sessions)}회</span></div>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h3 className="text-xs font-medium text-muted-foreground">역할별 승률</h3><span className="text-xs text-muted-foreground">참여 내전 {value(totals.sessions)}회</span></div>
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <table className="w-full min-w-[400px] text-sm tabular-nums">
-                <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-semibold">역할</th><th scope="col" className="px-3 py-2 text-right font-semibold">승률</th><th scope="col" className="px-3 py-2 text-right font-semibold">승/무/패</th><th scope="col" className="px-3 py-2 text-right font-semibold">경기</th></tr></thead>
-                <tbody>{roleRows.map((row) => <tr key={row.id} className="border-b">
-                  <th scope="row" className="px-3 py-2.5 text-left font-semibold"><span className="inline-flex items-center gap-2">{"icon" in row && row.icon}{row.label}</span></th>
-                  <td className="px-3 py-2.5 text-right font-semibold">{value(rate(row.rate))}</td><td className="px-3 py-2.5 text-right">{value(`${row.wins}/${row.draws}/${row.losses}`)}</td><td className="px-3 py-2.5 text-right">{value(row.matches)}</td>
+                <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-normal">역할</th><th scope="col" className="px-3 py-2 text-right font-normal">승률</th><th scope="col" className="px-3 py-2 text-right font-normal">승/무/패</th><th scope="col" className="px-3 py-2 text-right font-normal">경기</th></tr></thead>
+                <tbody>{roleRows.map((row) => <tr key={row.id} className={`border-b border-border/60 ${row.id === "all" ? "bg-primary/5" : ""}`}>
+                  <th scope="row" className="px-3 py-3 text-left font-medium text-foreground/90"><span className="inline-flex items-center gap-2">{"icon" in row && row.icon}{row.label}</span></th>
+                  <td className={`px-3 py-3 text-right font-bold tracking-tight ${row.id === "all" ? "text-2xl text-primary" : "text-xl"}`}>{value(rate(row.rate))}</td><td className="px-3 py-3 text-right text-xs text-muted-foreground">{value(`${row.wins}/${row.draws}/${row.losses}`)}</td><td className="px-3 py-3 text-right text-sm font-medium text-foreground/80">{value(row.matches)}</td>
                 </tr>)}</tbody>
               </table>
             </div>
           </section>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 text-sm font-semibold"><span>최근 흐름</span><span className={`text-xs ${streak.count ? streak.result === "win" ? "text-team-blue" : "text-team-red" : "text-muted-foreground"}`}>{value(streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음")}</span></div><div className="mt-3 flex h-8 items-start gap-1.5 overflow-x-auto">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-team-blue" : match.result === "loss" ? "bg-rose-500/15 text-team-red" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">{pending ? "불러오는 중…" : "기록 없음"}</span>}</div></div>
-            <div className="grid grid-cols-2 gap-3">{([{ label: "최장 연승", row: bestWin }, { label: "최장 연패", row: bestLoss }] as const).map(({ label, row }) => <div key={label} className="min-w-0 rounded-xl border bg-muted/10 p-3"><p className="text-xs text-muted-foreground">{label}</p><strong className="mt-2 block text-lg tabular-nums">{value(row.count ? `${row.count}경기` : "기록 없음")}</strong></div>)}</div>
+            <div className="grid grid-cols-2 gap-3">{([{ label: "최장 연승", row: bestWin }, { label: "최장 연패", row: bestLoss }] as const).map(({ label, row }) => <div key={label} className="min-w-0 rounded-xl bg-background/30 p-3"><p className="text-xs text-muted-foreground">{label}</p><strong className="mt-2 block text-xl font-semibold tracking-tight tabular-nums">{value(row.count ? `${row.count}경기` : "기록 없음")}</strong></div>)}</div>
           </div>
         </CardContent>
       </Card>
-      <Card size="sm" role="region" aria-label="맵별 승률"><CardHeader><CardTitle className="flex items-center gap-2"><MapIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />맵별 승률</CardTitle></CardHeader><CardContent className="space-y-4">
+      <Card size="sm" role="region" aria-label="맵별 승률"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><MapIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />맵별 승률</CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3"><div className="flex min-w-0 flex-wrap items-end gap-3"><FilterButtons label="역할" options={ROLE_OPTIONS} value={mapRole} onChange={setMapRole} /><FilterButtons label="맵 형식" options={MAP_TYPE_OPTIONS} value={mapType} onChange={setMapType} /></div><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} /></div>
         <section aria-label="맵별 승률 목록"><StatsDonut busy={pending} label="맵별 승률" unit="경기" showImages horizontal preserveOrder mapResults rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, wins: row.wins, draws: row.draws, losses: row.losses, rate: row.rate }))} /></section>
       </CardContent></Card>
       </>}
-      {model.personal.canSeePeers && <Card size="sm" role="region" aria-label="시너지"><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
+      {model.personal.canSeePeers && <Card size="sm" role="region" aria-label="시너지"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><Users className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
         {model.personal.canSeePeers ? <>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FilterButtons label="내 역할" options={ROLE_OPTIONS} value={role} onChange={(value) => { setRole(value); setPeerId(null); }} /><FilterButtons label="팀 관계" options={[{ id: "ally", label: "같은 팀" }, { id: "enemy", label: "상대 팀" }]} value={relation} onChange={(value) => { setRelation(value); setPeerId(null); }} />
           <div><FilterButtons label="상대 역할" options={ROLE_OPTIONS} value={peerRole} onChange={(value) => { setPeerRole(value); setPeerId(null); }} /></div></div>
@@ -179,10 +179,10 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
                   <th scope="col" className="p-2 text-right" aria-sort={relationSort === "matches" ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation("matches")} className="hover:text-foreground">경기{relationSort === "matches" ? relationDescending ? " ↓" : " ↑" : ""}</button></th>
                 </tr></thead>
                 <tbody>{relations.map((row) => <tr key={row.id} className="border-b">
-                  <th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onPointerEnter={() => setPeerId(row.id)} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}>{row.nickname}</button></th>
-                  <td className="p-2 text-right tabular-nums">{formatPercent(row.wins / row.matches * 100)}</td>
-                  <td className="whitespace-nowrap p-2 text-right tabular-nums">{row.wins}승 / {row.draws}무 / {row.losses}패</td>
-                  <td className="p-2 text-right tabular-nums">{row.matches}</td>
+                  <th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium text-foreground/90 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onPointerEnter={() => setPeerId(row.id)} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}>{row.nickname}</button></th>
+                  <td className="p-2 text-right text-lg font-semibold tracking-tight tabular-nums">{formatPercent(row.wins / row.matches * 100)}</td>
+                  <td className="whitespace-nowrap p-2 text-right text-xs text-muted-foreground tabular-nums">{row.wins}승 / {row.draws}무 / {row.losses}패</td>
+                  <td className="p-2 text-right text-sm text-foreground/80 tabular-nums">{row.matches}</td>
                 </tr>)}</tbody>
               </table>
               {relations.length === 0 && <p role={pending ? "status" : undefined} className="py-5 text-center text-sm text-muted-foreground">{pending ? "기록을 불러오는 중…" : "해당 역할 조합의 기록이 없습니다."}</p>}
@@ -193,13 +193,21 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>}
       <div className={`grid min-w-0 gap-4 ${(visible("evaluation") || visible("analysis")) && (visible("predictions") || canViewPredictionPoints) ? "lg:grid-cols-2" : ""}`} aria-label="개인 기록 그래프">
-      {(visible("evaluation") || visible("analysis")) && <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />점수 변동 이력</CardTitle></CardHeader><CardContent className="space-y-3">
+      {(visible("evaluation") || visible("analysis")) && <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />점수 변동 이력</CardTitle></CardHeader><CardContent className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2"><FilterButtons label="점수 종류" options={([{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }] as const).filter(({ id }) => visible(id))} value={activeScoreKind} onChange={setScoreKind} />{activeScoreKind === "evaluation" && model.permissions.editMscore && <StatsScoreEditor key={periodKey + person.userId} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={matches} />}</div>
         <StatsTimeChart busy={pending} label="점수 변동 이력 그래프" unit="점" lines={[{ label: activeScoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 변동 이력이 없습니다." />
       </CardContent></Card>}
-      {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2"><Target className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
-        {visible("predictions") && <div className="flex h-16 flex-wrap content-start gap-x-5 gap-y-1 overflow-y-auto text-xs text-muted-foreground tabular-nums sm:h-10" aria-label="승부예측 요약"><span>예측 참여 {value(picks.length)}회</span><span>적중 {value(correct)}회</span><span>실패 {value(incorrect)}회</span><strong className="text-foreground">적중력 {value(rate(predictionRate))}</strong><span>무승부 적중 {value(picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length)}회 · 무효 {value(picks.filter((pick) => pick.result === "void").length)}회</span></div>}
-        {canViewPredictionPoints && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-primary">수익 {value(`+${earned.toLocaleString()}`)}pt</span><span className="text-team-red">손실 {value(`−${lost.toLocaleString()}`)}pt</span><strong>순수익 {value(`${earned - lost > 0 ? "+" : ""}${(earned - lost).toLocaleString()}`)}pt</strong></div>}
+      {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><Target className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
+        {visible("predictions") && <div className="space-y-3 rounded-lg bg-background/30 p-4 tabular-nums" aria-label="승부예측 요약">
+          <div className="grid grid-cols-2 items-end gap-4 xl:grid-cols-[1.3fr_repeat(3,1fr)]">
+            <span className="text-xs text-muted-foreground">적중력 <strong className={`mt-1.5 block h-9 font-bold tracking-tight ${predictionRate === null ? "text-lg leading-9 text-muted-foreground" : "text-3xl leading-9 text-primary"}`}>{value(rate(predictionRate))}</strong></span>
+            <span className="text-xs text-muted-foreground">예측 참여 <strong className="mt-1.5 block text-lg font-semibold text-foreground/90">{value(picks.length)}회</strong></span>
+            <span className="text-xs text-muted-foreground">적중 <strong className="mt-1.5 block text-lg font-semibold text-foreground/90">{value(correct)}회</strong></span>
+            <span className="text-xs text-muted-foreground">실패 <strong className="mt-1.5 block text-lg font-semibold text-foreground/90">{value(incorrect)}회</strong></span>
+          </div>
+          <p className="border-t pt-3 text-xs text-muted-foreground">무승부 적중 {value(picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length)}회 · 무효 {value(picks.filter((pick) => pick.result === "void").length)}회</p>
+        </div>}
+        {canViewPredictionPoints && <div className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3 py-1 tabular-nums"><div className="flex gap-4 text-xs text-muted-foreground"><span>수익 <span className="text-primary">{value(`+${earned.toLocaleString()}`)}pt</span></span><span>손실 <span className="text-team-red">{value(`−${lost.toLocaleString()}`)}pt</span></span></div><span className="text-xs text-muted-foreground">순수익 <strong className="ml-1 text-xl font-semibold tracking-tight text-foreground">{value(`${earned - lost > 0 ? "+" : ""}${(earned - lost).toLocaleString()}`)}<span className="ml-0.5 text-xs font-normal text-muted-foreground">pt</span></strong></span></div>}
         {canViewPredictionPoints ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart busy={pending} label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">{ownPrediction ? "클랜의 공개 설정에 따라 포인트 통계가 제공되지 않습니다." : "포인트 수익·손실은 본인과 운영진만 볼 수 있습니다."}</p>}
       </CardContent></Card>}
       </div>

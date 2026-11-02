@@ -83,12 +83,12 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
             <MessageSquare className="size-4" aria-hidden /><span className="[writing-mode:vertical-rl]">반응</span>
           </button>}
           <Card size="sm" className="h-[36rem] min-w-0" aria-label={`${active.label} 순위`}>
-            <CardHeader><CardTitle><h4 className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
+            <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-              <div className="space-y-2 rounded-lg border bg-background/40 px-3 py-2 text-xs">
-                <p className="text-[11px] text-muted-foreground">{periodLabel} · 정규 내전 <strong className="text-foreground">{loaded.pending ? "—" : totals.sessions}회</strong> · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</p>
-                {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1 border-t pt-2"><span className="text-muted-foreground">최소 규정 경기</span><strong>{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</strong></div>}
-                {active.id === "attendance" && <div className="flex flex-wrap items-center justify-between gap-1 border-t pt-2"><span className="text-muted-foreground">최소 참여 조건</span><strong>{totals.sessions ? `${block.minimumSessions}회 이상 참여 · ${model.hof.config.eligibilitySessionPct}%` : "집계할 내전 없음"}</strong></div>}
+              <div className="space-y-2 border-b pb-3 text-xs leading-relaxed text-muted-foreground">
+                <p className="flex flex-wrap gap-x-3 gap-y-1"><span className="font-medium text-foreground/80">{periodLabel}</span><span>정규 내전 {loaded.pending ? "—" : totals.sessions}회 · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</span></p>
+                {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1"><span>최소 규정 경기</span><span className="font-medium text-foreground/80">{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</span></div>}
+                {active.id === "attendance" && <div className="flex flex-wrap items-center justify-between gap-1"><span>최소 참여 조건</span><span className="font-medium text-foreground/80">{totals.sessions ? `${block.minimumSessions}회 이상 참여 · ${model.hof.config.eligibilitySessionPct}%` : "집계할 내전 없음"}</span></div>}
               </div>
                 <StatsScrollArea label={`${active.label} 순위 목록`} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
@@ -98,17 +98,18 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                       const rank = row.rank === undefined ? index + 1 : row.rank;
                       const unqualified = rank === null;
                       const content = <>
-                        <span className={`flex w-12 shrink-0 flex-col items-center font-black tabular-nums ${rank === 1 ? "text-pro-gold" : rank === 2 ? "text-slate-700 dark:text-slate-300" : rank === 3 ? "text-orange-700 dark:text-orange-300" : "text-muted-foreground"}`}>
+                        <span className={`flex w-9 shrink-0 flex-col items-center font-bold tabular-nums sm:w-10 ${rank === 1 ? "text-pro-gold" : rank === 2 ? "text-slate-700 dark:text-slate-300" : rank === 3 ? "text-orange-700 dark:text-orange-300" : "text-muted-foreground"}`}>
                           {rank !== null && rank <= 3 && <Crown className="mb-0.5 size-3.5" aria-hidden="true" />}
                           <span className="text-2xl leading-none">{rank === null ? "--" : String(rank).padStart(2, "0")}<span className="sr-only">{unqualified ? "순위 제외" : "위"}</span></span>
                         </span>
-                        <span className="min-w-0 flex-1 space-y-1">
-                          <span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-lg tabular-nums">{row.value}</strong></span>
-                          <span className="block text-[11px] text-muted-foreground">{row.detail}</span>
-                          {unqualified && <span className="block text-[10px] text-muted-foreground">규정 미달 · {row.shortfall}{active.id === "attendance" ? "회" : "경기"} 부족</span>}
+                        <span className="min-w-0 flex-1 space-y-1.5">
+                          <span className="block truncate text-sm font-medium text-foreground/90">{row.nickname}</span>
+                          <span className="block text-xs leading-relaxed text-muted-foreground">{row.detail}</span>
+                          {unqualified && <span className="block text-xs text-muted-foreground">규정 미달 · {row.shortfall}{active.id === "attendance" ? "회" : "경기"} 부족</span>}
                         </span>
+                        <strong className={`shrink-0 text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : rank === 1 ? "text-pro-gold" : "text-foreground"}`}>{row.value}</strong>
                       </>;
-                      const className = `relative flex min-h-[76px] w-full items-center gap-3 rounded-lg border p-3 text-left ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "bg-background/20"}`;
+                      const className = `relative flex min-h-[80px] w-full items-center gap-2.5 rounded-lg border p-3 text-left sm:gap-3 ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "border-border/60 bg-background/20"}`;
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
                     })}
                   </ol>
