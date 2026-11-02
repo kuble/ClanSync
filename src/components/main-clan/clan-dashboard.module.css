@@ -7,7 +7,15 @@
 }
 .notices { grid-area:notices; display:flex; flex-direction:column; }
 .events { grid-area:events; }
-.notices > h3,.events > h3 { font-size:18px; }
+.notices > h3,.events > h3 { color:color-mix(in srgb,var(--foreground) 85%,var(--muted-foreground)); font-size:16px; font-weight:600; }
+.noticeTitle,.eventTitle { display:block; overflow-wrap:anywhere; color:var(--foreground); font-size:15px; font-weight:600; line-height:1.55; letter-spacing:-.02em; }
+.noticeMeta { display:block; margin-top:6px; color:var(--muted-foreground); font-size:11px; font-weight:400; }
+.pinnedNotice { border-inline-start:2px solid var(--primary); background:color-mix(in srgb,var(--primary) 4%,var(--card)); }
+.eventDate { display:flex; width:44px; flex-shrink:0; flex-direction:column; align-items:center; padding-block:4px; border-radius:8px; }
+.eventMonth { color:var(--muted-foreground); font-size:10px; line-height:14px; }
+.eventDay { margin-top:2px; color:var(--primary); font-size:25px; font-weight:650; line-height:28px; font-variant-numeric:tabular-nums; }
+.eventTime { flex-shrink:0; white-space:nowrap; color:color-mix(in srgb,var(--foreground) 90%,var(--muted-foreground)); font-size:12px; font-weight:550; }
+.eventPlace { overflow-wrap:anywhere; color:var(--muted-foreground); font-size:11px; font-weight:400; }
 .notices > ul { display:grid; grid-auto-rows:minmax(96px,1fr); gap:12px; flex:1; }
 .notices > ul > li { margin:0; display:flex; }
 .notices > ul > li > a { align-items:center; padding:16px; }
@@ -27,11 +35,11 @@
 .mvpPlace[data-rank="1"] { --medal:var(--pro-gold); padding:0 0 10px; margin-bottom:3px; border-bottom:1px solid var(--border); }
 .mvpPlace[data-rank="2"] { --medal:color-mix(in srgb,#8290a0 65%,var(--foreground)); }
 .mvpRank { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:color-mix(in srgb,var(--medal) 8%,transparent); color:var(--medal); font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; }
-.mvpName { min-width:0; overflow-wrap:anywhere; color:color-mix(in srgb,var(--foreground) 80%,var(--muted-foreground)); font-size:12px; font-weight:500; line-height:20px; letter-spacing:0; }
-.mvpValue { color:color-mix(in srgb,var(--foreground) 80%,var(--muted-foreground)); font-size:14px; font-weight:500; line-height:22px; letter-spacing:-.2px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.mvpName { min-width:0; overflow-wrap:anywhere; color:var(--muted-foreground); font-size:12px; font-weight:400; line-height:20px; letter-spacing:0; }
+.mvpValue { color:color-mix(in srgb,var(--foreground) 75%,var(--muted-foreground)); font-size:14px; font-weight:500; line-height:22px; letter-spacing:-.2px; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .mvpValue > span { margin-left:1px; color:var(--muted-foreground); font-size:.65em; font-weight:500; letter-spacing:0; }
-.mvpPlace[data-rank="1"] .mvpName { font-size:13px; font-weight:600; }
-.mvpPlace[data-rank="1"] .mvpValue { font-size:18px; font-weight:600; line-height:26px; letter-spacing:-.3px; }
+.mvpPlace[data-rank="1"] .mvpName { color:var(--foreground); font-size:13px; font-weight:600; }
+.mvpPlace[data-rank="1"] .mvpValue { color:var(--primary); font-size:22px; font-weight:650; line-height:28px; letter-spacing:-.3px; }
 .mvpPlace[data-rank="1"] .mvpValue > span { color:var(--muted-foreground); }
 .mvpMissing { opacity:.45; }
 .mvpStatus { flex:1; min-height:112px; padding-block:10px; }
@@ -43,7 +51,7 @@
 .rulesLabel { display:flex; align-items:center; gap:6px; flex-shrink:0; color:var(--muted-foreground); font-size:12px; font-weight:600; }
 .rulesLabel:hover,.ruleWindow:hover { color:var(--primary); }
 .rulesLabel:focus-visible,.ruleWindow:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:4px; }
-.ruleWindow { display:block; flex:1; min-width:0; perspective:500px; overflow:hidden; font-size:13px; font-weight:500; }
+.ruleWindow { display:block; flex:1; min-width:0; perspective:500px; overflow:hidden; color:color-mix(in srgb,var(--foreground) 80%,var(--muted-foreground)); font-size:13px; font-weight:400; }
 .ruleFace { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transform-origin:center; animation:ruleFlip .48s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes ruleFlip {
   from { transform:rotateX(-75deg) translateY(-25%); opacity:.2; }

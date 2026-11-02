@@ -76,10 +76,10 @@ function NoticeRow({
   const contents = (
     <>
       <span className="min-w-0 flex-1">
-        <span className="line-clamp-2 text-sm font-semibold leading-6 text-foreground">
+        <span className={cn("line-clamp-2", styles.noticeTitle)}>
           {notice.title}
         </span>
-        <span className="mt-1 block text-xs text-muted-foreground">
+        <span className={styles.noticeMeta}>
           {notice.kind === "poll" ? "참여 중인 투표" : "클랜 공지"}
           <span className="mx-1.5" aria-hidden="true">
             ·
@@ -99,7 +99,7 @@ function NoticeRow({
   );
   const className = cn(
     "relative z-20 flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 min-h-16 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-    notice.isPinned && "border-primary/25 bg-primary/5",
+    notice.isPinned && styles.pinnedNotice,
   );
   return (
     <Link href={href} className={className}>
@@ -169,31 +169,31 @@ function UpcomingEventsContent({
             href={`${base}/events`}
             className="group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            <span className={cn("flex w-10 shrink-0 flex-col items-center rounded-lg py-1", today ? "bg-primary/10" : "bg-muted/70")}>
-              <span className="text-[10px] leading-3 text-muted-foreground">
+            <span className={cn(styles.eventDate, today && "bg-primary/10")}>
+              <span className={styles.eventMonth}>
                 {String(date.getMonth() + 1).padStart(2, "0")}월
               </span>
-              <span className="mt-0.5 text-lg font-bold leading-5 text-foreground">
+              <span className={styles.eventDay}>
                 {date.getDate()}
               </span>
             </span>
             <span className="min-w-0 flex-1">
-              <span data-event-title className="block break-words text-sm font-semibold leading-6 group-hover:text-primary">
+              <span data-event-title className={styles.eventTitle}>
                 {event.title}
               </span>
               <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                <time dateTime={date.toISOString()} className="shrink-0 whitespace-nowrap font-medium text-foreground/80">{new Intl.DateTimeFormat("ko-KR", {
+                <time dateTime={date.toISOString()} className={styles.eventTime}>{new Intl.DateTimeFormat("ko-KR", {
                   weekday: "long",
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: false,
                 }).format(date)}</time>
-                {event.place && <span className="break-words">{event.place}</span>}
+                {event.place && <span className={styles.eventPlace}>{event.place}</span>}
               </span>
             </span>
             <span
               className={cn(
-                "shrink-0 rounded-md px-2 py-1 text-xs font-semibold",
+                "shrink-0 rounded-md px-2 py-1 text-[10px] font-normal",
                 today
                   ? "bg-primary/12 text-primary"
                   : event.kind === "scrim"

@@ -327,7 +327,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         expect(gold.bottom).toBeLessThanOrEqual(silver.y);
         expect(silver.bottom).toBeLessThanOrEqual(bronze.y);
         expect(gold.valueSize).toBeGreaterThan(silver.valueSize);
-        expect(gold.valueSize).toBeLessThan(silver.valueSize * 1.4);
+        expect(gold.valueSize).toBeLessThan(silver.valueSize * 1.7);
         expect(gold.valueCenter).toBeCloseTo(gold.nameCenter, 0);
         expect(gold.valueRight).toBeCloseTo(silver.valueRight, 0);
         expect(silver.valueRight).toBeCloseTo(bronze.valueRight, 0);
