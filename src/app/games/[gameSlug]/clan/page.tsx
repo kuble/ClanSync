@@ -125,7 +125,6 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
           </ClanDiscoveryFilterForm>
           <section className={discover.results} aria-label="클랜 검색 결과">
             {listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
-              <div className={discover.resultCount}><p>함께할 클랜 <strong>{total.toLocaleString("ko-KR")}</strong></p></div>
               <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug} pendingClanId={pendingBrief?.clanId ?? null} blockingClanName={pendingBrief?.clanName ?? null} pinnedPendingClan={pinnedPendingClan} clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"} />
               {totalPages > 1 ? <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav> : null}
             </>}

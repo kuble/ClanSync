@@ -52,9 +52,7 @@ test("discovery filters account demographics before pagination and preserves oth
     }
     await page.goto(`/games/overwatch/clan?q=${prefix}&seed=${seed}`);
     const filter=page.getByRole("checkbox",{name:"추천 클랜",exact:true});
-    const results=page.getByText(/^함께할 클랜 \d+$/);
     const cards=page.getByRole("button",{name:new RegExp(`^${prefix}.*클랜 상세 보기$`)});
-    await expect(results).toHaveText("함께할 클랜 10");
     const expectedOrder = created.data!.map(row => ({
       name: row.name, key: createHash("md5").update(seed + row.id).digest("hex"),
     })).sort((a,b) => a.key.localeCompare(b.key));
@@ -63,7 +61,6 @@ test("discovery filters account demographics before pagination and preserves oth
     await expect(page.getByRole("tooltip")).toContainText("내 성별과 출생연도");
     await filter.check();
     await expect(page).toHaveURL(/eligible=1/);
-    await expect(results).toHaveText("함께할 클랜 6");
     await expect(cards).toHaveCount(5);
     const firstPage = await cards.allTextContents();
     for (const label of firstPage) expect(label).not.toMatch(new RegExp(`${prefix}-[6789]`));
@@ -81,15 +78,15 @@ test("discovery filters account demographics before pagination and preserves oth
     await page.getByRole("combobox",{name:"지향",exact:true}).selectOption("social");
     await page.getByRole("combobox",{name:"모집 티어",exact:true}).selectOption("gold");
     await page.getByRole("button",{name:"검색",exact:true}).click();
-    await expect(results).toHaveText("함께할 클랜 4");
+    await expect(cards).toHaveCount(4);
     await page.reload({waitUntil:"domcontentloaded",timeout:15_000});
     await expect(filter).toBeChecked();
     await expect(page.getByRole("combobox",{name:"지향",exact:true})).toHaveValue("social");
     await filter.uncheck();
-    await expect(results).toHaveText("함께할 클랜 8");
+    await expect(cards).toHaveCount(5);
     await page.goBack({waitUntil:"commit",timeout:15_000});
     await expect(filter).toBeChecked();
-    await expect(results).toHaveText("함께할 클랜 4");
+    await expect(cards).toHaveCount(4);
     await page.getByRole("link",{name:"초기화",exact:true}).click();
     await expect(filter).not.toBeChecked();
     await expect(page.getByRole("textbox",{name:"클랜 검색",exact:true})).toHaveValue("");
@@ -97,7 +94,6 @@ test("discovery filters account demographics before pagination and preserves oth
       const update=await f.service.from("users").update({gender}).eq("id",f.users[1].id);
       expect(update.error).toBeNull();
       await page.goto(`/games/overwatch/clan?q=${prefix}&eligible=1`);
-      await expect(results).toHaveText(`함께할 클랜 ${total}`);
       await expect(cards).toHaveCount(total);
       await expect(page.getByRole("button",{name:"가입 조건 미충족",exact:true})).toHaveCount(0);
     }
@@ -114,7 +110,6 @@ test("discovery filters account demographics before pagination and preserves oth
     await page.screenshot({path:testInfo.outputPath("clan-discovery-filter-mobile.png"),fullPage:true});
     await page.getByRole("textbox",{name:"클랜 검색",exact:true}).fill(`${prefix}-6`);
     await page.getByRole("button",{name:"검색",exact:true}).click();
-    await expect(results).toHaveText("함께할 클랜 0");
     await expect(page.getByText("조건에 맞는 클랜이 없습니다.",{exact:false})).toBeVisible();
     await expect(filter).toBeChecked();
   } finally {

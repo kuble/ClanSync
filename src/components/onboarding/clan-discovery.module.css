@@ -28,9 +28,6 @@
 .filterStatus { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .filters[aria-busy="true"] { cursor: progress; }
 .results { min-width: 0; }
-.resultCount { margin: 2px 0 12px; }
-.resultCount p { font-size: 16px; font-weight: 600; }
-.resultCount strong { margin-inline-start: 4px; font-size: 14px; color: var(--primary); }
 .clanList { display: grid; grid-auto-rows: 1fr; gap: 10px; }
 .clanList > li { display: grid; }
 .clanCard { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px 18px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
