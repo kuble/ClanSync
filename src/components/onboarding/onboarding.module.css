@@ -31,11 +31,6 @@
 .notice { display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border: 1px solid #60a5fa35; background: #3b82f60d; color: var(--info); border-radius: 7px; font-size: 13px; line-height: 1.7; margin-top: 20px; }
 .notice svg { flex-shrink: 0; margin-top: 3px; }
 .warning { border-color: #f59e0b44; background: #f59e0b0d; color: var(--warning); margin-top: 0; margin-bottom: 18px; }
-.pending { margin-block: 24px; padding: 18px 20px; border: 1px solid #46af7555; border-radius: 10px; background: #46af750d; }
-.pendingTop { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.pending h2 { font-size: 15px; font-weight: 650; }
-.pending p { color: var(--muted-foreground); font-size: 12px; line-height: 1.7; margin-top: 5px; }
-.pending blockquote { margin-top: 10px; border-left: 2px solid var(--primary); padding-left: 12px; font-size: 13px; color: var(--muted-foreground); }
 .tabs { margin-top: 28px; }
 .tabList { width: 100%; justify-content: flex-start; border-bottom: 1px solid var(--border); margin-bottom: 22px; min-height: 44px; }
 .tabList > button { flex: 0 0 auto; padding-inline: 22px; font-size: 14px; }
@@ -107,7 +102,6 @@
   .cardTags { display: none; }
   .createForm { padding: 20px 16px; }
   .fieldGrid { grid-template-columns: 1fr; }
-  .pendingTop { flex-wrap: wrap; }
 }
 .brandContext { display:flex; min-width:0; align-items:center; gap:16px; }
 .contextLabel { border-left:1px solid var(--border); padding-left:16px; font-size:14px; font-weight:600; white-space:nowrap; }

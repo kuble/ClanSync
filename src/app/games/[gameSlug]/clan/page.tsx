@@ -2,7 +2,7 @@ import { InquiryButton } from "@/components/onboarding/inquiry-button";
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { notFound, redirect } from "next/navigation";
-import { Clock3, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import { cancelClanJoinRequestFormAction } from "@/app/actions/game-clan-onboarding";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ClanCreateForm } from "@/components/onboarding/clan-create-form";
@@ -11,7 +11,7 @@ import { ClanJoinList, type ClanListRow } from "@/components/onboarding/clan-joi
 import { Button } from "@/components/ui/button";
 import { GameLogo } from "@/components/ui/game-logo";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
@@ -54,10 +54,12 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   const clanQuery = () => supabase.from("clans").select(CLAN_FIELDS).eq("game_id", game.id).eq("lifecycle_status", "active").eq("moderation_status", "clean")
     .eq("promotions.post_type","promotion").eq("promotions.game_id",game.id)
     .order("created_at",{referencedTable:"promotions",ascending:false}).order("id",{referencedTable:"promotions",ascending:false}).limit(1,{referencedTable:"promotions"});
+  let discovery = supabase.rpc("discover_clans", {
+    p_game_id: game.id, p_seed: seed, p_recommended: eligibleOnly, p_query: term, p_style: style, p_tier: tier,
+  }, { count: "exact" });
+  if (pendingBrief) discovery = discovery.neq("clan_id", pendingBrief.clanId);
   const [listing, pinnedResult, requestedPromotion] = await Promise.all([
-    supabase.rpc("discover_clans", {
-      p_game_id: game.id, p_seed: seed, p_recommended: eligibleOnly, p_query: term, p_style: style, p_tier: tier,
-    }, { count: "exact" }).order("is_favorite",{ascending:false}).order("shuffle_key").order("clan_id").range(from, from + PAGE_SIZE - 1),
+    discovery.order("is_favorite",{ascending:false}).order("shuffle_key").order("clan_id").range(from, from + PAGE_SIZE - 1),
     pendingBrief?.clanId ? clanQuery().eq("id", pendingBrief.clanId).maybeSingle() : Promise.resolve({ data: null, error: null }),
     promotion ? supabase.from("board_posts").select("id,clan_id,title,content,content_blocks,created_at,updated_at").eq("id",promotion).eq("game_id",game.id).eq("post_type","promotion").maybeSingle() : Promise.resolve({data:null,error:null}),
   ]);
@@ -85,7 +87,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   }
   const initialDetails: ClanListRow | null = previewRow ? {...toListClan(previewRow),promotion:requestedPromotion.data} : null;
   const clans = (rows.data ?? []).map(toListClan).sort((a,b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-  if (initialDetails && !eligibleOnly && !clans.some(clan=>clan.id===initialDetails.id)) clans.unshift(initialDetails);
+  if (initialDetails && initialDetails.id !== pendingBrief?.clanId && !eligibleOnly && !clans.some(clan=>clan.id===initialDetails.id)) clans.unshift(initialDetails);
   const pinnedPendingClan = pinnedResult.data ? toListClan(pinnedResult.data) : null;
   const total = listing.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -103,41 +105,37 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
       <span className={discover.gameMark} aria-hidden><GameLogo slug={gameSlug} name={game.name_ko} className="size-7" /></span>
       <div><p>{game.name_ko}</p><h1>클랜 찾기</h1></div>
     </header>
-    {pendingBrief ? <section className={styles.pending} aria-label="현재 신청 중인 클랜">
-      <div className={styles.pendingTop}><div><h2 className="flex items-center gap-2"><Clock3 size={16} aria-hidden="true" />진행 중인 가입 신청</h2><p>「{pendingBrief.clanName ?? "클랜"}」 운영진의 승인을 기다리고 있습니다.</p></div><div className="flex flex-wrap gap-2"><InquiryButton clanId={pendingBrief.clanId} /><form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form></div></div>
-      {pendingBrief.message ? <blockquote>{pendingBrief.message}</blockquote> : null}
-    </section> : null}
     <Tabs defaultValue="join" className={`${styles.tabs} ${discover.tabs}`}>
-      <TabsList variant="line" className={discover.tabList}><TabsTrigger value="join">클랜 가입</TabsTrigger><TabsTrigger value="create">클랜 생성</TabsTrigger></TabsList>
-      <TabsContent value="join">
-        <div className={discover.directory}>
-          <ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
-            <div className={discover.filterHeader}>
-              <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />검색 조건</h2>
-              {term || style || tier || eligibleOnly ? (
-                <Link href={`/games/${gameSlug}/clan`} aria-label="초기화" title="검색 조건 초기화"
-                  className={buttonVariants({ variant: "ghost", size: "icon-sm", className: "text-muted-foreground" })}>
-                  <RotateCcw aria-hidden />
-                </Link>
-              ) : null}
-            </div>
-            <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
-            <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{CLAN_STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-            <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <div className={discover.eligibilityFilter}><Tooltip>
-              <label><TooltipTrigger key={String(eligibleOnly)} render={<input type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} aria-describedby="recommendation-hint" />} /><span className={discover.filterSwitch} aria-hidden /><span>추천 클랜</span></label>
-              <TooltipContent role="tooltip">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</TooltipContent>
-            </Tooltip><span id="recommendation-hint" className="sr-only">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</span></div>
-            <Button type="submit" className="min-h-[38px]">검색</Button>
-          </ClanDiscoveryFilterForm>
-          <section className={discover.results} aria-label="클랜 검색 결과">
-            {listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
-              <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug} pendingClanId={pendingBrief?.clanId ?? null} blockingClanName={pendingBrief?.clanName ?? null} pinnedPendingClan={pinnedPendingClan} clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"} />
-              {totalPages > 1 ? <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav> : null}
-            </>}
-          </section>
-        </div>
-      </TabsContent>
+      <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug}
+        pendingClanId={pendingBrief?.clanId} blockingClanName={pendingBrief?.clanName} pinnedPendingClan={pinnedPendingClan}
+        pendingMessage={pendingBrief?.message}
+        clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"}
+        pendingActions={pendingBrief && <>
+          <InquiryButton clanId={pendingBrief.clanId} />
+          <form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form>
+        </>}
+        filters={<ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
+          <div className={discover.filterHeader}>
+            <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />검색 조건</h2>
+            {term || style || tier || eligibleOnly ? (
+              <Link href={`/games/${gameSlug}/clan`} aria-label="초기화" title="검색 조건 초기화"
+                className={buttonVariants({ variant: "ghost", size: "icon-sm", className: "text-muted-foreground" })}>
+                <RotateCcw aria-hidden />
+              </Link>
+            ) : null}
+          </div>
+          <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
+          <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{CLAN_STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+          <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <div className={discover.eligibilityFilter}><Tooltip>
+            <label><TooltipTrigger key={String(eligibleOnly)} render={<input type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} aria-describedby="recommendation-hint" />} /><span className={discover.filterSwitch} aria-hidden /><span>추천 클랜</span></label>
+            <TooltipContent role="tooltip">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</TooltipContent>
+          </Tooltip><span id="recommendation-hint" className="sr-only">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</span></div>
+          <Button type="submit" className="min-h-[38px]">검색</Button>
+        </ClanDiscoveryFilterForm>}
+        listingFailed={!!listError}
+        pagination={totalPages > 1 && <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav>}
+      />
       <TabsContent value="create">{state.clanStatus === "member" ? <p className={styles.empty}>이미 이 게임의 클랜에 소속되어 있습니다.</p> : <ClanCreateForm gameSlug={gameSlug} />}</TabsContent>
     </Tabs>
   </main></AccountShell>;

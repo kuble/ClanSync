@@ -29,6 +29,9 @@
 .clanList { display: grid; grid-auto-rows: 1fr; gap: 10px; }
 .clanList > li { display: grid; }
 .clanCard { position: relative; display: grid; grid-template-columns: minmax(0,1fr); align-items: center; gap: 0; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.clanCard[data-pending-card] { grid-template-columns: minmax(0,1fr) auto; gap: 16px; }
+.clanCard[data-pending-card] .overview { position: relative; }
+.pendingActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-inline-start: 16px; border-inline-start: 1px solid var(--border); }
 .overview { display: flex; align-items: center; min-width: 0; gap: 14px; text-align: start; cursor: pointer; border-radius: 5px; }
 .miniEmblem { display: grid; place-items: center; width: 52px; height: 52px; flex: none; overflow: hidden; border-radius: 12px; color: var(--primary); background: color-mix(in srgb, var(--primary) 9%, var(--card)); }
 .miniEmblem img { width: 100%; height: 100%; object-fit: cover; }
@@ -84,6 +87,8 @@
   .eligibilityFilter { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; }
 }
 @media (max-width: 540px) {
+  .clanCard[data-pending-card] { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .pendingActions { justify-content: flex-end; padding: 12px 0 0; border-inline-start: 0; border-top: 1px solid var(--border); }
   .intro { margin-bottom: 18px; }
   .clanCard { gap: 6px; padding: 14px; }
   .overview { gap: 10px; }
