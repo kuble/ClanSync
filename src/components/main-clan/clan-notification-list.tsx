@@ -8,7 +8,8 @@ import type { Json } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 import { uuidPattern } from "@/lib/clan/board";
 
-function NotificationLink({ href, inSheet, className, children }: { href: string; inSheet: boolean; className: string; children: ReactNode }) {
+function NotificationLink({ href, inSheet, className, children }: { href: string | null; inSheet: boolean; className: string; children: ReactNode }) {
+  if (!href) return <div className={className}>{children}</div>;
   return inSheet ? <SheetClose nativeButton={false} render={<Link href={href} className={className} />}>{children}</SheetClose> : <Link href={href} className={className}>{children}</Link>;
 }
 function formatRelativeKo(iso: string, now?: number): string {
@@ -50,6 +51,7 @@ function notificationTitle(
   payload: Json,
 ): { title: string; href: string | null } {
   const base = (g: string, h: string | null) => ({ title: g, href: h });
+  if (kind === "clan_inquiry_comment") return base("클랜 문의방에 새 댓글이 있습니다.", null);
   if((kind==="coaching_requested"||kind==="coaching_comment")&&payload&&typeof payload==='object'&&!Array.isArray(payload)){
     const title=typeof payload.post_title==='string'?payload.post_title:'리플레이 피드백';
     return base((kind==="coaching_requested"?'새 코칭 신청':'코칭 댓글')+' · '+title,null);
@@ -94,8 +96,8 @@ function notificationTitle(
 }
 
 
-export function ClanNotificationList({ items, eventsBase, inSheet = false, now }: {
-  items: ClanInAppNotificationVM[]; eventsBase: string; inSheet?: boolean; now?: number;
+export function ClanNotificationList({ items, eventsBase, canOpenInquiry = false, inSheet = false, now }: {
+  items: ClanInAppNotificationVM[]; eventsBase: string; canOpenInquiry?: boolean; inSheet?: boolean; now?: number;
 }) {
   return <>{items.length === 0 ? (
             <p className="text-muted-foreground px-4 py-8 text-center text-sm">
@@ -117,7 +119,7 @@ export function ClanNotificationList({ items, eventsBase, inSheet = false, now }
                 const gameSlug = typeof p.game_slug === "string" ? p.game_slug : "";
                 const isLfgExpire =
                   row.kind === "lfg_post_expired" || row.kind === "lfg_application_expired";
-                let href =
+                let href: string | null =
                   row.kind === "poll_reminder" && pollId
                     ? `${eventsBase}?tab=polls`
                     : row.kind === "event_reminder"
@@ -126,6 +128,9 @@ export function ClanNotificationList({ items, eventsBase, inSheet = false, now }
 
                 if (isLfgExpire && gameSlug) {
                   href = `/games/${encodeURIComponent(gameSlug)}?tab=lfg`;
+                }
+                if (row.kind === "clan_inquiry_comment") {
+                  href = canOpenInquiry ? eventsBase.replace(/\/events$/, "/manage?tab=requests&inquiry=1") : null;
                 }
                 if((row.kind==='coaching_requested'||row.kind==='coaching_comment')&&typeof p.post_id==='string'&&uuidPattern.test(p.post_id)){
                   href=eventsBase.replace(/\/events$/,'')+'/board/feedback/'+p.post_id+(row.kind==='coaching_comment'?'#comments':'');
@@ -146,9 +151,9 @@ export function ClanNotificationList({ items, eventsBase, inSheet = false, now }
                         {formatRelativeKo(row.created_at, now)}
                         {unread ? " · 미읽음" : ""}
                       </p>
-                      <span className="text-primary mt-1 inline-block text-xs font-medium">
-                        원본 보기 →
-                      </span>
+                      {href && <span className="text-primary mt-1 inline-block text-xs font-medium">
+                        {row.kind === "clan_inquiry_comment" ? "문의방 열기" : "원본 보기 →"}
+                      </span>}
                     </NotificationLink>
                   </li>
                 );

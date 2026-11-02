@@ -77,38 +77,39 @@ export function ManageJoinRequestsPanel({
 
   if (rows.length === 0) {
     return (
-      <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
+      <p className="px-5 py-8 text-center text-sm text-muted-foreground">
         대기 중인 가입 신청이 없습니다.
       </p>
     );
   }
 
   return (
-    <><ul className="space-y-4">
+    <><ul className="divide-y">
       {rows.map((row) => (
         <li
           key={row.id}
-          className="bg-card rounded-xl border p-4 shadow-sm"
+          className="p-4 sm:px-5"
         >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="grid gap-x-5 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <p className="break-words font-semibold">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
                 <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">{playerProfileDetails(row.profile)}</p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span>{playerProfileDetails(row.profile)}</span>
+                <time dateTime={row.appliedAt}>
+                  신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
+                </time>
+              </div>
               {row.returningMember && <p className="mt-1 text-xs font-medium text-primary">재가입 · 기존 내전 기록 유지</p>}
-              <p className="text-muted-foreground mt-1 text-xs">
-                신청일{" "}
-                {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
-              </p>
               {row.message ? (
-                <p className="text-muted-foreground mt-2 border-l-2 pl-3 text-sm">
+                <p className="mt-3 border-l-2 pl-3 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">
                   {row.message}
                 </p>
               ) : null}
             </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
+            <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 size="sm"

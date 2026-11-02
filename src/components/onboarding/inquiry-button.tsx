@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,57 @@ import { StatsScrollArea } from "@/components/main-clan/stats-scroll-area";
 type InquiryMessage = Omit<ClanComment, "id" | "content" | "reactions" | "emojiReactions"> & { id: number; body: string };
 type Room = { messages: InquiryMessage[] };
 
-export function InquiryButton({ clanId }: { clanId: string }) {
-  const [open, setOpen] = useState(false);
-  return <Dialog open={open} onOpenChange={setOpen}>
-    <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>클랜 문의방</DialogTrigger>
+export function InquiryButton({ clanId, management = false }: { clanId: string; management?: boolean }) {
+  const searchParams = useSearchParams();
+  const linked = management && searchParams.get("inquiry") === "1";
+  const [manualOpen, setManualOpen] = useState(false);
+  const open = manualOpen || linked;
+  const [unreadClan, setUnreadClan] = useState<string | null>(null);
+  const unread = !open && unreadClan === clanId;
+
+  useEffect(() => {
+    if (open) return;
+    const controller = new AbortController();
+    let checking = false;
+    async function check() {
+      if (document.hidden || checking) return;
+      checking = true;
+      try {
+        const { data, error } = await createClient().from("notifications").select("id")
+          .eq("clan_id", clanId).eq("kind", "clan_inquiry_comment").is("read_at", null)
+          .limit(1).abortSignal(controller.signal);
+        if (!error && !controller.signal.aborted) setUnreadClan(data.length ? clanId : null);
+      } finally {
+        checking = false;
+      }
+    }
+    void check();
+    const timer = window.setInterval(check, 30_000);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [clanId, open]);
+
+  function changeOpen(next: boolean) {
+    setManualOpen(next);
+    if (!next && linked) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("inquiry");
+      window.history.replaceState(null, "", url);
+    }
+  }
+
+  const label = unread ? "클랜 문의방 · 새 댓글" : "클랜 문의방";
+  return <Dialog open={open} onOpenChange={changeOpen}>
+    <DialogTrigger aria-label={label} title={label}
+      render={<Button type="button" variant="outline" size={management ? "icon" : "sm"} className="relative" />}>
+      <MessageSquare aria-hidden />
+      {!management && "클랜 문의방"}
+      {unread && <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-destructive ring-2 ring-card" />}
+    </DialogTrigger>
     {open && <DialogContent className="flex h-[min(36rem,calc(100dvh-2rem))] min-w-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
       <InquiryConversation key={clanId} clanId={clanId} />
     </DialogContent>}
@@ -55,7 +103,7 @@ function InquiryConversation({ clanId }: { clanId: string }) {
     const controller = new AbortController();
     async function refresh() {
       const before = version.current;
-      if (!writing.current) {
+      if (!document.hidden && !writing.current) {
         const { data, error } = await createClient().rpc("clan_inquiry", { p_clan_id: clanId }).abortSignal(controller.signal);
         if (!active) return;
         if (version.current === before) {

@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("pending applicant can reopen the shared clan room until their request is resolved",async({page})=>{
-  test.setTimeout(60_000);
+test.use({ actionTimeout: 15_000 });
+
+test("pending applicant can reopen the shared clan room until their request is resolved",async({page,browser})=>{
+  test.setTimeout(100_000);
   const f=await createIsolatedBalanceFixture(2);
   const title="문의방 QA 홍보글";
   try {
@@ -35,10 +37,28 @@ test("pending applicant can reopen the shared clan room until their request is r
     const second = room.getByRole("listitem").filter({hasText:"두 번째 문의입니다."});
     await expect(second.locator("p")).toBeVisible();
     await expect(second.locator("strong")).toHaveCount(0);
-    const officer = await f.memberClient(0);
+    await page.keyboard.press("Escape");
+    const staffPage = await browser.newPage({ baseURL: new URL(page.url()).origin, viewport: { width: 976, height: 884 } });
     try {
-      expect((await officer.rpc("clan_inquiry", {p_clan_id:f.clanId, p_body:"운영진 답변입니다."})).error).toBeNull();
-    } finally { await officer.auth.signOut(); }
+      await loginIsolatedBalanceUser(staffPage,f.users[0]);
+      await staffPage.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=requests`);
+      await expect(staffPage.getByRole("heading", {name:"대기 중인 가입 요청"})).toBeVisible();
+      await expect(staffPage.getByRole("button", {name:"클랜 문의방 · 새 댓글"})).toBeVisible();
+      await staffPage.getByRole("button", {name:/^알림.*미읽음/}).click();
+      await staffPage.getByRole("button", {name:/클랜 문의방에 새 댓글/}).first().click();
+      const staffRoom = staffPage.getByRole("dialog", {name:"클랜 문의방"});
+      await expect(staffRoom.getByText("두 번째 문의입니다.", {exact:true})).toBeVisible();
+      await staffRoom.getByRole("textbox",{name:"문의 메시지"}).fill("운영진 답변입니다.");
+      await staffRoom.getByRole("button",{name:"보내기"}).click();
+      await expect(staffRoom.getByText("운영진 답변입니다.", {exact:true})).toBeVisible();
+      await staffPage.keyboard.press("Escape");
+      await expect(staffPage).not.toHaveURL(/inquiry=1/);
+      await staffPage.getByRole("button",{name:"클랜 문의방",exact:true}).click();
+      await expect(staffRoom).toBeVisible();
+    } finally { await staffPage.close(); }
+    await page.bringToFront();
+    const applicantButton = page.getByRole("region",{name:"현재 신청 중인 클랜"}).getByRole("button",{name:"클랜 문의방 · 새 댓글"});
+    await applicantButton.click({timeout:35_000});
     const reply = room.getByRole("listitem").filter({hasText:"운영진 답변입니다."});
     await expect(reply.locator("strong")).toHaveText(f.users[0].nickname, {timeout:10000});
     await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction","row");

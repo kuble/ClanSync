@@ -172,7 +172,7 @@ export function MainClanShell({
             href: basePath + "/manage",
             label: "클랜 관리",
             icon: Settings,
-            dot: ctx.sidebarDots.manage,
+            dot: ctx.sidebarDots.manage || inAppNotifications.items.some(item => item.kind === "clan_inquiry_comment" && !item.read_at),
           },
         ]
       : []),
@@ -248,6 +248,7 @@ export function MainClanShell({
           <ClanInAppNotificationBell
             gameSlug={ctx.gameSlug}
             clanId={ctx.clanId}
+            canOpenInquiry={ctx.role === "leader" || ctx.role === "officer"}
             initialItems={inAppNotifications.items}
             initialUnreadCount={inAppNotifications.unreadCount}
           />

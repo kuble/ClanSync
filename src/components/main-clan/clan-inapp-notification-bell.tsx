@@ -24,11 +24,13 @@ import { ClanNotificationList } from "./clan-notification-list";
 export function ClanInAppNotificationBell({
   gameSlug,
   clanId,
+  canOpenInquiry,
   initialItems,
   initialUnreadCount,
 }: {
   gameSlug: string;
   clanId: string;
+  canOpenInquiry: boolean;
   initialItems: ClanInAppNotificationVM[];
   initialUnreadCount: number;
 }) {
@@ -137,7 +139,7 @@ export function ClanInAppNotificationBell({
         </SheetHeader>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <ClanNotificationList items={initialItems} eventsBase={eventsBase} inSheet />
+          <ClanNotificationList items={initialItems} eventsBase={eventsBase} canOpenInquiry={canOpenInquiry} inSheet />
         </div>
 
         <div className="border-border shrink-0 space-y-2 border-t p-3">
