@@ -128,6 +128,11 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
                 </Slider.Root>}
               </section>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="interview-url">면접 링크 (선택)</Label>
+              <Input id="interview-url" name="interview_url" type="url" maxLength={1000} defaultValue={initial.interview_url ?? ""} placeholder="https://…" aria-describedby="interview-hint" />
+              <p id="interview-hint" className="text-xs text-muted-foreground">가입 신청을 누르면 면접 링크가 새 탭에서 열립니다.</p>
+            </div>
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
             <div className={styles.previewActions}>
               <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>

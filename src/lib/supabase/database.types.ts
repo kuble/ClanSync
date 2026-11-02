@@ -2115,6 +2115,7 @@ export type Database = {
           gender_policy: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url: string | null
           id: string
+          interview_url: string | null
           kakao_url: string | null
           last_activity_at: string | null
           lifecycle_status: Database["public"]["Enums"]["clan_lifecycle"]
@@ -2147,6 +2148,7 @@ export type Database = {
           gender_policy?: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url?: string | null
           id?: string
+          interview_url?: string | null
           kakao_url?: string | null
           last_activity_at?: string | null
           lifecycle_status?: Database["public"]["Enums"]["clan_lifecycle"]
@@ -2179,6 +2181,7 @@ export type Database = {
           gender_policy?: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url?: string | null
           id?: string
+          interview_url?: string | null
           kakao_url?: string | null
           last_activity_at?: string | null
           lifecycle_status?: Database["public"]["Enums"]["clan_lifecycle"]
@@ -3906,6 +3909,7 @@ export type Database = {
           p_clan_id: string
           p_expected_updated_at?: string
           p_gender_policy?: string
+          p_interview_url?: string
           p_positions?: string[]
           p_post_id: string
           p_public?: boolean
