@@ -33,6 +33,7 @@ export async function saveClanPromotionAction(gameSlug: string, clanId: string, 
   const { data, error } = await access.client.rpc("save_clan_promotion", {
     p_clan_id: clanId, p_post_id: postId, p_expected_updated_at: version || undefined,
     p_title: title, p_blocks: blocks as Json, p_birth_year_limit: years.min_birth_year ?? undefined, p_birth_year_from: years.birth_year_from ?? undefined, p_gender_policy: gender, p_tiers: tiers,
+    p_public: form.has("promotion_public"),
     p_style: style == null ? undefined : String(style),
     p_positions: positions.length === 0 ? undefined : allPositions ? [] : positions,
   });

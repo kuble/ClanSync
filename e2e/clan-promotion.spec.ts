@@ -190,6 +190,22 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(page.getByRole("heading",{name:"최근 홍보글",exact:true})).toHaveCount(0);
     const saved=await f.service.from("board_posts").select("id,clan_id,game_id,created_by,post_type,content_blocks").eq("clan_id",f.clanId).eq("title",title).single();
     expect(saved.error).toBeNull(); expect(saved.data).toMatchObject({clan_id:f.clanId,game_id:f.gameId,created_by:f.users[0].id,post_type:"promotion"});
+    const visibility=page.getByRole("switch",{name:"클랜 찾기에 공개"});
+    const reader=await f.memberClient(1);
+    await expect(visibility).toBeChecked();
+    await visibility.uncheck();
+    await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
+    const readable=async()=>{
+      const result=await reader.from("board_posts").select("id").eq("id",saved.data!.id);
+      expect(result.error).toBeNull(); return result.data!.length;
+    };
+    await expect.poll(readable).toBe(0);
+    await page.reload();
+    await expect(visibility).not.toBeChecked();
+    await expect(page.getByLabel("제목",{exact:true})).toHaveValue(title);
+    await visibility.check();
+    await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
+    await expect.poll(readable).toBe(1);
     const savedBlocks=saved.data!.content_blocks as {type:string;path?:string}[];
     expect(savedBlocks.map(block=>block.type)).toEqual(["text","image","text"]);
     photoPaths.push(...savedBlocks.flatMap(block=>block.path?[block.path]:[]));

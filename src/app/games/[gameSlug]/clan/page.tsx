@@ -51,7 +51,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   const clanQuery = () => supabase.from("clans").select(CLAN_FIELDS, { count: "exact" }).eq("game_id", game.id).eq("lifecycle_status", "active").eq("moderation_status", "clean")
     .eq("promotions.post_type","promotion").eq("promotions.game_id",game.id)
     .order("created_at",{referencedTable:"promotions",ascending:false}).order("id",{referencedTable:"promotions",ascending:false}).limit(1,{referencedTable:"promotions"});
-  let listQuery = clanQuery().order("created_at", { ascending: false }).order("id", {ascending: false});
+  let listQuery = clanQuery().eq("promotion_public",true).order("created_at", { ascending: false }).order("id", {ascending: false});
   const safeTerm = term.replace(/[%_]/g, "");
   if (safeTerm) listQuery = listQuery.ilike("name", `%${safeTerm}%`);
   if (style) listQuery = listQuery.eq("style", style);
@@ -74,7 +74,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   let previewRow = null;
   if (promotion) {
     if (!requestedPromotion.data) notFound();
-    const result = await clanQuery().eq("id",requestedPromotion.data.clan_id).maybeSingle();
+    const result = await clanQuery().eq("promotion_public",true).eq("id",requestedPromotion.data.clan_id).maybeSingle();
     if (result.error) throw new Error("클랜 정보를 불러오지 못했습니다.");
     if (!result.data) notFound();
     previewRow = result.data;

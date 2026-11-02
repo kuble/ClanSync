@@ -55,10 +55,11 @@ export async function loadPromotionFeed(
   const { data: posts, error } = await supabase
     .from("board_posts")
     .select(
-      "id, title, content, created_at, clan_id, clans ( id, name, max_members, birth_year_from, min_birth_year, gender_policy, tier_range )",
+      "id, title, content, created_at, clan_id, clans!inner ( id, name, max_members, birth_year_from, min_birth_year, gender_policy, tier_range )",
     )
     .eq("game_id", gameId)
     .eq("post_type", "promotion")
+    .eq("clans.promotion_public", true)
     .order("created_at", { ascending: false })
     .limit(48);
 

@@ -2123,6 +2123,7 @@ export type Database = {
           moderation_status: Database["public"]["Enums"]["clan_moderation"]
           name: string
           ownership_transferred_at: string | null
+          promotion_public: boolean
           recruitment_positions: string[]
           rules: string | null
           style: Database["public"]["Enums"]["clan_style"] | null
@@ -2154,6 +2155,7 @@ export type Database = {
           moderation_status?: Database["public"]["Enums"]["clan_moderation"]
           name: string
           ownership_transferred_at?: string | null
+          promotion_public?: boolean
           recruitment_positions?: string[]
           rules?: string | null
           style?: Database["public"]["Enums"]["clan_style"] | null
@@ -2185,6 +2187,7 @@ export type Database = {
           moderation_status?: Database["public"]["Enums"]["clan_moderation"]
           name?: string
           ownership_transferred_at?: string | null
+          promotion_public?: boolean
           recruitment_positions?: string[]
           rules?: string | null
           style?: Database["public"]["Enums"]["clan_style"] | null
@@ -3891,6 +3894,7 @@ export type Database = {
           p_gender_policy?: string
           p_positions?: string[]
           p_post_id: string
+          p_public?: boolean
           p_style?: string
           p_tiers?: string[]
           p_title: string
