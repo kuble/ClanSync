@@ -10,7 +10,7 @@ import { readFile } from "node:fs/promises";
 async function ok(query) { const {data,error}=await query; assert.equal(error,null,error?.message); return data; }
 async function denied(query) { const {error}=await query; assert.ok(error,"Restricted operation unexpectedly succeeded"); return error; }
 
-test("inclusive birth-year ranges protect applications, approvals, direct writes and atomic promotion saves",async t=>{
+test("birth-year ranges are advisory for applications and approvals and validated in atomic promotion saves",async t=>{
   const f=await createIsolatedBalanceFixture(4), svc=f.service;
   const clients=await Promise.all(f.users.map((_,index)=>f.memberClient(index))), [leader]=clients;
   t.after(async()=>{await Promise.all(clients.map(client=>client.auth.signOut()));await f.cleanup();});
@@ -22,21 +22,18 @@ test("inclusive birth-year ranges protect applications, approvals, direct writes
   await ok(save(1990,2005));
   for(const index of [1,2,3]) {const request=await ok(apply(index));await cancel(index,request.id);}
   await ok(save(1991,2004));
-  await denied(apply(1));await denied(apply(3));
+  for(const index of [1,3]) {const request=await ok(apply(index));await cancel(index,request.id);}
   const pending=await ok(apply(2));
   await ok(save(2001,2004));
-  await denied(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
-  assert.equal((await ok(svc.from("clan_join_requests").select("status").eq("id",pending.id).single())).status,"pending");
-  assert.equal((await ok(svc.from("clan_members").select("user_id").eq("clan_id",f.clanId).eq("user_id",f.users[2].id))).length,0);
-  await ok(save(2000,2000));
   await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
+  assert.equal((await ok(svc.from("clan_members").select("status").eq("clan_id",f.clanId).eq("user_id",f.users[2].id).single())).status,"active");
   await denied(save(2001,1999));
   await denied(save(1949,null));
   await denied(save(null,new Date().getFullYear()));
   await denied(svc.from("clans").update({birth_year_from:2005,min_birth_year:2000}).eq("id",f.clanId));
   await denied(clients[1].rpc("update_clan_recruitment",{p_clan_id:f.clanId,p_birth_year_from:1950}));
-  await ok(save(2000,null));await denied(apply(1));const younger=await ok(apply(3));await cancel(3,younger.id);
-  await ok(save(null,2000));const older=await ok(apply(1));await cancel(1,older.id);await denied(apply(3));
+  await ok(save(2000,null));await cancel(1,(await ok(apply(1))).id);
+  await ok(save(null,2000));await cancel(3,(await ok(apply(3))).id);
   await ok(save());
   assert.deepEqual(await ok(svc.from("clans").select("birth_year_from,min_birth_year").eq("id",f.clanId).single()),{birth_year_from:null,min_birth_year:null});
   const input={p_clan_id:f.clanId,p_post_id:randomUUID(),p_title:"범위 모집",p_blocks:[{type:"text",text:"함께해요"}],p_birth_year_from:1990,p_birth_year_limit:2005};
@@ -121,14 +118,12 @@ test("immutable demographics and recruitment rules protect direct API, approvals
     await denied(leader.rpc("update_clan_recruitment",{p_clan_id:otherId,p_gender_policy:"male",p_tiers:[]}));
   });
   let staleId;
-  await t.test("birth-year cutoff is inclusive, tier is informational, and later changes block approval atomically",async()=>{
+  await t.test("officers can approve a pending application after tightening the birth-year preference",async()=>{
     staleId=(await ok(apply())).id;
     await ok(save(leader,1999));
-    await denied(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:staleId,p_decision:"approved"}));
-    assert.equal((await status(staleId)).status,"pending");
-    assert.equal((await ok(svc.from("clan_members").select("id").eq("clan_id",f.clanId).eq("user_id",applicantId))).length,0);
-    await cancel(staleId);
-    assert.match((await denied(apply())).message,/1999/);
+    await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:staleId,p_decision:"approved"}));
+    assert.equal((await status(staleId)).status,"approved");
+    await ok(applicant.rpc("change_clan_membership",{p_clan_id:f.clanId,p_action:"leave"}));
   });
   await t.test("gender preferences allow every gender to apply and be approved",async()=>{
     for (const preference of ["male","female"]) {
@@ -147,9 +142,9 @@ test("immutable demographics and recruitment rules protect direct API, approvals
   await t.test("failed replacement preserves the pending request; success swaps once, and rejection remains possible",async()=>{
     const old=(await ok(apply(otherId))).id;
     await ok(save(leader,1999));
-    await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId,p_message:"새 신청"}));
+    await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:randomUUID(),p_message:"없는 클랜"}));
     assert.equal((await status(old)).status,"pending");
-    await ok(save(leader,2000,"female",["gold"]));
+    await ok(save(leader,1999,"female",["gold"]));
     await ok(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId,p_message:"새 신청"}));
     assert.equal((await status(old)).status,"canceled");
     const pending=await ok(svc.from("clan_join_requests").select("id,message").eq("user_id",applicantId).eq("status","pending").single());
