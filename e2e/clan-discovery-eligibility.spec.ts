@@ -26,11 +26,30 @@ test("discovery filters account demographics before pagination and preserves oth
     ];
     const created = await f.service.from("clans").insert(conditions.map((condition,index)=>({
       ...condition, game_id:f.gameId, name:`${prefix}-${index}`, style:index===0?"casual" as const:"social" as const,
-      tier_range:[index===5?"diamond":"gold"],
+      tier_range:index === 0 ? [] : index === 1 ? ["gold","plat","diamond","master"] : [index === 5 ? "diamond" : "gold"],
+      icon_url:index === 1 ? "/images/overwatch/maps/busan.webp" : null,
     }))).select("id,name");
     expect(created.error).toBeNull(); ids.push(...created.data!.map(row=>row.id));
+    const withTitle = created.data!.find(row => row.name === prefix + "-1")!;
+    const post = await f.service.from("board_posts").insert({
+      game_id:f.gameId, clan_id:withTitle.id, created_by:f.users[0].id, post_type:"promotion",
+      title:"주말 오버워치 내전 멤버 모집", content:"금요일 저녁에 함께합니다.",
+    });
+    expect(post.error).toBeNull();
     await loginIsolatedBalanceUser(page,f.users[1]);
     const seed = f.clanId;
+    await page.goto(`/games/overwatch/clan?q=${prefix}&tier=diamond&seed=${seed}`);
+    const tierResults = page.getByRole("article");
+    await expect(tierResults).toHaveCount(3);
+    for (const tag of ["티어 무관","골드~마스터","다이아몬드"]) {
+      await expect(tierResults.getByText(tag,{exact:true})).toBeVisible();
+    }
+    await expect(tierResults.getByText("주말 오버워치 내전 멤버 모집")).toBeVisible();
+    for (const width of [1074,390]) {
+      await page.setViewportSize({width,height:884});
+      const heights = await tierResults.evaluateAll(rows => rows.map(row => row.getBoundingClientRect().height));
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
+    }
     await page.goto(`/games/overwatch/clan?q=${prefix}&seed=${seed}`);
     const filter=page.getByRole("checkbox",{name:"추천 클랜",exact:true});
     const results=page.getByText(/^함께할 클랜 \d+$/);
