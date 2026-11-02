@@ -64,8 +64,9 @@
 .detailBody p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.9; }
 .promotionBody { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.95; }
 .promotionBody img { display: inline-block; width: auto; max-width: min(100%,320px); max-height: 320px; height: auto; vertical-align: middle; margin: 4px 3px; border-radius: 8px; }
-.detailInfo { padding-top: 24px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.detailInfo p { color: var(--muted-foreground); font-size: 12px; }
+.detailTags { display: flex; flex-wrap: wrap; gap: 6px; }
+.detailTags li { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--muted); color: var(--foreground); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.detailTags svg { flex-shrink: 0; color: var(--primary); }
 .rules { border-top: 1px solid var(--border); padding-top: 18px; }
 .rules summary { font-size: 13px; cursor: pointer; }
 .rules p { margin-top: 12px; color: var(--muted-foreground); }
@@ -100,5 +101,4 @@
   .detailHeading { gap: 12px; }
   .detailHeading [data-slot="dialog-title"] { font-size: 20px; }
   .detailBody { padding: 22px 20px; }
-  .detailInfo { grid-template-columns: 1fr; gap: 20px; }
 }
