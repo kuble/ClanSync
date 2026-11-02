@@ -8,13 +8,13 @@ async function moveToYear(thumb: Locator, year: number) {
   await expect(thumb).toHaveAttribute("aria-valuetext", `${year}년생`);
 }
 
-test("clan promotion appears during clan discovery and keeps membership requirements",async({page},testInfo)=>{
+test("clan promotion appears during clan discovery and accepts applications outside recruitment preferences",async({page},testInfo)=>{
   test.setTimeout(180_000);
   const formWarnings: string[]=[];
   page.on("console",message=>{ if (/changing.*(uncontrolled|default value)/i.test(message.text())) formWarnings.push(message.text()); });
   const f=await createIsolatedBalanceFixture(2);
   const photoPaths: string[]=[];
-  const base=f.path.replace(/\/balance$/,""), title=`함께하는 클랜 ${Date.now()}`;
+  const base=f.path.replace(/\/balance$/,""), title="금요일 저녁 오버워치 내전 멤버 모집";
   try {
     await page.goto("/sign-up");
     await expect(page.getByText("출생연도와 성별은 가입 후 변경할 수 없습니다.",{exact:false})).toBeVisible();
@@ -259,24 +259,25 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByRole("combobox",{name:"지향",exact:true}).selectOption("casual");
     await page.getByRole("button",{name:"검색",exact:true}).click();
     await expect(page).toHaveURL(url => url.searchParams.get("q") === clanName && url.searchParams.get("style") === "casual");
-    await expect(page.getByTestId(`clan-join-open-${f.clanId}`)).toBeDisabled();
+    await expect(page.getByTestId(`clan-join-open-${f.clanId}`)).toBeEnabled();
     const card=page.getByRole("button",{name:`${clanName} 클랜 상세 보기`,exact:true});
-    await expect(page.getByRole("article").filter({ has: card }).getByText("1999년생 및 이전 출생자만 신청할 수 있습니다.",{exact:true})).toBeVisible();
+    await expect(card.getByText("골드",{exact:true})).toBeVisible();
     await expect(card).toContainText(title);
     await expect(card).toContainText("즐겜");
     await expect(card.locator("..")).not.toContainText("탱커·힐러 모집");
-    await expect(card.locator("..")).not.toContainText("1990~1999년생");
+    await expect(card).toContainText("1990~1999년생");
     await expect(card).not.toContainText("이전 모집 안내");
     await expect(card).not.toContainText("홍보가 아닌 경기 안내");
-    await expect(card.getByRole("img",{name:"함께하는 금요일 내전",exact:true})).toBeVisible();
-    await expect.poll(()=>card.locator("img").evaluate(image=>(image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(card.getByRole("img",{name:"함께하는 금요일 내전",exact:true})).toHaveCount(0);
     await page.setViewportSize({width:1304,height:884});
     await page.screenshot({path:testInfo.outputPath("clan-discovery-promotions.png"),fullPage:true});
     await card.click();
     const detail=page.getByRole("dialog",{name:title,exact:true});
     await expect(detail.getByText("탱커·힐러 모집",{exact:true})).toBeVisible();
     await expect(detail).toContainText("처음 오시는 분도 환영합니다.");
-    await expect(detail.getByRole("button",{name:"가입 조건 미충족",exact:true})).toBeDisabled();
+    await expect(detail.getByText("클랜원 1명",{exact:true})).toBeVisible();
+    await expect(detail.getByRole("img",{name:"함께하는 금요일 내전",exact:true})).toBeVisible();
+    await expect(detail.getByRole("button",{name:"가입 신청",exact:true})).toBeEnabled();
     await page.screenshot({path:testInfo.outputPath("clan-discovery-promotion-detail.png"),fullPage:true});
     await page.setViewportSize({width:390,height:844});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
@@ -294,7 +295,6 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByRole("button",{name:"검색",exact:true}).click();
     await expect(page.getByText("조건에 맞는 클랜이 없습니다.",{exact:false})).toBeVisible();
     await expect(page.getByRole("combobox",{name:"모집 티어",exact:true})).toBeVisible();
-    const relaxed=await f.service.from("clans").update({birth_year_from:null,min_birth_year:null,gender_policy:"all"}).eq("id",f.clanId); expect(relaxed.error).toBeNull();
     await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
     await detail.getByRole("button",{name:"가입 신청",exact:true}).click();
     await expect(detail).toBeHidden();

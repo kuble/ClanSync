@@ -41,11 +41,16 @@ export function recruitmentYearLabel(conditions: RecruitmentYears) {
 }
 export const recruitmentTierLabel = (gameSlug: string, tier: string) => recruitmentTiers(gameSlug).find(([value]) => value === normalizeRecruitmentTier(gameSlug, tier))?.[1] ?? tier;
 
-export function recruitmentProfileError(conditions: Pick<ClanRecruitment, "birth_year_from" | "min_birth_year" | "gender_policy">, profile: { birth_year: number; gender: string } | null) {
-  if (!profile) return "가입 정보를 확인할 수 없습니다. 다시 로그인해 주십시오.";
-  if (conditions.birth_year_from != null && profile.birth_year < conditions.birth_year_from) return `${conditions.birth_year_from}년생 및 이후 출생자만 신청할 수 있습니다.`;
-  if (conditions.min_birth_year != null && profile.birth_year > conditions.min_birth_year) return `${conditions.min_birth_year}년생 및 이전 출생자만 신청할 수 있습니다.`;
-  return null;
+export function recruitmentTierSummary(gameSlug: string, tiers: readonly string[]) {
+  if (!tiers.length) return "티어 무관";
+  const ladder = recruitmentTiers(gameSlug);
+  const selected = new Set(tiers.map(tier => normalizeRecruitmentTier(gameSlug, tier)));
+  const ranks = ladder.filter(([id]) => selected.has(id));
+  if (ranks.length >= 2 && ranks.length === selected.size) {
+    const first = ranks[0], last = ranks[ranks.length - 1];
+    if (ladder.indexOf(last) - ladder.indexOf(first) + 1 === ranks.length) return `${first[1]}~${last[1]}`;
+  }
+  return [...selected].map(tier => recruitmentTierLabel(gameSlug, tier)).join("·");
 }
 
 export function recruitmentLabels(gameSlug: string, conditions: ClanRecruitment) {

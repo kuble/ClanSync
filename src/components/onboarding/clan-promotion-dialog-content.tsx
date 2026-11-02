@@ -39,7 +39,7 @@ export function ClanPromotionDialogContent({ gameSlug, clan, title, blocks, onCl
   return <DialogContent className={`sm:max-w-3xl ${styles.dialog}`}>
     <DialogHeader><div className={styles.detailHeading}><span className={styles.clanEmblem} aria-hidden="true">{clan.icon_url ? <Image src={clan.icon_url} alt="" width={44} height={44} unoptimized className="size-full rounded-[inherit] object-cover" /> : <Shield size={22} />}</span><div className="min-w-0">
       <DialogTitle className="break-words">{title ?? clan.promotion?.title ?? clan.name}</DialogTitle>
-      <DialogDescription className="mt-2">{clan.name}</DialogDescription>
+      <DialogDescription className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"><span>{clan.name}</span>{clan.active_members != null && <span className="inline-flex items-center gap-1"><UsersRound size={13} aria-hidden />클랜원 {clan.active_members.toLocaleString("ko-KR")}명</span>}</DialogDescription>
     </div></div></DialogHeader>
     <div className={styles.detailBody}>
       <ul aria-label="홍보 태그" className={styles.detailTags}>

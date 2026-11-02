@@ -3585,6 +3585,20 @@ export type Database = {
         Args: { p_clan_id: string; p_officer_id?: string; p_room_id: string }
         Returns: Json
       }
+      discover_clans: {
+        Args: {
+          p_game_id: string
+          p_query: string
+          p_recommended: boolean
+          p_seed: string
+          p_style: string
+          p_tier: string
+        }
+        Returns: {
+          clan_id: string
+          shuffle_key: string
+        }[]
+      }
       dispatch_inapp_notification_batch: {
         Args: { p_limit?: number }
         Returns: number

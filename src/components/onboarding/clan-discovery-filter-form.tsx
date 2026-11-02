@@ -13,6 +13,7 @@ export function ClanDiscoveryFilterForm({children, action}: {children: ReactNode
     new FormData(event.currentTarget).forEach((value, key) => {
       if (typeof value === "string" && value) query.set(key, value);
     });
+    query.set("seed", crypto.randomUUID());
     startTransition(() => router.push(`${action}?${query}`, {scroll: false}));
   }
   return <form action={action} method="get" className={styles.filters} onSubmit={submit} aria-busy={pending}

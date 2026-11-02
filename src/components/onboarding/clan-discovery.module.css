@@ -18,14 +18,13 @@
 .filterActions { display: flex; align-items: center; gap: 12px; }
 .filterActions button { flex: 1; min-height: 38px; }
 .eligibilityFilter { padding-top: 12px; border-top: 1px solid var(--border); }
-.eligibilityFilter label { position: relative; display: flex; align-items: center; gap: 8px; min-height: 30px; cursor: pointer; font-size: 12px; font-weight: 550; }
-.eligibilityFilter input { position: absolute; width: 32px; height: 20px; opacity: 0; }
+.eligibilityFilter label { position: relative; display: flex; width: fit-content; align-items: center; gap: 8px; min-height: 30px; cursor: pointer; font-size: 12px; font-weight: 550; }
+.eligibilityFilter input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .filterSwitch { pointer-events: none; width: 32px; height: 18px; flex-shrink: 0; padding: 3px; border-radius: 20px; background: var(--muted-foreground); }
 .filterSwitch::after { content: ""; display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--background); }
 .eligibilityFilter input:checked + .filterSwitch { background: var(--primary); }
 .eligibilityFilter input:checked + .filterSwitch::after { transform: translateX(14px); }
 .eligibilityFilter input:focus-visible + .filterSwitch { outline: 2px solid var(--primary); outline-offset: 3px; }
-.eligibilityFilter p { margin-inline-start: 40px; font-size: 11px; color: var(--muted-foreground); }
 .filterStatus { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .filters[aria-busy="true"] { cursor: progress; }
 .results { min-width: 0; }
@@ -37,17 +36,22 @@
 .clanCard { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px 18px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
 .overview { display: flex; align-items: center; min-width: 0; gap: 14px; text-align: start; cursor: pointer; border-radius: 5px; }
 .miniEmblem { display: grid; place-items: center; width: 52px; height: 52px; flex: none; overflow: hidden; border-radius: 12px; color: var(--primary); background: color-mix(in srgb, var(--primary) 9%, var(--card)); }
-.miniEmblem img, .cover img { width: 100%; height: 100%; object-fit: cover; }
+.miniEmblem img { width: 100%; height: 100%; object-fit: cover; }
 .clanText { display: grid; gap: 5px; min-width: 0; flex: 1; }
 .clanIdentity { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .clanIdentity strong { font-size: 17px; line-height: 1.4; letter-spacing: -.025em; overflow-wrap: anywhere; }
-.clanSubtitle { padding: 2px 7px; border-radius: 5px; font-size: 11px; color: var(--muted-foreground); background: var(--muted); }
+.clanSubtitle { padding: 2px 7px; border-radius: 5px; font-size: 11px; color: color-mix(in srgb, var(--style-tint, var(--primary)) 48%, var(--foreground)); background: color-mix(in srgb, var(--style-tint, var(--primary)) 10%, var(--card)); }
+.clanSubtitle[data-style="social"] { --style-tint: #9975bd; }
+.clanSubtitle[data-style="casual"] { --style-tint: #55a18a; }
+.clanSubtitle[data-style="tryhard"] { --style-tint: #bd8752; }
+.clanSubtitle[data-style="pro"] { --style-tint: #608eb8; }
 .clanTitle { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
-.cover { flex: none; width: 60px; aspect-ratio: 4/3; overflow: hidden; border-radius: 6px; }
+.cardTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.cardTags > span { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 7px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); font-size: 11px; overflow-wrap: anywhere; }
+.cardTags svg { flex-shrink: 0; }
 .detailArrow { flex: none; color: var(--muted-foreground); }
 .overview:hover .clanIdentity strong, .overview:hover .detailArrow { color: var(--primary); }
 .clanFooter { justify-self: end; }
-.eligibilityNote { grid-column: 1 / -1; color: var(--muted-foreground); font-size: 12px; }
 .error { color: var(--destructive); font-size: 12px; }
 .empty { padding: 48px 20px; border: 1px dashed var(--border); border-radius: 12px; text-align: center; color: var(--muted-foreground); font-size: 13px; }
 .dialog { gap: 0; padding: 0; overflow: hidden; }
@@ -77,17 +81,14 @@
   .filters > label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
   .filters select { flex: 1; }
   .eligibilityFilter { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; }
-  .eligibilityFilter p { margin-inline-start: 0; }
 }
 @media (max-width: 540px) {
   .intro { margin-bottom: 18px; }
   .clanCard { grid-template-columns: minmax(0,1fr); gap: 10px; padding: 14px; }
   .overview { gap: 10px; }
   .miniEmblem { width: 44px; height: 44px; }
-  .cover { width: 44px; }
   .clanIdentity strong { font-size: 16px; }
   .clanFooter { justify-self: start; margin-inline-start: 54px; }
-  .eligibilityNote { margin-inline-start: 54px; }
 }
 @media (max-width: 700px) {
   .dialog > [data-slot="dialog-header"] { padding: 24px 20px 18px; }

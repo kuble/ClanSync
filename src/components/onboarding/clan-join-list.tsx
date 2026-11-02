@@ -2,22 +2,22 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useState } from "react";
-import { ChevronRight, Clock3, Shield } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock3, Shield, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./clan-discovery.module.css";
-import { CLAN_STYLES } from "@/lib/clan/recruitment";
-import { promotionBlocks, promotionImageUrl, type PromotionPost } from "@/lib/clan/promotion";
+import { CLAN_STYLES, recruitmentTierSummary, recruitmentYearLabel } from "@/lib/clan/recruitment";
+import type { PromotionPost } from "@/lib/clan/promotion";
 import { ClanPromotionDialogContent } from "./clan-promotion-dialog-content";
 
 export type ClanListRow = {
   id: string; name: string; icon_url?: string | null; description: string | null; tags: string[]; max_members: number;
   active_members?: number | null; rules?: string | null; style?: string | null; tier_range?: string[]; recruitment_positions?: string[];
   created_at?: string; discord_url?: string | null; kakao_url?: string | null; subscription_tier?: string;
-  birth_year_from?: number | null; min_birth_year?: number | null; gender_policy?: "all" | "male" | "female"; eligibilityError?: string | null;
+  birth_year_from?: number | null; min_birth_year?: number | null; gender_policy?: "all" | "male" | "female";
   promotion?: PromotionPost | null;
 };
 const STYLE_LABEL: Record<string, string> = Object.fromEntries(CLAN_STYLES.map(({value, label}) => [value, label]));
@@ -74,7 +74,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     const isPending = effectivePendingId === clan.id;
     const otherPending = effectivePendingId != null && !isPending;
     const full = clan.active_members != null && clan.active_members >= clan.max_members;
-    const cover = promotionBlocks(clan.promotion).find(block => block.type === "image");
     return <article className={styles.clanCard}>
       <button type="button" className={styles.overview} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}>
         <span className={styles.miniEmblem} aria-hidden>
@@ -83,17 +82,19 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         <span className={styles.clanText}>
           <span className={styles.clanIdentity}>
             <strong>{clan.name}</strong>
-            {clan.style && <span className={styles.clanSubtitle}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}
+            {clan.style && <span className={styles.clanSubtitle} data-style={clan.style}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}
           </span>
           {clan.promotion?.title && <span className={styles.clanTitle}>{clan.promotion.title}</span>}
+          <span className={styles.cardTags}>
+            <span><CalendarDays size={12} aria-hidden />{recruitmentYearLabel({birth_year_from:clan.birth_year_from ?? null,min_birth_year:clan.min_birth_year ?? null})}</span>
+            <span><Trophy size={12} aria-hidden />{recruitmentTierSummary(gameSlug, clan.tier_range ?? [])}</span>
+          </span>
         </span>
-        {cover?.type === "image" && <span className={styles.cover}><Image src={promotionImageUrl(gameSlug, clan.id, cover.path)} alt={cover.alt || `${clan.name}의 활동 사진`} width={144} height={96} loading={pinned || clan.id === displayClans[0]?.id ? "eager" : "lazy"} unoptimized /></span>}
         <ChevronRight size={16} aria-hidden className={styles.detailArrow} />
       </button>
       <div className={styles.clanFooter}>
-        {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full || !!clan.eligibilityError} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-haspopup="dialog" aria-describedby={clan.eligibilityError ? `eligibility-${clan.id}` : undefined} onClick={() => openApply(clan)}>{full ? "정원 마감" : clan.eligibilityError ? "가입 조건 미충족" : otherPending ? "이 클랜으로 신청 바꾸기" : "가입 신청"}</Button>}
+        {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-haspopup="dialog" onClick={() => openApply(clan)}>{full ? "정원 마감" : otherPending ? "이 클랜으로 신청 바꾸기" : "가입 신청"}</Button>}
       </div>
-      {canApply && clan.eligibilityError && <p id={`eligibility-${clan.id}`} className={styles.eligibilityNote}>{clan.eligibilityError}{isPending ? " 변경된 조건은 승인 시 적용됩니다." : ""}</p>}
     </article>;
   }
 
@@ -119,7 +120,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || !!details.eligibilityError || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.eligibilityError ? "가입 조건 미충족" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
     </Dialog>
   </>;
 }
