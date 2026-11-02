@@ -99,13 +99,14 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   function renderCard(clan: ClanListRow, pinned = false) {
     const isPending = effectivePendingId === clan.id;
     return <article className={styles.clanCard}>
-      <button type="button" className={styles.overview} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}>
+      <div className={styles.overview}>
         <span className={styles.miniEmblem} aria-hidden>
           {clan.icon_url ? <Image src={clan.icon_url} alt="" width={56} height={56} unoptimized /> : <Shield size={24} />}
         </span>
         <span className={styles.clanText}>
           <span className={styles.clanIdentity}>
-            <strong>{clan.name}</strong>
+            <button type="button" className={styles.detailTrigger} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}><strong>{clan.name}</strong></button>
+            {renderFavorite(clan)}
             {clan.style && <span className={styles.clanSubtitle} data-style={clan.style}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}
           </span>
           <span className={styles.cardTags}>
@@ -114,11 +115,8 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           </span>
         </span>
         <ChevronRight size={16} aria-hidden className={styles.detailArrow} />
-      </button>
-      <div className={styles.clanFooter}>
-        {isPending && <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden />신청 대기 중</Badge>}
-        {renderFavorite(clan)}
       </div>
+      {isPending && <div className={styles.clanFooter}><Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden />신청 대기 중</Badge></div>}
     </article>;
   }
 
