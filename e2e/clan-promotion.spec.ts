@@ -78,6 +78,10 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByRole("button",{name:"미리보기",exact:true}).click();
     const draftPreview=page.getByRole("dialog",{name:"이전 모집 안내",exact:true});
     await expect(draftPreview).toBeVisible();
+    await expect.poll(() => draftPreview.evaluate(dialog => {
+      const footer = dialog.querySelector('[data-slot="dialog-footer"]')!;
+      return Math.abs(dialog.getBoundingClientRect().right - footer.getBoundingClientRect().right);
+    })).toBeLessThanOrEqual(1);
     for (const label of ["1990~1999년생","남성","즐겜","탱커·힐러 모집","골드","다이아몬드"]) {
       await expect(draftPreview.getByText(label,{exact:true})).toBeVisible();
     }
