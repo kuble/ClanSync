@@ -2,7 +2,6 @@
 import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { parseRiotId } from "@/lib/game-auth/riot-id";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
-import { safeBoardUrl } from "@/lib/clan/board";
 import { OVERWATCH_POSITIONS, readRecruitmentYears, recruitmentTiers } from "@/lib/clan/recruitment";
 
 import { revalidatePath } from "next/cache";
@@ -168,9 +167,6 @@ export async function createClanAndLeadAction(
   if (tierRaw.some(tier => typeof tier !== "string" || !tierSet.has(tier))) return { ok:false,error:"해당 게임의 모집 티어를 선택해 주십시오." };
   const tier_range = [...new Set(tierRaw.map(String))];
   const positions = formData.getAll("recruitment_positions").map(String);
-  const contact = String(formData.get("interview_url") ?? "").trim();
-  const interview_url = safeBoardUrl(contact);
-  if (contact && (!interview_url || interview_url.length > 1000)) return { ok: false, error: "유효한 클랜 연락 링크를 입력해 주세요." };
 
   const years = readRecruitmentYears(formData);
   if (!years.ok) return years;
@@ -191,7 +187,6 @@ export async function createClanAndLeadAction(
       gender_policy,
       promotion_public: !formData.has("create_private") && formData.has("promotion_public"),
       recruitment_positions: gameSlug === "overwatch" ? OVERWATCH_POSITIONS.filter(option => positions.includes(option.value)).map(option => option.value) : [],
-      interview_url,
       last_activity_at: now,
     })
     .select("id")

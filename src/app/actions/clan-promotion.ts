@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { CLAN_STYLES, OVERWATCH_POSITIONS, readRecruitmentYears, recruitmentTiers } from "@/lib/clan/recruitment";
 import { managedPromotionClan } from "@/lib/clan/promotion-access";
 import { parsePromotionBlocks } from "@/lib/clan/promotion";
-import { safeBoardUrl, uuidPattern } from "@/lib/clan/board";
+import { uuidPattern } from "@/lib/clan/board";
 import type { Json } from "@/lib/supabase/database.types";
 
 export async function saveClanPromotionAction(gameSlug: string, clanId: string, form: FormData) {
@@ -21,10 +21,6 @@ export async function saveClanPromotionAction(gameSlug: string, clanId: string, 
     return { ok: false as const, error: "클랜 지향을 확인해 주십시오." };
   if (positions.length && (gameSlug !== "overwatch" || (!allPositions && positions.some(value => !OVERWATCH_POSITIONS.some(option => option.value === value)))))
     return { ok: false as const, error: "모집할 주포지션을 확인해 주십시오." };
-  const rawInterviewUrl = String(form.get("interview_url") ?? "").trim();
-  const interviewUrl = safeBoardUrl(rawInterviewUrl);
-  if (rawInterviewUrl && (!interviewUrl || interviewUrl.length > 1000))
-    return { ok: false as const, error: "클랜 연락 링크에 유효한 HTTPS 주소를 입력해 주세요." };
   const title = String(form.get("title") ?? "").trim();
   const postId = String(form.get("post_id") ?? "");
   const version = String(form.get("updated_at") ?? "");
@@ -37,7 +33,6 @@ export async function saveClanPromotionAction(gameSlug: string, clanId: string, 
   const { data, error } = await access.client.rpc("save_clan_promotion", {
     p_clan_id: clanId, p_post_id: postId, p_expected_updated_at: version || undefined,
     p_title: title, p_blocks: blocks as Json, p_birth_year_limit: years.min_birth_year ?? undefined, p_birth_year_from: years.birth_year_from ?? undefined, p_gender_policy: gender, p_tiers: tiers,
-    p_interview_url: form.has("interview_url") ? interviewUrl ?? "" : undefined,
     p_public: form.has("promotion_public"),
     p_style: style == null ? undefined : String(style),
     p_positions: positions.length === 0 ? undefined : allPositions ? [] : positions,

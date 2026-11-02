@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CircleHelp, Megaphone, Eye, Check, Save } from "lucide-react";
+import { Megaphone, Eye, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@base-ui/react/slider";
 import { createClanAndLeadAction } from "@/app/actions/game-clan-onboarding";
@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { ClanRecruitmentFields } from "@/components/onboarding/clan-recruitment-fields";
 import { PromotionAudienceFields } from "./promotion-audience-fields";
 import { ClanInviteShare } from "./clan-invite-share";
-import { StatHelp, StatTooltip } from "./stat-help";
+import { StatHelp } from "./stat-help";
 import { Dialog } from "@/components/ui/dialog";
 import { ClanPromotionDialogContent, type PromotionDisplayBlock } from "@/components/onboarding/clan-promotion-dialog-content";
 import type { ClanListRow } from "@/components/onboarding/clan-join-list";
@@ -44,7 +44,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   const [postId] = useState(() => post?.id ?? crypto.randomUUID());
   const [version, setVersion] = useState(post?.updated_at ?? "");
   const [title, setTitle] = useState(post?.title ?? "");
-  const [contactUrl, setContactUrl] = useState(initial.interview_url ?? "");
   const [blocks, setBlocks] = useState(() => draftPromotionBlocks(promotionBlocks(post)));
   const [tierRange, setTierRange] = useState<number[]>(() => {
     const initialTiers = initial.tier_range.map(tier => normalizeRecruitmentTier(gameSlug,tier));
@@ -177,15 +176,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               </section>
             </div>
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId ?? createdId ?? ""} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-1">
-                <Label htmlFor="interview-url">클랜 연락 링크 (선택)</Label>
-                <StatTooltip label="클랜 연락 링크 도움말" description="가입 신청 창에서 ‘클랜에 문의하기’를 누르면 이 주소가 새 탭에서 열립니다." className="inline-flex items-center justify-center size-5 text-muted-foreground">
-                  <CircleHelp size={14} aria-hidden />
-                </StatTooltip>
-              </div>
-              <Input id="interview-url" name="interview_url" type="url" maxLength={1000} value={contactUrl} onChange={event => setContactUrl(event.target.value)} placeholder="https://…" />
-            </div>
             <div className={styles.previewActions}>
               <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
               <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button>

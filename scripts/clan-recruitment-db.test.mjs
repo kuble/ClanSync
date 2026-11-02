@@ -24,8 +24,16 @@ test("birth-year ranges are advisory for applications and approvals and validate
   await ok(save(1991,2004));
   for(const index of [1,3]) {const request=await ok(apply(index));await cancel(index,request.id);}
   const pending=await ok(apply(2));
+  const inquiry=(client,body)=>client.rpc("join_inquiry",{p_request:pending.id,p_body:body});
+  await denied(inquiry(clients[1],"다른 신청자"));
+  const room=await ok(inquiry(clients[2],"안녕하세요"));
+  assert.ok(Math.abs(Date.parse(room.expires)-Date.now()-86400000)<60000);
+  const reply=await ok(inquiry(leader,"반갑습니다"));
+  assert.equal(reply.expires,room.expires);
+  assert.deepEqual(reply.messages.map(m=>[m.applicant,m.body]),[[true,"안녕하세요"],[false,"반갑습니다"]]);
   await ok(save(2001,2004));
   await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
+  await denied(inquiry(clients[2],"종료 후"));
   assert.equal((await ok(svc.from("clan_members").select("status").eq("clan_id",f.clanId).eq("user_id",f.users[2].id).single())).status,"active");
   await denied(save(2001,1999));
   await denied(save(1949,null));
@@ -58,14 +66,12 @@ test("promotion saves text, inline photos and requirements atomically with confl
   await denied(outsider.storage.from(bucket).download(path));
   const blocks=[{type:"text",text:"앞 이야기"},{type:"image",path,alt:"금요일 내전"},{type:"text",text:"뒤 이야기"}];
   const input={p_clan_id:f.clanId,p_post_id:postId,p_title:"새 클랜원 모집",p_blocks:blocks,p_birth_year_limit:2000,p_gender_policy:"all",p_tiers:["gold"]};
-  const interviewUrl = "https://interview.example/qa";
-  await denied(outsider.rpc("save_clan_promotion",{...input,p_interview_url:interviewUrl}));
-  await denied(leader.rpc("save_clan_promotion",{...input,p_interview_url:"javascript:alert(1)"}));
+  await denied(outsider.rpc("save_clan_promotion",input));
   await denied(leader.rpc("save_clan_promotion",{...input,p_tiers:["challenger"]}));
   await denied(leader.rpc("save_clan_promotion",{...input,p_style:"casual",p_positions:["top"]}));
   await denied(leader.rpc("save_clan_promotion",{...input,p_style:"unknown",p_positions:["tank"]}));
   assert.equal((await ok(svc.from("board_posts").select("id").eq("id",postId))).length,0);
-  const saved=(await ok(leader.rpc("save_clan_promotion",{...input,p_style:"casual",p_positions:["sup","tank"],p_interview_url:interviewUrl})))[0];
+  const saved=(await ok(leader.rpc("save_clan_promotion",{...input,p_style:"casual",p_positions:["sup","tank"]})))[0];
   const row=await ok(svc.from("board_posts").select("title,content,content_blocks,updated_at").eq("id",postId).single());
   assert.equal(row.content,"앞 이야기\n\n뒤 이야기"); assert.deepEqual(row.content_blocks,blocks);
   assert.deepEqual(await ok(svc.from("clans").select("min_birth_year,tier_range").eq("id",f.clanId).single()),{min_birth_year:2000,tier_range:["gold"]});
@@ -77,16 +83,16 @@ test("promotion saves text, inline photos and requirements atomically with confl
   await denied(officer.rpc("save_clan_promotion",{...input,p_expected_updated_at:saved.updated_at,p_blocks:forged,p_birth_year_limit:1999}));
   assert.equal((await ok(svc.from("clans").select("min_birth_year").eq("id",f.clanId).single())).min_birth_year,2000);
   const changed=(await ok(officer.rpc("save_clan_promotion",{...input,p_expected_updated_at:saved.updated_at,p_title:"수정한 모집",p_birth_year_limit:1999})))[0];
-  const audience = () => ok(svc.from("clans").select("style,recruitment_positions,interview_url").eq("id",f.clanId).single());
-  assert.deepEqual(await audience(),{style:"casual",recruitment_positions:["tank","sup"],interview_url:interviewUrl},"Legacy editors retain the audience and interview link");
+  const audience = () => ok(svc.from("clans").select("style,recruitment_positions").eq("id",f.clanId).single());
+  assert.deepEqual(await audience(),{style:"casual",recruitment_positions:["tank","sup"]},"Legacy editors retain the audience");
   await denied(leader.rpc("save_clan_promotion",{...input,p_expected_updated_at:saved.updated_at,p_title:"오래된 화면"}));
   assert.equal((await ok(svc.from("board_posts").select("title").eq("id",postId).single())).title,"수정한 모집");
   assert.equal((await ok(svc.from("clans").select("min_birth_year").eq("id",f.clanId).single())).min_birth_year,1999);
   const outcomes=await Promise.all(["동시 수정 A","동시 수정 B"].map(p_title=>officer.rpc("save_clan_promotion",{...input,p_expected_updated_at:changed.updated_at,p_title})));
   assert.equal(outcomes.filter(result=>!result.error).length,1,"Only one concurrent writer may use a revision");
   const latest = outcomes.find(result=>!result.error).data[0].updated_at;
-  await ok(leader.rpc("save_clan_promotion",{...input,p_expected_updated_at:latest,p_style:"",p_positions:["tank","sup","dmg"],p_interview_url:""}));
-  assert.deepEqual(await audience(),{style:null,recruitment_positions:[],interview_url:null});
+  await ok(leader.rpc("save_clan_promotion",{...input,p_expected_updated_at:latest,p_style:"",p_positions:["tank","sup","dmg"]}));
+  assert.deepEqual(await audience(),{style:null,recruitment_positions:[]});
   assert.equal((await ok(svc.from("board_posts").select("id").eq("clan_id",f.clanId).eq("post_type","promotion"))).length,1);
 });
 

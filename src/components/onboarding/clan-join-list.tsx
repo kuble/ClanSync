@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useState } from "react";
-import { CalendarDays, ChevronRight, Clock3, Compass, ExternalLink, Shield, Star, Trophy } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock3, Compass, Shield, Star, Trophy } from "lucide-react";
 import { setClanFavorite } from "@/app/actions/clan-favorites";
 import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./clan-discovery.module.css";
 import { CLAN_STYLES, recruitmentTierSummary, recruitmentYearLabel } from "@/lib/clan/recruitment";
-import { safeBoardUrl } from "@/lib/clan/board";
+import { InquiryButton } from "@/components/onboarding/inquiry-button";
 import type { PromotionPost } from "@/lib/clan/promotion";
 import { ClanPromotionDialogContent } from "./clan-promotion-dialog-content";
 
@@ -21,13 +21,12 @@ export type ClanListRow = {
   created_at?: string; subscription_tier?: string;
   birth_year_from?: number | null; min_birth_year?: number | null; gender_policy?: "all" | "male" | "female";
   isFavorite?: boolean;
-  interview_url?: string | null;
   promotion?: PromotionPost | null;
 };
 const STYLE_LABEL: Record<string, string> = Object.fromEntries(CLAN_STYLES.map(({value, label}) => [value, label]));
 
-export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true }: {
-  gameSlug: string; clans: ClanListRow[]; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
+export function ClanJoinList({ gameSlug, clans, pendingRequestId, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true }: {
+  gameSlug: string; clans: ClanListRow[]; pendingRequestId?: string; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
 }) {
   const router = useRouter();
   const [savedFavorites, setSavedFavorites] = useState<Record<string,boolean>>({});
@@ -40,7 +39,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   const [busy, setBusy] = useState(false);
   const [sentId, setSentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const selectedInterview = safeBoardUrl(selected?.interview_url);
   const effectivePendingId = sentId ?? pendingClanId;
   const displayClans = clans.filter((clan) => clan.id !== pinnedPendingClan?.id);
 
@@ -129,10 +127,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           <DialogTitle>{replaceOpen ? "진행 중인 신청이 있습니다" : selected.name + " 가입 신청"}</DialogTitle>
           {replaceOpen && <DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected.name}」에 새로 신청하시겠습니까?</DialogDescription>}
         </DialogHeader>
-        {selectedInterview && <a href={selectedInterview} target="_blank" rel="noopener noreferrer" className="inline-flex w-fit items-center gap-1 text-sm text-primary underline underline-offset-4">
-          클랜에 문의하기 <ExternalLink size={14} aria-hidden /><span className="sr-only">(새 탭)</span>
-        </a>}
-        <label className="grid gap-2 text-xs">가입 메시지 (선택)
+          <label className="grid gap-2 text-xs">가입 메시지 (선택)
           <textarea className="border-border min-h-24 rounded-md border p-3 text-sm" placeholder="자기소개" value={message} maxLength={2000} disabled={busy} onChange={event => setMessage(event.target.value)} />
         </label>
         {error && <p className={styles.error} role="alert">{error}</p>}
@@ -143,7 +138,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} favorite={renderFavorite(details)} onClose={closeDetails} action={canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`} disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} favorite={renderFavorite(details)} onClose={closeDetails} action={<>{pendingRequestId && pendingClanId === details.id && <InquiryButton requestId={pendingRequestId} />}{canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`} disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>}</>} />}
     </Dialog>
   </>;
 }

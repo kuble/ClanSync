@@ -2144,7 +2144,6 @@ export type Database = {
           gender_policy: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url: string | null
           id: string
-          interview_url: string | null
           last_activity_at: string | null
           lifecycle_status: Database["public"]["Enums"]["clan_lifecycle"]
           max_members: number
@@ -2174,7 +2173,6 @@ export type Database = {
           gender_policy?: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url?: string | null
           id?: string
-          interview_url?: string | null
           last_activity_at?: string | null
           lifecycle_status?: Database["public"]["Enums"]["clan_lifecycle"]
           max_members?: number
@@ -2204,7 +2202,6 @@ export type Database = {
           gender_policy?: Database["public"]["Enums"]["clan_gender_policy"]
           icon_url?: string | null
           id?: string
-          interview_url?: string | null
           last_activity_at?: string | null
           lifecycle_status?: Database["public"]["Enums"]["clan_lifecycle"]
           max_members?: number
@@ -3687,6 +3684,10 @@ export type Database = {
           joined_clan_id: string
         }[]
       }
+      join_inquiry: {
+        Args: { p_body?: string; p_request: string }
+        Returns: Json
+      }
       link_clan_participant: {
         Args: { p_clan_id: string; p_participant_id: string; p_user_id: string }
         Returns: undefined
@@ -3931,7 +3932,6 @@ export type Database = {
           p_clan_id: string
           p_expected_updated_at?: string
           p_gender_policy?: string
-          p_interview_url?: string
           p_positions?: string[]
           p_post_id: string
           p_public?: boolean

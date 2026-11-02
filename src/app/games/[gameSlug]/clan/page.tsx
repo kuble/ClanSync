@@ -1,3 +1,4 @@
+import { InquiryButton } from "@/components/onboarding/inquiry-button";
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { notFound, redirect } from "next/navigation";
@@ -21,7 +22,7 @@ import { CLAN_STYLES, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/c
 
 const PAGE_SIZE = 5;
 const UUID = /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i;
-const CLAN_FIELDS = "id, name, icon_url, description, rules, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, interview_url, subscription_tier, favorites:clan_favorites(clan_id), promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
+const CLAN_FIELDS = "id, name, icon_url, description, rules, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, subscription_tier, favorites:clan_favorites(clan_id), promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
 export const metadata = { title: "클랜 찾기 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
@@ -103,7 +104,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
       <div><p>{game.name_ko}</p><h1>클랜 찾기</h1></div>
     </header>
     {pendingBrief ? <section className={styles.pending} aria-label="현재 신청 중인 클랜">
-      <div className={styles.pendingTop}><div><h2 className="flex items-center gap-2"><Clock3 size={16} aria-hidden="true" />진행 중인 가입 신청</h2><p>「{pendingBrief.clanName ?? "클랜"}」 운영진의 승인을 기다리고 있습니다.</p></div><form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form></div>
+      <div className={styles.pendingTop}><div><h2 className="flex items-center gap-2"><Clock3 size={16} aria-hidden="true" />진행 중인 가입 신청</h2><p>「{pendingBrief.clanName ?? "클랜"}」 운영진의 승인을 기다리고 있습니다.</p></div><div className="flex flex-wrap gap-2"><InquiryButton requestId={pendingBrief.requestId} /><form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form></div></div>
       {pendingBrief.message ? <blockquote>{pendingBrief.message}</blockquote> : null}
     </section> : null}
     <Tabs defaultValue="join" className={`${styles.tabs} ${discover.tabs}`}>
@@ -131,7 +132,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
           </ClanDiscoveryFilterForm>
           <section className={discover.results} aria-label="클랜 검색 결과">
             {listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
-              <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug} pendingClanId={pendingBrief?.clanId ?? null} blockingClanName={pendingBrief?.clanName ?? null} pinnedPendingClan={pinnedPendingClan} clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"} />
+              <ClanJoinList pendingRequestId={pendingBrief?.requestId} key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug} pendingClanId={pendingBrief?.clanId ?? null} blockingClanName={pendingBrief?.clanName ?? null} pinnedPendingClan={pinnedPendingClan} clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"} />
               {totalPages > 1 ? <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav> : null}
             </>}
           </section>
