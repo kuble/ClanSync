@@ -44,13 +44,13 @@
   .clanCard:not(:hover):not(:focus-within) .clanIdentity > [aria-pressed="false"] { opacity: 0; pointer-events: none; }
 }
 .clanIdentity strong { font-size: 17px; line-height: 1.4; letter-spacing: -.025em; overflow-wrap: anywhere; }
-.clanSubtitle { padding: 2px 7px; border-radius: 5px; font-size: 11px; color: color-mix(in srgb, var(--style-tint, var(--primary)) 48%, var(--foreground)); background: color-mix(in srgb, var(--style-tint, var(--primary)) 10%, var(--card)); }
-.clanSubtitle[data-style="social"] { --style-tint: #9975bd; }
-.clanSubtitle[data-style="casual"] { --style-tint: #55a18a; }
-.clanSubtitle[data-style="tryhard"] { --style-tint: #bd8752; }
-.clanSubtitle[data-style="pro"] { --style-tint: #608eb8; }
 .cardTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .cardTags > span { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 7px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); font-size: 11px; overflow-wrap: anywhere; }
+.cardTags > [data-style] { color: color-mix(in srgb, var(--style-tint, var(--primary)) 48%, var(--foreground)); background: color-mix(in srgb, var(--style-tint, var(--primary)) 10%, var(--card)); }
+.cardTags [data-style="social"] { --style-tint: #9975bd; }
+.cardTags [data-style="casual"] { --style-tint: #55a18a; }
+.cardTags [data-style="tryhard"] { --style-tint: #bd8752; }
+.cardTags [data-style="pro"] { --style-tint: #608eb8; }
 .cardTags svg { flex-shrink: 0; }
 .detailArrow { flex: none; color: var(--muted-foreground); }
 .overview:hover .clanIdentity strong, .overview:hover .detailArrow { color: var(--primary); }

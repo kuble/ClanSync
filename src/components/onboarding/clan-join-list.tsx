@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useState } from "react";
-import { CalendarDays, ChevronRight, Clock3, ExternalLink, Shield, Star, Trophy } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock3, Compass, ExternalLink, Shield, Star, Trophy } from "lucide-react";
 import { setClanFavorite } from "@/app/actions/clan-favorites";
 import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
@@ -107,9 +107,9 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           <span className={styles.clanIdentity}>
             <button type="button" className={styles.detailTrigger} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}><strong>{clan.name}</strong></button>
             {renderFavorite(clan)}
-            {clan.style && <span className={styles.clanSubtitle} data-style={clan.style}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}
           </span>
           <span className={styles.cardTags}>
+            <span data-style={clan.style || undefined}><Compass size={12} aria-hidden /><span className="sr-only">클랜 지향 </span>{clan.style ? STYLE_LABEL[clan.style] ?? clan.style : "무관"}</span>
             <span><CalendarDays size={12} aria-hidden />{recruitmentYearLabel({birth_year_from:clan.birth_year_from ?? null,min_birth_year:clan.min_birth_year ?? null})}</span>
             <span><Trophy size={12} aria-hidden />{recruitmentTierSummary(gameSlug, clan.tier_range ?? [])}</span>
           </span>
