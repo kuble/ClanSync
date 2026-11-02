@@ -46,9 +46,13 @@ test("clan inquiry is shared by current applicants and staff and closes individu
   assert.equal(firstNotice.read_at, null);
   assert.deepEqual(firstNotice.payload, {});
   const secondRequest = await apply(3);
+  await ok(inquiry(officer, "첫 신청자에게 보낸 답변"));
+  assert.deepEqual(await notices(second), []);
+  const firstVisits = await Promise.all([ok(inquiry(second)), ok(inquiry(second))]);
+  for (const visit of firstVisits) assert.deepEqual(visit.messages, []);
   const reply = await ok(inquiry(second, "두 번째 신청자입니다."));
-  assert.deepEqual(reply.messages.map(m => [m.body, m.isMine]), [["안녕하세요", false], ["두 번째 신청자입니다.", true]]);
-  assert.equal(reply.messages[0].nickname, users[2].nickname);
+  assert.deepEqual(reply.messages.map(m => [m.body, m.isMine]), [["두 번째 신청자입니다.", true]]);
+  assert.equal(reply.messages[0].nickname, users[3].nickname);
   assert.ok(Number.isFinite(Date.parse(reply.messages[0].createdAt)));
   assert.ok(!("canDelete" in reply.messages[0]) && !("expires" in reply));
   await closed(second, otherId);
@@ -57,6 +61,7 @@ test("clan inquiry is shared by current applicants and staff and closes individu
   }
   const staffReply = await ok(inquiry(officer, "#1 * 금요일 8시\n참여할게요!"));
   assert.equal(staffReply.messages.at(-1).authorId, users[1].id);
+  assert.deepEqual((await ok(inquiry(first))).messages.map(m => m.id), staffReply.messages.map(m => m.id));
   const officerNotices = await notices(officer);
   assert.equal(officerNotices.length, 2);
   assert.ok(officerNotices.every(n => n.read_at !== null));
@@ -67,16 +72,18 @@ test("clan inquiry is shared by current applicants and staff and closes individu
 
   await resolve(firstRequest, "approved");
   await closed(first);
-  assert.equal((await ok(inquiry(second))).messages.length, 3);
+  assert.deepEqual((await ok(inquiry(second))).messages.map(m => m.id), [reply.messages[0].id, staffReply.messages.at(-1).id]);
   await resolve(secondRequest, "rejected");
   await closed(second);
-  assert.equal((await ok(inquiry(officer))).messages.length, 3);
+  assert.equal((await ok(inquiry(officer))).messages.length, 4);
   const reapplied = await apply(3);
+  const onReapplication = await ok(inquiry(second, "다시 신청했습니다."));
+  assert.deepEqual(onReapplication.messages.map(m => m.body), ["다시 신청했습니다."]);
   await ok(second.from("clan_join_requests").update({ status: "canceled", resolved_by: users[3].id }).eq("id", reapplied.id));
   await closed(second);
   await ok(service.from("clan_members").update({ role: "member" }).eq("clan_id", clanId).eq("user_id", users[1].id));
   await closed(officer);
-  assert.equal((await ok(inquiry(leader))).messages.length, 3);
+  assert.equal((await ok(inquiry(leader))).messages.length, 5);
   const existing = (await notices(service)).length;
   await ok(inquiry(leader, "권한 변경 후 확인"));
   assert.equal((await notices(service)).length, existing);

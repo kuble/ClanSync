@@ -13,6 +13,11 @@ test("pending applicant can reopen the shared clan room until their request is r
     expect((await service.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,created_by:f.users[0].id,post_type:"promotion",title,content:"문의방 QA"})).error).toBeNull();
     const request = await service.from("clan_join_requests").insert({game_id:f.gameId,clan_id:f.clanId,user_id:f.users[1].id}).select("id").single();
     expect(request.error).toBeNull();
+    const beforeEntry = "신청자가 방을 열기 전의 대화입니다.";
+    const staff = await f.memberClient(0);
+    try {
+      expect((await staff.rpc("clan_inquiry", { p_clan_id: f.clanId, p_body: beforeEntry })).error).toBeNull();
+    } finally { await staff.auth.signOut(); }
     await loginIsolatedBalanceUser(page,f.users[1]);
     await page.goto("/games/overwatch/clan");
     const detail=page.getByRole("dialog",{name:title});
@@ -20,6 +25,8 @@ test("pending applicant can reopen the shared clan room until their request is r
     const room=page.getByRole("dialog",{name:"클랜 문의방"});
     const editor = room.getByRole("textbox",{name:"문의 메시지"});
     const send = room.getByRole("button",{name:"보내기"});
+    await expect(editor).toBeVisible();
+    await expect(room.getByText(beforeEntry, {exact:true})).toHaveCount(0);
     await expect(room.getByRole("button", {name:/이모티콘|공감/})).toHaveCount(0);
     for (const value of ["참여할게요 👍", "[e:00000000-0000-0000-0000-000000000001]"]) {
       await editor.fill(value);
@@ -47,6 +54,7 @@ test("pending applicant can reopen the shared clan room until their request is r
       await staffPage.getByRole("button", {name:/^알림.*미읽음/}).click();
       await staffPage.getByRole("button", {name:/클랜 문의방에 새 댓글/}).first().click();
       const staffRoom = staffPage.getByRole("dialog", {name:"클랜 문의방"});
+      await expect(staffRoom.getByText(beforeEntry, {exact:true})).toBeVisible();
       await expect(staffRoom.getByText("두 번째 문의입니다.", {exact:true})).toBeVisible();
       await staffRoom.getByRole("textbox",{name:"문의 메시지"}).fill("운영진 답변입니다.");
       await staffRoom.getByRole("button",{name:"보내기"}).click();
@@ -71,11 +79,14 @@ test("pending applicant can reopen the shared clan room until their request is r
     await page.goto("/profile");
     const accountTab = page.getByRole("tab", {name:"계정 정보"});
     await expect(async () => {
-      await accountTab.click();
-      await expect(accountTab).toHaveAttribute("aria-selected", "true", {timeout:1000});
+      if (!await room.isVisible()) {
+        await accountTab.click({timeout:2000});
+        await page.getByRole("tabpanel", {name:"계정 정보"}).getByRole("button", {name:"클랜 문의방"}).click({timeout:2000});
+      }
+      await expect(room).toBeVisible({timeout:2000});
     }).toPass({timeout:10000});
-    await page.getByRole("button",{name:"클랜 문의방"}).click();
     await expect(room.getByText("두 번째 문의입니다.",{exact:true})).toBeVisible();
+    await expect(room.getByText(beforeEntry, {exact:true})).toHaveCount(0);
     await page.keyboard.press("Escape");
     await page.getByRole("link",{name:"홍보글 보기"}).click();
     await expect(detail).toBeVisible();
