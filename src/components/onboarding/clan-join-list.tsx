@@ -1,9 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Shield } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { Clock3 } from "lucide-react";
+import { ChevronRight, Clock3, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
 import { Badge } from "@/components/ui/badge";
@@ -77,17 +76,24 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     const full = clan.active_members != null && clan.active_members >= clan.max_members;
     const cover = promotionBlocks(clan.promotion).find(block => block.type === "image");
     return <article className={styles.clanCard}>
-      <button type="button" className={styles.overview} data-has-photo={!!cover} onClick={() => setDetails(clan)} aria-label={`${clan.name} 클랜 상세 보기`}>
-        {cover?.type === "image" && <span className={styles.cover}><Image src={promotionImageUrl(gameSlug,clan.id,cover.path)} alt={cover.alt || `${clan.name}의 활동 사진`} width={600} height={400} loading={pinned || (!pinnedPendingClan && clan.id === displayClans[0]?.id) ? "eager" : "lazy"} unoptimized /></span>}
-        <span className={styles.clanText}>
-          <span className={styles.clanIdentity}><span className={styles.miniEmblem} aria-hidden="true">{clan.icon_url ? <Image src={clan.icon_url} alt="" width={26} height={26} unoptimized className="size-full rounded-[inherit] object-cover" /> : <Shield size={13} />}</span>{clan.name}{clan.style && <span className={styles.clanSubtitle}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}</span>
-          <span className={styles.clanTitle}>{clan.promotion?.title || `${clan.name}에서 함께할 클랜원을 찾습니다`}</span>
+      <button type="button" className={styles.overview} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}>
+        <span className={styles.miniEmblem} aria-hidden>
+          {clan.icon_url ? <Image src={clan.icon_url} alt="" width={56} height={56} unoptimized /> : <Shield size={24} />}
         </span>
+        <span className={styles.clanText}>
+          <span className={styles.clanIdentity}>
+            <strong>{clan.name}</strong>
+            {clan.style && <span className={styles.clanSubtitle}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}
+          </span>
+          {clan.promotion?.title && <span className={styles.clanTitle}>{clan.promotion.title}</span>}
+        </span>
+        {cover?.type === "image" && <span className={styles.cover}><Image src={promotionImageUrl(gameSlug, clan.id, cover.path)} alt={cover.alt || `${clan.name}의 활동 사진`} width={144} height={96} loading={pinned || clan.id === displayClans[0]?.id ? "eager" : "lazy"} unoptimized /></span>}
+        <ChevronRight size={16} aria-hidden className={styles.detailArrow} />
       </button>
       <div className={styles.clanFooter}>
         {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full || !!clan.eligibilityError} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-haspopup="dialog" aria-describedby={clan.eligibilityError ? `eligibility-${clan.id}` : undefined} onClick={() => openApply(clan)}>{full ? "정원 마감" : clan.eligibilityError ? "가입 조건 미충족" : otherPending ? "이 클랜으로 신청 바꾸기" : "가입 신청"}</Button>}
       </div>
-      {canApply && clan.eligibilityError && <p id={`eligibility-${clan.id}`} className="px-4 pb-4 text-xs text-muted-foreground">{clan.eligibilityError}{isPending ? " 변경된 조건은 승인 시 적용됩니다." : ""}</p>}
+      {canApply && clan.eligibilityError && <p id={`eligibility-${clan.id}`} className={styles.eligibilityNote}>{clan.eligibilityError}{isPending ? " 변경된 조건은 승인 시 적용됩니다." : ""}</p>}
     </article>;
   }
 
