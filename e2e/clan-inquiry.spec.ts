@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("pending applicant can reopen the inquiry from their promotion and profile",async({page})=>{
+test("pending applicant can reopen the shared clan room until their request is resolved",async({page})=>{
   test.setTimeout(60_000);
   const f=await createIsolatedBalanceFixture(2);
   const title="문의방 QA 홍보글";
@@ -37,7 +37,7 @@ test("pending applicant can reopen the inquiry from their promotion and profile"
     await expect(second.locator("strong")).toHaveCount(0);
     const officer = await f.memberClient(0);
     try {
-      expect((await officer.rpc("join_inquiry", {p_request:request.data!.id, p_body:"운영진 답변입니다."})).error).toBeNull();
+      expect((await officer.rpc("clan_inquiry", {p_clan_id:f.clanId, p_body:"운영진 답변입니다."})).error).toBeNull();
     } finally { await officer.auth.signOut(); }
     const reply = room.getByRole("listitem").filter({hasText:"운영진 답변입니다."});
     await expect(reply.locator("strong")).toHaveText(f.users[0].nickname, {timeout:10000});
@@ -46,9 +46,7 @@ test("pending applicant can reopen the inquiry from their promotion and profile"
     await page.setViewportSize({width:390,height:844});
     expect(await room.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await second.hover();
-    await second.getByRole("button",{name:/댓글 삭제/}).click();
-    await second.getByRole("button",{name:"삭제 확인"}).click();
-    await expect(second).toHaveCount(0);
+    await expect(room.getByRole("button",{name:/삭제/})).toHaveCount(0);
     await page.keyboard.press("Escape");
     await page.goto("/profile");
     const accountTab = page.getByRole("tab", {name:"계정 정보"});
@@ -56,9 +54,26 @@ test("pending applicant can reopen the inquiry from their promotion and profile"
       await accountTab.click();
       await expect(accountTab).toHaveAttribute("aria-selected", "true", {timeout:1000});
     }).toPass({timeout:10000});
+    await page.getByRole("button",{name:"클랜 문의방"}).click();
+    await expect(room.getByText("두 번째 문의입니다.",{exact:true})).toBeVisible();
+    await page.keyboard.press("Escape");
     await page.getByRole("link",{name:"홍보글 보기"}).click();
     await expect(detail).toBeVisible();
     await detail.getByRole("button",{name:"클랜 문의방"}).click();
     await expect(room.getByText("첫 문의입니다.",{exact:true})).toBeVisible();
+    const leader = await f.memberClient(0);
+    try {
+      expect((await leader.rpc("resolve_clan_join_request", {p_clan_id:f.clanId, p_request_id:request.data!.id, p_decision:"rejected"})).error).toBeNull();
+    } finally { await leader.auth.signOut(); }
+    await expect(room.getByRole("alert")).toHaveText("이 문의방에 접근할 수 없습니다.", {timeout:10000});
+    await expect(room.getByRole("listitem")).toHaveCount(0);
+    await expect(editor).toHaveCount(0);
+    await page.context().clearCookies();
+    await loginIsolatedBalanceUser(page,f.users[0]);
+    await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=requests`);
+    await expect(page.getByText("대기 중인 가입 신청이 없습니다.")).toBeVisible();
+    await page.getByRole("button",{name:"클랜 문의방"}).click();
+    await expect(room.getByText("첫 문의입니다.",{exact:true})).toBeVisible();
+    await expect(room.getByRole("button",{name:/삭제/})).toHaveCount(0);
   } finally { await f.cleanup(); }
 });

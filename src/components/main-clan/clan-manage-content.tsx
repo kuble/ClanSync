@@ -20,6 +20,7 @@ import { ClanManageNotices, ClanManageRules } from "./clan-manage-notices";
 import { ClanAppearanceSettings } from "./clan-appearance-settings";
 import { ClanEmojiSettings } from "./clan-emoji-settings";
 import { ClanBalanceAutoCloseSettings } from "./clan-balance-auto-close-settings";
+import { InquiryButton } from "@/components/onboarding/inquiry-button";
 import { ManageJoinRequestsPanel } from "./manage-join-requests-panel";
 import { ManageMembersTable, type ManageMemberRow } from "./manage-members-table";
 import { ClanParticipantData } from "./clan-participant-data";
@@ -153,7 +154,8 @@ async function Appearance({ ctx }: Pick<Props, "ctx">) {
 }
 
 async function Requests({ ctx }: Pick<Props, "ctx">) {
-  if (!await hasRequestClanPermission(ctx.clanId, "approve_join_requests")) return <p className="text-sm text-muted-foreground">가입 승인 권한이 필요합니다.</p>;
+  const roomAction = <div className="mb-4 flex justify-end"><InquiryButton clanId={ctx.clanId} /></div>;
+  if (!await hasRequestClanPermission(ctx.clanId, "approve_join_requests")) return <section className={panel}>{roomAction}<p className="text-sm text-muted-foreground">가입 승인 권한이 필요합니다.</p></section>;
   const svc = createServiceRoleClient();
   const requests = await svc.from("clan_join_requests").select("id,user_id,message,applied_at").eq("clan_id", ctx.clanId).eq("status", "pending").order("applied_at");
   if (requests.error) throw new Error("가입 요청을 불러오지 못했습니다.");
@@ -168,7 +170,7 @@ async function Requests({ ctx }: Pick<Props, "ctx">) {
   const returning = new Set((memberships.data ?? []).filter((row) => row.status === "left").map((row) => row.user_id));
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
-  return <section className={panel}><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), message: row.message ?? "", appliedAt: row.applied_at, nickname: names.get(row.user_id) ?? "게임 ID 미등록", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
+  return <section className={panel}>{roomAction}<ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), message: row.message ?? "", appliedAt: row.applied_at, nickname: names.get(row.user_id) ?? "게임 ID 미등록", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
 }
 
 async function Members({ ctx }: Pick<Props, "ctx">) {

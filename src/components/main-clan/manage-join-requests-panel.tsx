@@ -1,7 +1,4 @@
 "use client";
-import { InquiryButton } from "@/components/onboarding/inquiry-button";
-
-
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
@@ -111,7 +108,7 @@ export function ManageJoinRequestsPanel({
                 </p>
               ) : null}
             </div>
-            <div className="flex shrink-0 flex-wrap gap-2"><InquiryButton requestId={row.id} />
+            <div className="flex shrink-0 flex-wrap gap-2">
               <Button
                 type="button"
                 size="sm"

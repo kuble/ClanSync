@@ -31,6 +31,7 @@ function genderLabel(g: string): string {
 
 type JoinRow = {
   id: string;
+  clan_id: string;
   status: "pending" | "approved" | "rejected" | "canceled";
   applied_at: string;
   resolved_at: string | null;
@@ -120,6 +121,7 @@ export default async function ProfilePage() {
     const gameMeta = gameInfoById.get(r.game_id);
     return {
       id: r.id,
+      clan_id: r.clan_id,
       status: r.status as JoinRow["status"],
       applied_at: r.applied_at,
       resolved_at: r.resolved_at,

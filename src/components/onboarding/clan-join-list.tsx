@@ -25,8 +25,8 @@ export type ClanListRow = {
 };
 const STYLE_LABEL: Record<string, string> = Object.fromEntries(CLAN_STYLES.map(({value, label}) => [value, label]));
 
-export function ClanJoinList({ gameSlug, clans, pendingRequestId, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true }: {
-  gameSlug: string; clans: ClanListRow[]; pendingRequestId?: string; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
+export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true }: {
+  gameSlug: string; clans: ClanListRow[]; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
 }) {
   const router = useRouter();
   const [savedFavorites, setSavedFavorites] = useState<Record<string,boolean>>({});
@@ -138,7 +138,7 @@ export function ClanJoinList({ gameSlug, clans, pendingRequestId, pendingClanId 
       </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} favorite={renderFavorite(details)} onClose={closeDetails} action={<>{pendingRequestId && pendingClanId === details.id && <InquiryButton requestId={pendingRequestId} />}{canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`} disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>}</>} />}
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} favorite={renderFavorite(details)} onClose={closeDetails} action={<>{effectivePendingId === details.id && <InquiryButton clanId={details.id} />}{canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`} disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>}</>} />}
     </Dialog>
   </>;
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import styles from "./profile.module.css";
 
 type JoinRow = {
-  id: string; status: "pending" | "approved" | "rejected" | "canceled"; applied_at: string; resolved_at: string | null;
+  id: string; clan_id: string; status: "pending" | "approved" | "rejected" | "canceled"; applied_at: string; resolved_at: string | null;
   reject_reason: string | null; message: string; clans: { name: string; postId?: string } | null; games: { slug: string; name_ko: string } | null;
 };
 const STATUS = { pending: "검토 중", approved: "승인됨", rejected: "거절됨", canceled: "취소됨" };
@@ -24,7 +24,7 @@ export function ProfileJoinRequests({ rows, loadFailed = false }: { rows: JoinRo
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {request.clans?.postId && request.games && <Link className="text-xs underline" href={"/games/"+request.games.slug+"/clan?promotion="+request.clans.postId}>홍보글 보기</Link>}
-          {request.status === "pending" && <InquiryButton requestId={request.id} />}
+          {request.status === "pending" && <InquiryButton clanId={request.clan_id} />}
           {request.status === "pending" ? <form action={cancelJoinRequestByIdFormAction}><input type="hidden" name="requestId" value={request.id} /><Button type="submit" variant="outline" size="sm">신청 취소</Button></form> : null}</div>
       </li>)}
     </ul> : <p className="text-muted-foreground mt-5 text-xs">진행 중인 가입 신청이 없습니다.</p>}
