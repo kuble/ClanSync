@@ -29,7 +29,7 @@
 .clanList { display: grid; gap: 20px; }
 .clanCard { min-width: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--card); overflow: hidden; box-shadow: 0 12px 28px -26px color-mix(in srgb, var(--primary) 25%, transparent); }
 .overview { display: grid; width: 100%; padding: 26px; gap: 28px; text-align: left; cursor: pointer; min-width: 0; }
-.overview[data-has-photo="true"] { grid-template-columns: minmax(200px, .8fr) minmax(0, 2fr); align-items: stretch; }
+.overview[data-has-photo="true"] { grid-template-columns: 88px minmax(0, 1fr); align-items: stretch; }
 .cover { display: block; overflow: hidden; border-radius: 10px; aspect-ratio: 4 / 3; align-self: center; background: var(--surface); }
 .cover img { width: 100%; height: 100%; object-fit: cover; }
 .clanText { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
@@ -42,7 +42,7 @@
 .clanText > .tagRow { margin-top: 16px; }
 .tag { color: var(--muted-foreground); font-size: 11px; line-height: 1.6; background: var(--surface); padding: 3px 8px; border-radius: 5px; }
 .readMore { display: inline-flex; gap: 5px; align-items: center; margin-top: 18px; font-size: 12px; font-weight: 550; color: var(--primary); }
-.clanFooter { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 26px; border-top: 1px solid var(--border); }
+.clanFooter { display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 16px 26px; border-top: 1px solid var(--border); }
 .cardMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; min-width: 0; }
 .memberCount { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 12px; color: var(--foreground); }
 .conditions { font-size: 11px; color: var(--muted-foreground); overflow-wrap: anywhere; }
@@ -88,7 +88,7 @@
   .eligibilityFilter p { margin-left: 44px; }
   .filters:not(:has(> a)) > button { grid-column: 1 / -1; }
   .overview { padding: 20px; gap: 18px; }
-  .overview[data-has-photo="true"] { grid-template-columns: 1fr; }
+  .overview[data-has-photo="true"] { grid-template-columns: 64px minmax(0, 1fr); }
   .cover { aspect-ratio: 16 / 9; }
   .clanTitle { margin-top: 12px; font-size: 20px; }
   .clanFooter { padding: 14px 20px; gap: 12px; }

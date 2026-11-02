@@ -2,14 +2,14 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useState } from "react";
-import { ArrowUpRight, Clock3, Users } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./clan-discovery.module.css";
-import { CLAN_STYLES, recruitmentLabels, recruitmentPositionLabel, recruitmentTierLabel } from "@/lib/clan/recruitment";
+import { CLAN_STYLES } from "@/lib/clan/recruitment";
 import { promotionBlocks, promotionImageUrl, type PromotionPost } from "@/lib/clan/promotion";
 import { ClanPromotionDialogContent } from "./clan-promotion-dialog-content";
 
@@ -29,7 +29,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [selected, setSelected] = useState<ClanListRow | null>(null);
   const [details, setDetails] = useState<ClanListRow | null>(initialDetails);
-  const [applyingId, setApplyingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [blockName, setBlockName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -46,13 +45,13 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       window.history.replaceState(window.history.state,"",url.pathname+url.search+url.hash);
     }
   }
-  function openApply(clan: ClanListRow, force = false) {
+  function openApply(clan: ClanListRow) {
     if (!canApply) return;
     setSelected(clan); setMessage(""); setError(null);
     if (effectivePendingId && effectivePendingId !== clan.id) {
       setBlockName(blockingClanName ?? selected?.name ?? "다른 클랜");
-      setReplaceOpen(true); setApplyingId(null);
-    } else setApplyingId((id) => force ? clan.id : id === clan.id ? null : clan.id);
+      setReplaceOpen(true);
+    } else setReplaceOpen(false);
   }
   async function runSubmit(replace: boolean) {
     if (!selected || busy || !canApply) return;
@@ -60,7 +59,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     try {
       const result = replace ? await replacePendingJoinRequestAction(gameSlug, selected.id, message) : await submitClanJoinRequestAction(gameSlug, selected.id, message);
       if (result.ok) {
-        setSentId(selected.id); setApplyingId(null); setReplaceOpen(false);
+        setSentId(selected.id); setSelected(null); setReplaceOpen(false);
         toast.success(replace ? "기존 신청을 취소하고 새로 신청했습니다." : "가입 신청을 보냈습니다.", { duration: 4800 });
         router.refresh();
       } else if (result.error.startsWith("PENDING_ELSEWHERE:")) {
@@ -76,48 +75,44 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     const otherPending = effectivePendingId != null && !isPending;
     const full = clan.active_members != null && clan.active_members >= clan.max_members;
     const cover = promotionBlocks(clan.promotion).find(block => block.type === "image");
-    const tiers = clan.tier_range ?? [];
-    const conditions = recruitmentLabels(gameSlug,{birth_year_from:clan.birth_year_from ?? null,min_birth_year:clan.min_birth_year ?? null,gender_policy:clan.gender_policy ?? "all",tier_range:[]}).slice(0,2);
-    conditions.push(tiers.length ? `${recruitmentTierLabel(gameSlug,tiers[0])}${tiers.length > 1 ? ` ~ ${recruitmentTierLabel(gameSlug,tiers[tiers.length - 1])}` : ""}` : "티어 무관");
-    if (gameSlug === "overwatch" && clan.recruitment_positions?.length) conditions.push(recruitmentPositionLabel(clan.recruitment_positions));
     return <article className={styles.clanCard}>
       <button type="button" className={styles.overview} data-has-photo={!!cover} onClick={() => setDetails(clan)} aria-label={`${clan.name} 클랜 상세 보기`}>
         {cover?.type === "image" && <span className={styles.cover}><Image src={promotionImageUrl(gameSlug,clan.id,cover.path)} alt={cover.alt || `${clan.name}의 활동 사진`} width={600} height={400} loading={pinned || (!pinnedPendingClan && clan.id === displayClans[0]?.id) ? "eager" : "lazy"} unoptimized /></span>}
         <span className={styles.clanText}>
-          <span className={styles.clanIdentity}><span className={styles.miniEmblem} aria-hidden>{clan.name.slice(0,1)}</span>{clan.name}<span className={styles.clanSubtitle}>{clan.style ? STYLE_LABEL[clan.style] ?? clan.style : "지향 무관"}</span></span>
+          <span className={styles.clanIdentity}><span className={styles.miniEmblem} aria-hidden>{clan.name.slice(0,1)}</span>{clan.name}{clan.style && <span className={styles.clanSubtitle}>{STYLE_LABEL[clan.style] ?? clan.style}</span>}</span>
           <span className={styles.clanTitle}>{clan.promotion?.title || `${clan.name}에서 함께할 클랜원을 찾습니다`}</span>
-          <span className={styles.clanIntro}>{(clan.promotion?.content || clan.description || "클랜 상세에서 모집 정보를 확인해 보세요.").replace(/\s+/g," ")}</span>
-          {clan.tags.length > 0 && <span className={styles.tagRow}>{clan.tags.slice(0,3).map(tag => <span className={styles.tag} key={tag}>#{tag}</span>)}</span>}
-          <span className={styles.readMore}>클랜 이야기 보기<ArrowUpRight size={14} aria-hidden /></span>
         </span>
       </button>
       <div className={styles.clanFooter}>
-        <div className={styles.cardMeta}><span className={styles.memberCount}><Users size={14} aria-hidden="true" />{clan.active_members != null ? `${clan.active_members}/${clan.max_members}명` : `정원 ${clan.max_members}명`}</span><span className={styles.conditions}>{conditions.join(" · ")}</span></div>
-        {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full || !!clan.eligibilityError} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-expanded={applyingId === clan.id} aria-describedby={clan.eligibilityError ? `eligibility-${clan.id}` : undefined} onClick={() => openApply(clan)}>{full ? "정원 마감" : clan.eligibilityError ? "가입 조건 미충족" : otherPending ? "이 클랜으로 신청 바꾸기" : applyingId === clan.id ? "신청 폼 닫기" : "가입 신청"}</Button>}
+        {!canApply ? <Badge variant="outline">홍보 미리보기</Badge> : isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full || !!clan.eligibilityError} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-haspopup="dialog" aria-describedby={clan.eligibilityError ? `eligibility-${clan.id}` : undefined} onClick={() => openApply(clan)}>{full ? "정원 마감" : clan.eligibilityError ? "가입 조건 미충족" : otherPending ? "이 클랜으로 신청 바꾸기" : "가입 신청"}</Button>}
       </div>
       {canApply && clan.eligibilityError && <p id={`eligibility-${clan.id}`} className="px-4 pb-4 text-xs text-muted-foreground">{clan.eligibilityError}{isPending ? " 변경된 조건은 승인 시 적용됩니다." : ""}</p>}
-      {applyingId === clan.id && !isPending ? <div className={styles.applyPanel}>
-        <p className="text-sm font-semibold">{clan.name}에 신청</p>
-        <label htmlFor={`join-message-${clan.id}`}>운영진에게 전달할 메시지 (선택)</label>
-        <textarea id={`join-message-${clan.id}`} name="message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="자기소개 (선택)" maxLength={2000} disabled={busy} />
-        {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-        <div className={styles.actions}><Button type="button" size="sm" disabled={busy} data-testid={`clan-join-send-${clan.id}`} onClick={() => void runSubmit(false)}>{busy ? "보내는 중…" : "보내기"}</Button><Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setApplyingId(null)}>취소</Button></div>
-      </div> : null}
     </article>;
   }
 
   return <>
     {pinnedPendingClan ? <section aria-label="내가 신청한 클랜" className="mb-5" data-testid="clan-join-pinned-pending-section"><p className="text-primary mb-3 text-xs font-semibold">신청 진행 중인 클랜</p>{renderCard(pinnedPendingClan, true)}</section> : null}
     {displayClans.length ? <ul className={styles.clanList}>{displayClans.map((clan) => <li key={clan.id}>{renderCard(clan)}</li>)}</ul> : <p className={styles.empty}>{pinnedPendingClan ? "검색 결과에 다른 클랜이 없습니다. 검색어와 필터를 바꿔 보십시오." : "조건에 맞는 클랜이 없습니다. 검색어를 바꾸거나 새 클랜을 만들어 보십시오."}</p>}
-    <Dialog open={replaceOpen} onOpenChange={(open) => { if (!busy) setReplaceOpen(open); }}>
-      <DialogContent><DialogHeader><DialogTitle>진행 중인 신청이 있습니다</DialogTitle><DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected?.name}」에 새로 신청하시겠습니까?</DialogDescription></DialogHeader>
-        <label className="grid gap-2 text-xs">가입 메시지 (선택)<textarea className="border-border min-h-24 rounded-md border p-3 text-sm" value={message} maxLength={2000} disabled={busy} onChange={(event) => setMessage(event.target.value)} /></label>
-        {error ? <p className={styles.error} role="alert">{error}</p> : null}
-        <DialogFooter><Button type="button" variant="outline" disabled={busy} onClick={() => setReplaceOpen(false)}>아니오</Button><Button type="button" disabled={busy} onClick={() => void runSubmit(true)}>{busy ? "처리 중…" : "취소 후 새로 신청"}</Button></DialogFooter>
-      </DialogContent>
+    <Dialog open={selected != null} onOpenChange={open => { if (!open && !busy) setSelected(null); }}>
+      {selected && <DialogContent showCloseButton={!busy}>
+        <DialogHeader>
+          <DialogTitle>{replaceOpen ? "진행 중인 신청이 있습니다" : selected.name + " 가입 신청"}</DialogTitle>
+          <DialogDescription>{replaceOpen
+            ? `현재 「${blockName}」에 가입 신청 중입니다. 취소하고 「${selected.name}」에 새로 신청하시겠습니까?`
+            : "운영진에게 전달할 메시지를 함께 보낼 수 있습니다."}</DialogDescription>
+        </DialogHeader>
+        <label className="grid gap-2 text-xs">가입 메시지 (선택)
+          <textarea className="border-border min-h-24 rounded-md border p-3 text-sm" placeholder="자기소개 (선택)" value={message} maxLength={2000} disabled={busy} onChange={event => setMessage(event.target.value)} />
+        </label>
+        {error && <p className={styles.error} role="alert">{error}</p>}
+        <DialogFooter>
+          <Button type="button" variant="outline" disabled={busy} onClick={() => setSelected(null)}>{replaceOpen ? "아니오" : "취소"}</Button>
+          <Button type="button" disabled={busy} data-testid={`clan-join-send-${selected.id}`} onClick={() => void runSubmit(replaceOpen)}>{busy ? "보내는 중…" : replaceOpen ? "취소 후 새로 신청" : "보내기"}</Button>
+        </DialogFooter>
+      </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || !!details.eligibilityError || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan,true);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.eligibilityError ? "가입 조건 미충족" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || !!details.eligibilityError || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.eligibilityError ? "가입 조건 미충족" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
     </Dialog>
   </>;
 }

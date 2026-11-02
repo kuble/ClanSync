@@ -264,8 +264,8 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(page.getByRole("article").filter({ has: card }).getByText("1999년생 및 이전 출생자만 신청할 수 있습니다.",{exact:true})).toBeVisible();
     await expect(card).toContainText(title);
     await expect(card).toContainText("즐겜");
-    await expect(card.locator("..")).toContainText("탱커·힐러 모집");
-    await expect(card.locator("..")).toContainText("1990~1999년생");
+    await expect(card.locator("..")).not.toContainText("탱커·힐러 모집");
+    await expect(card.locator("..")).not.toContainText("1990~1999년생");
     await expect(card).not.toContainText("이전 모집 안내");
     await expect(card).not.toContainText("홍보가 아닌 경기 안내");
     await expect(card.getByRole("img",{name:"함께하는 금요일 내전",exact:true})).toBeVisible();
@@ -299,7 +299,7 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await detail.getByRole("button",{name:"가입 신청",exact:true}).click();
     await expect(detail).toBeHidden();
     await expect(page).not.toHaveURL(/promotion=/);
-    await page.getByTestId(`clan-join-send-${f.clanId}`).click();
+    await page.getByRole("dialog").getByTestId(`clan-join-send-${f.clanId}`).click();
     await expect(page.getByText("가입 신청을 보냈습니다.",{exact:true})).toBeVisible();
     await expect(page.getByTestId("clan-join-pinned-pending-section")).toContainText(title);
     const pending=await f.service.from("clan_join_requests").select("status").eq("clan_id",f.clanId).eq("user_id",f.users[1].id).single(); expect(pending.error).toBeNull(); expect(pending.data?.status).toBe("pending");
