@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CircleHelp, Megaphone, Eye, Check, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +29,11 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   const RECRUITMENT_TIERS = recruitmentTiers(gameSlug);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const previewUrls = useRef(new Set<string>());
+  useEffect(() => {
+    const urls = previewUrls.current;
+    return () => { urls.forEach(url => URL.revokeObjectURL(url)); urls.clear(); };
+  }, []);
   const [preview, setPreview] = useState<{ clan: ClanListRow; title: string; blocks: PromotionDisplayBlock[] } | null>(null);
   const [saving, save] = useTransition();
   const [error, setError] = useState("");
@@ -56,8 +61,19 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
         tier_range: selectedTiers.map(([tier]) => tier), recruitment_positions: positions.includes("all") ? [] : positions },
       title: title.trim() || "홍보글 미리보기",
       blocks: blocks.map(block => block.type === "text" ? { type: "text", text: block.text }
-        : { type: "image", src: block.preview ?? promotionImageUrl(gameSlug, clanId, block.path), alt: block.alt }),
+        : { type: "image", src: previewImageSource(block), alt: block.alt }),
     });
+  }
+  function previewImageSource(image: Extract<PromotionDraftBlock, { type: "image" }>) {
+    if (!image.file) return promotionImageUrl(gameSlug, clanId, image.path);
+    const url = URL.createObjectURL(image.file);
+    previewUrls.current.add(url);
+    return url;
+  }
+  function closePreview() {
+    setPreview(null);
+    previewUrls.current.forEach(url => URL.revokeObjectURL(url));
+    previewUrls.current.clear();
   }
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -148,8 +164,8 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
       <ClanInviteShare gameSlug={gameSlug} clanId={clanId} />
     </div>
   </form>
-    <Dialog open={preview !== null} onOpenChange={open => { if (!open) setPreview(null); }}>
-      {preview && <ClanPromotionDialogContent gameSlug={gameSlug} clan={preview.clan} title={preview.title} blocks={preview.blocks} onClose={() => setPreview(null)} />}
+    <Dialog open={preview !== null} onOpenChange={open => { if (!open) closePreview(); }}>
+      {preview && <ClanPromotionDialogContent gameSlug={gameSlug} clan={preview.clan} title={preview.title} blocks={preview.blocks} onClose={closePreview} />}
     </Dialog>
   </>;
 }

@@ -66,12 +66,15 @@ test("promotion photos are inline text atoms with deletion, undo and one continu
     await expect(page.getByRole("button",{name:"선택한 사진 삭제",exact:true})).toHaveCount(0);
     await editor.evaluate((element,html)=>{const data=new DataTransfer();data.setData("text/html",`<p>${html}</p>`);element.dispatchEvent(new ClipboardEvent("paste",{bubbles:true,cancelable:true,clipboardData:data}));},html);
     await expect(photo).toHaveCount(2);
+    // The modal must still decode the files after the editor releases its own URL.
+    await photo.first().evaluate(element => URL.revokeObjectURL((element as HTMLImageElement).src));
     await page.getByRole("button",{name:"미리보기",exact:true}).click();
     const draftPreview=page.getByRole("dialog",{name:"우리 클랜의 이야기",exact:true});
     const draftBody=draftPreview.getByRole("region",{name:"클랜 홍보 내용"});
     await expect(draftBody).toHaveText("앞글뒤글");
     await expect(draftBody.locator("img")).toHaveCount(2);
     await expect(draftBody.locator("img").first()).toHaveAttribute("src",/^blob:/);
+    await expect.poll(()=>draftBody.locator("img").evaluateAll(images=>images.every(image=>(image as HTMLImageElement).naturalWidth>0))).toBe(true);
     expect(uploads).toBe(0);
     expect((await f.service.from("board_posts").select("id").eq("clan_id",f.clanId).eq("post_type","promotion")).data).toEqual([]);
     await page.screenshot({path:testInfo.outputPath("promotion-inline-draft-preview.png")});
