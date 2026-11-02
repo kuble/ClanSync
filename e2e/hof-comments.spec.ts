@@ -357,6 +357,13 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await page.setViewportSize({ width: 999, height: 844 });
     const reactionTrigger = page.getByRole("button", { name: "반응", exact: true });
     await expect(reactionTrigger).toBeVisible();
+    await expect(page.getByRole("region", { name: "명예의 전당 필터" }).getByRole("button", { name: "반응", exact: true })).toHaveCount(0);
+    const handleBox = (await reactionTrigger.boundingBox())!;
+    expect(999 - handleBox.x - handleBox.width).toBeGreaterThanOrEqual(0);
+    expect(999 - handleBox.x - handleBox.width).toBeLessThanOrEqual(24);
+    expect(Math.abs(handleBox.y + handleBox.height / 2 - 844 / 2)).toBeLessThan(24);
+    expect(handleBox.height).toBeGreaterThan(handleBox.width);
+    await expect(reactionTrigger.locator("span")).toHaveCSS("writing-mode", "vertical-rl");
     await expect(page.getByLabel("순위 보고 한마디")).toBeHidden();
     await reactionTrigger.click();
     const drawer = page.getByRole("dialog", { name: "전체 기간 · 승률 반응", exact: true });

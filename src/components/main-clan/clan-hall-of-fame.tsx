@@ -5,7 +5,6 @@ import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
 import { Crown, MessageSquare, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
@@ -73,15 +72,16 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
       {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
       <div className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto sm:flex-1 sm:gap-3">
         <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
-        <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          {active && !block.undisclosed && !reactions && <Button type="button" size="sm" variant="outline" className="min-[1000px]:hidden" onClick={() => setReactionsOpen(true)} aria-haspopup="dialog"><MessageSquare aria-hidden />반응</Button>}
-          {settings}
-        </div>
+        <div className="ml-auto shrink-0">{settings}</div>
       </div>
     </section>
     {loaded.feedback}
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
       <div className="grid items-stretch gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
+          {!reactions && <button type="button" aria-label="반응" title="반응 열기" aria-haspopup="dialog" aria-hidden={reactionsOpen || undefined} tabIndex={reactionsOpen ? -1 : 0} onClick={() => setReactionsOpen(true)}
+            className={`fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring min-[1000px]:hidden ${reactionsOpen ? "invisible pointer-events-none" : ""}`}>
+            <MessageSquare className="size-4" aria-hidden /><span className="[writing-mode:vertical-rl]">반응</span>
+          </button>}
           <Card size="sm" className="h-[36rem] min-w-0" aria-label={`${active.label} 순위`}>
             <CardHeader><CardTitle><h4 className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
