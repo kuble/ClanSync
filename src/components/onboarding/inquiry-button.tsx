@@ -14,7 +14,7 @@ type Room = { messages: InquiryMessage[] };
 
 export function InquiryButton({ clanId, management = false }: { clanId: string; management?: boolean }) {
   const searchParams = useSearchParams();
-  const linked = management && searchParams.get("inquiry") === "1";
+  const linked = management ? searchParams.get("inquiry") === "1" : searchParams.get("inquiry") === clanId;
   const [manualOpen, setManualOpen] = useState(false);
   const open = manualOpen || linked;
   const [unreadClan, setUnreadClan] = useState<string | null>(null);

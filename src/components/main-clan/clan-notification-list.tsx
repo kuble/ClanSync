@@ -109,6 +109,7 @@ export function ClanNotificationList({ items, eventsBase, canOpenInquiry = false
               role="list"
             >
               {items.map((row) => {
+                const rowEventsBase = row.eventsBase ?? eventsBase;
                 const { title } = notificationTitle(row.kind, row.payload);
                 const unread = row.read_at == null;
                 const p =
@@ -121,19 +122,19 @@ export function ClanNotificationList({ items, eventsBase, canOpenInquiry = false
                   row.kind === "lfg_post_expired" || row.kind === "lfg_application_expired";
                 let href: string | null =
                   row.kind === "poll_reminder" && pollId
-                    ? `${eventsBase}?tab=polls`
+                    ? `${rowEventsBase}?tab=polls`
                     : row.kind === "event_reminder"
-                      ? `${eventsBase}?tab=calendar`
-                      : eventsBase;
+                      ? `${rowEventsBase}?tab=calendar`
+                      : rowEventsBase;
 
                 if (isLfgExpire && gameSlug) {
                   href = `/games/${encodeURIComponent(gameSlug)}?tab=lfg`;
                 }
                 if (row.kind === "clan_inquiry_comment") {
-                  href = canOpenInquiry ? eventsBase.replace(/\/events$/, "/manage?tab=requests&inquiry=1") : null;
+                  href = row.inquiryHref !== undefined ? row.inquiryHref : canOpenInquiry ? rowEventsBase.replace(/\/events$/, "/manage?tab=requests&inquiry=1") : null;
                 }
                 if((row.kind==='coaching_requested'||row.kind==='coaching_comment')&&typeof p.post_id==='string'&&uuidPattern.test(p.post_id)){
-                  href=eventsBase.replace(/\/events$/,'')+'/board/feedback/'+p.post_id+(row.kind==='coaching_comment'?'#comments':'');
+                  href=rowEventsBase.replace(/\/events$/,'')+'/board/feedback/'+p.post_id+(row.kind==='coaching_comment'?'#comments':'');
                 }
 
                 return (

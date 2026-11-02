@@ -20,6 +20,7 @@ test("pending applicant can reopen the shared clan room until their request is r
     } finally { await staff.auth.signOut(); }
     await loginIsolatedBalanceUser(page,f.users[1]);
     await page.goto("/games/overwatch/clan");
+    await expect(page.getByRole("navigation", {name:"계정 메뉴"}).getByRole("button", {name:"알림",exact:true})).toBeVisible();
     const detail=page.getByRole("dialog",{name:title});
     await page.getByRole("region",{name:"현재 신청 중인 클랜"}).getByRole("button",{name:"클랜 문의방"}).click();
     const room=page.getByRole("dialog",{name:"클랜 문의방"});
@@ -65,8 +66,13 @@ test("pending applicant can reopen the shared clan room until their request is r
       await expect(staffRoom).toBeVisible();
     } finally { await staffPage.close(); }
     await page.bringToFront();
-    const applicantButton = page.getByRole("region",{name:"현재 신청 중인 클랜"}).getByRole("button",{name:"클랜 문의방 · 새 댓글"});
-    await applicantButton.click({timeout:35_000});
+    const applicantBell = page.getByRole("navigation",{name:"계정 메뉴"}).getByRole("button",{name:/^알림.*미읽음/});
+    await applicantBell.click({timeout:35_000});
+    const alerts = page.getByTestId("clansync-inapp-notification-sheet");
+    await expect(alerts.getByText("클랜 문의방에 새 댓글이 있습니다.",{exact:true})).toBeVisible();
+    await alerts.getByText("클랜 문의방에 새 댓글이 있습니다.",{exact:true}).click();
+    await expect(page).toHaveURL(new RegExp(`inquiry=${f.clanId}`));
+    await expect(room).toBeVisible();
     const reply = room.getByRole("listitem").filter({hasText:"운영진 답변입니다."});
     await expect(reply.locator("strong")).toHaveText(f.users[0].nickname, {timeout:10000});
     await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction","row");
@@ -77,6 +83,7 @@ test("pending applicant can reopen the shared clan room until their request is r
     await expect(room.getByRole("button",{name:/삭제/})).toHaveCount(0);
     await page.keyboard.press("Escape");
     await page.goto("/profile");
+    await expect(page.getByRole("navigation",{name:"계정 메뉴"}).getByRole("button",{name:"알림",exact:true})).toBeVisible();
     const accountTab = page.getByRole("tab", {name:"계정 정보"});
     await expect(async () => {
       if (!await room.isVisible()) {

@@ -22,15 +22,15 @@ import {createClient} from "@/lib/supabase/client";
 import { ClanNotificationList } from "./clan-notification-list";
 
 export function ClanInAppNotificationBell({
-  gameSlug,
-  clanId,
-  canOpenInquiry,
+  gameSlug = "",
+  clanId = "",
+  canOpenInquiry = false,
   initialItems,
   initialUnreadCount,
 }: {
-  gameSlug: string;
-  clanId: string;
-  canOpenInquiry: boolean;
+  gameSlug?: string;
+  clanId?: string;
+  canOpenInquiry?: boolean;
   initialItems: ClanInAppNotificationVM[];
   initialUnreadCount: number;
 }) {
@@ -43,7 +43,9 @@ export function ClanInAppNotificationBell({
     async function check(){
       if(document.hidden||busy)return;busy=true;
       try{
-        const rows=await client.from('notifications').select('id,read_at').or(`clan_id.eq.${clanId},clan_id.is.null`).order('created_at',{ascending:false}).limit(30);
+        let query=client.from('notifications').select('id,read_at');
+        if(clanId)query=query.or(`clan_id.eq.${clanId},clan_id.is.null`);
+        const rows=await query.order('created_at',{ascending:false}).limit(30);
         if(!stopped&&!rows.error&&rows.data.map(i=>i.id+':'+(i.read_at??'')).join('|')!==signature)router.refresh();
       }catch{/* Retry on the next poll without interrupting the current page. */}finally{busy=false;}
     }
@@ -56,7 +58,7 @@ export function ClanInAppNotificationBell({
     setBadgeHidden(false);
   }, [initialUnreadCount]);
 
-  const eventsBase = `/games/${encodeURIComponent(gameSlug)}/clan/${clanId}/events`;
+  const eventsBase = clanId ? `/games/${encodeURIComponent(gameSlug)}/clan/${clanId}/events` : "/games";
 
   /** 열 때 revalidate(읽음 RPC)가 오픈 직후와 겹치면 Dialog 팝업이 뜨지 않을 수 있어, 읽음 처리는 닫을 때만 수행. */
   const onOpenChange = (next: boolean) => {
@@ -93,7 +95,8 @@ export function ClanInAppNotificationBell({
     startTransition(() => {
       void (async () => {
         try {
-          await markAllClanInAppNotificationsReadAction(gameSlug, clanId);
+          if (clanId) await markAllClanInAppNotificationsReadAction(gameSlug, clanId);
+          else await markInAppNotificationIdsReadAction(gameSlug, clanId, initialItems.filter(item => item.read_at == null).map(item => item.id));
           setBadgeHidden(true);
         } finally {
           router.refresh();
@@ -133,9 +136,6 @@ export function ClanInAppNotificationBell({
       >
         <SheetHeader className="border-border shrink-0 space-y-1 border-b px-4 py-3 text-left">
           <SheetTitle className="text-base">알림</SheetTitle>
-          <p className="text-muted-foreground text-xs font-normal">
-            클랜 소식과 게임 허브(LFG 등) 알림을 함께 보여 줍니다. 브라우저 푸시는 이후 예정(D-NOTIF-02).
-          </p>
         </SheetHeader>
 
         <div className="flex min-h-0 flex-1 flex-col">

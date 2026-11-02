@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 function revalidateMainClanRoutes(gameSlug: string, clanId: string) {
+  if (!gameSlug || !clanId) {
+    revalidatePath("/games", "layout");
+    revalidatePath("/profile");
+    return;
+  }
   const base = `/games/${gameSlug}/clan/${clanId}`;
   revalidatePath(base);
   revalidatePath(`${base}/balance`);
