@@ -314,7 +314,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await page.context().route(interviewUrl, route => route.fulfill({ body: "QA interview" }));
     const tabCount = page.context().pages().length;
     await detail.getByRole("button",{name:"가입 신청",exact:true}).click();
-    const contactLink = page.getByRole("dialog").getByRole("link",{name:/클랜에 연락하기/});
+    const contactLink = page.getByRole("dialog").getByRole("link",{name:/클랜에 문의하기/});
     await expect(contactLink).toHaveAttribute("href", interviewUrl);
     expect(page.context().pages()).toHaveLength(tabCount);
     const [interviewTab] = await Promise.all([

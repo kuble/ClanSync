@@ -128,7 +128,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           {replaceOpen && <DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected.name}」에 새로 신청하시겠습니까?</DialogDescription>}
         </DialogHeader>
         {selectedInterview && <a href={selectedInterview} target="_blank" rel="noopener noreferrer" className="inline-flex w-fit items-center gap-1 text-sm text-primary underline underline-offset-4">
-          클랜에 연락하기 <ExternalLink size={14} aria-hidden /><span className="sr-only">(새 탭)</span>
+          클랜에 문의하기 <ExternalLink size={14} aria-hidden /><span className="sr-only">(새 탭)</span>
         </a>}
         <label className="grid gap-2 text-xs">가입 메시지 (선택)
           <textarea className="border-border min-h-24 rounded-md border p-3 text-sm" placeholder="자기소개" value={message} maxLength={2000} disabled={busy} onChange={event => setMessage(event.target.value)} />

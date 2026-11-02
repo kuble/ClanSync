@@ -131,7 +131,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <Label htmlFor="interview-url">클랜 연락 링크 (선택)</Label>
-                <StatTooltip label="클랜 연락 링크 도움말" description="가입 신청 창에서 ‘클랜에 연락하기’를 누르면 이 주소가 새 탭에서 열립니다." className="inline-flex items-center justify-center size-5 text-muted-foreground">
+                <StatTooltip label="클랜 연락 링크 도움말" description="가입 신청 창에서 ‘클랜에 문의하기’를 누르면 이 주소가 새 탭에서 열립니다." className="inline-flex items-center justify-center size-5 text-muted-foreground">
                   <CircleHelp size={14} aria-hidden />
                 </StatTooltip>
               </div>
