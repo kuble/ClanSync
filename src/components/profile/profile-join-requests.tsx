@@ -1,3 +1,5 @@
+import { InquiryButton } from "@/components/onboarding/inquiry-button";
+import Link from "next/link";
 import { StatHelp } from "@/components/main-clan/stat-help";
 import { cancelJoinRequestByIdFormAction } from "@/app/actions/game-clan-onboarding";
 import { Button } from "@/components/ui/button";
@@ -5,7 +7,7 @@ import styles from "./profile.module.css";
 
 type JoinRow = {
   id: string; status: "pending" | "approved" | "rejected" | "canceled"; applied_at: string; resolved_at: string | null;
-  reject_reason: string | null; message: string; clans: { name: string } | null; games: { slug: string; name_ko: string } | null;
+  reject_reason: string | null; message: string; clans: { name: string; postId?: string } | null; games: { slug: string; name_ko: string } | null;
 };
 const STATUS = { pending: "검토 중", approved: "승인됨", rejected: "거절됨", canceled: "취소됨" };
 function dateLabel(value: string) { return new Date(value).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" }); }
@@ -20,7 +22,10 @@ export function ProfileJoinRequests({ rows, loadFailed = false }: { rows: JoinRo
           {request.message ? <p className="whitespace-pre-wrap">{request.message}</p> : null}
           {request.status === "rejected" && request.reject_reason ? <p className="text-destructive!">사유: {request.reject_reason}</p> : null}
         </div>
-        {request.status === "pending" ? <form action={cancelJoinRequestByIdFormAction}><input type="hidden" name="requestId" value={request.id} /><Button type="submit" variant="outline" size="sm">신청 취소</Button></form> : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {request.clans?.postId && request.games && <Link className="text-xs underline" href={"/games/"+request.games.slug+"/clan?promotion="+request.clans.postId}>홍보글 보기</Link>}
+          {request.status === "pending" && <InquiryButton requestId={request.id} />}
+          {request.status === "pending" ? <form action={cancelJoinRequestByIdFormAction}><input type="hidden" name="requestId" value={request.id} /><Button type="submit" variant="outline" size="sm">신청 취소</Button></form> : null}</div>
       </li>)}
     </ul> : <p className="text-muted-foreground mt-5 text-xs">진행 중인 가입 신청이 없습니다.</p>}
   </section>;

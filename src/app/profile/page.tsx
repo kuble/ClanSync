@@ -36,7 +36,7 @@ type JoinRow = {
   resolved_at: string | null;
   reject_reason: string | null;
   message: string;
-  clans: { name: string } | null;
+  clans: { name: string; postId?: string } | null;
   games: { slug: string; name_ko: string } | null;
 };
 
@@ -92,9 +92,9 @@ export default async function ProfilePage() {
 
   const [joinClansRes, joinGamesRes] = await Promise.all([
     clanIdsForJoin.length > 0
-      ? supabase.from("clans").select("id, name").in("id", clanIdsForJoin)
+      ? supabase.from("clans").select("id,name,promotion_public,posts:board_posts!board_posts_clan_id_fkey(id,created_at)").eq("posts.post_type","promotion").order("created_at",{referencedTable:"posts",ascending:false}).limit(1,{referencedTable:"posts"}).in("id", clanIdsForJoin)
       : Promise.resolve({
-          data: [] as { id: string; name: string }[],
+          data: [] as { id: string; name: string; promotion_public:boolean; posts:{id:string}[] }[],
           error: null as null,
         }),
     gameIdsForJoin.length > 0
@@ -106,7 +106,7 @@ export default async function ProfilePage() {
   ]);
 
   const clanNameById = new Map(
-    (joinClansRes.data ?? []).map((c) => [c.id, c.name]),
+    (joinClansRes.data ?? []).map((c) => [c.id, {name:c.name, postId:c.promotion_public ? c.posts[0]?.id : undefined}]),
   );
   const gameInfoById = new Map(
     (joinGamesRes.data ?? []).map((g) => [
@@ -125,12 +125,11 @@ export default async function ProfilePage() {
       resolved_at: r.resolved_at,
       reject_reason: r.reject_reason,
       message: r.message ?? "",
-      clans: clanName ? { name: clanName } : null,
+      clans: clanName ?? null,
       games: gameMeta ?? null,
     };
   });
 
-  const pendingForBanner = hydratedJoinRows.filter((r) => r.status === "pending");
 
   const joinRequests: JoinRow[] = hydratedJoinRows.filter((r) => {
     if (r.status === "pending") return true;
@@ -210,10 +209,6 @@ export default async function ProfilePage() {
       <div className={styles.accountColumn}>
         <ProfileGameDecorations games={(gameCatalog ?? []).map((game) => ({ gameId: game.id, slug: game.slug, nameKo: game.name_ko, isActive: game.is_active, ...linkedGames.find((linked) => linked.gameId === game.id) })).sort((a,b) => Number(b.linked ?? false) - Number(a.linked ?? false) || ["overwatch","valorant","lol","pubg"].indexOf(a.slug) - ["overwatch","valorant","lol","pubg"].indexOf(b.slug))} userId={user.id} memberships={memberships} preferences={rolePreferences ?? []} verifiedGameIds={verifiedGameIds} />
         <div className={styles.clanManagement}>
-    {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? <section className={styles.pendingBanner} aria-label="진행 중인 가입 신청 요약">
-      <strong>진행 중인 가입 신청 {pendingForBanner.length}건</strong>
-      {pendingForBanner.map((request) => <p key={request.id}>「{request.clans?.name ?? "클랜"}」 ({request.games?.name_ko ?? "게임"}) · 검토 중</p>)}
-    </section> : null}
 
           <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
         </div>
