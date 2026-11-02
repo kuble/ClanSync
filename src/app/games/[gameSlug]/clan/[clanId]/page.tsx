@@ -7,6 +7,8 @@ import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { loadClanDashboard } from "@/lib/clan/load-clan-dashboard";
 import { loadClanBadges } from "@/lib/clan/load-clan-badges";
 import { ClanCommunityLinks } from "@/components/main-clan/clan-community-links";
+import { ClanMemberWelcome } from "@/components/main-clan/clan-member-welcome";
+import { getRequestClanWelcomeMembership } from "@/lib/clan/load-clan-welcome";
 
 export default async function MainClanDashboardPage({
   params,
@@ -21,9 +23,14 @@ export default async function MainClanDashboardPage({
   if (!user) redirect("/sign-in");
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) notFound();
-  const [model, badgeCollection] = await Promise.all([loadClanDashboard(supabase, clanId, ctx.plan), loadClanBadges(clanId).catch(() => null)]);
+  const [model, badgeCollection, membership] = await Promise.all([
+    loadClanDashboard(supabase, clanId, ctx.plan),
+    loadClanBadges(clanId).catch(() => null),
+    getRequestClanWelcomeMembership(clanId),
+  ]);
   if (!model) notFound();
   const { notice: noticeId } = await searchParams;
+  const joinedAt = membership?.joined_at ?? membership?.created_at;
   let initialNotice: { title: string; content: string } | undefined;
   if (noticeId && /^[0-9a-f-]{36}$/i.test(noticeId)) {
     const { data } = await supabase.from("clan_notices").select("title,content").eq("clan_id", clanId).eq("id", noticeId).maybeSingle();
@@ -31,7 +38,10 @@ export default async function MainClanDashboardPage({
   }
   return (
     <>
-      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false} communityLinks={<ClanCommunityLinks links={model.communityLinks} discordEntryHref={model.discordConnected !== false ? `/games/${gameSlug}/clan/${clanId}/discord` : undefined} />}>
+      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false} communityLinks={<div className="flex items-end gap-1">
+        <ClanCommunityLinks links={model.communityLinks} discordEntryHref={model.discordConnected !== false ? `/games/${gameSlug}/clan/${clanId}/discord` : undefined} />
+        {joinedAt && <ClanMemberWelcome clanId={clanId} clanName={ctx.clanName} basePath={`/games/${gameSlug}/clan/${clanId}`} model={{ communityLinks: model.communityLinks, discordConnected: model.discordConnected, rules: model.rules, notices: model.notices.filter(notice => notice.kind === "notice"), errors: model.errors }} joinedAt={joinedAt} initialOpen={false} />}
+      </div>}>
         <ClanHeroBadges collection={badgeCollection} href={`/games/${gameSlug}/clan/${clanId}/badges`} />
       </ClanHero>
       <ClanDashboard

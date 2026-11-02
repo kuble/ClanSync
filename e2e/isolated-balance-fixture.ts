@@ -93,6 +93,7 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
       .single();
     if (clanError) throw clanError;
     clanId = clan.id;
+    const membershipAt = new Date().toISOString();
     const { error: membershipError } = await service
       .from("clan_members")
       .insert(
@@ -101,6 +102,8 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
           user_id: user.id,
           role: index === 0 ? ("leader" as const) : ("member" as const),
           status: "active" as const,
+          joined_at: membershipAt,
+          welcome_completed_at: membershipAt,
         })),
       );
     if (membershipError) throw membershipError;

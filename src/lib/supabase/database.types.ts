@@ -1588,6 +1588,7 @@ export type Database = {
           status: Database["public"]["Enums"]["clan_member_status"]
           updated_at: string
           user_id: string
+          welcome_completed_at: string | null
         }
         Insert: {
           clan_id: string
@@ -1604,6 +1605,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["clan_member_status"]
           updated_at?: string
           user_id: string
+          welcome_completed_at?: string | null
         }
         Update: {
           clan_id?: string
@@ -1620,6 +1622,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["clan_member_status"]
           updated_at?: string
           user_id?: string
+          welcome_completed_at?: string | null
         }
         Relationships: [
           {
@@ -3573,6 +3576,10 @@ export type Database = {
           p_round_id: string
           p_state: Json
         }
+        Returns: boolean
+      }
+      complete_clan_welcome: {
+        Args: { p_clan_id: string; p_joined_at: string }
         Returns: boolean
       }
       connect_clan_discord_bot: {
