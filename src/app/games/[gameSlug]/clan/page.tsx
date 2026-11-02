@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { notFound, redirect } from "next/navigation";
-import { Clock3, Search, SlidersHorizontal } from "lucide-react";
+import { Clock3, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import { cancelClanJoinRequestFormAction } from "@/app/actions/game-clan-onboarding";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ClanCreateForm } from "@/components/onboarding/clan-create-form";
@@ -111,7 +111,15 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
       <TabsContent value="join">
         <div className={discover.directory}>
           <ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
-            <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />검색 조건</h2>
+            <div className={discover.filterHeader}>
+              <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />검색 조건</h2>
+              {term || style || tier || eligibleOnly ? (
+                <Link href={`/games/${gameSlug}/clan`} aria-label="초기화" title="검색 조건 초기화"
+                  className={buttonVariants({ variant: "ghost", size: "icon-sm", className: "text-muted-foreground" })}>
+                  <RotateCcw aria-hidden />
+                </Link>
+              ) : null}
+            </div>
             <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
             <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{CLAN_STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -119,9 +127,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
               <label><TooltipTrigger key={String(eligibleOnly)} render={<input type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} aria-describedby="recommendation-hint" />} /><span className={discover.filterSwitch} aria-hidden /><span>추천 클랜</span></label>
               <TooltipContent role="tooltip">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</TooltipContent>
             </Tooltip><span id="recommendation-hint" className="sr-only">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</span></div>
-            <div className={discover.filterActions}><Button type="submit">검색</Button>
-              {term || style || tier || eligibleOnly ? <Link href={`/games/${gameSlug}/clan`} className="text-muted-foreground text-xs underline">초기화</Link> : null}
-            </div>
+            <Button type="submit" className="min-h-[38px]">검색</Button>
           </ClanDiscoveryFilterForm>
           <section className={discover.results} aria-label="클랜 검색 결과">
             {listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
