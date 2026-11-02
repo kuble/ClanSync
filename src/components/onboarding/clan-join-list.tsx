@@ -28,9 +28,9 @@ export type ClanListRow = {
 const STYLE_LABEL: Record<string, string> = Object.fromEntries(CLAN_STYLES.map(({value, label}) => [value, label]));
 
 export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true,
-  pendingActions, filters, listingFailed, pagination, pendingMessage }: {
+  pendingActions, filters, listingFailed, pagination }: {
   gameSlug: string; clans: ClanListRow[]; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
-  pendingActions: ReactNode; filters: ReactNode; listingFailed: boolean; pagination: ReactNode; pendingMessage?: string | null;
+  pendingActions: ReactNode; filters: ReactNode; listingFailed: boolean; pagination: ReactNode;
 }) {
   const router = useRouter();
   const [savedFavorites, setSavedFavorites] = useState<Record<string,boolean>>({});
@@ -38,7 +38,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [selected, setSelected] = useState<ClanListRow | null>(null);
   const [details, setDetails] = useState<ClanListRow | null>(initialDetails);
-  const [message, setMessage] = useState("");
   const [blockName, setBlockName] = useState("");
   const [busy, setBusy] = useState(false);
   const [sentId, setSentId] = useState<string | null>(null);
@@ -55,7 +54,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   }
   function openApply(clan: ClanListRow) {
     if (!canApply) return;
-    setSelected(clan); setMessage(""); setError(null);
+    setSelected(clan); setError(null);
     if (effectivePendingId && effectivePendingId !== clan.id) {
       setBlockName(blockingClanName ?? selected?.name ?? "다른 클랜");
       setReplaceOpen(true);
@@ -65,7 +64,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     if (!selected || busy || !canApply) return;
     setBusy(true); setError(null);
     try {
-      const result = replace ? await replacePendingJoinRequestAction(gameSlug, selected.id, message) : await submitClanJoinRequestAction(gameSlug, selected.id, message);
+      const result = replace ? await replacePendingJoinRequestAction(gameSlug, selected.id) : await submitClanJoinRequestAction(gameSlug, selected.id);
       if (result.ok) {
         setSentId(selected.id); setSelected(null); setReplaceOpen(false);
         toast.success(replace ? "기존 신청을 취소하고 새로 신청했습니다." : "가입 신청을 보냈습니다.", { duration: 4800 });
@@ -150,21 +149,17 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       {selected && <DialogContent showCloseButton={!busy}>
         <DialogHeader>
           <DialogTitle>{replaceOpen ? "진행 중인 신청이 있습니다" : selected.name + " 가입 신청"}</DialogTitle>
-          {replaceOpen && <DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected.name}」에 새로 신청하시겠습니까?</DialogDescription>}
+          <DialogDescription>{replaceOpen ? `현재 「${blockName}」에 가입 신청 중입니다. 취소하고 「${selected.name}」에 새로 신청하시겠습니까?` : `「${selected.name}」에 가입 신청하시겠습니까?`}</DialogDescription>
         </DialogHeader>
-          <label className="grid gap-2 text-xs">가입 메시지 (선택)
-          <textarea className="border-border min-h-24 rounded-md border p-3 text-sm" placeholder="자기소개" value={message} maxLength={2000} disabled={busy} onChange={event => setMessage(event.target.value)} />
-        </label>
         {error && <p className={styles.error} role="alert">{error}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" disabled={busy} onClick={() => setSelected(null)}>{replaceOpen ? "아니오" : "취소"}</Button>
-          <Button type="button" disabled={busy} data-testid={`clan-join-send-${selected.id}`} onClick={() => void runSubmit(replaceOpen)}>{busy ? "보내는 중…" : replaceOpen ? "취소 후 새로 신청" : "보내기"}</Button>
+          <Button type="button" disabled={busy} data-testid={`clan-join-send-${selected.id}`} onClick={() => void runSubmit(replaceOpen)}>{busy ? "신청 중…" : replaceOpen ? "취소 후 새로 신청" : "가입 신청"}</Button>
         </DialogFooter>
       </DialogContent>}
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
       {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} favorite={renderFavorite(details)}
-        pendingMessage={pendingClanId === details.id ? pendingMessage : null}
         onClose={closeDetails} action={<>
           {effectivePendingId === details.id && <InquiryButton clanId={details.id} />}
           {canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`}

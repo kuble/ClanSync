@@ -216,7 +216,6 @@ export async function createClanAndLeadAction(
 export async function submitClanJoinRequestAction(
   gameSlug: string,
   clanId: string,
-  message: string,
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -257,8 +256,6 @@ export async function submitClanJoinRequestAction(
     return { ok: false, error: "이 클랜에는 지금 가입 신청할 수 없습니다." };
   }
 
-  const msg = message.trim().slice(0, 2000);
-
   const membership = await supabase.rpc("select_my_clan_membership", { p_clan_id: clanId });
   if (membership.error) return { ok: false, error: "클랜 소속 상태를 확인하지 못했습니다. 다시 시도해 주십시오." };
   if (membership.data?.[0]?.status === "banned")
@@ -293,7 +290,6 @@ export async function submitClanJoinRequestAction(
     user_id: user.id,
     game_id: game.id,
     status: "pending",
-    message: msg,
   });
 
   if (error) {
@@ -312,7 +308,6 @@ export async function submitClanJoinRequestAction(
 export async function replacePendingJoinRequestAction(
   gameSlug: string,
   newClanId: string,
-  message: string,
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -329,7 +324,7 @@ export async function replacePendingJoinRequestAction(
 
   const { data: target } = await supabase.from("clans").select("game_id").eq("id", newClanId).maybeSingle();
   if (!target || target.game_id !== game.id) return { ok: false, error: "클랜을 찾을 수 없습니다." };
-  const { error } = await supabase.rpc("replace_clan_join_request", { p_clan_id: newClanId, p_message: message.trim().slice(0,2000) });
+  const { error } = await supabase.rpc("replace_clan_join_request", { p_clan_id: newClanId });
   if (error) return { ok: false, error: error.message };
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/clan`);

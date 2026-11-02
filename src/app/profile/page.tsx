@@ -36,7 +36,6 @@ type JoinRow = {
   applied_at: string;
   resolved_at: string | null;
   reject_reason: string | null;
-  message: string;
   clans: { name: string; postId?: string } | null;
   games: { slug: string; name_ko: string } | null;
 };
@@ -126,7 +125,6 @@ export default async function ProfilePage() {
       applied_at: r.applied_at,
       resolved_at: r.resolved_at,
       reject_reason: r.reject_reason,
-      message: r.message ?? "",
       clans: clanName ?? null,
       games: gameMeta ?? null,
     };

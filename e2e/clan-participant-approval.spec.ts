@@ -17,10 +17,10 @@ test("join approval recommends BattleTag candidates, searches old names, links r
   try {
     const leader = await f.memberClient(0);
     await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
-    f.users[2].nickname = "AIMZERO";
+    f.users[2].nickname = `AIMZERO#${String(Date.now()).slice(-8)}`;
     await ok(f.service.from("users").update({ birth_year: 1998, gender: "female" }).eq("id", f.users[2].id));
     await ok(f.service.from("users").update({ birth_year: 2001, gender: "undisclosed" }).eq("id", f.users[3].id));
-    await ok(f.service.from("user_game_profiles").update({ battle_tag: `AIMZERO#${String(Date.now()).slice(-8)}` }).eq("game_id", f.gameId).eq("user_id", f.users[2].id));
+    await ok(f.service.from("user_game_profiles").update({ battle_tag: f.users[2].nickname }).eq("game_id", f.gameId).eq("user_id", f.users[2].id));
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(`${base}/manage?tab=members`);
     for (const [name, title] of [
@@ -62,7 +62,7 @@ test("join approval recommends BattleTag candidates, searches old names, links r
     await record(renamed, "2026-08-01");
     const coins = await ok(f.service.from("users").select("id,coin_balance").in("id", f.users.map((u) => u.id)).order("id"));
     await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).in("user_id", [f.users[2].id, f.users[3].id]));
-    const requests = (await ok(f.service.from("clan_join_requests").insert([2, 3].map((i) => ({ clan_id: f.clanId, game_id: f.gameId, user_id: f.users[i].id, message: "가입 승인 회귀" }))).select("id,user_id")))!;
+    const requests = (await ok(f.service.from("clan_join_requests").insert([2, 3].map((i) => ({ clan_id: f.clanId, game_id: f.gameId, user_id: f.users[i].id }))).select("id,user_id")))!;
     const request = requests.find((r) => r.user_id === f.users[2].id)!;
     const other = requests.find((r) => r.user_id === f.users[3].id)!;
     await page.goto(`${base}/manage?tab=requests`);

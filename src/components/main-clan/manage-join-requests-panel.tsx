@@ -17,7 +17,6 @@ const MANAGE_REFRESH_DELAY_MS = 2600;
 
 export type ManageJoinRequestRow = {
   id: string;
-  message: string;
   appliedAt: string;
   nickname: string;
   userId: string;
@@ -103,12 +102,6 @@ export function ManageJoinRequestsPanel({
               신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
             </time>
           </div>
-          {row.message ? (
-            <div className="mt-4 rounded-lg border border-border/60 bg-background/40 px-4 py-3">
-              <p className="mb-1.5 text-xs text-muted-foreground">가입 메시지</p>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{row.message}</p>
-            </div>
-          ) : null}
           <div className="mt-4 flex justify-end gap-2">
               <Button
                 type="button"

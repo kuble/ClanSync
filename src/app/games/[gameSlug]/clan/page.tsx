@@ -108,7 +108,6 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
     <Tabs defaultValue="join" className={`${styles.tabs} ${discover.tabs}`}>
       <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug}
         pendingClanId={pendingBrief?.clanId} blockingClanName={pendingBrief?.clanName} pinnedPendingClan={pinnedPendingClan}
-        pendingMessage={pendingBrief?.message}
         clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"}
         pendingActions={pendingBrief && <>
           <InquiryButton clanId={pendingBrief.clanId} />

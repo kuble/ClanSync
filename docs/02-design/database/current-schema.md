@@ -44,7 +44,7 @@
 | `clan_favorites` | 2 | 2 |
 | `clan_hof_comment_reactions` | 3 | 2 |
 | `clan_hof_comments` | 7 | 2 |
-| `clan_join_requests` | 12 | 4 |
+| `clan_join_requests` | 11 | 4 |
 | `clan_members` | 14 | 2 |
 | `clan_notices` | 9 | 3 |
 | `clan_participant_invites` | 4 | 1 |

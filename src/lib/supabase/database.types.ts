@@ -1508,7 +1508,6 @@ export type Database = {
           created_at: string
           game_id: string
           id: string
-          message: string
           reject_reason: string | null
           resolved_at: string | null
           resolved_by: string | null
@@ -1522,7 +1521,6 @@ export type Database = {
           created_at?: string
           game_id: string
           id?: string
-          message?: string
           reject_reason?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -1536,7 +1534,6 @@ export type Database = {
           created_at?: string
           game_id?: string
           id?: string
-          message?: string
           reject_reason?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -3875,7 +3872,7 @@ export type Database = {
         Returns: number
       }
       replace_clan_join_request: {
-        Args: { p_clan_id: string; p_message: string }
+        Args: { p_clan_id: string }
         Returns: undefined
       }
       replace_event_discord_notifications: {
@@ -3984,7 +3981,6 @@ export type Database = {
           created_at: string
           game_id: string
           id: string
-          message: string
           reject_reason: string | null
           resolved_at: string | null
           resolved_by: string | null

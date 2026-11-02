@@ -7,7 +7,7 @@ import styles from "./profile.module.css";
 
 type JoinRow = {
   id: string; clan_id: string; status: "pending" | "approved" | "rejected" | "canceled"; applied_at: string; resolved_at: string | null;
-  reject_reason: string | null; message: string; clans: { name: string; postId?: string } | null; games: { slug: string; name_ko: string } | null;
+  reject_reason: string | null; clans: { name: string; postId?: string } | null; games: { slug: string; name_ko: string } | null;
 };
 const STATUS = { pending: "검토 중", approved: "승인됨", rejected: "거절됨", canceled: "취소됨" };
 function dateLabel(value: string) { return new Date(value).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" }); }
@@ -19,7 +19,6 @@ export function ProfileJoinRequests({ rows, loadFailed = false }: { rows: JoinRo
       {rows.map((request) => <li key={request.id} className={styles.requestRow}>
         <div><strong>{request.clans?.name ?? "클랜"}</strong><span className={styles.requestStatus} data-status={request.status}>{STATUS[request.status]}</span>
           <p>{request.games?.name_ko ?? "게임"} · {dateLabel(request.applied_at)} 신청{request.resolved_at ? ` · ${dateLabel(request.resolved_at)} 처리` : ""}</p>
-          {request.message ? <p className="whitespace-pre-wrap">{request.message}</p> : null}
           {request.status === "rejected" && request.reject_reason ? <p className="text-destructive!">사유: {request.reject_reason}</p> : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">

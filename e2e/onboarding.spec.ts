@@ -18,7 +18,7 @@ test("isolated onboarding links a BattleTag and requests the intended clan", asy
     await page.goto("/games/overwatch/clan?q=" + encodeURIComponent(clan.data!.name));
     await page.getByTestId(`clan-details-${f.clanId}`).click();
     await page.getByTestId(`clan-join-open-${f.clanId}`).click();
-    await page.getByLabel("가입 메시지 (선택)").fill("같이 빠른 대전을 하고 싶어요.");
+    await expect(page.getByRole("dialog").getByRole("textbox")).toHaveCount(0);
     await page.getByTestId(`clan-join-send-${f.clanId}`).click();
     await expect(page.getByText("가입 신청을 보냈습니다.", { exact: true })).toBeVisible();
     const request = await f.service.from("clan_join_requests").select("user_id,status").eq("clan_id", f.clanId).eq("user_id", f.users[1].id).single();
@@ -32,14 +32,14 @@ test("isolated onboarding links a BattleTag and requests the intended clan", asy
     const tabBox = await page.getByRole("tablist").boundingBox();
     expect(cardBox!.y + cardBox!.height).toBeLessThanOrEqual(tabBox!.y);
     await pending.getByTestId(detailsId).click();
-    await page.getByText("내 신청 메시지", {exact: true}).click();
-    await expect(page.getByText("같이 빠른 대전을 하고 싶어요.", {exact: true})).toBeVisible();
+    await expect(page.getByText("내 신청 메시지", {exact: true})).toHaveCount(0);
     await page.keyboard.press("Escape");
     await page.setViewportSize({width: 390, height: 844});
     await page.getByRole("tab", {name: "클랜 생성"}).click();
     await expect(pending.getByRole("button", {name: "클랜 문의방"})).toBeVisible();
     expect(await pending.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await pending.getByRole("button", {name: "신청 취소"}).click();
+    await expect.poll(async () => (await f.service.from("clan_join_requests").select("status").eq("clan_id", f.clanId).eq("user_id", f.users[1].id).single()).data?.status).toBe("canceled");
     await expect(pending).toHaveCount(0);
     await expect(page.getByRole("tab", {name: "클랜 생성"})).toHaveAttribute("aria-selected", "true");
     await page.getByRole("tab", {name: "클랜 가입"}).click();

@@ -13,8 +13,8 @@ import styles from "./clan-discovery.module.css";
 
 export type PromotionDisplayBlock = { type: "text"; text: string } | { type: "image"; src: string; alt: string };
 
-export function ClanPromotionDialogContent({ gameSlug, clan, title, blocks, onClose, action, favorite, pendingMessage }: {
-  gameSlug: string; clan: ClanListRow; title?: string; blocks?: PromotionDisplayBlock[]; onClose: () => void; action?: ReactNode; favorite?: ReactNode; pendingMessage?: string | null;
+export function ClanPromotionDialogContent({ gameSlug, clan, title, blocks, onClose, action, favorite }: {
+  gameSlug: string; clan: ClanListRow; title?: string; blocks?: PromotionDisplayBlock[]; onClose: () => void; action?: ReactNode; favorite?: ReactNode;
 }) {
   const content = blocks ?? (clan.promotion
     ? promotionBlocks(clan.promotion).map(block => block.type === "text" ? block : { type: "image" as const, src: promotionImageUrl(gameSlug, clan.id, block.path), alt: block.alt })
@@ -45,7 +45,6 @@ export function ClanPromotionDialogContent({ gameSlug, clan, title, blocks, onCl
         ? <span key={index}>{block.text}</span>
         : <Image key={index} src={block.src} alt={block.alt || "클랜 홍보 사진"} title={block.alt || undefined} width={1200} height={800} unoptimized />)}</section>
       {clan.rules && <details className={styles.rules}><summary>클랜 규칙</summary><p>{clan.rules}</p></details>}
-      {pendingMessage && <details className={styles.rules}><summary>내 신청 메시지</summary><p>{pendingMessage}</p></details>}
     </div>
     <DialogFooter><Button type="button" variant="outline" onClick={onClose}>닫기</Button>{action}</DialogFooter>
   </DialogContent>;

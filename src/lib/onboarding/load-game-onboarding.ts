@@ -12,7 +12,6 @@ export type PendingJoinBrief = {
   requestId: string;
   clanId: string;
   clanName: string | null;
-  message: string;
 };
 
 export type GameOnboardingState = {
@@ -113,7 +112,6 @@ export async function loadGameOnboarding(
     requestId: pendingRow.id,
     clanId: pendingRow.clan_id,
     clanName,
-    message: pendingRow.message ?? "",
   };
 
   return {

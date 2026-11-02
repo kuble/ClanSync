@@ -168,7 +168,7 @@ function Requests({ ctx }: Pick<Props, "ctx">) {
 async function PendingRequests({ ctx }: Pick<Props, "ctx">) {
   if (!await hasRequestClanPermission(ctx.clanId, "approve_join_requests")) return <p className="p-5 text-sm text-muted-foreground">가입 승인 권한이 필요합니다.</p>;
   const svc = createServiceRoleClient();
-  const requests = await svc.from("clan_join_requests").select("id,user_id,message,applied_at").eq("clan_id", ctx.clanId).eq("status", "pending").order("applied_at");
+  const requests = await svc.from("clan_join_requests").select("id,user_id,applied_at").eq("clan_id", ctx.clanId).eq("status", "pending").order("applied_at");
   if (requests.error) throw new Error("가입 요청을 불러오지 못했습니다.");
   const ids = [...new Set(requests.data.map((row) => row.user_id))];
   const [profiles, gameProfiles, memberships, names] = await Promise.all([
@@ -181,7 +181,7 @@ async function PendingRequests({ ctx }: Pick<Props, "ctx">) {
   const returning = new Set((memberships.data ?? []).filter((row) => row.status === "left").map((row) => row.user_id));
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
-  return <ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), message: row.message ?? "", appliedAt: row.applied_at, nickname: names.get(row.user_id) ?? "게임 ID 미등록", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} />;
+  return <ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), appliedAt: row.applied_at, nickname: names.get(row.user_id) ?? "게임 ID 미등록", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} />;
 }
 
 async function Members({ ctx }: Pick<Props, "ctx">) {

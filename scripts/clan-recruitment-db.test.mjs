@@ -221,14 +221,18 @@ test("immutable demographics and recruitment rules protect direct API, approvals
   await t.test("failed replacement preserves the pending request; success swaps once, and rejection remains possible",async()=>{
     const old=(await ok(apply(otherId))).id;
     await ok(save(leader,1999));
-    await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:randomUUID(),p_message:"없는 클랜"}));
+    await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:randomUUID()}));
     assert.equal((await status(old)).status,"pending");
     await ok(save(leader,1999,"female",["gold"]));
-    await ok(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId,p_message:"새 신청"}));
+    await ok(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId}));
     assert.equal((await status(old)).status,"canceled");
-    const pending=await ok(svc.from("clan_join_requests").select("id,message").eq("user_id",applicantId).eq("status","pending").single());
-    assert.equal(pending.message,"새 신청");
-    await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId,p_message:"중복"}));
+    const pending=await ok(svc.from("clan_join_requests").select("id,clan_id,status").eq("user_id",applicantId).eq("status","pending").single());
+    assert.equal(pending.clan_id,f.clanId);
+    assert.equal(pending.status,"pending");
+    const rows=await ok(applicant.rpc("select_my_clan_join_requests"));
+    assert.equal(rows.some(row=>"message" in row),false);
+    assert.equal((await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId,p_message:"legacy"}))).code,"PGRST202");
+    await denied(applicant.rpc("replace_clan_join_request",{p_clan_id:f.clanId}));
     await ok(save(leader,1999));
     await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"rejected"}));
     assert.equal((await status(pending.id)).status,"rejected");
