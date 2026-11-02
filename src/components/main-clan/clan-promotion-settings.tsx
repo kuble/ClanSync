@@ -128,6 +128,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
                 </Slider.Root>}
               </section>
             </div>
+            <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <Label htmlFor="interview-url">클랜 연락 링크 (선택)</Label>
@@ -137,7 +138,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               </div>
               <Input id="interview-url" name="interview_url" type="url" maxLength={1000} defaultValue={initial.interview_url ?? ""} placeholder="https://…" />
             </div>
-            <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
             <div className={styles.previewActions}>
               <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
               <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button>
