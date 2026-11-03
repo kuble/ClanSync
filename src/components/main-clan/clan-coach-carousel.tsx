@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ArrowUpRight, GraduationCap } from "lucide-react";
+import Image from "next/image";
+import { ArrowUpRight, GraduationCap, Medal } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { coachRoleLabel, coachTierLabel, type ClanCoach } from "@/lib/clan/coaching";
@@ -12,6 +15,22 @@ function subscribeMotion(notify: () => void) {
   return () => media.removeEventListener("change", notify);
 }
 const motionSnapshot = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const rankIcons = new Set(["bronze", "silver", "gold", "plat", "diamond", "master", "gm", "champion"]);
+function TierIcon({ tier }: { tier: string }) {
+  return rankIcons.has(tier) ? <Image unoptimized src={`/images/overwatch/icons/rank-${tier}.webp`} alt="" width={20} height={20} className="size-5 shrink-0 object-contain" /> : <Medal className="size-4" aria-hidden />;
+}
+function CoachTags({ coach }: { coach: ClanCoach }) {
+  const role = coach.role === "tank" ? "tank" : coach.role === "dmg" ? "damage" : coach.role === "sup" ? "support" : "flex";
+  const first = coach.tier[0], last = coach.tier[coach.tier.length - 1];
+  const tagClass = "h-auto min-h-7 gap-1 rounded-md bg-muted/30 px-2 text-[10px] font-medium";
+  return <span className="flex max-w-full flex-wrap items-center gap-1.5">
+    <Badge variant="outline" className={tagClass} aria-label={`역할: ${coachRoleLabel(coach.role)}`}><OverwatchRoleIcon role={role} className="size-3.5" />{coachRoleLabel(coach.role)}</Badge>
+    <Badge variant="outline" className={tagClass} aria-label={`티어: ${coachTierLabel(coach.tier)}`}>
+      {!first ? <><Medal className="size-4" aria-hidden />전체</> : <><TierIcon tier={first} />{coachTierLabel([first])}{last !== first && <><span className="px-0.5 text-muted-foreground" aria-hidden>~</span><TierIcon tier={last} />{coachTierLabel([last])}</>}</>}
+    </Badge>
+  </span>;
+}
 
 export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: ClanCoach[]; userId: string; onRequest: (id: string) => void }) {
   const track = useRef<HTMLDivElement>(null);
@@ -59,7 +78,7 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
         {coaches.map(coach => <button key={coach.userId} type="button" onClick={() => setSelectedId(coach.userId)} aria-label={coach.name + " 선생님 소개 보기"}
           className="group flex w-[280px] max-w-[90%] shrink-0 snap-start flex-col gap-2 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring">
           <span className="flex w-full items-center gap-2.5"><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><GraduationCap className="size-4" aria-hidden /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{coach.name}</span><span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground"><span aria-hidden className={"size-1.5 rounded-full " + (coach.accepting ? "bg-primary" : "bg-muted-foreground")} />{coach.accepting ? "신청 가능" : "신청 잠시 중단"}</span></span><ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden /></span>
-          {(coach.role !== "all" || coach.tier.length > 0) && <span className="text-[11px] text-muted-foreground">{coach.role === "all" ? "모든 역할" : coachRoleLabel(coach.role)} · {!coach.tier.length ? "모든 티어" : coachTierLabel(coach.tier)}</span>}
+          <CoachTags coach={coach} />
         </button>)}
       </div>
 

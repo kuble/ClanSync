@@ -12,6 +12,11 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
     await ok(f.service.from('clan_board_coaches').insert(f.users.map(user=>({clan_id:f.clanId,user_id:user.id,expertise:'지원 · 아나',bio,accepting:true}))));
     await loginIsolatedBalanceUser(page,f.users[0]);await page.goto(base+'/board/feedback');
     const directory=page.getByRole('region',{name:'코칭 선생님',exact:true});
+    const allCard=directory.getByRole('button',{name:f.users[0].nickname+' 선생님 소개 보기',exact:true});
+    await expect(allCard.getByLabel('역할: 전체',{exact:true})).toBeVisible();
+    await expect(allCard.getByLabel('티어: 전체',{exact:true})).toBeVisible();
+    expect((await page.request.get('/images/overwatch/icons/flex.svg')).ok()).toBe(true);
+    for(const tier of ['bronze','silver','gold','plat','diamond','master','gm','champion']) expect((await page.request.get(`/images/overwatch/icons/rank-${tier}.webp`)).ok()).toBe(true);
     const track=page.getByLabel('코칭 선생님 목록',{exact:true});
     const trigger=page.getByRole('button',{name:'게시판 작성 메뉴',exact:true});
     for(const width of [900,390]){
@@ -76,6 +81,11 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await dialog.getByLabel('코칭 내용',{exact:true}).fill('아나 · 위치 선정');
     await dialog.getByLabel('선생님 소개',{exact:true}).fill('리플레이를 같이 보며 다음 한타를 준비합니다.');
     await dialog.getByRole('button',{name:'프로필 저장',exact:true}).click();
+    const savedCard=page.getByRole('button',{name:coach.nickname+' 선생님 소개 보기',exact:true});
+    await expect(savedCard.getByLabel('역할: 지원',{exact:true})).toBeVisible();
+    const tierTag=savedCard.getByLabel('티어: 골드 ~ 다이아몬드',{exact:true});
+    await expect(tierTag).toBeVisible();
+    await expect.poll(()=>tierTag.locator('img').evaluateAll(images=>images.length===2&&images.every(img=>(img as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.getByRole('button',{name:'게시판 작성 메뉴',exact:true}).click();
     await expect(page.getByRole('menuitem',{name:'내 코칭 프로필',exact:true})).toBeVisible();
     await page.getByRole('menuitem',{name:'내 코칭 프로필',exact:true}).click();
