@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CalendarDays, CalendarRange, Crown, Flag, Layers3, ShieldCheck, Swords, Trophy } from "lucide-react";
+import { HofScoreboard } from "@/components/main-clan/hof-scoreboard";
 import styles from "./preview.module.css";
 
 const stats = [
@@ -9,7 +10,7 @@ const stats = [
 ];
 const versions = [
   ["아이콘 요약 바", "좁은 높이에 기간과 세 지표를 담고, 등재 기준은 아래에 분리합니다."],
-  ["기록 전광판", "세 숫자를 같은 크기로 강조해 각각의 규모가 먼저 보입니다."],
+  ["기록 전광판", "정규 내전, 전체 경기, 등재 기준을 세 칸에 표시합니다."],
   ["경기 중심", "전체 경기 수를 크게 두고, 내전 횟수와 개최일을 보조 지표로 묶습니다."],
   ["랭킹 입장권", "왼쪽은 집계 기록, 오른쪽은 순위에 오르기 위한 출전 조건입니다."],
   ["순위 기준 먼저", "몇 경기부터 순위에 오르는지 먼저 보여주고, 집계 규모는 아래에 둡니다."],
@@ -31,7 +32,7 @@ export default function Preview() {
       <h2><span>0{i + 1}</span>{title}</h2><p>{note}</p>
       <article className={styles.card}><h3><Trophy />승률</h3>
         {i === 0 && <div className={styles.bar}><div className={styles.line}><Period /><Metrics /></div><Rule /></div>}
-        {i === 1 && <div className={styles.score}><Period /><Metrics /><Rule /></div>}
+        {i === 1 && <HofScoreboard period="전체 기간" sessions={295} matches={1280} criterion="30경기 이상 출전" />}
         {i === 2 && <div className={styles.hero}><div className={styles.lead}><Period /><Metrics indices={[2]} /></div><div className={styles.side}><Metrics indices={[0,1]} /><Rule /></div></div>}
         {i === 3 && <div className={styles.ticket}><div><Period /><Metrics /></div><div className={styles.stub}><Flag /><span>최소 출전 기준</span><strong>30<small>경기 이상</small></strong></div></div>}
         {i === 4 && <div className={styles.criteria}><div className={styles.line}><Rule /><Period /></div><Metrics /></div>}

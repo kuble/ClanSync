@@ -11,6 +11,7 @@ import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsPeriodFilter } from "./stats-period-filter";
 import { statsPeriodKey, statsPeriodLabel, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
+import { HofScoreboard } from "./hof-scoreboard";
 import { HofComments } from "./hof-comments";
 import { useStatsPeriod } from "./use-stats-period";
 
@@ -67,6 +68,12 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
   const active = available.find(({ id }) => id === ranking) ?? available[0];
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
+  const criteria = {
+    rate: totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음",
+    attendance: totals.sessions ? `${block.minimumSessions}회 이상 참여 · ${model.hof.config.eligibilitySessionPct}%` : "집계할 내전 없음",
+    appearances: "출전 경기 수",
+    prediction: "예측 적중 횟수",
+  };
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
     <section aria-label="명예의 전당 필터" className="sticky top-[60px] z-30 flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur sm:gap-3 supports-[backdrop-filter]:bg-background/80">
       {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
@@ -85,11 +92,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
           <Card size="sm" className="h-[36rem] min-w-0" aria-label={`${active.label} 순위`}>
             <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-              <div className="space-y-2 border-b pb-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="flex flex-wrap gap-x-3 gap-y-1"><span className="font-medium text-foreground/80">{periodLabel}</span><span>정규 내전 {loaded.pending ? "—" : totals.sessions}회 · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</span></p>
-                {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1"><span>최소 규정 경기</span><span className="font-medium text-foreground/80">{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</span></div>}
-                {active.id === "attendance" && <div className="flex flex-wrap items-center justify-between gap-1"><span>최소 참여 조건</span><span className="font-medium text-foreground/80">{totals.sessions ? `${block.minimumSessions}회 이상 참여 · ${model.hof.config.eligibilitySessionPct}%` : "집계할 내전 없음"}</span></div>}
-              </div>
+              <HofScoreboard period={periodLabel} sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} pending={loaded.pending} />
                 <StatsScrollArea label={`${active.label} 순위 목록`} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
                   <ol className="space-y-2">
