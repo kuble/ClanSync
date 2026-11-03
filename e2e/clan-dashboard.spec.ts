@@ -369,6 +369,15 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     const tied = page.getByRole("region", { name: "지난달 승률 MVP", exact: true });
     await expect(tied.getByRole("listitem", { name: /^공동 1위/ })).toHaveCount(2);
     await expect(tied.getByRole("listitem").nth(2)).toHaveAttribute("data-rank", "3");
+    for (const index of [0, 1, 2]) {
+      const centers = await page.getByRole("region", { name: "지난달 MVP", exact: true })
+        .locator(`ol > li:nth-child(${index + 1})`).evaluateAll(rows => rows.map(row => {
+          const box = row.getBoundingClientRect();
+          return box.top + box.height / 2;
+        }));
+      expect(centers).toHaveLength(3);
+      expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(1);
+    }
     await page.goto(base + "/store");
     await expect(page.getByRole("region", { name: "클랜 소개", exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toHaveCount(0);
