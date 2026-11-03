@@ -63,7 +63,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
   }
   const tools = <div className={styles.actions} role="toolbar" aria-label="네임카드 도구">
       <Tooltip><TooltipTrigger render={<Link href="/store" aria-label="개인 상점" className={buttonVariants({ variant: "outline", size: "icon" })} />}><ShoppingBag aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">개인 상점</TooltipContent></Tooltip>
-      <Tooltip><TooltipTrigger render={<Button size="icon" aria-label="네임카드 꾸미기" onClick={() => { setError(""); setOpen(true); }} />}><Pencil aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">네임카드 꾸미기</TooltipContent></Tooltip>
+      <Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon" aria-label="네임카드 꾸미기" onClick={() => { setError(""); setOpen(true); }} />}><Pencil aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">네임카드 꾸미기</TooltipContent></Tooltip>
     </div>;
   return <section aria-label="공통 네임카드">
     <div className={styles.header}><h2 aria-label="게임 프로필"><StatHelp title="게임 프로필">한 번 꾸미면 모든 게임에서 함께 사용합니다.</StatHelp></h2></div>

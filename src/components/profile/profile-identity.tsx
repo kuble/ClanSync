@@ -61,7 +61,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
         {(!readOnly || namecard) && <div className={styles.gameVerification} aria-label={`${membership.gameName} 계정 인증 상태`}>
           {membership.accountId && membership.isVerified ? <BadgeCheck size={14} aria-hidden="true" /> : <ShieldX size={14} aria-hidden="true" />}
           <span>{!membership.accountId ? "미등록" : membership.isVerified === undefined ? "인증 확인 중" : membership.isVerified ? "인증됨" : "미인증"}</span>
-          {!readOnly && <Link href={`/games/${membership.gameSlug}/auth?reauth=1&next=/profile`}>{membership.accountId ? "게임 ID 수정" : membership.gameSlug === "overwatch" ? "배틀태그 입력" : "게임 ID 입력"}</Link>}
+          {!readOnly && (!membership.accountId || membership.isVerified === false) && <Link href={`/games/${membership.gameSlug}/auth?reauth=1&next=/profile`}>{membership.accountId ? "게임 ID 수정" : membership.gameSlug === "overwatch" ? "배틀태그 입력" : "게임 ID 입력"}</Link>}
         </div>}
         <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0} data-empty={!membership.altAccounts?.length || undefined} data-editable={membership.canManageAlts || undefined}><span><UsersRound size={14} aria-hidden="true" />부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정 없음" : "등록된 부계정 없음"}</span>}</div>{membership.canManageAlts && <ProfileAltAccountsEditor key={userId + membership.gameSlug} gameSlug={membership.gameSlug} onChanged={onAltAccountsChanged} />}</div>
       </article>)}
