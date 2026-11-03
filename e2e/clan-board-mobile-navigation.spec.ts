@@ -49,5 +49,16 @@ test("mobile board picker shows every section without horizontal scrolling and r
     await expect(nav.getByRole("link", { name: "추억 열람방", exact: true })).toHaveAttribute("aria-current", "page");
     await page.screenshot({ path: test.info().outputPath("board-links-desktop.png"), animations: "disabled" });
     await page.setViewportSize({ width: 533, height: 1004 }); await expect(trigger).toHaveText("추억 열람방"); await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    for (const [route, label, option] of [["stats", "통계 선택", "개인 기록"], ["events", "이벤트 선택", "투표"]]) {
+      await page.setViewportSize({ width: 959, height: 884 });
+      await page.goto(base + "/" + route);
+      const picker = page.getByRole("button", { name: new RegExp("^" + label + ":") });
+      await picker.click();
+      await page.getByRole("menuitem", { name: option, exact: true }).click();
+      await expect(picker).toContainText(option);
+      await page.setViewportSize({ width: 960, height: 884 });
+      await expect(picker).toBeHidden();
+      await expect(page.getByRole("tab", { name: option, exact: true })).toHaveAttribute("aria-selected", "true");
+    }
   } finally { await f.cleanup(); }
 });

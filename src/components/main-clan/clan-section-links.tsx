@@ -1,5 +1,6 @@
 "use client";
 
+import { ClanSectionPicker } from "./clan-section-picker";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -7,13 +8,13 @@ import lineStyles from "@/components/ui/line-tabs.module.css";
 import { StatTooltip } from "./stat-help";
 
 /** Route links retain direct URLs, browser history and the server's section permissions. */
-export function ClanSectionLinks({ label, items, compact = false, wrap = false }: {
-  label: string;
+export function ClanSectionLinks({ label, selectionLabel, items, compact = false, wrap = false }: {
+  label: string; selectionLabel?: string;
   items: { href: string; label: string; selected: boolean; icon?: ReactNode; badge?: ReactNode; description?: string }[];
   compact?: boolean;
   wrap?: boolean;
 }) {
-  return <nav aria-label={label} className={cn("relative min-w-0 max-w-full", !wrap && "overflow-x-auto [scrollbar-width:thin]", !compact && "border-b border-border")}>
+  return <ClanSectionPicker label={label} selectionLabel={selectionLabel} items={items}><nav aria-label={label} className={cn("relative min-w-0 max-w-full", !wrap && "overflow-x-auto [scrollbar-width:thin]", !compact && "border-b border-border")}>
     <div className={cn("flex gap-2", wrap ? "w-full flex-wrap" : "w-max", !compact && ["min-w-full", lineStyles.list])}>
       {items.map((item) => {
         const content = <>{item.icon}{item.label}{item.badge}</>;
@@ -27,5 +28,5 @@ export function ClanSectionLinks({ label, items, compact = false, wrap = false }
         return item.description ? <StatTooltip key={item.href} label={item.label} description={item.description} render={link}>{content}</StatTooltip> : link;
       })}
     </div>
-  </nav>;
+  </nav></ClanSectionPicker>;
 }

@@ -38,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { ClanSectionPicker } from "./clan-section-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   ClanEventOccurrenceVm,
@@ -145,6 +146,7 @@ export function ClanEventsView({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [createOpen, setCreateOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   const focusDateRef = useRef<string | null>(null);
@@ -686,33 +688,29 @@ export function ClanEventsView({
     </>
   );
 
+  function selectTab(tab: string) {
+    setActiveTab(tab);
+    if (tab !== "calendar") {
+      setEditOpen(false);
+      setActiveOccurrence(null);
+      setSheetOpen(false);
+    }
+  }
+  const sections = [
+    { value: "calendar", label: "캘린더", icon: CalendarDays },
+    { value: "polls", label: "투표", icon: Vote },
+  ];
   return (
-    <Tabs
-      defaultValue={initialTab}
-      className="gap-5"
-      onValueChange={(tab) => {
-        if (tab !== "calendar") {
-          setEditOpen(false);
-          setActiveOccurrence(null);
-          setSheetOpen(false);
-        }
-      }}
-    >
-      <TabsList
-        variant="line"
-        className="w-full min-w-0 justify-start gap-2 border-b sm:gap-5"
-        aria-label="클랜 이벤트 하위 탭"
-      >
-        <TabsTrigger value="calendar" className="gap-1.5">
-          <CalendarDays className="size-4" aria-hidden="true" />
-          캘린더
-        </TabsTrigger>
-        <TabsTrigger value="polls" className="gap-1.5">
-          <Vote className="size-4" aria-hidden="true" />
-          투표
-        </TabsTrigger>
-      </TabsList>
-
+    <Tabs value={activeTab} onValueChange={selectTab} className="gap-5">
+      <ClanSectionPicker label="이벤트 선택" items={sections.map(({value,label,icon: Icon}) => ({
+        label, icon: <Icon className="size-4" aria-hidden />, selected: activeTab === value, onSelect: () => selectTab(value),
+      }))}>
+        <TabsList variant="line" className="w-full min-w-0 justify-start gap-2 border-b sm:gap-5" aria-label="클랜 이벤트 하위 탭">
+          {sections.map(({value,label,icon: Icon}) => <TabsTrigger key={value} value={value} className="gap-1.5">
+            <Icon className="size-4" aria-hidden />{label}
+          </TabsTrigger>)}
+        </TabsList>
+      </ClanSectionPicker>
       <TabsContent value="calendar" className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
