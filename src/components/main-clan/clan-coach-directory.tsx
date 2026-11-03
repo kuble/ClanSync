@@ -2,7 +2,6 @@
 import { Switch } from "@/components/ui/switch";
 import {useState,useTransition} from "react";
 import { Slider } from "@base-ui/react/slider";
-import { Users } from "lucide-react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import {toast} from "sonner";
@@ -24,7 +23,7 @@ export function CoachEditor({mine,gameSlug,clanId,onClose}:{mine?:ClanCoach;game
     return indices.length?[Math.min(...indices),Math.max(...indices)]:[0,tiers.length-1];
   });
   const tier=tierRange[0]===0&&tierRange[1]===tiers.length-1?[]:tiers.slice(tierRange[0],tierRange[1]+1).map(([value])=>value);
-  const roleIcons={all:<Users className="size-4"/>,tank:<OverwatchRoleIcon role="tank"/>,dmg:<OverwatchRoleIcon role="damage"/>,sup:<OverwatchRoleIcon role="support"/>};
+  const roleIcons={all:<OverwatchRoleIcon role="flex"/>,tank:<OverwatchRoleIcon role="tank"/>,dmg:<OverwatchRoleIcon role="damage"/>,sup:<OverwatchRoleIcon role="support"/>};
   const [expertise,setExpertise]=useState(mine?.expertise??""),[bio,setBio]=useState(mine?.bio??""),[accepting,setAccepting]=useState(mine?.accepting??true);
   return <Sheet open onOpenChange={v=>{if(!v&&!pending)onClose();}}>
     <SheetContent aria-describedby={undefined} showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
