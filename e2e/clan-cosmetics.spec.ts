@@ -83,9 +83,9 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
       expect((await memberPage.request.post(endpoint, { multipart: { name: "불가", image } })).status()).toBe(403);
       expect((await memberPage.request.delete(endpoint, { data: { id: first.id } })).status()).toBe(403);
       expect((await member.storage.from("clan-emojis").upload(`${f.clanId}/forged.webp`, buffer)).error).not.toBeNull();
+      expect((await member.from("clan_emoji_reactions").insert({ post_id: postId, emoji_id: first.id })).error).toBeNull();
       await memberPage.goto(base + "/board/free/" + postId);
-      await memberPage.getByRole("button", { name: "클랜 이모티콘 선택", exact: true }).click();
-      await memberPage.getByRole("button", { name: "환호 이모티콘", exact: true }).click();
+      await expect(memberPage.locator("article footer").getByRole("button", { name: "클랜 이모티콘 선택" })).toHaveCount(0);
       const reaction = memberPage.getByRole("button", { name: "환호 공감 1명", exact: true });
       await expect(reaction).toHaveAttribute("aria-pressed", "true");
       await memberPage.reload(); await expect(reaction).toBeVisible();
