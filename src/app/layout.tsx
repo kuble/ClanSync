@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
+import { ThemeTabIcon } from "@/components/ui/theme-tab-icon";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -44,6 +45,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="clansync-theme" disableTransitionOnChange>
+          <ThemeTabIcon />
           <LanguageProvider language={language} messages={await loadMessages(language)}>
             <TooltipProvider>{children}<SiteFooter /></TooltipProvider>
           </LanguageProvider>
