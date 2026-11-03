@@ -24,7 +24,7 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     expect(forged.error || !forged.data?.length).toBeTruthy();
     expect((await profile(0)).data?.is_verified).toBe(false);
     for (const value of ["plain-name", "Name#1", "Name#1234#5678"]) expect((await member.rpc("save_my_game_identity", { p_game_slug: "overwatch", p_identity: value })).error).toBeTruthy();
-    expect((await member.rpc("save_my_game_identity", { p_game_slug: "pubg", p_identity: "Nope#1234" })).error).toBeTruthy();
+    expect((await member.rpc("save_my_game_identity", { p_game_slug: "deadlock", p_identity: "Nope#1234" })).error).toBeTruthy();
     const env = loadTestEnv();
     const anonymous = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
     expect((await anonymous.rpc("save_my_game_identity", { p_game_slug: "overwatch", p_identity: "NoLogin#1234" })).error).toBeTruthy();

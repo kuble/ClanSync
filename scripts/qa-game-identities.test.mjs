@@ -13,5 +13,5 @@ test("QA identities are unique, valid, allowlisted and preserve existing display
   assert.deepEqual(qaIdentityPatch(account, base), { battle_tag: "QALeader01#1001" });
   assert.deepEqual(qaIdentityPatch(account, { ...base, battle_tag: "Existing#1234" }), {});
   assert.deepEqual(qaIdentityPatch(account, { ...base, games: { slug: "valorant" }, riot_id: null, is_verified: false }), { riot_id: "QALeader01#QA1", is_verified: true });
-  assert.deepEqual(qaIdentityPatch(account, { ...base, games: { slug: "pubg" }, is_verified: false }), {});
+  assert.deepEqual(qaIdentityPatch(account, { ...base, games: { slug: "deadlock" }, is_verified: false }), {});
 });

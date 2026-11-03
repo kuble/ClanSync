@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import styles from "@/components/entry/entry.module.css";
 
-const gameOrder = ["overwatch", "valorant", "lol", "pubg"];
+const gameOrder = ["overwatch", "valorant", "lol", "deadlock"];
 
 export async function generateMetadata() {
   const tx = await getTranslator();

@@ -8,7 +8,7 @@ export const COACH_ROLES = [
 ] as const;
 export const coachTiers = recruitmentTiers;
 export const coachRoleLabel = (role: string) => COACH_ROLES.find(option => option.value === role)?.label ?? "전체";
-const tierLabel = (tier: string) => ["overwatch", "valorant", "lol", "pubg"].flatMap(coachTiers).find(([value]) => value === tier)?.[1] ?? tier;
+const tierLabel = (tier: string) => ["overwatch", "valorant", "lol"].flatMap(coachTiers).find(([value]) => value === tier)?.[1] ?? tier;
 export const coachTierLabel = (tiers: readonly string[]) => !tiers.length ? "전체" : tiers.length === 1 ? tierLabel(tiers[0]) : `${tierLabel(tiers[0])} ~ ${tierLabel(tiers[tiers.length - 1])}`;
 export function isCoachTierRange(gameSlug: string, value: unknown): value is string[] {
   if (!Array.isArray(value)) return false;

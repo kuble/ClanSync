@@ -26,7 +26,7 @@ const searchAliases: Record<string, string> = {
   overwatch: "overwatch 오버워치",
   valorant: "valorant 발로란트",
   lol: "lol league of legends 리그 오브 레전드 롤",
-  pubg: "pubg battlegrounds 배틀그라운드 배그",
+  deadlock: "deadlock 데드록",
 };
 
 export function GameCardGrid({ cards, basePath = "" }: {

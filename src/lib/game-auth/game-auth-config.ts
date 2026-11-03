@@ -37,10 +37,10 @@ const CONFIG: Record<string, GameAuthProviderConfig> = {
     hint: "곧 추가 예정입니다.",
     oauthReady: false,
   },
-  pubg: {
-    slug: "pubg",
-    providerLabel: "Krafton",
-    title: "PUBG 계정 연동",
+  deadlock: {
+    slug: "deadlock",
+    providerLabel: "Steam",
+    title: "데드록 계정 연동",
     ctaLabel: "(출시 예정)",
     hint: "곧 추가 예정입니다.",
     oauthReady: false,

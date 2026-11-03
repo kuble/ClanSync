@@ -213,7 +213,7 @@ export default async function ProfilePage() {
 
       </div>
       <div className={styles.accountColumn}>
-        <ProfileGameDecorations games={(gameCatalog ?? []).map((game) => ({ gameId: game.id, slug: game.slug, nameKo: game.name_ko, isActive: game.is_active, ...linkedGames.find((linked) => linked.gameId === game.id) })).sort((a,b) => Number(b.linked ?? false) - Number(a.linked ?? false) || ["overwatch","valorant","lol","pubg"].indexOf(a.slug) - ["overwatch","valorant","lol","pubg"].indexOf(b.slug))} userId={user.id} memberships={memberships} preferences={rolePreferences ?? []} verifiedGameIds={verifiedGameIds} />
+        <ProfileGameDecorations games={(gameCatalog ?? []).map((game) => ({ gameId: game.id, slug: game.slug, nameKo: game.name_ko, isActive: game.is_active, ...linkedGames.find((linked) => linked.gameId === game.id) })).sort((a,b) => Number(b.linked ?? false) - Number(a.linked ?? false) || ["overwatch","valorant","lol","deadlock"].indexOf(a.slug) - ["overwatch","valorant","lol","deadlock"].indexOf(b.slug))} userId={user.id} memberships={memberships} preferences={rolePreferences ?? []} verifiedGameIds={verifiedGameIds} />
         <div className={styles.clanManagement}>
 
           <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />

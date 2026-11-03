@@ -252,7 +252,7 @@ test("each game's tier catalog is accepted in rank order and foreign tiers are r
   assert.equal(recruitmentTierLabel("lol","challenger"),"챌린저");
   assert.equal(normalizeRecruitmentTier("lol","challenger"),"challenger");
   assert.deepEqual(recruitmentTiers("constructor"),[]);
-  const foreign={overwatch:"challenger",valorant:"master",lol:"champion",pubg:"gm"};
+  const foreign={overwatch:"challenger",valorant:"master",lol:"champion",deadlock:"gm"};
   for(const slug of Object.keys(foreign)) await t.test(slug,async()=>{
     const game=await ok(f.service.from("games").select("id").eq("slug",slug).single());
     let clanId=f.clanId;

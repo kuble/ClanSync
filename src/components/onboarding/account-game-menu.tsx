@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { headerActionClassName } from "@/components/ui/header-action-style";
 
 type Game = { slug: string; name_ko: string; is_active: boolean };
-const order = ["overwatch", "valorant", "lol", "pubg"];
+const order = ["overwatch", "valorant", "lol", "deadlock"];
 
 export function AccountGameMenu() {
   const tx = useTranslator();

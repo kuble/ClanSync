@@ -2,7 +2,6 @@ const TIERS_BY_GAME: Record<string, readonly (readonly [string, string])[]> = {
   overwatch: [["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["emerald", "에메랄드"], ["diamond", "다이아몬드"], ["master", "마스터"], ["gm", "그랜드마스터"], ["champion", "챔피언"]],
   valorant: [["iron", "아이언"], ["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["diamond", "다이아몬드"], ["ascendant", "초월자"], ["immortal", "불멸"], ["radiant", "레디언트"]],
   lol: [["iron", "아이언"], ["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["emerald", "에메랄드"], ["diamond", "다이아몬드"], ["master", "마스터"], ["gm", "그랜드마스터"], ["challenger", "챌린저"]],
-  pubg: [["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["crystal", "크리스탈"], ["diamond", "다이아몬드"], ["master", "마스터"], ["survivor", "서바이버"]],
 };
 
 export const recruitmentTiers = (gameSlug: string) => Object.hasOwn(TIERS_BY_GAME,gameSlug) ? TIERS_BY_GAME[gameSlug] : [];
