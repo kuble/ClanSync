@@ -2,10 +2,11 @@
 
 import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, CheckCircle2, Clock, Plus, Vote } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Clock, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { closeClanPollAction, voteClanPollAction } from "@/app/actions/clan-polls";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
+import { BoardCreateButton } from "./board-create-button";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ClanPollCreateDialog } from "@/components/main-clan/clan-poll-create-dialog";
@@ -66,10 +67,10 @@ export function ClanEventsPollsTab({ gameSlug, clanId, polls, canManagePolls, vi
   });
   const items = polls.filter((poll) => pollStatus(poll, now) === filter);
   const selectedPoll = polls.find((poll) => poll.id === selectedPollId);
-  return <div className="space-y-6">
+  return <div className="space-y-6 pb-20">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <RubberSegment label="투표 상태" labelPosition="hidden" value={filter} onChange={setFilter} options={(["active", "upcoming", "ended"] as const).map((id) => ({ id, label: statusLabels[id], badge: <span className="opacity-70">{polls.filter((poll) => pollStatus(poll, now) === id).length}</span> }))} />
-      {canManagePolls && <Button type="button" size="sm" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden />투표 만들기</Button>}
+      {canManagePolls && <BoardCreateButton label="투표 만들기" onClick={() => setCreateOpen(true)} />}
     </div>
     {createOpen && <ClanPollCreateDialog gameSlug={gameSlug} clanId={clanId} onCreated={(scheduled) => setFilter(scheduled ? "upcoming" : "active")} onOpenChange={setCreateOpen} />}
     <section aria-label={statusLabels[filter]} className="min-h-64">

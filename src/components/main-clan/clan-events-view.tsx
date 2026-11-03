@@ -11,7 +11,6 @@ import {
   Clock,
   MapPin,
   Pencil,
-  Plus,
   Repeat2,
   Trash2,
   Vote,
@@ -38,6 +37,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { BoardCreateButton } from "./board-create-button";
 import { ClanSectionPicker } from "./clan-section-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
@@ -121,7 +121,6 @@ export function ClanEventsView({
   myRsvpGoingKeys,
   polls,
   initialTab = "calendar",
-  notificationSettings,
   discordAvailable = false,
   discordChannelName,
   initialEventId,
@@ -137,7 +136,6 @@ export function ClanEventsView({
   myRsvpGoingKeys: readonly string[];
   polls: SerializedClanPoll[];
   initialTab?: "calendar" | "polls";
-  notificationSettings?: React.ReactNode;
   discordAvailable?: boolean;
   discordChannelName?: string | null;
   initialEventId?: string;
@@ -711,9 +709,11 @@ export function ClanEventsView({
           </TabsTrigger>)}
         </TabsList>
       </ClanSectionPicker>
-      <TabsContent value="calendar" className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+      <TabsContent value="calendar" className="pb-20">
+        {canManageEvents && <BoardCreateButton label="일정 등록" onClick={() => setCreateOpen(true)} />}
+        <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
+          <section aria-label="캘린더" className="min-w-0 overflow-hidden rounded-2xl border bg-card">
+          <div className="flex items-center justify-center gap-2 border-b py-3">
             <Button
               type="button"
               variant="ghost"
@@ -736,24 +736,11 @@ export function ClanEventsView({
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-          {canManageEvents ? (
-            <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
-              <Plus className="size-4" aria-hidden="true" />
-              일정 등록
-            </Button>
-          ) : null}
-          {notificationSettings}
-          </div>
-        </div>
-
-        <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
-          <div className="min-w-0">
             <div
               ref={calendarRef}
               role="grid"
               aria-label="월간 캘린더"
-              className="overflow-hidden rounded-2xl border bg-card"
+
             >
               <div role="row" className="grid grid-cols-7 border-b bg-muted/30">
                 {["월", "화", "수", "목", "금", "토", "일"].map(
@@ -896,7 +883,7 @@ export function ClanEventsView({
                 </div>
               ))}
             </div>
-          </div>
+          </section>
           <div className="relative hidden min-w-0 lg:block">
           <section
             className="absolute inset-0 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border bg-card"

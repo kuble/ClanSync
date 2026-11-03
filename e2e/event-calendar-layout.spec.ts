@@ -23,7 +23,7 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
         title: `다중 일정 ${i + 1}`,
         start_at: `${busyKey}T${String(i).padStart(2, "0")}:00:00Z`,
         kind: "event" as const,
-        place: "긴 장소·메모 확인 ".repeat(30),
+        place: "긴 장소·메모 확인\n".repeat(30),
       })),
     ]);
     expect(error).toBeNull();
@@ -35,7 +35,7 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
     const scheduleList = panel.getByRole("list", { name: "날짜별 일정 목록" });
     const inlineDetail = panel.getByRole("region", { name: "일정 상세", exact: true });
     const expectMatchedHeight = async () => {
-      const gridBox = await calendar.boundingBox(), panelBox = await panel.boundingBox();
+      const gridBox = await page.getByRole("region", { name: "캘린더", exact: true }).boundingBox(), panelBox = await panel.boundingBox();
       expect(panelBox!.x).toBeGreaterThanOrEqual(gridBox!.x + gridBox!.width);
       expect(Math.abs(panelBox!.y - gridBox!.y)).toBeLessThan(2);
       expect(Math.abs(panelBox!.height - gridBox!.height)).toBeLessThan(2);

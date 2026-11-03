@@ -1,6 +1,4 @@
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
-import Link from "next/link";
-import { SlidersHorizontal } from "lucide-react";
 import { discordDestination } from "@/lib/clan/discord-notification-settings";
 import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readEventDiscordSettings } from "@/lib/clan/event-discord-settings";
@@ -122,7 +120,6 @@ export default async function ClanEventsPage({
         initialPollId={sp.poll}
         discordAvailable={botConfigured && notify.discord_enabled && !!calendarChannel && ctx.plan === "premium"}
         discordChannelName={calendarChannel === connection?.channel_id ? connection?.channel_name : null}
-        notificationSettings={canOpenSettings ? <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} aria-label="클랜 알림 설정" title="클랜 알림 설정" className="inline-flex size-8 items-center justify-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SlidersHorizontal className="size-4" /></Link> : undefined}
       />
     </div>
   );

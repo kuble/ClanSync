@@ -130,7 +130,8 @@ test("events UI: settings icon, registration notification fields, Korean time an
     await page.goto(path);
     await expect(page.getByText("함께할 다음 약속.", { exact: false })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "오늘", exact: true })).toHaveCount(0);
-    await page.getByRole("link", { name: "클랜 알림 설정", exact: true }).click();
+    await expect(page.getByRole("link", { name: "클랜 알림 설정", exact: true })).toHaveCount(0);
+    await page.goto(f.path.replace(/balance$/, "manage?tab=notifications"));
     await expect(page).toHaveURL(/\/manage\?tab=notifications$/, { timeout: 30_000 });
     const settings = page.getByTestId("clan-event-notify-settings");
     await expect(settings.getByText("Discord 연결하기", { exact: true })).toBeVisible();
