@@ -1,4 +1,4 @@
-import type { MaSnapshot } from "./ma-snapshot";
+import { scoresForRoles, type MaSnapshot } from "./ma-snapshot";
 import type { BalanceRoster } from "./roster-schema";
 import type { Role } from "./formation";
 
@@ -25,6 +25,7 @@ export function analysisValue(context: AnalysisContext, userId: string, role: Ro
 }
 
 export function contextualScores(scores: MaSnapshot, context: AnalysisContext, roster: BalanceRoster, map: string | null, assignedRoles: readonly { id: string; role: Role }[] = []): MaSnapshot {
+  scores = scoresForRoles(scores, roster, assignedRoles);
   const roles = new Map<string, Role>();
   for (const team of [roster.team1, roster.team2]) {
     if (team.tank) roles.set(team.tank, "tank");
@@ -33,5 +34,5 @@ export function contextualScores(scores: MaSnapshot, context: AnalysisContext, r
   }
   for (const player of assignedRoles) roles.set(player.id, player.role);
   const ids = new Set([...Object.keys(scores), ...context.map((entry) => entry.userId), ...roles.keys()]);
-  return Object.fromEntries([...ids].map((id) => [id, { m: scores[id]?.m ?? 0, a: analysisValue(context, id, roles.get(id) ?? null, map) }]));
+  return Object.fromEntries([...ids].map((id) => [id, { ...scores[id], m: scores[id]?.m ?? 0, a: analysisValue(context, id, roles.get(id) ?? null, map) }]));
 }

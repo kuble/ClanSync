@@ -26,7 +26,7 @@ export const PERSONAL_STATS_SECTIONS = [
   { id: "prediction_points", label: "승부예측 포인트", description: "본인의 수익·손실과 누적 포인트" },
 ] as const;
 export type PersonalStatsSection = (typeof PERSONAL_STATS_SECTIONS)[number]["id"] | "emblems";
-export type PersonalScore = Pick<PersonalMatch, "date" | "occurredAt" | "evaluation" | "analysis">;
+export type PersonalScore = Pick<PersonalMatch, "date" | "occurredAt" | "role" | "evaluation" | "analysis">;
 export const DEFAULT_PERSONAL_SECTIONS: PersonalStatsSection[] = ["predictions", "prediction_points", "emblems"];
 
 /** Emblems are always visible; invalid settings disclose no optional statistics. */
@@ -40,7 +40,7 @@ export function restrictPersonalStats<T extends { matches: PersonalMatch[]; pred
 ): T & { visibleSections: PersonalStatsSection[]; scores: PersonalScore[] } {
   const visibleSections = resolvePersonalSections(sections);
   const visible = (id: PersonalStatsSection) => visibleSections.includes(id);
-  const scores = person.matches.map(({ date, occurredAt, evaluation, analysis }) => ({ date, occurredAt,
+  const scores = person.matches.map(({ date, occurredAt, role, evaluation, analysis }) => ({ date, occurredAt, role,
     evaluation: visible("evaluation") ? evaluation : null, analysis: visible("analysis") ? analysis : null }));
   return { ...person, visibleSections,
     lastPlayedAt: visible("records") ? person.lastPlayedAt : null,

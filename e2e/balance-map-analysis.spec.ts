@@ -69,6 +69,8 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
       resolved_map_label: i < 10 ? "리장 타워" : "오아시스", roster,
     })));
     expect(history.error).toBeNull();
+    // Assign roles before setting their explicit evaluation scores.
+    expect((await fixture.service.from("balance_sessions").update({ roster }).eq("id", round.id)).error).toBeNull();
     const seed = await fixture.service.from("balance_sessions").update({
       round_number: 21, roster, map_ban_enabled: false, hero_ban_enabled: false,
       formation_settings: { roles: "manual", teams: "keep" },

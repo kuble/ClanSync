@@ -1,4 +1,5 @@
 "use client";
+import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
 
 import type { FormEvent } from "react";
@@ -301,7 +302,7 @@ export function ClanBalanceSessionPanel({
     onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
   const baseScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
-  const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, session?.resolved_map_label ?? null, formation?.players) : baseScores;
+  const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, session?.resolved_map_label ?? null, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players);
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;

@@ -1,4 +1,5 @@
 "use client";
+import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 
 import { contextualScores } from "@/lib/balance/analysis-context";
 import {
@@ -181,7 +182,7 @@ export function ClanBalanceRosterEditor({
   const [draggedSlot, setDraggedSlot] = useState<string | null>(null);
   const [draggedMember, setDraggedMember] = useState<string | null>(null);
   const [dropSlot, setDropSlot] = useState<string | null>(null);
-  const displayScores = scores && analysisContext ? contextualScores(scores, analysisContext, roster, analysisMap) : scores;
+  const displayScores = scores && analysisContext ? contextualScores(scores, analysisContext, roster, analysisMap) : scores ? scoresForRoles(scores, roster) : undefined;
   const usedIds = new Set(rosterAssignedUserIds(roster));
   const availablePool = pool.filter((member) => !usedIds.has(member.user_id));
   const visiblePool = availablePool.filter((member) =>

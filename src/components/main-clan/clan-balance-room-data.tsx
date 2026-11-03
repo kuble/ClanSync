@@ -109,10 +109,19 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     poolResult, { data: rosterPoolRows }, { data: hostRow }, participantLinks,
   ] = await Promise.all([
     canManageRound(supabase, user.id, clanId, session.id),
-    canViewScores ? supabase.from("balance_sessions")
-      .select("ma_snapshot,balance_session_series!inner(balance_rooms!inner(kind))")
+    canViewScores ? (async () => {
+      const data = [];
+      for (let offset = 0; ; offset += 500) {
+        const result = await supabase.from("balance_sessions")
+      .select("ma_snapshot,roster,balance_session_series!inner(balance_rooms!inner(kind))")
       .eq("clan_id", clanId).eq("balance_session_series.balance_rooms.kind", "regular")
-      .order("opened_at", { ascending: false }).limit(100)
+      .in("match_outcome", ["team1", "team2", "draw"])
+      .order("opened_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
+        if (result.error) return { data: [], error: result.error };
+        data.push(...result.data);
+        if (result.data.length < 500) return { data, error: null };
+      }
+    })()
       : Promise.resolve({ data: [], error: null }),
     canViewScores && planPremium && session.phase !== "match_live"
       ? supabase.rpc("read_balance_analysis_context", { p_round_id: session.id, p_clan_id: clanId })
@@ -148,14 +157,35 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   if (canViewScores) {
     if (planPremium && session.phase !== "match_live") analysisContext = parseAnalysisContext(analysisResult.data);
     for (const round of scoredResult.data ?? []) {
-      for (const [id, score] of Object.entries(parseMaSnapshot(round.ma_snapshot))) {
-        if (!(id in scores)) scores[id] = score;
-        const account = linkedAccounts.get(id);
-        if (account && !(account in scores)) scores[account] = score;
+      const saved = parseMaSnapshot(round.ma_snapshot);
+      const roster = parseRoster(round.roster);
+      for (const team of [roster.team1, roster.team2]) for (const role of ["tank", "dmg", "sup"] as const) {
+        for (const id of role === "tank" ? [team.tank] : team[role]) {
+          if (!id || !saved[id]) continue;
+          const score = saved[id];
+          scores[id] ??= { m: 0, a: null, roles: {} };
+          scores[id].roles![role] ??= score;
+          const account = linkedAccounts.get(id);
+          if (account) {
+            scores[account] ??= { m: 0, a: null, roles: {} };
+            scores[account].roles![role] ??= score;
+          }
+        }
       }
     }
-    Object.assign(scores, parseMaSnapshot(session.ma_snapshot));
-    if (!planPremium) for (const score of Object.values(scores)) score.a = null;
+    const currentRoster = parseRoster(session.roster);
+    const currentScores = parseMaSnapshot(session.ma_snapshot);
+    for (const team of [currentRoster.team1, currentRoster.team2]) for (const role of ["tank", "dmg", "sup"] as const) {
+      for (const id of role === "tank" ? [team.tank] : team[role]) {
+        if (!id || !currentScores[id]) continue;
+        scores[id] ??= { m: 0, a: null, roles: {} };
+        scores[id].roles![role] = currentScores[id];
+      }
+    }
+    if (!planPremium) for (const score of Object.values(scores)) {
+      score.a = null;
+      for (const entry of Object.values(score.roles ?? {})) entry.a = null;
+    }
   }
   const predictionPool: PredictionPool | null = poolResult.data == null ? null : parsePredictionPool(poolResult.data);
   const recency = new Map<string, number>();
@@ -196,7 +226,6 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     : session.operator_name ?? null;
 
   // Request-time clock aligns the initial reveal on this authenticated server page.
-  // eslint-disable-next-line react-hooks/purity
   const serverNow = Date.now();
   return (
     <div className="space-y-3">

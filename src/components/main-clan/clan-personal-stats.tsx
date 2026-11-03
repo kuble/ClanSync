@@ -91,6 +91,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
   const [mapType, setMapType] = useState<MapType | "all">("all");
   const [mapSort, setMapSort] = useState<"matches" | "rate">("matches");
   const [scoreKind, setScoreKind] = useState<"evaluation" | "analysis">("evaluation");
+  const [scoreRole, setScoreRole] = useState<"tank" | "dmg" | "sup">("tank");
   const person = model.personal.people.find((candidate) => candidate.userId === selectedId) ?? model.personal.people[0];
   const value = (content: ReactNode) => pending ? "—" : content;
   const visible = (section: NonNullable<typeof person.visibleSections>[number]) => !person.visibleSections || person.visibleSections.includes(section);
@@ -122,8 +123,10 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
   }
   const maps = [...mapGroups].map(([name, rows]) => ({ name, ...recordTotals(rows) })).sort((a, b) => mapSort === "matches" ? b.matches - a.matches : (b.rate ?? -1) - (a.rate ?? -1));
   const selectedPeer = relations.find((row) => row.id === peerId) ?? relations[0];
-  const currentScore = (person.scores ?? person.matches).find((score) => score[activeScoreKind] !== null)?.[activeScoreKind];
-  const scorePoints = [...(person.scores ?? person.matches)].filter((score) => inPeriod(score.date)).reverse().map((score) => ({ at: score.occurredAt, value: score[activeScoreKind] }));
+  const roleScores = (person.scores ?? person.matches).filter((score) => score.role === scoreRole);
+  const currentScore = roleScores.find((score) => score[activeScoreKind] !== null)?.[activeScoreKind];
+  const scorePoints = roleScores.filter((score) => inPeriod(score.date)).toReversed().map((score) => ({ at: score.occurredAt, value: score[activeScoreKind] }));
+  const scoreMatches = matches.filter((match) => match.role === scoreRole);
   const predictionDays = person.predictionPoints.filter((item) => inPeriod(item.date));
   const earned = predictionDays.reduce((sum, day) => sum + day.earned, 0);
   const lost = predictionDays.reduce((sum, day) => sum + day.lost, 0);
@@ -196,11 +199,12 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
       </CardContent></Card>}
       <div className={`grid min-w-0 gap-4 ${(visible("evaluation") || visible("analysis")) && (visible("predictions") || canViewPredictionPoints) ? "lg:grid-cols-2" : ""}`} aria-label="개인 기록 그래프">
       {(visible("evaluation") || visible("analysis")) && <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />점수 변동 이력</CardTitle></CardHeader><CardContent className="space-y-3">
+        <FilterButtons label="점수 역할" options={ROLE_OPTIONS.filter((option) => option.id !== "all")} value={scoreRole} onChange={setScoreRole} />
         <div aria-label={`현재 ${activeScoreKind === "evaluation" ? "평가" : "분석"} 점수`} className="space-y-1 rounded-xl bg-background/30 p-4">
           <p className="text-xs text-muted-foreground">현재 {activeScoreKind === "evaluation" ? "평가" : "분석"} 점수 · 최근 기록 기준</p>
           <p className="flex h-10 items-baseline gap-1 text-primary"><strong className="text-4xl font-bold tracking-tight tabular-nums">{pending ? "—" : currentScore == null ? "기록 없음" : currentScore.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}</strong>{!pending && currentScore != null && <span className="text-sm">점</span>}</p>
         </div>
-        <div className="flex flex-wrap items-end justify-between gap-2"><FilterButtons label="점수 종류" options={([{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }] as const).filter(({ id }) => visible(id))} value={activeScoreKind} onChange={setScoreKind} />{activeScoreKind === "evaluation" && model.permissions.editMscore && <StatsScoreEditor key={periodKey + person.userId} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={matches} />}</div>
+        <div className="flex flex-wrap items-end justify-between gap-2"><FilterButtons label="점수 종류" options={([{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }] as const).filter(({ id }) => visible(id))} value={activeScoreKind} onChange={setScoreKind} />{activeScoreKind === "evaluation" && model.permissions.editMscore && <StatsScoreEditor key={periodKey + person.userId + scoreRole} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={scoreMatches} />}</div>
         <StatsTimeChart busy={pending} label="점수 변동 이력 그래프" unit="점" lines={[{ label: activeScoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 변동 이력이 없습니다." />
       </CardContent></Card>}
       {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><Target className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">

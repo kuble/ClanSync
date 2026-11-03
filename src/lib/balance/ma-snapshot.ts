@@ -5,9 +5,26 @@ import { rosterAssignedUserIds } from "@/lib/balance/roster-schema";
 export type MaEntry = {
   m: number;
   a: number | null;
+  roles?: Partial<Record<"tank" | "dmg" | "sup", { m: number; a: number | null }>>;
 };
 
 export type MaSnapshot = Record<string, MaEntry>;
+
+/** Resolve the assigned role without borrowing a different role's score. */
+export function scoresForRoles(scores: MaSnapshot, roster: BalanceRoster, assigned: readonly { id: string; role: "tank" | "dmg" | "sup" }[] = []): MaSnapshot {
+  const next = { ...scores };
+  const roles = new Map(assigned.map(({ id, role }) => [id, role]));
+  for (const team of [roster.team1, roster.team2]) {
+    if (team.tank) roles.set(team.tank, "tank");
+    for (const id of team.dmg) if (id) roles.set(id, "dmg");
+    for (const id of team.sup) if (id) roles.set(id, "sup");
+  }
+  for (const [id, role] of roles) {
+    const entry = scores[id];
+    if (entry?.roles) next[id] = { ...entry, ...(entry.roles[role] ?? { m: 0, a: null }) };
+  }
+  return next;
+}
 
 export const MA_SCORE_MIN = -10;
 export const MA_SCORE_MAX = 10;
@@ -68,9 +85,10 @@ export function defaultMaForRoster(
   existing: MaSnapshot,
 ): MaSnapshot {
   const ids = rosterAssignedUserIds(roster);
+  const resolved = scoresForRoles(existing, roster);
   const next: MaSnapshot = {};
   for (const id of ids) {
-    const prev = existing[id];
+    const prev = resolved[id];
     next[id] = {
       m: clampScore(prev?.m ?? 0),
       a: prev?.a === undefined || prev?.a === null ? null : clampScore(prev.a),
