@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ClanCommentsDrawer } from "./clan-comments-drawer";
 
 type DrawerProps = { drawerOpen?: boolean; onDrawerOpenChange?: (open: boolean) => void };
 const narrowQuery = "(width < 1000px)";
@@ -30,15 +30,7 @@ export function HofComments(props: HofCommentThread & { label: string } & Drawer
 export function HofCommentsCard({ label, disabled, onRefresh, children, drawerOpen = false, onDrawerOpenChange }: { label: string; disabled: boolean; onRefresh: () => void; children: ReactNode } & DrawerProps) {
   const narrow = useSyncExternalStore(subscribeNarrow, isNarrow, serverNarrow);
   const refreshButton = <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={onRefresh}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>;
-  if (narrow) return <Sheet open={drawerOpen} onOpenChange={onDrawerOpenChange}>
-    <SheetContent keepMounted aria-label={label + " 반응"} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
-      <SheetHeader className="shrink-0 border-b pr-12">
-        <div className="flex items-center justify-between gap-3"><SheetTitle className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden /><span className="sr-only">{label} </span>반응</SheetTitle>{refreshButton}</div>
-        <SheetDescription>{label}</SheetDescription>
-      </SheetHeader>
-      {children}
-    </SheetContent>
-  </Sheet>;
+  if (narrow) return <ClanCommentsDrawer open={drawerOpen} onOpenChange={onDrawerOpenChange} title="반응" label={label} action={refreshButton}>{children}</ClanCommentsDrawer>;
   return <Card size="sm" className="hidden h-[36rem] min-w-0 overflow-hidden min-[1000px]:flex" aria-label={label + " 반응"}>
     <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
       <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응</h4></CardTitle>
