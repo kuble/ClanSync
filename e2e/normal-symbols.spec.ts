@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
@@ -38,7 +39,7 @@ test("five free symbols apply without purchases and follow the player into comme
     await page.screenshot({path:test.info().outputPath("symbols-store-desktop.png")});
     await page.setViewportSize({width:755,height:1004});
     await page.screenshot({path:test.info().outputPath("symbols-store-tablet.png")});
-    await page.getByRole("button",{name:"라이트 테마",exact:true}).click();
+    await toggleAccountTheme(page);
     await expect(page.getByRole("article",{name:"스파크",exact:true}).locator('[data-symbol-art="spark"]')).toHaveCSS("filter","brightness(0)");
     await page.setViewportSize({width:390,height:844});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import type { Json } from "../src/lib/supabase/database.types";
@@ -271,8 +272,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       ),
     ).toBe(true);
     for (const theme of ["dark", "light"]) {
-      const toggle = page.getByRole("button", { name: "라이트 테마", exact: true });
-      if ((await toggle.getAttribute("aria-pressed")) !== String(theme === "light")) await toggle.click();
+      if (!await page.locator("html").evaluate((el, theme) => el.classList.contains(theme), theme)) await toggleAccountTheme(page);
       await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
       for (const width of [1304, 1100, 900, 768, 698, 390, 320]) {
         await page.setViewportSize({ width, height: 844 });

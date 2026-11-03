@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
@@ -44,7 +45,7 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     await expect(page.getByRole("textbox", { name: "테스트 배틀태그", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "계정 연동 준비 중", exact: true })).toHaveCount(0);
     for (const theme of ["dark", "light"]) {
-      if (!(await page.locator("html").getAttribute("class"))?.split(" ").includes(theme)) await page.getByRole("button", { name: "라이트 테마", exact: true }).click();
+      if (!(await page.locator("html").getAttribute("class"))?.split(" ").includes(theme)) await toggleAccountTheme(page);
       await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
       for (const width of [1304, 390, 320]) {
         await page.setViewportSize({ width, height: 884 });

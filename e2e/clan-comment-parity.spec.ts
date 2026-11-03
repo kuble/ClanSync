@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { expect, test, type Locator } from "@playwright/test";
@@ -131,10 +132,11 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       expect(await current.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-mobile.png`), animations: "disabled" });
       for (const row of [own, peer]) await readableConversation(row);
-      if (surface.name === "stats") await current.keyboard.press("Escape");
-      await current.getByRole("button", { name: "라이트 테마", exact: true }).click();
+      await current.keyboard.press("Escape");
+      await toggleAccountTheme(current);
       await expect(current.locator("html")).toHaveClass(/\blight\b/);
       if (surface.name === "stats") await current.getByRole("button", { name: "반응", exact: true }).click();
+      if (surface.name === "board") await current.getByRole("button", {name:/^댓글 \d+$/}).click();
       for (const row of [own, peer]) await readableConversation(row);
       await peer.hover();
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-light-mobile.png`), animations: "disabled" });

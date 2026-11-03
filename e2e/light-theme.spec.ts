@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 async function fits(page: Page) {
   await expect(page.locator("html")).toHaveClass(/\blight\b/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-  await expect(page.getByRole("button", { name: "라이트 테마", exact: true })).toBeInViewport();
+  await expect(page.getByRole("button", { name: /^(라이트 테마|프로필 메뉴)$/ })).toBeInViewport();
 }
 
 async function dialogFits(page: Page, dialog: Locator, image: string) {

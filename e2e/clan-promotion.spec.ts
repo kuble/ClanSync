@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { expect, test, type Locator } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -235,7 +236,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page.getByLabel("제목",{exact:true})).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
     await page.screenshot({path:testInfo.outputPath("clan-promotion-mobile.png"),fullPage:true});
-    await page.getByRole("button",{name:"라이트 테마",exact:true}).click();
+    await toggleAccountTheme(page);
     await page.setViewportSize({width:320,height:844});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).scrollIntoViewIfNeeded();

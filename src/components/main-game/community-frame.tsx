@@ -25,7 +25,7 @@ import {
 import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-tab";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
 import { BrandSymbol } from "@/components/ui/brand-logo";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ProfileMenu } from "@/components/ui/profile-menu";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
 import styles from "./community.module.css";
@@ -145,7 +145,7 @@ export function CommunityFrame({
           <NavigationIcon icon={Shield} label={clanLabel} size={15} />
           <span>{clanLabel}</span>
         </Link>
-        <ThemeToggle />
+        <ProfileMenu />
       </header>
       <main id="community-content" className={styles.content}>
         <div className={styles.inner}>

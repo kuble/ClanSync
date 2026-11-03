@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { expect, test, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -12,10 +13,9 @@ test("account and clan headers share icon order, navigation and mobile sizing", 
     await target.goto(path);
     const actions = target.locator("header [data-header-actions]");
     await expect(actions.getByRole("button", { name: /^알림/ })).toBeVisible();
-    await expect(actions.locator("button, a")).toHaveCount(4);
-    expect(await actions.locator("button, a").evaluateAll(nodes => nodes.map(node => node.getAttribute("aria-label")))).toEqual(["라이트 테마", "게임 선택", "프로필", "알림"]);
-    await expect(actions.locator("button, a")).toHaveText(["", "", "", ""]);
-    await expect(actions.getByRole("link", { name: "프로필", exact: true })).toHaveAttribute("href", "/profile");
+    await expect(actions.locator("button, a")).toHaveCount(3);
+    expect(await actions.locator("button, a").evaluateAll(nodes => nodes.map(node => node.getAttribute("aria-label")))).toEqual(["게임 선택", "프로필 메뉴", "알림"]);
+    await expect(actions.locator("button, a")).toHaveText(["", "", ""]);
     await expect(target.locator("header").getByText("Premium", { exact: true })).toHaveCount(0);
     expect(await target.locator("header").first().evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
   }
@@ -24,16 +24,16 @@ test("account and clan headers share icon order, navigation and mobile sizing", 
     await loginIsolatedBalanceUser(page, f.users[1]);
     for (const path of ["/games", "/games/overwatch/auth?reauth=1", "/games/overwatch/clan", "/profile", "/profile/emblems", "/store"]) await check(page, path);
     const actions = page.locator("header [data-header-actions]");
-    const toggle = actions.getByRole("button", { name: "라이트 테마", exact: true });
-    const previous = await toggle.getAttribute("aria-pressed");
-    await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-pressed", previous === "true" ? "false" : "true");
-    await toggle.click();
+    const light = await page.locator("html").evaluate(el => el.classList.contains("light"));
+    await toggleAccountTheme(page);
+    await expect(page.locator("html")).toHaveClass(light ? /\bdark\b/ : /\blight\b/);
+    await toggleAccountTheme(page);
     await actions.getByRole("button", { name: "게임 선택", exact: true }).click();
     await expect(page.getByRole("menu", { name: "게임 선택", exact: true })).toBeVisible();
     await page.getByRole("menuitem", { name: "오버워치", exact: true }).click();
     await expect(page).toHaveURL(/\/games\/overwatch\/clan/);
-    await page.locator("header [data-header-actions]").getByRole("link", { name: "프로필", exact: true }).click();
+    await actions.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
+    await page.getByRole("menuitem", { name: "프로필", exact: true }).click();
     await expect(page).toHaveURL(/\/profile$/);
     await page.locator("header [data-header-actions]").getByRole("button", { name: "알림", exact: true }).click();
     await expect(page.getByTestId("clansync-inapp-notification-sheet")).toBeVisible();
@@ -54,6 +54,11 @@ test("account and clan headers share icon order, navigation and mobile sizing", 
         await target.screenshot({ path: info.outputPath(`header-${width}-${target === page ? path.split("/").at(-1) : path.includes("balance") ? "balance" : "requests"}.png`) });
       }
     }
+    await actions.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
+    await page.getByRole("menuitem", {name:"로그아웃",exact:true}).click();
+    await expect(page).toHaveURL(/\/$/);
+    await page.goto("/profile");
+    await expect(page).toHaveURL(/\/sign-in/);
     expect(errors).toEqual([]);
   } finally {
     await staff.close();

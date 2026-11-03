@@ -1,3 +1,4 @@
+import { toggleAccountTheme } from "./account-theme";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { NORMAL_NAMECARD_BACKGROUNDS } from "../src/lib/profile/backgrounds";
@@ -42,7 +43,7 @@ test("free backgrounds preview, persist and remain readable in both themes and s
     await expect(page.getByRole("article",{name:"타일",exact:true}).locator('[data-namebar="tile"]')).toHaveAttribute("data-background-palette","rose");
     await page.setViewportSize({width:1100,height:900});
     await page.screenshot({path:test.info().outputPath("background-store-desktop.png")});
-    await page.getByRole("button",{name:"라이트 테마",exact:true}).click();
+    await toggleAccountTheme(page);
     await page.setViewportSize({width:390,height:844});
     await page.getByRole("article",{name:"타일",exact:true}).getByRole("button",{name:"타일 미리보기",exact:true}).click();
     const light=page.getByRole("dialog",{name:"타일 미리보기",exact:true});
