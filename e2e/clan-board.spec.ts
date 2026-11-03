@@ -41,7 +41,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await ok(f.service.from("clan_board_comments").insert({post_id:freeId,author_id:f.users[2].id,content:peerContent,created_at:"2026-10-28T15:04:00Z"}));
     await page.reload();
     const comments=page.locator("#comments"),peerComment=comments.getByRole("listitem").filter({hasText:peerContent});
-    await expect(peerComment.locator("time")).toHaveText("오전 12:04");
+    await expect(peerComment.locator("time")).toHaveText("00:04");
     await expect(peerComment.locator("time")).toHaveAttribute("title",/2026.*10.*29/);
     await expect(peerComment.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
     await expect(peerComment.getByRole("button",{name:/댓글 삭제$/})).toHaveCount(0);
@@ -49,7 +49,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await page.getByRole("button",{name:"댓글 등록",exact:true}).click();
     const ownComment=comments.getByRole("listitem").filter({hasText:"좋아요, 같이 합니다!"});
     await expect(ownComment).toBeVisible();
-    await expect(ownComment.locator("time")).toHaveText(/^(오전|오후) \d{1,2}:\d{2}$/);
+    await expect(ownComment.locator("time")).toHaveText(/^\d{1,2}:\d{2}$/);
     await expect(ownComment.locator("time")).toHaveAttribute("title",/\d{4}.*\d{1,2}.*\d{1,2}/);
     for(const {row,mine} of [{row:ownComment,mine:true},{row:peerComment,mine:false}]){
       await expect(row.locator("[data-comment-row]")).toHaveCSS("flex-direction",mine?"row-reverse":"row");
@@ -94,7 +94,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(ownComment).toHaveCount(0);
     await page.getByRole("button",{name:"공감 0",exact:true}).click();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.reload();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
-    await page.goto(base+"/board/feedback");await page.getByRole("button",{name:"피드백 신청",exact:true}).click();
+    await page.goto(base+"/board/feedback");await page.getByRole("button",{name:"게시판 작성 메뉴",exact:true}).click();await page.getByRole("menuitem",{name:"피드백 신청",exact:true}).click();
     await editor.getByLabel("제목",{exact:true}).fill("아나 위치 선정 질문");
     await editor.getByLabel("코칭 선생님",{exact:true}).selectOption(f.users[0].id);
     await editor.getByLabel("역할·영웅",{exact:true}).fill("지원 · 아나");
@@ -127,7 +127,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(page.locator("#comments li").filter({hasText:peerContent}).getByRole("button",{name:/댓글 삭제$/})).toHaveCount(1);
     await page.setViewportSize({width:390,height:844});await page.goto(base+"/board/free");
     await expect(page.getByRole("navigation",{name:"게시판 목차",exact:true})).toBeVisible();
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await ok(f.service.from("clan_members").update({status:"left"}).eq("clan_id",f.clanId).eq("user_id",f.users[2].id));
     await page.goto(base+"/board/free/"+freeId);
     await expect(page.getByRole("heading",{name:"다음 내전 같이 합니다",exact:true})).toHaveCount(0);
@@ -182,7 +182,7 @@ test("추억 사진 업로드·폴라로이드 목록·게시일·모바일·삭
     const edited=await ok(f.service.from("clan_board_posts").select("created_at,details").eq("id",secondId).single());
     expect(Date.parse(edited.created_at)).toBe(Date.parse(postedAt));expect(edited.details).toEqual({takenAt:"2020-01-01",photoFrame:"classic",photoStickers:[]});
     await page.goto(base+"/board/memories");await expect(cards).toHaveCount(2);
-    await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.setViewportSize({width:390,height:844});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.goto(base+"/board/memories/"+first.id);
     await page.getByRole("button",{name:"삭제",exact:true}).click();await page.getByRole("dialog").getByRole("button",{name:"삭제",exact:true}).click();
     await expect(page).toHaveURL(/\/board\/memories$/);
