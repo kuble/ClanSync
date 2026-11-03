@@ -41,7 +41,7 @@ function BoardPostRows({base,kind,posts,startNumber}:{base:string;kind:BoardKind
   const status=(p:BoardListPost)=><span className={cn("inline-flex min-w-12 items-center justify-center rounded-md px-2 py-1 text-[11px] font-medium",p.status==="complete"?"bg-primary/10 text-primary":p.status==="answering"?"bg-sky-500/10 text-team-blue":"bg-muted text-muted-foreground")}>{FEEDBACK_STATUS[p.status as keyof typeof FEEDBACK_STATUS]}</span>;
   return <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label={feedback?"피드백 신청 목록":"게시글 목록"}>
     {feedback?<div aria-hidden className={cn("hidden items-center gap-3 border-b border-border bg-muted/20 px-4 py-2.5 text-[11px] text-muted-foreground md:grid",columns)}><span className="text-center">번호</span><span className="text-center">상태</span><span>신청 내용</span><span>담당 선생님</span><span className="text-center">댓글</span></div>:<div className="flex min-h-12 items-center justify-between gap-3 border-b border-border bg-muted/20 px-4 py-2"><div className="flex items-center gap-3 text-[11px] text-muted-foreground md:gap-5"><span className="w-6 text-center md:w-9">번호</span><span>글 제목</span></div></div>}
-    <ul className="divide-y divide-border">{posts.map((p,index)=><li key={p.id}>
+    <ul className="divide-y divide-border">{posts.map((p,index)=><li key={p.id} className="relative">
       <Link href={base+"/board/"+kind+"/"+p.id} prefetch={false} className={cn("group grid min-h-20 grid-cols-[24px_minmax(0,1fr)_48px] items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-[-2px]",columns,!feedback&&"md:min-h-16 md:gap-x-5")}>
         <span aria-label={"게시글 번호 "+(startNumber-index)} className="col-start-1 row-start-1 row-span-2 text-center text-xs tabular-nums text-muted-foreground md:row-span-1">{startNumber-index}</span>
         {feedback&&<div className="hidden justify-center md:flex">{status(p)}</div>}
@@ -49,6 +49,7 @@ function BoardPostRows({base,kind,posts,startNumber}:{base:string;kind:BoardKind
         {feedback&&<div className="col-start-2 row-start-2 flex min-w-0 items-center gap-1.5 text-xs md:col-auto md:row-auto"><GraduationCap className="size-3.5 shrink-0 text-muted-foreground" aria-hidden/><span className={cn("truncate",p.coachName?"text-primary":"text-muted-foreground")}>{p.coachName||"미지정"}</span></div>}
         <span aria-label={"댓글 "+p.commentCount} className="col-start-3 row-start-1 row-span-2 flex items-center justify-center gap-1.5 rounded-md bg-muted/40 px-1 py-2 text-xs tabular-nums text-muted-foreground md:col-auto md:row-auto md:row-span-1"><MessageSquare className="size-3.5" aria-hidden/><span>{p.commentCount}</span></span>
       </Link>
+      <Link href={base+"/board/"+kind+"/"+p.id+"#comments"} prefetch={false} aria-label={(startNumber-index)+"번 글 댓글 "+p.commentCount+"개 열기"} className="absolute right-4 top-1/2 h-11 w-12 -translate-y-1/2 rounded-md focus-visible:outline-2 focus-visible:outline-ring" />
     </li>)}</ul>
   </section>;
 }

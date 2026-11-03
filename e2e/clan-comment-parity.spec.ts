@@ -46,7 +46,7 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
     await page.setViewportSize({ width: 1015, height: 884 });
     const board = await context.newPage();
     await board.setViewportSize({ width: 1015, height: 884 });
-    await board.goto(`${base}/board/free/${postId}`);
+    await board.goto(`${base}/board/free/${postId}#comments`);
     await page.goto(`${base}/stats?tab=hof`);
     const boardComments = board.locator("#comments"), statsComments = page.getByLabel("전체 기간 · 승률 반응", { exact: true });
     const boardRow = boardComments.getByRole("listitem").filter({ hasText: content });
@@ -170,7 +170,7 @@ test("comment groups share identity until the author or KST day changes", async 
     expect((await svc.from("clan_hof_comments").insert(messages.map(message => ({ ...message, clan_id: f.clanId, ranking: "rate", period_key: "all" })))).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);
     const board = await context.newPage();
-    await board.goto(`${base}/board/free/${postId}`);await page.goto(`${base}/stats?tab=hof`);
+    await board.goto(`${base}/board/free/${postId}#comments`);await page.goto(`${base}/stats?tab=hof`);
     for (const surface of [{ page: board, scope: board.locator("#comments"), name: "board" }, { page, scope: page.getByLabel("전체 기간 · 승률 반응", { exact: true }), name: "stats" }]) {
       const rows = messages.map(message => surface.scope.getByRole("listitem").filter({ hasText: message.content }));
       await expect(rows[0]).toBeVisible();await expect(surface.scope.getByRole("separator")).toHaveCount(2);

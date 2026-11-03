@@ -40,6 +40,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     const peerContent="시간과 말풍선 확인을 위한 다른 멤버의 댓글입니다.";
     await ok(f.service.from("clan_board_comments").insert({post_id:freeId,author_id:f.users[2].id,content:peerContent,created_at:"2026-10-28T15:04:00Z"}));
     await page.reload();
+    await page.getByRole("button",{name:/^댓글 \d+$/}).click();
     const comments=page.locator("#comments"),peerComment=comments.getByRole("listitem").filter({hasText:peerContent});
     await expect(peerComment.locator("time")).toHaveText("00:04");
     await expect(peerComment.locator("time")).toHaveAttribute("title",/2026.*10.*29/);
@@ -61,7 +62,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(ownComment.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
     await expect(comments.getByRole("button",{name:"댓글 수정",exact:true})).toHaveCount(0);
     const deleteComment=ownComment.getByRole("button",{name:/댓글 삭제$/});
-    const postHeading=page.getByRole("heading",{name:"다음 내전 같이 합니다",exact:true});
+    const postHeading=comments.getByRole("heading");
     await page.getByLabel("댓글 내용",{exact:true}).focus();await postHeading.hover();
     await expect(deleteComment).toHaveCSS("opacity","0");
     await ownComment.hover();
@@ -77,7 +78,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await ownComment.getByRole("button",{name:"취소",exact:true}).click();
     const touchContext=await browser.newContext({baseURL:new URL(page.url()).origin,storageState:await page.context().storageState(),viewport:{width:390,height:844},hasTouch:true});
     try{
-      const touchPage=await touchContext.newPage();await touchPage.goto(base+"/board/free/"+freeId);
+      const touchPage=await touchContext.newPage();await touchPage.goto(base+"/board/free/"+freeId+"#comments");
       const touchComment=touchPage.locator("#comments li").filter({hasText:"좋아요, 같이 합니다!"}),touchDelete=touchComment.getByRole("button",{name:/댓글 삭제$/});
       await expect(touchComment).toBeVisible();
       await touchComment.scrollIntoViewIfNeeded();
@@ -91,7 +92,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(ownComment.getByRole("button",{name:"삭제 확인",exact:true})).toHaveCount(0);
     await ownComment.hover();await deleteComment.click();
     await ownComment.getByRole("button",{name:"삭제 확인",exact:true}).click();
-    await expect(ownComment).toHaveCount(0);
+    await expect(ownComment).toHaveCount(0);await page.keyboard.press("Escape");
     await page.getByRole("button",{name:"공감 0",exact:true}).click();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.reload();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.goto(base+"/board/feedback");await page.getByRole("button",{name:"게시판 작성 메뉴",exact:true}).click();await page.getByRole("menuitem",{name:"피드백 신청",exact:true}).click();
@@ -122,6 +123,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(page.getByRole("link",{name:"Twitch 방송 채널 열기 ↗",exact:true})).toHaveCount(0);
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,f.users[2]);await page.goto(base+"/board/free/"+freeId);
     await expect(page.getByRole("button",{name:"편집",exact:true})).toHaveCount(0);
+    await page.getByRole("button",{name:/^댓글 \d+$/}).click();
     await expect(page.locator("#comments li").filter({hasText:peerContent}).locator("[data-comment-row]")).toHaveCSS("flex-direction","row-reverse");
     await expect(page.locator("#comments li").filter({hasText:peerContent}).getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
     await expect(page.locator("#comments li").filter({hasText:peerContent}).getByRole("button",{name:/댓글 삭제$/})).toHaveCount(1);

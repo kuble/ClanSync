@@ -66,6 +66,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     expect(post.content).toContain("함께\n둘째 줄 ");
     expect(post.content).toContain(emojiToken(emoji.id));
     await expect(page.locator("article").getByRole("img",{name:":응원:",exact:true})).toBeVisible();
+    await page.getByRole("button",{name:/^댓글 \d+$/}).click();
     await choose(page.locator("#comments"),"댓글 내용 이모티콘 선택");
     await expect.poll(()=>page.getByRole("textbox",{name:"댓글 내용",exact:true}).locator("img").evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.getByRole("textbox",{name:"댓글 내용",exact:true}).scrollIntoViewIfNeeded();

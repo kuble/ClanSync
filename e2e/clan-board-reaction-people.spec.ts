@@ -34,7 +34,7 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     ]));
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.setViewportSize({ width: 1015, height: 884 });
-    await page.goto(path);
+    await page.goto(path+"#comments");
     const own = page.locator("#comments li").filter({ hasText: "내 댓글" });
     const peer = page.locator("#comments li").filter({ hasText: "다른 멤버 댓글" });
     const ownReaction = own.getByRole("button", { name: "응원 공감 2명", exact: true });

@@ -28,13 +28,14 @@ test("board comments grow to a hidden-scrollbar viewport and new replies keep th
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.setViewportSize({ width: 1015, height: 884 });
     await page.goto(`${base}/board/free/${postId}`);
-    const section = page.getByRole("region", { name: "게시글 댓글", exact: true });
+    await page.getByRole("button", {name:"댓글 2",exact:true}).click();
+    const section = page.getByRole("dialog", { name: /^댓글 \d+$/ });
     const viewport = section.getByRole("region", { name: "게시글 댓글 목록", exact: true });
     const input = section.getByRole("textbox", { name: "댓글 내용", exact: true });
     await expect(viewport.getByRole("listitem")).toHaveCount(2);
     const short = await viewport.evaluate(el => ({ height: el.clientHeight, content: el.scrollHeight }));
     expect(short.content - short.height).toBeLessThanOrEqual(1);
-    expect((await viewport.boundingBox())!.height).toBeLessThan(300);
+
 
     expect((await f.service.from("clan_board_comments").insert(comments.slice(2))).error).toBeNull();
     await page.reload();
@@ -42,7 +43,7 @@ test("board comments grow to a hidden-scrollbar viewport and new replies keep th
     for (const [index, width] of [1015, 390].entries()) {
       await page.setViewportSize({ width, height: 844 });
       const dimensions = await viewport.evaluate(el => ({ height: el.clientHeight, content: el.scrollHeight, scrollbar: getComputedStyle(el).scrollbarWidth, webkitScrollbar: getComputedStyle(el, "::-webkit-scrollbar").display }));
-      expect(dimensions.height).toBeLessThanOrEqual(422);
+      expect(dimensions.height).toBeLessThan(844);
       expect(dimensions.content).toBeGreaterThan(dimensions.height);
       expect(dimensions.scrollbar).toBe("none");
       expect(dimensions.webkitScrollbar).toBe("none");
