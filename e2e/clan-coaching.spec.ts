@@ -57,7 +57,13 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
     const ownCard=page.getByRole('button',{name:f.users[0].nickname+' 선생님 소개 보기',exact:true});
     await ownCard.click();
     const detail=page.getByRole('dialog');
+    const modalHeight=(await detail.boundingBox())!.height;
+    await detail.getByRole('tab',{name:'코칭 내용'}).click();
+    const panel=detail.getByRole('tabpanel',{name:'코칭 내용'});
+    await expect(panel).toBeVisible();
+    expect(await panel.evaluate(el=>(el as HTMLElement).offsetWidth-el.clientWidth)).toBe(0);
     await detail.getByRole('button',{name:'다음 선생님'}).click();
+    expect((await detail.boundingBox())!.height).toBe(modalHeight);
     await expect(detail.getByRole('heading',{name:f.users[0].nickname,exact:true})).toHaveCount(0);
     await detail.getByRole('button',{name:'이전 선생님'}).click();
     await expect(detail.getByText(bio,{exact:true})).toBeVisible();
@@ -101,10 +107,12 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await page.keyboard.press('Escape');
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,student);await page.goto(base+'/board/feedback');
     await page.getByRole('button',{name:coach.nickname+' 선생님 소개 보기',exact:true}).click();
-    await expect(dialog.getByText(expertise,{exact:true})).toBeVisible();
+    await expect(dialog.getByRole('tab',{name:'선생님 소개'})).toHaveAttribute('aria-selected','true');
     await expect(dialog.getByText('지원',{exact:true})).toBeVisible();
     await expect(dialog.getByLabel('티어: 골드 ~ 에메랄드',{exact:true})).toBeVisible();
     await expect(dialog.getByText('리플레이를 같이 보며 다음 한타를 준비합니다.',{exact:true})).toBeVisible();
+    await dialog.getByRole('tab',{name:'코칭 내용'}).click();
+    await expect(dialog.getByText(expertise,{exact:true})).toBeVisible();
     await dialog.getByRole('button',{name:coach.nickname+' 선생님께 신청',exact:true}).click();
     await expect(dialog.getByLabel('코칭 선생님',{exact:true})).toHaveValue(coach.id);
     await dialog.getByLabel('제목',{exact:true}).fill('첫 한타 위치를 봐 주십시오');

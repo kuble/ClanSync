@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { ArrowUpRight, ChevronLeft, ChevronRight, Medal } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Medal, Send } from "lucide-react";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import { Button } from "@/components/ui/button";
@@ -93,10 +95,9 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
 
     </>}
     <Dialog open={!!selected} onOpenChange={open => { if (!open) setSelectedId(null); }}>
-      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
+      <DialogContent className="flex h-[min(30rem,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
         {selected && <>
-          <div key={selected.userId} className="board-scroll min-h-0 overflow-y-auto">
-            <DialogHeader className="relative isolate gap-5 overflow-hidden border-b bg-primary/10 px-6 pt-9 pb-6">
+            <DialogHeader className="relative isolate shrink-0 gap-3 overflow-hidden border-b bg-primary/10 px-5 py-4">
               <span aria-hidden className="pointer-events-none absolute -right-12 -bottom-10 -z-10 -rotate-12 text-primary/10">
                 <OverwatchRoleIcon role={coachIconRole(selected.role)} className="size-48" />
               </span>
@@ -111,32 +112,39 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
                   </p>
                 </div>
               </div>
-              <CoachTags coach={selected} />
+              <div className="flex items-center justify-between gap-3">
+                <CoachTags coach={selected} />
+                <Tooltip>
+                  <TooltipTrigger render={<Button type="button" size="icon" variant="outline"
+                    aria-label={selected.name + " 선생님께 신청"}
+                    disabled={selected.userId === userId || !selected.accepting}
+                    onClick={() => { setSelectedId(null); onRequest(selected.userId); }} />}>
+                    <Send aria-hidden />
+                  </TooltipTrigger>
+                  <TooltipContent>피드백 신청</TooltipContent>
+                </Tooltip>
+              </div>
             </DialogHeader>
-            <div className="space-y-7 p-6">
-              <section className="space-y-2">
-                <h3 className="text-base font-semibold">선생님 소개</h3>
-                <p className="whitespace-pre-wrap text-sm leading-7 [overflow-wrap:anywhere]">{selected.bio || "등록된 소개가 없습니다."}</p>
-              </section>
-              <section className="space-y-2 rounded-lg bg-muted/40 p-4">
-                <h3 className="text-base font-semibold">코칭 내용</h3>
-                <p className="whitespace-pre-wrap text-sm leading-7 [overflow-wrap:anywhere]">{selected.expertise}</p>
-              </section>
-            </div>
-          </div>
-          <div className="shrink-0 space-y-2 border-t bg-card px-6 py-4">
-            {selected.userId === userId && <p className="text-xs text-muted-foreground">내 코칭 프로필입니다.</p>}
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" className="size-11" aria-label="이전 선생님"
-                disabled={coaches.length < 2} onClick={() => navigateCoach(-1)}><ChevronLeft /></Button>
-              <Button type="button" className="h-11 min-w-0 flex-1" disabled={selected.userId === userId || !selected.accepting}
-              aria-label={selected.name + " 선생님께 신청"}
-              onClick={() => { setSelectedId(null); onRequest(selected.userId); }}>
-              피드백 신청 <ArrowUpRight aria-hidden className="size-4" />
-              </Button>
-              <Button type="button" variant="outline" className="size-11" aria-label="다음 선생님"
-                disabled={coaches.length < 2} onClick={() => navigateCoach(1)}><ChevronRight /></Button>
-            </div>
+          <Tabs key={selected.userId} defaultValue="bio" className="min-h-0 flex-1 gap-0">
+            <TabsList variant="line" aria-label="선생님 프로필" className="mx-5 h-11 shrink-0 self-stretch">
+              <TabsTrigger value="bio">선생님 소개</TabsTrigger>
+              <TabsTrigger value="expertise">코칭 내용</TabsTrigger>
+            </TabsList>
+            {[["bio", selected.bio || "등록된 소개가 없습니다."], ["expertise", selected.expertise]].map(([value, content]) => (
+              <TabsContent key={value} value={value} tabIndex={0}
+                className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <p className="whitespace-pre-wrap leading-7 [overflow-wrap:anywhere]">{content}</p>
+              </TabsContent>
+            ))}
+          </Tabs>
+          <div className="flex shrink-0 items-center justify-between border-t px-5 py-2">
+            <Button type="button" variant="ghost" aria-label="이전 선생님" disabled={coaches.length < 2} onClick={() => navigateCoach(-1)}>
+              <ChevronLeft /> 이전
+            </Button>
+            <span className="text-xs tabular-nums text-muted-foreground">{selectedIndex + 1} / {coaches.length}</span>
+            <Button type="button" variant="ghost" aria-label="다음 선생님" disabled={coaches.length < 2} onClick={() => navigateCoach(1)}>
+              다음 <ChevronRight />
+            </Button>
           </div>
         </>}
       </DialogContent>
