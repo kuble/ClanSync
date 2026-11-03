@@ -234,7 +234,7 @@ export function MainClanShell({
               </nav>
             </SheetContent>
           </Sheet>
-          <HeaderBreadcrumbs hideFirstOnMobile items={[
+          <HeaderBreadcrumbs currentOnlyOnMobile items={[
             { label: ctx.gameName, href: `/games/${ctx.gameSlug}` },
             { label: ctx.clanName, href: basePath },
             ...(pageTitle ? [{ label: pageTitle }] : []),

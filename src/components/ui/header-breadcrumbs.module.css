@@ -11,5 +11,5 @@
 @media(max-width:768px) {
   .group { gap:8px; }
   .breadcrumbs { gap:8px; font-size:12px; }
-  .hideFirstOnMobile > a:first-of-type,.hideFirstOnMobile > span:first-of-type { display:none; }
+  .currentOnlyOnMobile > :not(:last-child) { display:none; }
 }

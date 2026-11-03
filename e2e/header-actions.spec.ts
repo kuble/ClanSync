@@ -44,6 +44,13 @@ test("account and clan headers share icon order, navigation and mobile sizing", 
       for (const [target, path] of [[page, "/games"], [page, "/games/overwatch/clan"], [page, "/profile"], [staff, base + "/balance"], [staff, base + "/manage?tab=requests"]] as const) {
         await target.setViewportSize({ width, height: 844 });
         await check(target, path);
+        if (target === staff) {
+          const trail = target.getByRole("navigation", { name: "현재 위치", exact: true });
+          await expect(trail.locator(":scope > :visible")).toHaveCount(1);
+          const current = trail.locator('[aria-current="page"]');
+          await expect(current).toHaveText(path.includes("/balance") ? "내전 로비" : "클랜 관리");
+          expect(await trail.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+        }
         await target.screenshot({ path: info.outputPath(`header-${width}-${target === page ? path.split("/").at(-1) : path.includes("balance") ? "balance" : "requests"}.png`) });
       }
     }
