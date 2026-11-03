@@ -205,7 +205,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
         </div>
         <div aria-label={`현재 ${activeScoreKind === "evaluation" ? "평가" : "분석"} 점수`} className="relative space-y-1 rounded-xl bg-background/30 p-4 pr-12">
           {activeScoreKind === "evaluation" && model.permissions.editMscore && <div className="absolute right-3 top-3"><StatsScoreEditor key={periodKey + person.userId + scoreRole} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={scoreMatches} /></div>}
-          <p className="text-xs text-muted-foreground">현재 {activeScoreKind === "evaluation" ? "평가" : "분석"} 점수 · 최근 기록 기준</p>
+          <p className="text-xs text-muted-foreground">현재 {activeScoreKind === "evaluation" ? "평가" : "분석"} 점수</p>
           <p className="flex h-10 items-baseline gap-1 text-primary"><strong className="text-4xl font-bold tracking-tight tabular-nums">{pending ? "—" : currentScore == null ? "기록 없음" : currentScore.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}</strong>{!pending && currentScore != null && <span className="text-sm">점</span>}</p>
         </div>
         <StatsTimeChart busy={pending} label="점수 변동 이력 그래프" unit="점" lines={[{ label: activeScoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 변동 이력이 없습니다." />
