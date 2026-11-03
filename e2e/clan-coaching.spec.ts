@@ -1,5 +1,6 @@
 import {expect,test} from '@playwright/test';
 import {createIsolatedBalanceFixture,loginIsolatedBalanceUser} from './isolated-balance-fixture';
+import {isCoachTierRange} from '../src/lib/clan/coaching';
 test.use({actionTimeout:20_000});
 async function ok<T>(query:PromiseLike<{data:T;error:unknown}>){const {data,error}=await query;expect(error,JSON.stringify(error)).toBeNull();return data as NonNullable<T>;}
 
@@ -66,16 +67,21 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await page.getByRole('menuitem',{name:'코칭 선생님 등록',exact:true}).click();
     const dialog=page.getByRole('dialog');
     await expect(dialog.getByText('전문 분야와 소개는 클랜 내부에 공개됩니다. 신청을 잠시 중단해도 기존 요청은 남습니다.',{exact:true})).toHaveCount(0);
-    await dialog.getByLabel('역할',{exact:true}).selectOption('sup');
-    await dialog.getByLabel('티어대',{exact:true}).selectOption('diamond');
+    expect(isCoachTierRange('overwatch',['gold','plat','diamond'])).toBe(true);
+    for(const value of ['diamond',['gold','diamond'],['diamond','gold'],['gold','gold'],['radiant']]) expect(isCoachTierRange('overwatch',value)).toBe(false);
+    await dialog.getByRole('radiogroup',{name:'역할',exact:true}).getByRole('radio',{name:'지원',exact:true}).click();
+    const minimum=dialog.getByRole('slider',{name:'최소 코칭 티어',exact:true}),maximum=dialog.getByRole('slider',{name:'최대 코칭 티어',exact:true});
+    await minimum.press('Home');await minimum.press('ArrowRight');await minimum.press('ArrowRight');
+    await maximum.press('End');await maximum.press('ArrowLeft');await maximum.press('ArrowLeft');await maximum.press('ArrowLeft');
     await dialog.getByLabel('코칭 내용',{exact:true}).fill('아나 · 위치 선정');
     await dialog.getByLabel('선생님 소개',{exact:true}).fill('리플레이를 같이 보며 다음 한타를 준비합니다.');
     await dialog.getByRole('button',{name:'프로필 저장',exact:true}).click();
     await page.getByRole('button',{name:'게시판 작성 메뉴',exact:true}).click();
     await expect(page.getByRole('menuitem',{name:'내 코칭 프로필',exact:true})).toBeVisible();
     await page.getByRole('menuitem',{name:'내 코칭 프로필',exact:true}).click();
-    await expect(dialog.getByLabel('역할',{exact:true})).toHaveValue('sup');
-    await expect(dialog.getByLabel('티어대',{exact:true})).toHaveValue('diamond');
+    await expect(dialog.getByRole('radiogroup',{name:'역할',exact:true}).getByRole('radio',{name:'지원',exact:true})).toBeChecked();
+    await expect(minimum).toHaveAttribute('aria-valuetext','골드');
+    await expect(maximum).toHaveAttribute('aria-valuetext','다이아몬드');
     await expect(dialog.getByLabel('코칭 내용',{exact:true})).toHaveValue('아나 · 위치 선정');
     await dialog.getByRole('button',{name:'취소',exact:true}).click();
     await page.keyboard.press('Escape');
@@ -83,7 +89,7 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await page.getByRole('button',{name:coach.nickname+' 선생님 소개 보기',exact:true}).click();
     await expect(dialog.getByText('아나 · 위치 선정',{exact:true})).toBeVisible();
     await expect(dialog.getByText('지원',{exact:true})).toBeVisible();
-    await expect(dialog.getByText('다이아몬드',{exact:true})).toBeVisible();
+    await expect(dialog.getByText('골드 ~ 다이아몬드',{exact:true})).toBeVisible();
     await expect(dialog.getByText('리플레이를 같이 보며 다음 한타를 준비합니다.',{exact:true})).toBeVisible();
     await dialog.getByRole('button',{name:coach.nickname+' 선생님께 신청',exact:true}).click();
     await expect(dialog.getByLabel('코칭 선생님',{exact:true})).toHaveValue(coach.id);

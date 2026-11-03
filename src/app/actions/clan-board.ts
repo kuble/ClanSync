@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { BOARD_IMAGE_BUCKET, boardChannels, boardDetails, boardThumbnail, isBoardKind, uuidPattern, validateBoardInput, type BoardDetails } from "@/lib/clan/board";
 import { readCosmeticAccess } from "@/lib/clan/cosmetics";
-import { COACH_ROLES, coachTiers } from "@/lib/clan/coaching";
+import { COACH_ROLES, isCoachTierRange } from "@/lib/clan/coaching";
 
 type Result = { ok: true; id?: string; warning?: string } | { ok: false; error: string };
 async function actor(gameSlug: string, clanId: string) {
@@ -139,8 +139,8 @@ export async function setBoardReactionAction(gameSlug: string, clanId: string, p
   refresh(gameSlug,clanId); return {ok:true};
 }
 
-export async function saveCoachProfileAction(gameSlug:string,clanId:string,input:{role:string;tier:string;expertise:string;bio:string;accepting:boolean}):Promise<Result>{
-  if(!input||!COACH_ROLES.some(option=>option.value===input.role)||!coachTiers(gameSlug).some(([value])=>value===input.tier)||typeof input.expertise!=="string"||!input.expertise.trim()||input.expertise.trim().length>100||typeof input.bio!=="string"||input.bio.length>1000||typeof input.accepting!=="boolean")return {ok:false,error:"역할, 티어대, 코칭 내용과 소개를 확인해 주십시오."};
+export async function saveCoachProfileAction(gameSlug:string,clanId:string,input:{role:string;tier:string[];expertise:string;bio:string;accepting:boolean}):Promise<Result>{
+  if(!input||!COACH_ROLES.some(option=>option.value===input.role)||!isCoachTierRange(gameSlug,input.tier)||typeof input.expertise!=="string"||!input.expertise.trim()||input.expertise.trim().length>100||typeof input.bio!=="string"||input.bio.length>1000||typeof input.accepting!=="boolean")return {ok:false,error:"역할, 티어대, 코칭 내용과 소개를 확인해 주십시오."};
   const ctx=await actor(gameSlug,clanId);
   if(!ctx)return {ok:false,error:"활성 클랜원만 코칭 선생님으로 등록할 수 있습니다."};
   const values={role:input.role,tier:input.tier,expertise:input.expertise.trim(),bio:input.bio.trim(),accepting:input.accepting};

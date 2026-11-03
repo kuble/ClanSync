@@ -59,9 +59,7 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
         {coaches.map(coach => <button key={coach.userId} type="button" onClick={() => setSelectedId(coach.userId)} aria-label={coach.name + " 선생님 소개 보기"}
           className="group flex w-[280px] max-w-[90%] shrink-0 snap-start flex-col gap-2 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring">
           <span className="flex w-full items-center gap-2.5"><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><GraduationCap className="size-4" aria-hidden /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{coach.name}</span><span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground"><span aria-hidden className={"size-1.5 rounded-full " + (coach.accepting ? "bg-primary" : "bg-muted-foreground")} />{coach.accepting ? "신청 가능" : "신청 잠시 중단"}</span></span><ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden /></span>
-          <span className="text-[11px] text-muted-foreground">{coach.role === "all" ? "모든 역할" : coachRoleLabel(coach.role)} · {coach.tier === "all" ? "모든 티어" : coachTierLabel(coach.tier)}</span>
-          <span className="block w-full truncate text-sm font-medium text-primary">{coach.expertise}</span>
-          <span className="line-clamp-1 min-h-4 break-words text-xs text-muted-foreground">{coach.bio || "등록된 소개가 없습니다."}</span>
+          {(coach.role !== "all" || coach.tier.length > 0) && <span className="text-[11px] text-muted-foreground">{coach.role === "all" ? "모든 역할" : coachRoleLabel(coach.role)} · {!coach.tier.length ? "모든 티어" : coachTierLabel(coach.tier)}</span>}
         </button>)}
       </div>
 
