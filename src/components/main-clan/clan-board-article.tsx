@@ -1,11 +1,10 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import {useState,useTransition,useSyncExternalStore} from "react";
+import {useEffect,useRef,useState,useTransition,useSyncExternalStore} from "react";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
 import {ChevronLeft,ChevronRight,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Trash2} from "lucide-react";
-import {Sheet,SheetContent,SheetHeader,SheetTitle,SheetTrigger} from "@/components/ui/sheet";
 import {Button} from "@/components/ui/button";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from "@/components/ui/dialog";
 import {deleteBoardPostAction,addBoardCommentAction,deleteBoardCommentAction,setBoardReactionAction,setBoardStatusAction,setChannelLiveAction} from "@/app/actions/clan-board";
@@ -23,7 +22,6 @@ import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import articleStyles from "./clan-board-article.module.css";
-import { StatsScrollArea } from "./stats-scroll-area";
 
 function subscribeComments(update: () => void) {
   window.addEventListener("hashchange", update);
@@ -39,6 +37,14 @@ function changeComments(open: boolean) {
 export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[],previousPostId=null,nextPostId=null}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[];previousPostId?:string|null;nextPostId?:string|null}){
   const router=useRouter();
   const commentsOpen=useSyncExternalStore(subscribeComments,()=>window.location.hash==="#comments",()=>false);
+  const opener = useRef<HTMLButtonElement>(null);
+  function closeComments() { changeComments(false); requestAnimationFrame(() => opener.current?.focus({preventScroll:true})); }
+  useEffect(() => {
+    if (!commentsOpen) return;
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape" && !event.defaultPrevented && !document.querySelector('[role="dialog"],[role="menu"]')) closeComments(); };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [commentsOpen]);
   const [editing,setEditing]=useState(false),[remove,setRemove]=useState(false),[comment,setComment]=useState("");
   const [pending,start]=useTransition();
   const details=boardDetails(post.details),video=safeBoardUrl(details.video),live=details.isLive===true;
@@ -47,13 +53,13 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
   function mutate(action:()=>Promise<{ok:true;warning?:string}|{ok:false;error:string}>,done?:()=>void){
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
-  return <Sheet open={commentsOpen} onOpenChange={changeComments}><div className="space-y-5">
-    <SheetTrigger disabled={pending} aria-label={"댓글 "+post.commentCount} title="댓글 열기"
+  return <div className={cn("board-article grid items-start gap-4", commentsOpen && "md:grid-cols-[minmax(0,1fr)_minmax(18rem,38%)]")}>
+    <button ref={opener} type="button" aria-expanded={commentsOpen} aria-controls="comments" onClick={()=>changeComments(true)} disabled={pending} aria-label={"댓글 "+post.commentCount} title="댓글 열기"
       className={cn("fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", commentsOpen && "invisible pointer-events-none")}>
       <MessageSquare className="size-4" aria-hidden />
       <span className="[writing-mode:vertical-rl]">댓글</span>
-    </SheetTrigger>
-    <article className="overflow-hidden rounded-xl border border-border bg-card">
+    </button>
+    <article className={cn("min-w-0 overflow-hidden rounded-xl border border-border bg-card", commentsOpen && "max-md:hidden")}>
       <header className="border-b border-border px-5 py-6 sm:px-7">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><ClanPlayerAvatar userId={post.author_id} label={post.author} size={28}/><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
         {kind!=="memories"&&<h3 className="mt-4 min-w-0 break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl"><ClanEmojiText text={post.title} large={false}/></h3>}
@@ -85,22 +91,25 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         {emojis.length>0&&<div className={articleStyles.custom}><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/></div>}
       </footer>
     </article>
-    <SheetContent id="comments" aria-label="게시글 댓글" aria-describedby={undefined} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
-      <SheetHeader className="shrink-0 border-b pr-12"><SheetTitle>댓글 {post.commentCount}</SheetTitle></SheetHeader>
+    {commentsOpen && <aside id="comments" aria-label="게시글 댓글" className="sticky top-[72px] min-w-0 rounded-xl border bg-card">
+      <header className="sticky top-[64px] z-10 flex items-center justify-between rounded-t-xl border-b bg-card px-4 py-2">
+        <h4 className="text-sm font-semibold">댓글 {post.commentCount}</h4>
+        <Button size="sm" variant="ghost" onClick={closeComments}>닫기</Button>
+      </header>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-      <StatsScrollArea label="게시글 댓글 목록" className="min-h-0 flex-1 overscroll-y-contain">
+      <section aria-label="게시글 댓글 목록">
       <ClanComments comments={commentRows} clanId={clanId} targetKind="board_comment" disabled={pending}
         onDelete={c=>mutate(()=>deleteBoardCommentAction(gameSlug,clanId,post.id,c.id))}
         onReact={(c,reaction)=>mutate(()=>setBoardCommentReactionAction(gameSlug,clanId,c.id,reaction))}
         loadReactionPeople={(c,reaction)=>"kind" in reaction ? listBoardCommentStandardReactionPeopleAction(gameSlug,clanId,c.id,reaction.kind) : listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,reaction.emojiId)} />
       {!comments.length&&<p className="py-8 text-center text-sm text-muted-foreground">첫 댓글을 남겨 주십시오.</p>}
-      </StatsScrollArea>
+      </section>
       {post.commentCount>50&&<nav className="flex justify-center gap-4 py-4 text-sm" aria-label="댓글 페이지">{commentPage>1&&<Link href={"?comments="+(commentPage-1)+"#comments"} scroll={false}>이전 댓글</Link>}<span>{commentPage} / {Math.ceil(post.commentCount/50)}</span>{commentPage*50<post.commentCount&&<Link href={"?comments="+(commentPage+1)+"#comments"} scroll={false}>다음 댓글</Link>}</nav>}
       <ClanCommentComposer className="shrink-0" label="댓글 내용" value={comment} onChange={setComment} maxLength={1000} disabled={pending} placeholder="클랜원에게 한마디 남겨보십시오."
         onSubmit={()=>mutate(()=>addBoardCommentAction(gameSlug,clanId,post.id,comment),()=>setComment(""))} />
       </div>
-    </SheetContent>
+    </aside>}
     {editing&&<ClanBoardEditor gameSlug={gameSlug} clanId={clanId} kind={kind} post={post} cosmeticAccess={cosmeticAccess} coaches={coaches} onClose={()=>setEditing(false)}/>}
     <Dialog open={remove} onOpenChange={open=>{if(!open&&!pending)setRemove(false);}}><DialogContent><DialogHeader><DialogTitle>글을 삭제하시겠습니까?</DialogTitle><DialogDescription>삭제한 내용은 복구할 수 없습니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={pending} onClick={()=>setRemove(false)}>취소</Button><Button variant="destructive" disabled={pending} onClick={()=>mutate(()=>deleteBoardPostAction(gameSlug,clanId,post.id),()=>{setRemove(false);router.push(base+"/board/"+kind);})}>{pending?"삭제 중…":"삭제"}</Button></DialogFooter></DialogContent></Dialog>
-  </div></Sheet>;
+  </div>;
 }

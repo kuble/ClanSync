@@ -258,7 +258,7 @@ export function MainClanShell({
           </nav>
         </div>
       </aside>
-      <main id="main-content" className={cn(styles.content, boardPage && styles.boardContent)}>
+      <main id="main-content" className={cn(styles.content, boardPage && !/\/board\/[^/]+\/[^/]+\/?$/.test(pathname) && styles.boardContent)}>
         <div className={styles.inner}>
           {children}
         </div>
