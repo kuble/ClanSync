@@ -925,7 +925,7 @@ export type Database = {
           clan_id: string
           expertise: string
           role: string
-          tier: string
+          tier: string[]
           updated_at: string
           user_id: string
         }
@@ -935,7 +935,7 @@ export type Database = {
           clan_id: string
           expertise: string
           role?: string
-          tier?: string
+          tier?: string[]
           updated_at?: string
           user_id?: string
         }
@@ -945,7 +945,7 @@ export type Database = {
           clan_id?: string
           expertise?: string
           role?: string
-          tier?: string
+          tier?: string[]
           updated_at?: string
           user_id?: string
         }
