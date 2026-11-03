@@ -155,10 +155,16 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     for (const width of [1280, 908, 509, 390, 320]) {
       await expectComposition(page, intro, width);
       await hero.screenshot({ path: info.outputPath(`profile-overview-${width}.png`) });
-      await accountTab.click();
+      if (width < 960) {
+        await page.getByRole("button", { name: /^프로필 화면 선택:/ }).click();
+        await page.getByRole("menuitem", { name: "계정 정보", exact: true }).click();
+      } else await accountTab.click();
       await expect(settings).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-      await overviewTab.click();
+      if (width < 960) {
+        await page.getByRole("button", { name: /^프로필 화면 선택:/ }).click();
+        await page.getByRole("menuitem", { name: "플레이어 소개", exact: true }).click();
+      } else await overviewTab.click();
       await expect(settings).toBeHidden();
     }
     await page.setViewportSize({ width: 1280, height: 900 });
