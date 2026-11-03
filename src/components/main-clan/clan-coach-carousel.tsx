@@ -21,8 +21,11 @@ const rankIcons = new Set(["bronze", "silver", "gold", "plat", "emerald", "diamo
 function TierIcon({ tier }: { tier: string }) {
   return rankIcons.has(tier) ? <Image unoptimized src={`/images/overwatch/icons/rank-${tier}.webp`} alt="" width={20} height={20} className="size-5 shrink-0 object-contain" /> : <Medal className="size-4" aria-hidden />;
 }
+function coachIconRole(role: string) {
+  return role === "tank" ? "tank" : role === "dmg" ? "damage" : role === "sup" ? "support" : "flex";
+}
 function CoachTags({ coach }: { coach: ClanCoach }) {
-  const role = coach.role === "tank" ? "tank" : coach.role === "dmg" ? "damage" : coach.role === "sup" ? "support" : "flex";
+  const role = coachIconRole(coach.role);
   const first = coach.tier[0], last = coach.tier[coach.tier.length - 1];
   const tagClass = "h-auto min-h-7 gap-1 rounded-md bg-muted/30 px-2 text-[10px] font-medium";
   return <span className="flex max-w-full flex-wrap items-center gap-1.5">
@@ -86,8 +89,45 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
     </>}
     <Sheet open={!!selected} onOpenChange={open => { if (!open) setSelectedId(null); }}>
       <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
-        <SheetHeader className="shrink-0 px-5 pb-5 pr-12"><SheetTitle>{selected?.name}</SheetTitle><SheetDescription>코칭 선생님 소개</SheetDescription></SheetHeader>
-        {selected && <><div className="board-scroll min-h-0 flex-1 space-y-6 overflow-y-auto px-5 pb-5"><dl className="grid grid-cols-2 gap-3 text-sm"><div className="space-y-2"><dt className="text-xs text-muted-foreground">역할</dt><dd>{coachRoleLabel(selected.role)}</dd></div><div className="space-y-2"><dt className="text-xs text-muted-foreground">티어대</dt><dd>{coachTierLabel(selected.tier)}</dd></div></dl><section className="space-y-2"><h4 className="text-xs text-muted-foreground">코칭 내용</h4><p className="whitespace-pre-wrap break-words text-sm font-medium leading-7 text-primary">{selected.expertise}</p></section><section className="space-y-2"><h4 className="text-xs text-muted-foreground">소개</h4><p className="whitespace-pre-wrap break-words text-sm leading-7">{selected.bio || "등록된 소개가 없습니다."}</p></section></div><div className="shrink-0 space-y-3 border-t px-5 py-4"><p className="text-xs text-muted-foreground">{selected.userId === userId ? "내 코칭 프로필입니다." : selected.accepting ? "이 선생님께 리플레이 피드백을 신청할 수 있습니다." : "현재 새 피드백 신청을 받지 않습니다."}</p><Button type="button" className="w-full" disabled={selected.userId === userId || !selected.accepting} aria-label={selected.name + " 선생님께 신청"} onClick={() => { setSelectedId(null); onRequest(selected.userId); }}>피드백 신청</Button></div></>}
+        {selected && <>
+          <div className="board-scroll min-h-0 flex-1 overflow-y-auto">
+            <SheetHeader className="relative isolate gap-5 overflow-hidden border-b bg-primary/10 px-6 pt-9 pb-6">
+              <span aria-hidden className="pointer-events-none absolute -right-12 -bottom-10 -z-10 -rotate-12 text-primary/10">
+                <OverwatchRoleIcon role={coachIconRole(selected.role)} className="size-48" />
+              </span>
+              <SheetDescription className="font-semibold text-foreground">코칭 선생님 소개</SheetDescription>
+              <div className="flex items-center gap-4">
+                <ClanPlayerAvatar userId={selected.userId} label={selected.name} size={64} />
+                <div className="min-w-0 space-y-1">
+                  <SheetTitle className="text-xl font-bold tracking-tight [overflow-wrap:anywhere]">{selected.name}</SheetTitle>
+                  <p className="flex items-center gap-2 text-xs">
+                    <span aria-hidden className={"size-2 rounded-full " + (selected.accepting ? "bg-primary" : "bg-muted-foreground")} />
+                    {selected.accepting ? "신청 가능" : "신청 잠시 중단"}
+                  </p>
+                </div>
+              </div>
+              <CoachTags coach={selected} />
+            </SheetHeader>
+            <div className="space-y-7 p-6">
+              <section className="space-y-3 border-l-2 border-primary pl-4">
+                <h3 className="text-xs font-semibold text-muted-foreground">코칭 내용</h3>
+                <p className="whitespace-pre-wrap text-xl font-bold leading-snug tracking-tight [overflow-wrap:anywhere]">{selected.expertise}</p>
+              </section>
+              <section className="space-y-3 border-t pt-5">
+                <h3 className="font-semibold">선생님 소개</h3>
+                <p className="whitespace-pre-wrap text-sm leading-7 [overflow-wrap:anywhere]">{selected.bio || "등록된 소개가 없습니다."}</p>
+              </section>
+            </div>
+          </div>
+          <div className="shrink-0 space-y-2 border-t bg-card px-6 py-4">
+            {selected.userId === userId && <p className="text-xs text-muted-foreground">내 코칭 프로필입니다.</p>}
+            <Button type="button" className="h-11 w-full" disabled={selected.userId === userId || !selected.accepting}
+              aria-label={selected.name + " 선생님께 신청"}
+              onClick={() => { setSelectedId(null); onRequest(selected.userId); }}>
+              피드백 신청 <ArrowUpRight aria-hidden className="size-4" />
+            </Button>
+          </div>
+        </>}
       </SheetContent>
     </Sheet>
   </section>;

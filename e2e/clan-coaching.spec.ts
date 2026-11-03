@@ -99,7 +99,7 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await page.getByRole('button',{name:coach.nickname+' 선생님 소개 보기',exact:true}).click();
     await expect(dialog.getByText('아나 · 위치 선정',{exact:true})).toBeVisible();
     await expect(dialog.getByText('지원',{exact:true})).toBeVisible();
-    await expect(dialog.getByText('골드 ~ 에메랄드',{exact:true})).toBeVisible();
+    await expect(dialog.getByLabel('티어: 골드 ~ 에메랄드',{exact:true})).toBeVisible();
     await expect(dialog.getByText('리플레이를 같이 보며 다음 한타를 준비합니다.',{exact:true})).toBeVisible();
     await dialog.getByRole('button',{name:coach.nickname+' 선생님께 신청',exact:true}).click();
     await expect(dialog.getByLabel('코칭 선생님',{exact:true})).toHaveValue(coach.id);
