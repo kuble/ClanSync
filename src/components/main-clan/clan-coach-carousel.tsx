@@ -16,7 +16,7 @@ function subscribeMotion(notify: () => void) {
 }
 const motionSnapshot = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const rankIcons = new Set(["bronze", "silver", "gold", "plat", "diamond", "master", "gm", "champion"]);
+const rankIcons = new Set(["bronze", "silver", "gold", "plat", "emerald", "diamond", "master", "gm", "champion"]);
 function TierIcon({ tier }: { tier: string }) {
   return rankIcons.has(tier) ? <Image unoptimized src={`/images/overwatch/icons/rank-${tier}.webp`} alt="" width={20} height={20} className="size-5 shrink-0 object-contain" /> : <Medal className="size-4" aria-hidden />;
 }

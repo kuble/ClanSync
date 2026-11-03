@@ -93,7 +93,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page.getByRole("status").filter({hasText:"홍보글과 가입 조건을 저장했습니다."})).toBeVisible();
     const conditions=await f.service.from("clans").select("birth_year_from,min_birth_year,gender_policy,tier_range").eq("id",f.clanId).single();
     expect(conditions.error).toBeNull();
-    expect(conditions.data).toEqual({birth_year_from:1990,min_birth_year:1999,gender_policy:"male",tier_range:["gold","plat","diamond"]});
+    expect(conditions.data).toEqual({birth_year_from:1990,min_birth_year:1999,gender_policy:"male",tier_range:["gold","plat","emerald","diamond"]});
     await page.reload();
     await expect(year).toHaveValue("1999");
     await expect(fromYear).toHaveValue("1990");
@@ -359,7 +359,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
 
 test("tier controls, clan creation and search use the selected game's ladder",async({page},testInfo)=>{
   test.setTimeout(150_000);
-  const f=await createIsolatedBalanceFixture(1);
+  const f=await createIsolatedBalanceFixture(2);
   const createdName=`TierVAL-${f.clanId.slice(0,8)}`;
   const game=await f.service.from("games").select("id").eq("slug","valorant").single();
   expect(game.error).toBeNull();
@@ -419,7 +419,27 @@ test("tier controls, clan creation and search use the selected game's ladder",as
     await expect(minimum).toHaveAttribute("aria-valuetext","그랜드마스터");
     await expect(maximum).toHaveAttribute("aria-valuetext","챔피언");
     await expect(page.getByText("챌린저",{exact:true})).toHaveCount(0);
+    await minimum.press("Home");
+    for(let i=0;i<4;i++) await minimum.press("ArrowRight");
+    await maximum.press("Home");
+    await expect(minimum).toHaveAttribute("aria-valuetext","에메랄드");
+    await expect(maximum).toHaveAttribute("aria-valuetext","에메랄드");
+    await page.getByLabel("제목",{exact:true}).fill("에메랄드 클랜 모집");
+    await page.getByLabel("내용",{exact:true}).fill("함께할 에메랄드 플레이어를 모집합니다.");
+    await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
+    await expect.poll(async()=> (await f.service.from("clans").select("tier_range").eq("id",f.clanId).single()).data?.tier_range).toEqual(["emerald"]);
+    await page.reload();
+    await expect(minimum).toHaveAttribute("aria-valuetext","에메랄드");
+    await expect(maximum).toHaveAttribute("aria-valuetext","에메랄드");
     await page.screenshot({path:testInfo.outputPath("overwatch-tiers.png"),fullPage:true});
+    expect((await f.service.from('clan_members').update({status:'left'}).eq('clan_id',f.clanId).eq('user_id',f.users[1].id)).error).toBeNull();
+    await page.context().clearCookies();await loginIsolatedBalanceUser(page,f.users[1]);
+    await page.goto('/games/overwatch/clan');
+    const emeraldFilter=page.getByRole('combobox',{name:'모집 티어',exact:true});
+    await expect(emeraldFilter.getByRole('option',{name:'에메랄드',exact:true})).toHaveCount(1);
+    await emeraldFilter.selectOption('emerald');
+    await page.getByRole('button',{name:'검색',exact:true}).click();
+    await expect(page).toHaveURL(/tier=emerald/);
   } finally {
     const owned=createdId ? {id:createdId} : (await f.service.from("clans").select("id").eq("name",createdName).eq("game_id",game.data!.id).maybeSingle()).data;
     if(owned) {const cleanup=await f.service.from("clans").delete().eq("id",owned.id); expect(cleanup.error).toBeNull();}

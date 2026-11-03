@@ -64,6 +64,12 @@
       "champion": {
         "file": "rank-champion.webp",
         "url": "https://static.wikia.nocookie.net/overwatch_gamepedia/images/1/19/Badge_8_Champion.png/revision/latest?cb=20240417090852"
+      },
+      "emerald": {
+        "file": "rank-emerald.webp",
+        "url": "https://static.wikia.nocookie.net/overwatch_gamepedia/images/f/f2/Ow_emerald.png/revision/latest?cb=20260916100526",
+        "sourcePage": "https://overwatch.fandom.com/wiki/File:Ow_emerald.png",
+        "retrievedAt": "2026-11-03"
       }
     }
   }
