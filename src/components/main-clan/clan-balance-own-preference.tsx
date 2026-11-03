@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { Loader2, LockKeyhole } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -34,6 +35,7 @@ function OwnPreferenceEditor({
   locked,
   onPendingChange,
 }: Props) {
+  const tx = useTranslator();
   const [value, setValue] = useState<Role[] | null>(roundRanking);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -41,11 +43,11 @@ function OwnPreferenceEditor({
   return (
     <section
       className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-3"
-      aria-label="내 역할 선호"
+      aria-label={tx("내 역할 선호")}
       aria-busy={pending}
     >
       <h3 className="sr-only" id={`round-preference-${roundId}-label`}>
-        이번 경기 내 선호
+        {tx("이번 경기 내 선호")}
       </h3>
       <RolePreferencePicker
         id={`round-preference-${roundId}`}
@@ -89,15 +91,15 @@ function OwnPreferenceEditor({
         {locked ? <LockKeyhole className="size-4" aria-hidden="true" /> : null}
         <span className="sr-only">
           {locked
-            ? "편성이 시작되어 선호가 확정되었습니다."
+            ? tx("편성이 시작되어 선호가 확정되었습니다.")
             : pending
-              ? "저장 중…"
-              : "변경은 이번 경기에만 적용됩니다."}
+              ? tx("저장 중…")
+              : tx("변경은 이번 경기에만 적용됩니다.")}
         </span>
       </span>
       {error ? (
         <p role="alert" className="mt-2 text-xs text-destructive">
-          {error}
+          {tx(error)}
         </p>
       ) : null}
     </section>

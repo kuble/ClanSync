@@ -49,7 +49,7 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
       await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
       for (const width of [1304, 390, 320]) {
         await page.setViewportSize({ width, height: 884 });
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
         await expect(page.getByRole("button", { name: "게임 ID 저장", exact: true })).toBeInViewport();
         await page.screenshot({ path: info.outputPath(`game-id-${theme}-${width}.png`) });
       }
@@ -86,14 +86,16 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     expect(request.error).toBeNull();
     expect((await leader.rpc("resolve_clan_join_request", { p_clan_id: f.clanId, p_request_id: request.data!.id, p_decision: "approved" })).error).toBeNull();
     await page.goto(f.path);
+    await page.getByRole("dialog", { name: /오신 것을 환영합니다/ }).getByRole("button", { name: "닫기", exact: true }).click();
     await expect(page.getByRole("heading", { name: "내전 로비", exact: true })).toBeVisible();
     await page.goto("/profile");
     const status = page.getByLabel("오버워치 계정 인증 상태", { exact: true });
     await expect(status).toContainText("미인증");
+    await expect(status.getByRole("link", { name: "게임 ID 수정" })).toBeVisible();
     await expect(page.getByRole("region", { name: "플레이어 소개", exact: true })).toContainText("ManualNewcomer#3003");
     await status.screenshot({ path: info.outputPath("manual-verification-status.png") });
     await page.setViewportSize({ width: 390, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.getByRole("region", { name: "플레이어 소개", exact: true }).screenshot({ path: info.outputPath("manual-profile-mobile.png") });
     // Use the browser's real cookie handling on the loopback production build.
     const response = await page.evaluate(async path => {

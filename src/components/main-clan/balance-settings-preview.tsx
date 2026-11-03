@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useState } from "react";
 import Image from "next/image";
 import { ArrowRight, Ban, Check, Timer } from "lucide-react";
@@ -32,12 +33,13 @@ const info: PlayerSessionInfo = { wins: 3, draws: 0, losses: 1, winRate: 75, cur
 export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
   settings: FormationSettings; premium: boolean; regularRoom: boolean;
 }) {
+  const tx = useTranslator();
   const [mode, setMode] = useState<ScoreMode>("m");
   const scoreMode = premium ? mode : "m";
-  return <BalanceNamecardMode hide={false} nicknameOnly={settings.nicknameOnly}><section aria-label="화면 표시 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
+  return <BalanceNamecardMode hide={false} nicknameOnly={settings.nicknameOnly}><section aria-label={tx("화면 표시 미리보기")} className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-      <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help={regularRoom ? "카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하십시오. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." : "카드에 마우스를 올려 이번 세션 전적을 확인하십시오. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다."} /></h3>
-      <span className="text-xs text-muted-foreground">편성 화면</span>
+      <h3 className="text-sm font-semibold"><HelpText label={tx("화면 표시 미리보기")} help={regularRoom ? tx("카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하십시오. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다.") : tx("카드에 마우스를 올려 이번 세션 전적을 확인하십시오. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다.")} /></h3>
+      <span className="text-xs text-muted-foreground">{tx("편성 화면")}</span>
     </header>
     <div className="space-y-5 p-4 sm:p-6">
       {regularRoom && <ScoreModeToggle value={scoreMode} onChange={setMode} premium={premium} />}
@@ -49,7 +51,7 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
       <div className="grid grid-cols-2 gap-3">
         {[0, 5].map((index) => <BalancePlayerDetails key={index} nickname={names[index]} info={info} score={regularRoom ? scores[String(index)] : undefined}
           premium={premium} enabled={settings.showPlayerSessionSummary}>
-          <button type="button" aria-label={`${names[index]} 카드 미리보기`} data-testid={`display-preview-card-${index}`}
+          <button type="button" aria-label={tx("{0} 카드 미리보기", names[index])} data-testid={`display-preview-card-${index}`}
             className={cn("flex min-h-24 min-w-0 items-center rounded-xl border p-3 text-left focus-visible:outline-2 focus-visible:outline-ring sm:p-4",
               index === 0 ? "border-sky-500/40 bg-sky-500/10" : "border-rose-500/40 bg-rose-500/10")}>
             <BalancePlayerCardContent nickname={`${names[index]}#${index === 0 ? "1001" : "2002"}`} info={info} score={regularRoom ? scores[String(index)] : undefined} mode={scoreMode}
@@ -67,6 +69,7 @@ export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings,
   gameSlug: string; mapEnabled: boolean; heroEnabled: boolean; settings: BanSettings;
   stage: BanPreviewStage; onStageChange: (stage: BanPreviewStage) => void; predictionEnabled: boolean; predictionMinutes: number;
 }) {
+  const tx = useTranslator();
   const maps = mapPoolForGameSlug(gameSlug, settings.mapTypes).slice(0, 3);
   const heroes = OW_HEROES.filter((hero) => ["reinhardt", "tracer", "ana", "mercy"].includes(hero.id));
   const [selectedMap, setSelectedMap] = useState<string | null>(null);
@@ -80,47 +83,47 @@ export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings,
     ...(heroEnabled ? [{ id: "hero" as const, label: "영웅 밴" }] : []),
     { id: "match", label: "경기 시작" },
   ];
-  return <section aria-label="밴픽 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-ban-preview" data-stage={activeStage}>
+  return <section aria-label={tx("밴픽 미리보기")} className="overflow-hidden rounded-xl border bg-background" data-testid="balance-ban-preview" data-stage={activeStage}>
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-      <h3 className="text-sm font-semibold"><HelpText label="밴픽 미리보기" help="예시 화면입니다. 여기서 선택한 투표와 영웅 밴은 저장되지 않습니다." /></h3>
-      <span className="text-xs text-muted-foreground">출전자 화면</span>
+      <h3 className="text-sm font-semibold"><HelpText label={tx("밴픽 미리보기")} help={tx("예시 화면입니다. 여기서 선택한 투표와 영웅 밴은 저장되지 않습니다.")} /></h3>
+      <span className="text-xs text-muted-foreground">{tx("출전자 화면")}</span>
     </header>
-    <nav aria-label="밴픽 진행 순서" className="flex flex-wrap items-center gap-2 border-b px-4 py-3">
+    <nav aria-label={tx("밴픽 진행 순서")} className="flex flex-wrap items-center gap-2 border-b px-4 py-3">
       {steps.map((step, index) => <span key={step.id} className="inline-flex items-center gap-2">
         {index > 0 ? <ArrowRight className="size-3 text-muted-foreground" aria-hidden="true" /> : null}
-        <button type="button" aria-label={`${step.label} 미리보기`} aria-pressed={activeStage === step.id} onClick={() => onStageChange(step.id)}
+        <button type="button" aria-label={tx("{0} 미리보기", step.label)} aria-pressed={activeStage === step.id} onClick={() => onStageChange(step.id)}
           className={cn("rounded-md px-2 py-1.5 text-xs font-medium focus-visible:outline-2 focus-visible:outline-ring", activeStage === step.id ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted")}>
-          {step.label}
+          {tx(step.label)}
         </button>
       </span>)}
     </nav>
     <div className="min-h-64 space-y-4 p-4 sm:p-6">
       {activeStage === "map" ? <>
-        <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-bold">맵 투표</h4><span className="inline-flex items-center gap-1 text-sm tabular-nums" data-testid="ban-preview-map-time"><Timer className="size-4" />{settings.mapBanSeconds}초</span></div>
-        <p className="text-xs text-muted-foreground">후보 중 한 맵에 투표합니다.</p>
+        <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-bold">{tx("맵 투표")}</h4><span className="inline-flex items-center gap-1 text-sm tabular-nums" data-testid="ban-preview-map-time"><Timer className="size-4" />{settings.mapBanSeconds}{tx("초")}</span></div>
+        <p className="text-xs text-muted-foreground">{tx("후보 중 한 맵에 투표합니다.")}</p>
         <div className="grid grid-cols-3 gap-2">
-          {maps.map((map) => <button type="button" key={map} aria-label={`${map} 미리보기 투표`} aria-pressed={activeMap === map} onClick={() => setSelectedMap(map)}
+          {maps.map((map) => <button type="button" key={map} aria-label={tx("{0} 미리보기 투표", map)} aria-pressed={activeMap === map} onClick={() => setSelectedMap(map)}
             className={cn("min-w-0 overflow-hidden rounded-lg border text-xs focus-visible:outline-2 focus-visible:outline-ring", activeMap === map ? "border-primary ring-1 ring-primary" : "border-border")}>
             <span className="relative block h-20"><BalanceMapImage label={map} sizes="220px" /></span>
             <span className="flex min-h-11 items-center justify-center gap-1 px-1 py-2">{activeMap === map ? <Check className="size-3 shrink-0 text-primary" /> : null}{map}</span>
           </button>)}
         </div>
       </> : activeStage === "hero" ? <>
-        <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-bold">영웅 밴 · 1팀</h4><span className="inline-flex items-center gap-1 text-sm tabular-nums" data-testid="ban-preview-hero-time"><Timer className="size-4" />{settings.heroBanSeconds}초</span></div>
-        <p className="text-xs text-muted-foreground">팀당 최대 {settings.heroBansPerTeam}명 · 팀 내 득표순으로 결정</p>
+        <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-bold">{tx("영웅 밴 · 1팀")}</h4><span className="inline-flex items-center gap-1 text-sm tabular-nums" data-testid="ban-preview-hero-time"><Timer className="size-4" />{settings.heroBanSeconds}{tx("초")}</span></div>
+        <p className="text-xs text-muted-foreground">{tx("팀당 최대")} {settings.heroBansPerTeam}{tx("명 · 팀 내 득표순으로 결정")}</p>
         <div className="grid grid-cols-4 gap-2">
-          {heroes.map((hero) => <button type="button" key={hero.id} aria-label={`${hero.nameKo} 미리보기 밴`} aria-pressed={picks.includes(hero.id)} onClick={() => setSelectedHeroes(picks.includes(hero.id) ? picks.filter((id) => id !== hero.id) : [...picks, hero.id].slice(-settings.heroBansPerTeam))}
+          {heroes.map((hero) => <button type="button" key={hero.id} aria-label={tx("{0} 미리보기 밴", hero.nameKo)} aria-pressed={picks.includes(hero.id)} onClick={() => setSelectedHeroes(picks.includes(hero.id) ? picks.filter((id) => id !== hero.id) : [...picks, hero.id].slice(-settings.heroBansPerTeam))}
             className={cn("relative min-w-0 overflow-hidden rounded-lg border bg-muted/25 text-xs focus-visible:outline-2 focus-visible:outline-ring", picks.includes(hero.id) ? "border-amber-500 ring-1 ring-amber-500" : "border-border")}>
             <Image src={OW_HERO_PORTRAITS[hero.id]} alt="" width={104} height={112} unoptimized className="h-20 w-full object-contain" />
             {picks.includes(hero.id) ? <Ban className="absolute left-1/2 top-7 size-6 -translate-x-1/2 text-amber-400" aria-hidden="true" /> : null}
-            <span className="block truncate px-1 py-2">{hero.nameKo}</span>
+            <span className="block truncate px-1 py-2">{tx(hero.nameKo)}</span>
           </button>)}
         </div>
       </> : <>
-        <h4 className="text-sm font-bold">경기 시작</h4>
-        <div className="relative flex min-h-24 items-end overflow-hidden rounded-xl border"><BalanceMapImage label={activeMap} sizes="660px" /><strong className="relative z-10 w-full bg-linear-to-t from-black/80 to-black/20 p-4 text-sm text-white">경기 맵 · {activeMap}</strong></div>
-        <p className="text-xs text-muted-foreground">{mapEnabled ? "투표 결과로 맵 결정" : "편성에서 선택한 맵으로 진행"}{heroEnabled ? ` · 팀당 ${settings.heroBansPerTeam}명 영웅 밴 반영` : " · 영웅 밴 없이 진행"}</p>
-        {predictionEnabled ? <p className="text-xs text-primary">관전자 승부예측 · 경기 시작 후 {predictionMinutes}분 마감</p> : null}
+        <h4 className="text-sm font-bold">{tx("경기 시작")}</h4>
+        <div className="relative flex min-h-24 items-end overflow-hidden rounded-xl border"><BalanceMapImage label={activeMap} sizes="660px" /><strong className="relative z-10 w-full bg-linear-to-t from-black/80 to-black/20 p-4 text-sm text-white">{tx("경기 맵 ·")} {tx(activeMap)}</strong></div>
+        <p className="text-xs text-muted-foreground">{mapEnabled ? tx("투표 결과로 맵 결정") : tx("편성에서 선택한 맵으로 진행")}{heroEnabled ? tx(" · 팀당 {0}명 영웅 밴 반영", settings.heroBansPerTeam) : tx(" · 영웅 밴 없이 진행")}</p>
+        {predictionEnabled ? <p className="text-xs text-primary">{tx("관전자 승부예측 · 경기 시작 후")} {predictionMinutes}{tx("분 마감")}</p> : null}
       </>}
     </div>
   </section>;

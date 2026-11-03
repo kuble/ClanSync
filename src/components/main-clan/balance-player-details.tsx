@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { cloneElement, useId, useState, type ReactElement, type ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -19,6 +20,7 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
   sample?: boolean;
   enabled?: boolean;
 }) {
+  const tx = useTranslator();
   const descriptionId = useId();
   const [open, setOpen] = useState(false);
   if (!enabled || (!info && !score)) return children;
@@ -31,17 +33,17 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
       <TooltipContent id={descriptionId} role="tooltip" className="pointer-events-none block w-64 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl [&>div]:bg-popover" sideOffset={8}>
         <p className="break-words text-sm font-bold">{nickname}</p>
         {info ? <>
-          <p className="mt-3 text-[10px] opacity-65">이번 세션 전적</p>
-          <p className="mt-1 text-base font-semibold tabular-nums">{info.wins}승 {info.draws}무 {info.losses}패</p>
+          <p className="mt-3 text-[10px] opacity-65">{tx("이번 세션 전적")}</p>
+          <p className="mt-1 text-base font-semibold tabular-nums">{info.wins}{tx("승")} {info.draws}{tx("무")} {info.losses}{tx("패")}</p>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
-            <div><dt className="opacity-65">승률</dt><dd className="mt-1 font-semibold tabular-nums">{info.winRate == null ? "기록 없음" : formatPercent(info.winRate)}</dd></div>
-            <div><dt className="opacity-65">현재 흐름</dt><dd className="mt-1 font-semibold">{streak > 0 ? `${streak}연승` : streak < 0 ? `${-streak}연패` : info.wins + info.draws + info.losses ? "연속 기록 없음" : "첫 경기 전"}</dd></div>
+            <div><dt className="opacity-65">{tx("승률")}</dt><dd className="mt-1 font-semibold tabular-nums">{info.winRate == null ? tx("기록 없음") : formatPercent(info.winRate)}</dd></div>
+            <div><dt className="opacity-65">{tx("현재 흐름")}</dt><dd className="mt-1 font-semibold">{streak > 0 ? tx("{0}연승", streak) : streak < 0 ? tx("{0}연패", -streak) : info.wins + info.draws + info.losses ? tx("연속 기록 없음") : tx("첫 경기 전")}</dd></div>
           </dl>
         </> : null}
         {score ? <dl className="mt-3 grid grid-cols-2 gap-3 border-t border-current/15 pt-3 text-xs">
-          <div><dt className="opacity-65">{SCORE_LABEL.m}</dt><dd className="mt-1 font-bold tabular-nums">{formatBalanceScore(score.m)}</dd></div>
-          {premium ? <div><dt className="opacity-65">{SCORE_LABEL.a}</dt><dd className="mt-1 font-bold tabular-nums">{formatBalanceScore(score.a)}</dd></div> : null}
-          {sample ? <dd className="col-span-2 text-[10px] opacity-60">화면 확인용 샘플 점수</dd> : null}
+          <div><dt className="opacity-65">{tx(SCORE_LABEL.m)}</dt><dd className="mt-1 font-bold tabular-nums">{formatBalanceScore(score.m)}</dd></div>
+          {premium ? <div><dt className="opacity-65">{tx(SCORE_LABEL.a)}</dt><dd className="mt-1 font-bold tabular-nums">{formatBalanceScore(score.a)}</dd></div> : null}
+          {sample ? <dd className="col-span-2 text-[10px] opacity-60">{tx("화면 확인용 샘플 점수")}</dd> : null}
         </dl> : null}
       </TooltipContent>
     </Tooltip>

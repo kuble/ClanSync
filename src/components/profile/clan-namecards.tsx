@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -26,11 +27,13 @@ export function useClanNamecard(userId?: string | null) {
 export function useNamecardDecorationHidden() { return useContext(HideDecoration); }
 export type PlayerAvatarAppearance = Pick<NamecardAppearance, "emblem" | "symbolPalette" | "portrait" | "portraitPalette">;
 export function ClanPlayerAvatar({ userId, label, size = 32, appearance }: { userId?: string | null; label: string; size?: number; appearance?: PlayerAvatarAppearance | null }) {
+  const tx = useTranslator();
   const clanCard = useClanNamecard(userId);
   const card = appearance ?? clanCard;
-  return <PlayerAvatar emblem={card?.emblem} symbolPalette={card?.symbolPalette} portrait={card?.portrait} portraitPalette={card?.portraitPalette} label={label} size={size}/>;
+  return <PlayerAvatar emblem={card?.emblem} symbolPalette={card?.symbolPalette} portrait={card?.portrait} portraitPalette={card?.portraitPalette} label={tx(label)} size={size}/>;
 }
 export function ClanPlayerNamecard({ userId, fallback, fill = false, children }: { userId?: string | null; fallback: string; fill?: boolean; children?: ReactNode }) {
+  const tx = useTranslator();
   const card = useClanNamecard(userId);
   const hide = useContext(HideDecoration);
   const profileLinks = useContext(ProfileLinks);
@@ -39,7 +42,7 @@ export function ClanPlayerNamecard({ userId, fallback, fill = false, children }:
   const displayName = nicknameOnly ? (card?.displayName ?? fallback).split("#")[0] : card?.displayName ?? fallback;
   if (!card) return <span className="block truncate text-xs font-bold sm:text-sm">{displayName}</span>;
   const content = hide ? <span data-namecard-plain="true" className="block truncate text-xs font-bold sm:text-sm" title={displayName}>{displayName}</span> : <Namecard {...card} displayName={displayName} compact fill={fill}>{children}</Namecard>;
-  return profileLinks && userId && recordPath ? <Link href={`${recordPath}?player=${userId}`} prefetch={false} aria-label={`${displayName} 프로필 보기`}
+  return profileLinks && userId && recordPath ? <Link href={`${recordPath}?player=${userId}`} prefetch={false} aria-label={tx("{0} 프로필 보기", displayName)}
     className={`block min-w-0 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${fill ? "h-full w-full rounded-xl" : "rounded-lg"}`}
     onClick={(event) => event.stopPropagation()}>{content}</Link> : content;
 }

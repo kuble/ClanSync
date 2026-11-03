@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useRef, useState, useTransition } from "react";
 import { Pencil } from "lucide-react";
 import { loadOwnAltAccountsAction, type OwnAltAccountsResult } from "@/app/actions/profile-alt-accounts";
@@ -9,6 +10,7 @@ import { ProfileGameAltAccounts } from "./profile-game-alt-accounts";
 import styles from "./profile.module.css";
 
 export function ProfileAltAccountsEditor({ gameSlug, onChanged }: { gameSlug: string; onChanged?: () => void }) {
+  const tx = useTranslator();
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<Extract<OwnAltAccountsResult, { ok: true }>>();
   const [error, setError] = useState("");
@@ -27,13 +29,13 @@ export function ProfileAltAccountsEditor({ gameSlug, onChanged }: { gameSlug: st
     });
   }
   return <Dialog open={open} onOpenChange={next => { setOpen(next); if (next) refresh(); else { requests.current++; setData(undefined); setError(""); } }}>
-    <DialogTrigger render={<Button type="button" variant="ghost" size="icon" className={styles.altEditButton} aria-label="부계정 편집" title="부계정 편집" />}><Pencil size={15} aria-hidden="true" /></DialogTrigger>
+    <DialogTrigger render={<Button type="button" variant="ghost" size="icon" className={styles.altEditButton} aria-label={tx("부계정 편집")} title={tx("부계정 편집")} />}><Pencil size={15} aria-hidden="true" /></DialogTrigger>
     <DialogContent className="sm:max-w-xl">
-      <DialogHeader><DialogTitle>부계정 편집</DialogTitle><DialogDescription>{data ? `${data.gameName}의 본인 부계정을 추가하거나 수정할 수 있습니다.` : "본인의 게임 계정과 공개 범위를 확인합니다."}</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>{tx("부계정 편집")}</DialogTitle><DialogDescription>{data ? tx("{0}의 본인 부계정을 추가하거나 수정할 수 있습니다.", data.gameName) : tx("본인의 게임 계정과 공개 범위를 확인합니다.")}</DialogDescription></DialogHeader>
       <div className="board-scroll h-[min(28rem,60dvh)] overflow-y-auto overscroll-contain" aria-busy={pending}>
         {data && <ProfileGameAltAccounts gameId={data.gameId} gameSlug={gameSlug} initialRows={data.rows} disclosureLines={data.disclosureLines} onChanged={() => { refresh(); onChanged?.(); }} />}
-        {pending && <p role="status" className="py-3 text-sm text-muted-foreground">부계정을 불러오는 중…</p>}
-        {error && <div role="alert" className="space-y-3 py-3 text-sm text-destructive"><p>{error}</p><Button type="button" variant="outline" onClick={refresh}>다시 불러오기</Button></div>}
+        {pending && <p role="status" className="py-3 text-sm text-muted-foreground">{tx("부계정을 불러오는 중…")}</p>}
+        {error && <div role="alert" className="space-y-3 py-3 text-sm text-destructive"><p>{tx(error)}</p><Button type="button" variant="outline" onClick={refresh}>{tx("다시 불러오기")}</Button></div>}
       </div>
     </DialogContent>
   </Dialog>;

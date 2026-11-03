@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { recruitmentLabels } from "@/lib/clan/recruitment";
 import { Switch } from "@/components/ui/switch";
 
@@ -232,6 +233,7 @@ export function MainGameCommunityTabs({
   userId,
   clanHubHref,
 }: Props) {
+  const tx = useTranslator();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = coerceMainGameCommunityTab(searchParams.get("tab"));
@@ -527,14 +529,14 @@ export function MainGameCommunityTabs({
       >
         <div className="flex flex-wrap items-center gap-3">
           <input
-            aria-label="클랜 홍보 검색"
-            placeholder="클랜 이름이나 모집글 검색"
+            aria-label={tx("클랜 홍보 검색")}
+            placeholder={tx("클랜 이름이나 모집글 검색")}
             value={promoSearch}
             onChange={(e) => setPromoSearch(e.target.value)}
             className="min-w-0 flex-1 rounded-lg border bg-card px-3 py-2 text-sm"
           />
           <label htmlFor="promo-sort" className="text-muted-foreground text-xs">
-            정렬
+            {tx("정렬")}
           </label>
           <select
             className="border-input bg-background rounded-md border px-2 py-1.5 text-xs"
@@ -545,15 +547,15 @@ export function MainGameCommunityTabs({
               onPromoSortChange(e.target.value === "space" ? "space" : "newest")
             }
           >
-            <option value="newest">최신순</option>
-            <option value="space">여유 있는 클랜순</option>
+            <option value="newest">{tx("최신순")}</option>
+            <option value="space">{tx("여유 있는 클랜순")}</option>
           </select>
         </div>
 
         {canPostPromo ? (
           <div className="flex justify-end">
             <Button onClick={() => openCompose("promo", Date.now())}>
-              홍보 글 작성
+              {tx("홍보 글 작성")}
             </Button>
             <Sheet
               open={compose === "promo"}
@@ -563,7 +565,7 @@ export function MainGameCommunityTabs({
             >
               <SheetContent showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
                 <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
-                  <SheetTitle>홍보 글 작성</SheetTitle>
+                  <SheetTitle>{tx("홍보 글 작성")}</SheetTitle>
                 </SheetHeader>
                 <form
                   onSubmit={submitPromo}
@@ -572,8 +574,8 @@ export function MainGameCommunityTabs({
 
                   <input
                     className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-                    aria-label="제목"
-                    placeholder="제목"
+                    aria-label={tx("제목")}
+                    placeholder={tx("제목")}
                     maxLength={200}
                     value={promoTitle}
                     disabled={pending}
@@ -582,15 +584,15 @@ export function MainGameCommunityTabs({
                   />
                   <textarea
                     className="board-scroll border-input bg-background min-h-32 max-h-80 w-full resize-y rounded-lg border p-4 text-sm"
-                    aria-label="내용"
-                    placeholder="내용"
+                    aria-label={tx("내용")}
+                    placeholder={tx("내용")}
                     maxLength={8000}
                     value={promoBody}
                     disabled={pending}
                     onChange={(e) => setPromoBody(e.target.value)}
                   />
                   </fieldset><div className="shrink-0 border-t px-5 py-4 [&>button]:w-full"><Button type="submit" size="sm" disabled={pending}>
-                    등록
+                    {tx("등록")}
                   </Button></div>
                 </form>
               </SheetContent>
@@ -598,12 +600,12 @@ export function MainGameCommunityTabs({
           </div>
         ) : (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
-            홍보글은 해당 게임에 소속된 클랜이 있을 때만 작성할 수 있습니다.{" "}
+            {tx("홍보글은 해당 게임에 소속된 클랜이 있을 때만 작성할 수 있습니다.")}{" "}
             <Link
               href={`/games/${g}/clan`}
               className="text-primary underline-offset-4 hover:underline"
             >
-              클랜 찾기
+              {tx("클랜 찾기")}
             </Link>
           </p>
         )}
@@ -611,8 +613,8 @@ export function MainGameCommunityTabs({
         {!visiblePromos.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
             {promos.length
-              ? "검색 조건에 맞는 홍보글이 없습니다."
-              : "등록된 홍보가 없습니다."}
+              ? tx("검색 조건에 맞는 홍보글이 없습니다.")
+              : tx("등록된 홍보가 없습니다.")}
           </p>
         ) : (
           <ul className="grid gap-4 md:grid-cols-2">
@@ -635,13 +637,13 @@ export function MainGameCommunityTabs({
                     {p.clan_name}
                   </Link>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground" aria-label="클랜 모집 조건">{recruitmentLabels(g,p.recruitment).join(" · ")}</p>
+                <p className="mt-2 text-xs text-muted-foreground" aria-label={tx("클랜 모집 조건")}>{recruitmentLabels(g,p.recruitment).join(" · ")}</p>
                 <p className="text-muted-foreground mt-2 line-clamp-3 whitespace-pre-wrap text-xs">
                   {p.content || "—"}
                 </p>
                 <p className="text-muted-foreground mt-2 text-xs">
-                  {formatCommunityDate(p.created_at)} · 활성{" "}
-                  {p.active_members}/{p.max_members}명 (남은 자리{" "}
+                  {formatCommunityDate(p.created_at)} {tx("· 활성")}{" "}
+                  {p.active_members}/{p.max_members}{tx("명 (남은 자리")}{" "}
                   {p.space_remaining})
                 </p>
               </li>
@@ -653,8 +655,8 @@ export function MainGameCommunityTabs({
       <TabsContent value="lfg" className="space-y-6 text-sm">
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
           <input
-            aria-label="파티 검색"
-            placeholder="닉네임·모드·파티 소개 검색"
+            aria-label={tx("파티 검색")}
+            placeholder={tx("닉네임·모드·파티 소개 검색")}
             value={lfgSearch}
             onChange={(e) => setLfgSearch(e.target.value)}
             className="min-w-0 basis-full rounded-lg border bg-background px-3 py-2 sm:flex-1 sm:basis-auto"
@@ -665,7 +667,7 @@ export function MainGameCommunityTabs({
               checked={micOnly}
               onChange={(e) => setMicOnly(e.target.checked)}
             />
-            마이크 필수 파티
+            {tx("마이크 필수 파티")}
           </label>
           <label className="flex items-center gap-2 text-xs">
             <input
@@ -673,16 +675,16 @@ export function MainGameCommunityTabs({
               checked={myApplicationsOnly}
               onChange={(e) => setMyApplicationsOnly(e.target.checked)}
             />
-            내 신청
+            {tx("내 신청")}
           </label>
           <span className="text-xs text-muted-foreground">
-            {visibleLfgs.length}개 파티
+            {visibleLfgs.length}{tx("개 파티")}
           </span>
         </div>
         {canCreateLfg ? (
           <div className="flex justify-end">
             <Button onClick={() => openCompose("lfg", Date.now())}>
-              LFG 모집 등록
+              {tx("LFG 모집 등록")}
             </Button>
             <Sheet
               open={compose === "lfg"}
@@ -692,7 +694,7 @@ export function MainGameCommunityTabs({
             >
               <SheetContent showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
                 <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
-                  <SheetTitle>LFG 모집 등록</SheetTitle>
+                  <SheetTitle>{tx("LFG 모집 등록")}</SheetTitle>
                 </SheetHeader>
                 <form
                   onSubmit={submitLfg}
@@ -701,7 +703,7 @@ export function MainGameCommunityTabs({
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="space-y-1 text-xs">
-                      <span className="text-muted-foreground">모드</span>
+                      <span className="text-muted-foreground">{tx("모드")}</span>
                       <input
                         className="border-input bg-background w-full rounded-md border px-2 py-1.5"
                         value={lfgMode}
@@ -710,7 +712,7 @@ export function MainGameCommunityTabs({
                       />
                     </label>
                     <label className="space-y-1 text-xs">
-                      <span className="text-muted-foreground">포맷</span>
+                      <span className="text-muted-foreground">{tx("포맷")}</span>
                       <input
                         className="border-input bg-background w-full rounded-md border px-2 py-1.5"
                         value={lfgFormat}
@@ -720,7 +722,7 @@ export function MainGameCommunityTabs({
                     </label>
                     <label className="space-y-1 text-xs">
                       <span className="text-muted-foreground">
-                        모집 인원 (슬롯)
+                        {tx("모집 인원 (슬롯)")}
                       </span>
                       <input
                         type="number"
@@ -734,7 +736,7 @@ export function MainGameCommunityTabs({
                     </label>
                     <label className="space-y-1 text-xs">
                       <span className="text-muted-foreground">
-                        시작 시각 (시, 0–23)
+                        {tx("시작 시각 (시, 0–23)")}
                       </span>
                       <input
                         type="number"
@@ -749,7 +751,7 @@ export function MainGameCommunityTabs({
                   </div>
                   <label className="flex flex-col gap-1 text-xs">
                     <span className="text-muted-foreground">
-                      모집 마감 (로컬 시각)
+                      {tx("모집 마감 (로컬 시각)")}
                     </span>
                     <input
                       type="datetime-local"
@@ -761,7 +763,7 @@ export function MainGameCommunityTabs({
                     />
                   </label>
                   <label className="flex items-center justify-between gap-3 text-sm">
-                    마이크 필수
+                    {tx("마이크 필수")}
                     <Switch
                       checked={lfgMic}
                       disabled={pending}
@@ -770,14 +772,14 @@ export function MainGameCommunityTabs({
                   </label>
                   <textarea
                     className="board-scroll border-input bg-background min-h-32 max-h-80 w-full resize-y rounded-lg border p-4 text-sm"
-                    aria-label="한마디 (선택)"
-                    placeholder="한마디 (선택)"
+                    aria-label={tx("한마디 (선택)")}
+                    placeholder={tx("한마디 (선택)")}
                     value={lfgDesc}
                     disabled={pending}
                     onChange={(e) => setLfgDesc(e.target.value)}
                   />
                   </fieldset><div className="shrink-0 border-t px-5 py-4 [&>button]:w-full"><Button type="submit" size="sm" disabled={pending}>
-                    모집 등록
+                    {tx("모집 등록")}
                   </Button></div>
                 </form>
               </SheetContent>
@@ -785,12 +787,12 @@ export function MainGameCommunityTabs({
           </div>
         ) : (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
-            LFG는 게임 계정 연동 후 이용할 수 있습니다.{" "}
+            {tx("LFG는 게임 계정 연동 후 이용할 수 있습니다.")}{" "}
             <Link
               href={`/games/${g}/auth`}
               className="text-primary underline-offset-4 hover:underline"
             >
-              연동하기
+              {tx("연동하기")}
             </Link>
           </p>
         )}
@@ -798,8 +800,8 @@ export function MainGameCommunityTabs({
         {!visibleLfgs.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
             {lfgs.length
-              ? "검색 조건에 맞는 파티가 없습니다."
-              : "진행 중인 LFG가 없습니다."}
+              ? tx("검색 조건에 맞는 파티가 없습니다.")
+              : tx("진행 중인 LFG가 없습니다.")}
           </p>
         ) : (
           <ul className="space-y-4">
@@ -828,14 +830,14 @@ export function MainGameCommunityTabs({
                       {row.mode} · {row.format}
                     </span>
                     <span className="text-muted-foreground text-xs">
-                      모집 {row.slots}명 · 신청 {row.applied_count}명
+                      {tx("모집")} {row.slots}{tx("명 · 신청")} {row.applied_count}{tx("명")}
                     </span>
                   </div>
                   <p className="text-muted-foreground mt-1 text-xs">
-                    모집자 {row.creator_nickname} · 시작 약{" "}
-                    {row.start_time_hour}시 · 마감{" "}
+                    {tx("모집자")} {row.creator_nickname} {tx("· 시작 약")}{" "}
+                    {row.start_time_hour}{tx("시 · 마감")}{" "}
                     {formatCommunityDate(row.expires_at)}
-                    {row.mic_required ? " · 마이크 필요" : ""}
+                    {row.mic_required ? tx(" · 마이크 필요") : ""}
                   </p>
                   {row.description ? (
                     <p className="mt-2 whitespace-pre-wrap text-xs">
@@ -847,8 +849,8 @@ export function MainGameCommunityTabs({
                     <div className="mt-3 space-y-2">
                       <input
                         className="border-input bg-background w-full max-w-md rounded-md border px-2 py-1.5 text-xs"
-                        aria-label="신청 메모 (선택)"
-                        placeholder="신청 메모 (선택)"
+                        aria-label={tx("신청 메모 (선택)")}
+                        placeholder={tx("신청 메모 (선택)")}
                         value={applyMsg[row.id] ?? ""}
                         disabled={pending}
                         onChange={(e) =>
@@ -870,14 +872,14 @@ export function MainGameCommunityTabs({
                               applyMsg[row.id],
                             );
                             if (!r.ok) {
-                              toast.error(r.error);
+                              toast.error(tx(r.error));
                               return;
                             }
-                            toast.success("신청했습니다.");
+                            toast.success(tx("신청했습니다."));
                           });
                         }}
                       >
-                        참여 신청
+                        {tx("참여 신청")}
                       </Button>
                     </div>
                   ) : null}
@@ -897,12 +899,12 @@ export function MainGameCommunityTabs({
                               gameSlug,
                               row.my_application_id!,
                             );
-                            if (!r.ok) toast.error(r.error);
-                            else toast.success("신청을 취소했습니다.");
+                            if (!r.ok) toast.error(tx(r.error));
+                            else toast.success(tx("신청을 취소했습니다."));
                           });
                         }}
                       >
-                        신청 취소
+                        {tx("신청 취소")}
                       </Button>
                     </div>
                   ) : null}
@@ -910,11 +912,11 @@ export function MainGameCommunityTabs({
                   {isCreator ? (
                     <div className="mt-3 space-y-2 border-t pt-3">
                       <p className="text-xs font-medium">
-                        신청자 {applicants.length}명
+                        {tx("신청자")} {applicants.length}{tx("명")}
                       </p>
                       {!applicants.length ? (
                         <p className="text-muted-foreground text-xs">
-                          대기 중인 신청이 없습니다.
+                          {tx("대기 중인 신청이 없습니다.")}
                         </p>
                       ) : (
                         <ul className="space-y-2">
@@ -942,12 +944,12 @@ export function MainGameCommunityTabs({
                                           row.id,
                                           a.id,
                                         );
-                                      if (!r.ok) toast.error(r.error);
-                                      else toast.success("수락했습니다.");
+                                      if (!r.ok) toast.error(tx(r.error));
+                                      else toast.success(tx("수락했습니다."));
                                     });
                                   }}
                                 >
-                                  수락
+                                  {tx("수락")}
                                 </Button>
                                 <Button
                                   type="button"
@@ -963,12 +965,12 @@ export function MainGameCommunityTabs({
                                           row.id,
                                           a.id,
                                         );
-                                      if (!r.ok) toast.error(r.error);
-                                      else toast.success("거절했습니다.");
+                                      if (!r.ok) toast.error(tx(r.error));
+                                      else toast.success(tx("거절했습니다."));
                                     });
                                   }}
                                 >
-                                  거절
+                                  {tx("거절")}
                                 </Button>
                               </span>
                             </li>
@@ -986,12 +988,12 @@ export function MainGameCommunityTabs({
                               gameSlug,
                               row.id,
                             );
-                            if (!r.ok) toast.error(r.error);
-                            else toast.success("모집을 취소했습니다.");
+                            if (!r.ok) toast.error(tx(r.error));
+                            else toast.success(tx("모집을 취소했습니다."));
                           });
                         }}
                       >
-                        모집 취소
+                        {tx("모집 취소")}
                       </Button>
                     </div>
                   ) : null}
@@ -1004,20 +1006,20 @@ export function MainGameCommunityTabs({
 
       <TabsContent value="rank" className="space-y-3 text-sm">
         <p className="text-muted-foreground text-xs">
-          최근 활동한 클랜 순으로 표시합니다.
+          {tx("최근 활동한 클랜 순으로 표시합니다.")}
         </p>
         {!rankClans.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-            표시할 클랜이 없습니다.
+            {tx("표시할 클랜이 없습니다.")}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[320px] text-left text-xs">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="px-3 py-2 font-medium">클랜</th>
-                  <th className="px-3 py-2 font-medium">활성 멤버</th>
-                  <th className="px-3 py-2 font-medium">최근 활동</th>
+                  <th className="px-3 py-2 font-medium">{tx("클랜")}</th>
+                  <th className="px-3 py-2 font-medium">{tx("활성 멤버")}</th>
+                  <th className="px-3 py-2 font-medium">{tx("최근 활동")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1056,18 +1058,17 @@ export function MainGameCommunityTabs({
         className="space-y-6 text-sm"
       >
         <p className="text-muted-foreground text-xs">
-          같은 게임 소속 클랜 간 스크림 방 — 모집 후 상대를 지정하고, 양측
-          운영진이 확정합니다.
+          {tx("같은 게임 소속 클랜 간 스크림 방 — 모집 후 상대를 지정하고, 양측 운영진이 확정합니다.")}
         </p>
 
         {!myClanId ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
-            스크림은 클랜에 소속된 뒤 이용할 수 있습니다.{" "}
+            {tx("스크림은 클랜에 소속된 뒤 이용할 수 있습니다.")}{" "}
             <Link
               href={`/games/${g}/clan`}
               className="text-primary underline-offset-4 hover:underline"
             >
-              클랜 온보딩
+              {tx("클랜 온보딩")}
             </Link>
           </p>
         ) : null}
@@ -1075,7 +1076,7 @@ export function MainGameCommunityTabs({
         {myClanId && canConfirmScrim ? (
           <div className="flex justify-end">
             <Button onClick={() => openCompose("scrim", Date.now())}>
-              스크림 방 만들기
+              {tx("스크림 방 만들기")}
             </Button>
             <Sheet
               open={compose === "scrim"}
@@ -1085,7 +1086,7 @@ export function MainGameCommunityTabs({
             >
               <SheetContent showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
                 <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
-                  <SheetTitle>스크림 방 만들기</SheetTitle>
+                  <SheetTitle>{tx("스크림 방 만들기")}</SheetTitle>
                 </SheetHeader>
                 <form
                   onSubmit={submitScrimDraft}
@@ -1094,14 +1095,14 @@ export function MainGameCommunityTabs({
 
                   <input
                     className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-                    aria-label="제목 (선택)"
-                    placeholder="제목 (선택)"
+                    aria-label={tx("제목 (선택)")}
+                    placeholder={tx("제목 (선택)")}
                     value={scrimTitle}
                     disabled={pending}
                     onChange={(e) => setScrimTitle(e.target.value)}
                   />
                   <label className="flex flex-col gap-1 text-xs">
-                    <span className="text-muted-foreground">일시 (로컬)</span>
+                    <span className="text-muted-foreground">{tx("일시 (로컬)")}</span>
                     <input
                       type="datetime-local"
                       className="border-input bg-background rounded-md border px-2 py-1.5"
@@ -1113,15 +1114,15 @@ export function MainGameCommunityTabs({
                   </label>
                   <input
                     className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-                    aria-label="장소 / 채널 (선택)"
-                    placeholder="장소 / 채널 (선택)"
+                    aria-label={tx("장소 / 채널 (선택)")}
+                    placeholder={tx("장소 / 채널 (선택)")}
                     value={scrimPlace}
                     disabled={pending}
                     onChange={(e) => setScrimPlace(e.target.value)}
                   />
                   <label className="space-y-1 text-xs">
                     <span className="text-muted-foreground">
-                      모드 (선택, 예: 5vs5)
+                      {tx("모드 (선택, 예: 5vs5)")}
                     </span>
                     <input
                       className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
@@ -1134,7 +1135,7 @@ export function MainGameCommunityTabs({
                   <div className="grid gap-2 sm:grid-cols-2">
                     <label className="space-y-1 text-xs">
                       <span className="text-muted-foreground">
-                        티어 하한 (선택)
+                        {tx("티어 하한 (선택)")}
                       </span>
                       <input
                         type="number"
@@ -1148,7 +1149,7 @@ export function MainGameCommunityTabs({
                     </label>
                     <label className="space-y-1 text-xs">
                       <span className="text-muted-foreground">
-                        티어 상한 (선택)
+                        {tx("티어 상한 (선택)")}
                       </span>
                       <input
                         type="number"
@@ -1163,15 +1164,15 @@ export function MainGameCommunityTabs({
                   </div>
                   <textarea
                     className="board-scroll border-input bg-background min-h-32 max-h-80 w-full resize-y rounded-lg border p-4 text-sm"
-                    aria-label="메모 (선택)"
-                    placeholder="메모 (선택)"
+                    aria-label={tx("메모 (선택)")}
+                    placeholder={tx("메모 (선택)")}
                     value={scrimMemo}
                     disabled={pending}
                     onChange={(e) => setScrimMemo(e.target.value)}
                     maxLength={5000}
                   />
                   </fieldset><div className="shrink-0 border-t px-5 py-4 [&>button]:w-full"><Button type="submit" size="sm" disabled={pending}>
-                    방 만들기
+                    {tx("방 만들기")}
                   </Button></div>
                 </form>
               </SheetContent>
@@ -1179,23 +1180,23 @@ export function MainGameCommunityTabs({
           </div>
         ) : myClanId && !canConfirmScrim ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
-            스크림 개설·확정은 클랜에서 허용된 운영 역할만 할 수 있습니다.
+            {tx("스크림 개설·확정은 클랜에서 허용된 운영 역할만 할 수 있습니다.")}
           </p>
         ) : null}
 
         {!scrimRooms.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-            등록된 스크림이 없습니다.
+            {tx("등록된 스크림이 없습니다.")}
           </p>
         ) : (
           <div className="space-y-4">
             <section
-              aria-label="스크림 목록 필터"
+              aria-label={tx("스크림 목록 필터")}
               data-testid="scrim-filter-bar"
               className="bg-card space-y-4 rounded-xl border p-4 shadow-sm"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-muted-foreground font-medium">상태</span>
+                <span className="text-muted-foreground font-medium">{tx("상태")}</span>
                 <Button
                   type="button"
                   size="sm"
@@ -1204,7 +1205,7 @@ export function MainGameCommunityTabs({
                   disabled={pending}
                   onClick={() => setScrimStatusChip("all")}
                 >
-                  전체
+                  {tx("전체")}
                 </Button>
                 <Button
                   type="button"
@@ -1216,7 +1217,7 @@ export function MainGameCommunityTabs({
                   disabled={pending}
                   onClick={() => setScrimStatusChip("recruiting")}
                 >
-                  모집·조율 중
+                  {tx("모집·조율 중")}
                 </Button>
                 <Button
                   type="button"
@@ -1228,12 +1229,12 @@ export function MainGameCommunityTabs({
                   disabled={pending}
                   onClick={() => setScrimStatusChip("settled")}
                 >
-                  일정 확정·종료
+                  {tx("일정 확정·종료")}
                 </Button>
               </div>
               <div className="flex flex-wrap items-start gap-2">
                 <span className="text-muted-foreground mt-1.5 shrink-0 font-medium">
-                  티어
+                  {tx("티어")}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {SCRIM_TIER_BAND_KEYS.map((band) => {
@@ -1269,10 +1270,10 @@ export function MainGameCommunityTabs({
                     }
                     className="h-8 px-3"
                     disabled={pending}
-                    title="티어 구간 조건 해제"
+                    title={tx("티어 구간 조건 해제")}
                     onClick={() => setScrimTierBandChip([])}
                   >
-                    티어 조건 해제
+                    {tx("티어 조건 해제")}
                   </Button>
                 </div>
               </div>
@@ -1284,7 +1285,7 @@ export function MainGameCommunityTabs({
                   disabled={pending}
                   onChange={(e) => setScrimShowCancelled(e.target.checked)}
                 />
-                취소된 방도 표시
+                {tx("취소된 방도 표시")}
               </label>
               {scrimFiltersDirty ? (
                 <div className="flex flex-wrap items-center gap-2 border-t pt-3">
@@ -1300,22 +1301,22 @@ export function MainGameCommunityTabs({
                       setSelectedScrimDayKey(null);
                     }}
                   >
-                    필터 초기화
+                    {tx("필터 초기화")}
                   </Button>
                   <span className="text-muted-foreground max-w-xl text-xs leading-relaxed">
-                    티어 칩 여러 개는 OR(한 구간이라도 걸리면 목록 표시).
+                    {tx("티어 칩 여러 개는 OR(한 구간이라도 걸리면 목록 표시).")}
                   </span>
                 </div>
               ) : (
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  호스트가 티어를 비워 둔 방은 상태만 맞으면 항상 보입니다.
+                  {tx("호스트가 티어를 비워 둔 방은 상태만 맞으면 항상 보입니다.")}
                 </p>
               )}
             </section>
 
             {!filteredScrimRooms.length ? (
               <div className="border-muted-foreground/25 text-muted-foreground rounded-xl border border-dashed p-6 text-center text-sm">
-                선택한 필터 조건에 맞는 방이 없습니다.
+                {tx("선택한 필터 조건에 맞는 방이 없습니다.")}
                 <div className="mt-4 flex justify-center">
                   <Button
                     type="button"
@@ -1329,7 +1330,7 @@ export function MainGameCommunityTabs({
                       setSelectedScrimDayKey(null);
                     }}
                   >
-                    필터 초기화
+                    {tx("필터 초기화")}
                   </Button>
                 </div>
               </div>
@@ -1337,7 +1338,7 @@ export function MainGameCommunityTabs({
               <>
                 <section
                   className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
-                  aria-label="스크림이 예정된 날 선택"
+                  aria-label={tx("스크림이 예정된 날 선택")}
                   data-testid="scrim-mini-calendar"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -1346,7 +1347,7 @@ export function MainGameCommunityTabs({
                       variant="outline"
                       size="icon"
                       className="h-8 w-8 shrink-0"
-                      aria-label="이전 달"
+                      aria-label={tx("이전 달")}
                       onClick={() => shiftScrimCalendarMonth(-1)}
                     >
                       ‹
@@ -1355,7 +1356,7 @@ export function MainGameCommunityTabs({
                       {new Date(
                         scrimCalendarMonth.y,
                         scrimCalendarMonth.m,
-                      ).toLocaleDateString("ko-KR", {
+                      ).toLocaleDateString(tx.locale, {
                         year: "numeric",
                         month: "long",
                       })}
@@ -1365,7 +1366,7 @@ export function MainGameCommunityTabs({
                       variant="outline"
                       size="icon"
                       className="h-8 w-8 shrink-0"
-                      aria-label="다음 달"
+                      aria-label={tx("다음 달")}
                       onClick={() => shiftScrimCalendarMonth(1)}
                     >
                       ›
@@ -1374,7 +1375,7 @@ export function MainGameCommunityTabs({
                   <div className="grid grid-cols-7 gap-1 text-xs font-medium text-muted-foreground">
                     {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
                       <span key={label} className="block text-center">
-                        {label}
+                        {tx(label)}
                       </span>
                     ))}
                   </div>
@@ -1440,10 +1441,10 @@ export function MainGameCommunityTabs({
                       disabled={pending}
                       onClick={() => setSelectedScrimDayKey(null)}
                     >
-                      모든 날짜
+                      {tx("모든 날짜")}
                     </Button>
                     <p className="text-muted-foreground text-xs">
-                      같은 날을 다시 누르면 선택이 해제됩니다.
+                      {tx("같은 날을 다시 누르면 선택이 해제됩니다.")}
                     </p>
                   </div>
                 </section>
@@ -1454,17 +1455,17 @@ export function MainGameCommunityTabs({
                       <div key={`bucket-${dayKey}`}>
                         {selectedScrimDayKey ? (
                           <p className="text-muted-foreground mb-3 text-xs">
-                            선택한 날: {formatScrimDayHeading(dayKey)} ·{" "}
+                            {tx("선택한 날:")} {formatScrimDayHeading(dayKey)} ·{" "}
                             <span className="font-medium tabular-nums text-foreground">
                               {rooms.length}
                             </span>
-                            건
+                            {tx("건")}
                           </p>
                         ) : (
                           <h3 className="border-border mb-3 flex items-baseline justify-between gap-2 border-b pb-2 text-sm font-semibold">
                             <span>{formatScrimDayHeading(dayKey)}</span>
                             <span className="text-muted-foreground text-xs font-normal tabular-nums">
-                              {rooms.length}건
+                              {rooms.length}{tx("건")}
                             </span>
                           </h3>
                         )}
@@ -1511,7 +1512,7 @@ export function MainGameCommunityTabs({
                               >
                                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                                   <p className="min-w-0 max-w-full break-words font-medium">
-                                    {room.title || "스크림"}
+                                    {room.title || tx("스크림")}
                                     <span className="text-muted-foreground ml-2 text-xs font-normal">
                                       {formatCommunityDate(room.scheduled_at)}
                                     </span>
@@ -1524,7 +1525,7 @@ export function MainGameCommunityTabs({
                                   {room.clan_a_name}
                                   {room.clan_b_id
                                     ? ` ↔ ${room.clan_b_name ?? "상대"}`
-                                    : " — 상대 미정"}
+                                    : tx(" — 상대 미정")}
                                 </p>
                                 {room.place ? (
                                   <p className="text-muted-foreground mt-1 text-xs">
@@ -1533,13 +1534,13 @@ export function MainGameCommunityTabs({
                                 ) : null}
                                 {room.mode ? (
                                   <p className="text-muted-foreground mt-1 text-xs">
-                                    모드 {room.mode}
+                                    {tx("모드")} {room.mode}
                                   </p>
                                 ) : null}
                                 {room.tier_min != null &&
                                 room.tier_max != null ? (
                                   <p className="text-muted-foreground mt-1 text-xs">
-                                    티어 범위 {room.tier_min}–{room.tier_max}
+                                    {tx("티어 범위")} {room.tier_min}–{room.tier_max}
                                   </p>
                                 ) : null}
                                 {room.memo ? (
@@ -1548,12 +1549,11 @@ export function MainGameCommunityTabs({
                                   </p>
                                 ) : null}
                                 <p className="text-muted-foreground mt-2 text-xs">
-                                  호스트 확정{" "}
-                                  {room.host_confirmed ? "완료" : "대기"} ·
-                                  게스트 확정{" "}
-                                  {room.guest_confirmed ? "완료" : "대기"}
+                                  {tx("호스트 확정")}{" "}
+                                  {room.host_confirmed ? tx("완료") : tx("대기")} {tx("· 게스트 확정")}{" "}
+                                  {room.guest_confirmed ? tx("완료") : tx("대기")}
                                   {room.confirmed_at
-                                    ? ` · 확정 시각 ${formatCommunityDate(room.confirmed_at)}`
+                                    ? tx(" · 확정 시각 {0}", formatCommunityDate(room.confirmed_at))
                                     : ""}
                                 </p>
 
@@ -1593,8 +1593,8 @@ export function MainGameCommunityTabs({
                                         }}
                                       >
                                         {isEditing
-                                          ? "수정 닫기"
-                                          : "일정·조건 수정"}
+                                          ? tx("수정 닫기")
+                                          : tx("일정·조건 수정")}
                                       </Button>
                                     ) : null}
                                     {showCancel ? (
@@ -1618,11 +1618,11 @@ export function MainGameCommunityTabs({
                                                 room.id,
                                               );
                                             if (!r.ok) {
-                                              toast.error(r.error);
+                                              toast.error(tx(r.error));
                                               return;
                                             }
                                             toast.success(
-                                              "스크림을 취소했습니다.",
+                                              tx("스크림을 취소했습니다."),
                                             );
                                             setEditingScrimId((id) =>
                                               id === room.id ? null : id,
@@ -1631,7 +1631,7 @@ export function MainGameCommunityTabs({
                                           });
                                         }}
                                       >
-                                        스크림 취소
+                                        {tx("스크림 취소")}
                                       </Button>
                                     ) : null}
                                   </div>
@@ -1662,13 +1662,13 @@ export function MainGameCommunityTabs({
                                             },
                                           );
                                         if (!r.ok) {
-                                          toast.error(r.error);
+                                          toast.error(tx(r.error));
                                           return;
                                         }
                                         toast.success(
-                                          r.needReconfirm
+                                          tx(r.needReconfirm
                                             ? "일시·장소·모드·티어 범위를 바꿔 확정을 다시 받아야 합니다."
-                                            : "스크림 정보를 수정했습니다.",
+                                            : "스크림 정보를 수정했습니다."),
                                         );
                                         setEditingScrimId(null);
                                         router.refresh();
@@ -1676,12 +1676,12 @@ export function MainGameCommunityTabs({
                                     }}
                                   >
                                     <p className="text-xs font-medium">
-                                      수정 내용
+                                      {tx("수정 내용")}
                                     </p>
                                     <input
                                       className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                                      aria-label="제목 (비우면 제목 없음)"
-                                      placeholder="제목 (비우면 제목 없음)"
+                                      aria-label={tx("제목 (비우면 제목 없음)")}
+                                      placeholder={tx("제목 (비우면 제목 없음)")}
                                       value={editScrimTitle}
                                       disabled={pending}
                                       onChange={(e) =>
@@ -1690,7 +1690,7 @@ export function MainGameCommunityTabs({
                                     />
                                     <label className="flex flex-col gap-1 text-xs">
                                       <span className="text-muted-foreground">
-                                        일시 (로컬)
+                                        {tx("일시 (로컬)")}
                                       </span>
                                       <input
                                         type="datetime-local"
@@ -1705,8 +1705,8 @@ export function MainGameCommunityTabs({
                                     </label>
                                     <input
                                       className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                                      aria-label="장소 / 채널 (비우면 없음)"
-                                      placeholder="장소 / 채널 (비우면 없음)"
+                                      aria-label={tx("장소 / 채널 (비우면 없음)")}
+                                      placeholder={tx("장소 / 채널 (비우면 없음)")}
                                       value={editScrimPlace}
                                       disabled={pending}
                                       onChange={(e) =>
@@ -1715,7 +1715,7 @@ export function MainGameCommunityTabs({
                                     />
                                     <label className="space-y-1 text-xs">
                                       <span className="text-muted-foreground">
-                                        모드 (비우면 없음)
+                                        {tx("모드 (비우면 없음)")}
                                       </span>
                                       <input
                                         className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
@@ -1730,7 +1730,7 @@ export function MainGameCommunityTabs({
                                     <div className="grid gap-2 sm:grid-cols-2">
                                       <label className="space-y-1 text-xs">
                                         <span className="text-muted-foreground">
-                                          티어 하한
+                                          {tx("티어 하한")}
                                         </span>
                                         <input
                                           type="number"
@@ -1746,7 +1746,7 @@ export function MainGameCommunityTabs({
                                       </label>
                                       <label className="space-y-1 text-xs">
                                         <span className="text-muted-foreground">
-                                          티어 상한
+                                          {tx("티어 상한")}
                                         </span>
                                         <input
                                           type="number"
@@ -1763,8 +1763,8 @@ export function MainGameCommunityTabs({
                                     </div>
                                     <textarea
                                       className="border-input bg-background min-h-[64px] w-full rounded-md border px-2 py-1.5 text-xs"
-                                      aria-label="메모 (비우면 없음)"
-                                      placeholder="메모 (비우면 없음)"
+                                      aria-label={tx("메모 (비우면 없음)")}
+                                      placeholder={tx("메모 (비우면 없음)")}
                                       value={editScrimMemo}
                                       disabled={pending}
                                       onChange={(e) =>
@@ -1777,7 +1777,7 @@ export function MainGameCommunityTabs({
                                       size="sm"
                                       disabled={pending}
                                     >
-                                      저장
+                                      {tx("저장")}
                                     </Button>
                                   </form>
                                 ) : null}
@@ -1786,7 +1786,7 @@ export function MainGameCommunityTabs({
                                   <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
                                     <label className="flex flex-col gap-1 text-xs">
                                       <span className="text-muted-foreground">
-                                        상대 클랜
+                                        {tx("상대 클랜")}
                                       </span>
                                       <select
                                         className="border-input bg-background min-w-[180px] rounded-md border px-2 py-1.5"
@@ -1801,7 +1801,7 @@ export function MainGameCommunityTabs({
                                           }))
                                         }
                                       >
-                                        <option value="">선택…</option>
+                                        <option value="">{tx("선택…")}</option>
                                         {guestCandidates.map((c) => (
                                           <option key={c.id} value={c.id}>
                                             {c.name}
@@ -1826,11 +1826,11 @@ export function MainGameCommunityTabs({
                                               guestPick,
                                             );
                                           if (!r.ok) {
-                                            toast.error(r.error);
+                                            toast.error(tx(r.error));
                                             return;
                                           }
                                           toast.success(
-                                            "상대 클랜을 배정했습니다.",
+                                            tx("상대 클랜을 배정했습니다."),
                                           );
                                           setGuestPickByRoom((m) => {
                                             const next = { ...m };
@@ -1841,11 +1841,11 @@ export function MainGameCommunityTabs({
                                         });
                                       }}
                                     >
-                                      상대 지정
+                                      {tx("상대 지정")}
                                     </Button>
                                     {!guestCandidates.length ? (
                                       <span className="text-muted-foreground text-xs">
-                                        이 게임에 선택할 다른 클랜이 없습니다.
+                                        {tx("이 게임에 선택할 다른 클랜이 없습니다.")}
                                       </span>
                                     ) : null}
                                   </div>
@@ -1866,17 +1866,17 @@ export function MainGameCommunityTabs({
                                               "host",
                                             );
                                           if (!r.ok) {
-                                            toast.error(r.error);
+                                            toast.error(tx(r.error));
                                             return;
                                           }
                                           toast.success(
-                                            "호스트 측 확정을 기록했습니다.",
+                                            tx("호스트 측 확정을 기록했습니다."),
                                           );
                                           router.refresh();
                                         });
                                       }}
                                     >
-                                      우리 측 확정 (호스트)
+                                      {tx("우리 측 확정 (호스트)")}
                                     </Button>
                                   </div>
                                 ) : null}
@@ -1896,17 +1896,17 @@ export function MainGameCommunityTabs({
                                               "guest",
                                             );
                                           if (!r.ok) {
-                                            toast.error(r.error);
+                                            toast.error(tx(r.error));
                                             return;
                                           }
                                           toast.success(
-                                            "게스트 측 확정을 기록했습니다.",
+                                            tx("게스트 측 확정을 기록했습니다."),
                                           );
                                           router.refresh();
                                         });
                                       }}
                                     >
-                                      우리 측 확정 (게스트)
+                                      {tx("우리 측 확정 (게스트)")}
                                     </Button>
                                   </div>
                                 ) : null}
@@ -1920,7 +1920,7 @@ export function MainGameCommunityTabs({
                         key={`bucket-${dayKey}-empty`}
                         className="border-muted-foreground/30 text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm"
                       >
-                        <p>선택한 날짜에 표시할 스크림이 없습니다.</p>
+                        <p>{tx("선택한 날짜에 표시할 스크림이 없습니다.")}</p>
                         <Button
                           type="button"
                           variant="outline"
@@ -1929,7 +1929,7 @@ export function MainGameCommunityTabs({
                           disabled={pending}
                           onClick={() => setSelectedScrimDayKey(null)}
                         >
-                          모든 날짜 보기
+                          {tx("모든 날짜 보기")}
                         </Button>
                       </div>
                     ),

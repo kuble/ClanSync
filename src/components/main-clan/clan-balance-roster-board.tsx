@@ -1,3 +1,4 @@
+import { useTranslator } from "#use-translator";
 import { Crown, Equal, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
@@ -49,20 +50,21 @@ export function balanceTeamHeadingResult(outcome?: TeamHeadingOutcome) {
 }
 
 export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome, onTeamSelect, selectionDisabled }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome; onTeamSelect?: (team: "team1" | "team2") => void; selectionDisabled?: boolean }) {
+  const tx = useTranslator();
   if (roster && scores && !onTeamSelect && (!outcome || outcome === "pending")) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
   const result = balanceTeamHeadingResult(outcome);
   const Label = onTeamSelect ? "button" : "span";
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
-      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team1") : undefined} aria-pressed={onTeamSelect ? result.team1Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-team-blue focus-visible:outline-2 focus-visible:outline-ring" aria-label={onTeamSelect ? "블루 승" : result.team1Won ? "1팀 승리" : undefined}>
+      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team1") : undefined} aria-pressed={onTeamSelect ? result.team1Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-team-blue focus-visible:outline-2 focus-visible:outline-ring" aria-label={onTeamSelect ? tx("블루 승") : result.team1Won ? tx("1팀 승리") : undefined}>
         {result.team1Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
-        1팀
+        {tx("1팀")}
       </Label>
       <span className="text-base font-black italic text-muted-foreground/60">
-        {result.centerLabel === "무승부" ? <span className="flex flex-col items-center text-[10px] not-italic tracking-normal text-warning"><Equal className="size-5" aria-hidden="true" />무승부</span> : result.centerLabel === "무효" ? <span className="flex flex-col items-center text-[10px] not-italic"><RotateCcw className="size-4" aria-hidden="true" />무효</span> : result.centerLabel}
+        {result.centerLabel === "무승부" ? <span className="flex flex-col items-center text-[10px] not-italic tracking-normal text-warning"><Equal className="size-5" aria-hidden="true" />{tx("무승부")}</span> : result.centerLabel === "무효" ? <span className="flex flex-col items-center text-[10px] not-italic"><RotateCcw className="size-4" aria-hidden="true" />{tx("무효")}</span> : result.centerLabel}
       </span>
-      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team2") : undefined} aria-pressed={onTeamSelect ? result.team2Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-team-red focus-visible:outline-2 focus-visible:outline-ring" aria-label={onTeamSelect ? "레드 승" : result.team2Won ? "2팀 승리" : undefined}>
-        2팀
+      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team2") : undefined} aria-pressed={onTeamSelect ? result.team2Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-team-red focus-visible:outline-2 focus-visible:outline-ring" aria-label={onTeamSelect ? tx("레드 승") : result.team2Won ? tx("2팀 승리") : undefined}>
+        {tx("2팀")}
         {result.team2Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
       </Label>
     </div>
@@ -112,16 +114,17 @@ export function ClanBalanceRosterBoard({
   selectionDisabled?: boolean;
   renderScore?: (userId: string) => ReactNode;
 }) {
+  const tx = useTranslator();
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
-    <div aria-label="출전 라인업">
+    <div aria-label={tx("출전 라인업")}>
       <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} onTeamSelect={onTeamSelect} selectionDisabled={selectionDisabled} />
       <div className="grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] gap-2 rounded-xl bg-muted/35 p-2 sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] sm:p-3">
         {(["team1", "team2"] as const).map((team, idx) => <div key={team} className="contents">
           {idx === 1 ? <div className="grid grid-rows-5 gap-2">{BALANCE_SLOTS.map((slot) => <BalanceRoleIcon key={slot.key} slot={slot} />)}</div> : null}
           <div data-testid={`balance-team-${team}`} className={cn("relative min-w-0 rounded-xl p-1", (outcome === team || outcome === "draw") && "ring-2 ring-amber-400/70", outcome === "void" && "opacity-50 grayscale", onTeamSelect && "hover:bg-amber-400/5 hover:ring-2 hover:ring-amber-400/70 [&:has([data-score-editor=editing])]:ring-0! [&:has([data-score-editor=editing])]:bg-transparent! [&:has([data-score-editor]:hover)]:ring-0! [&:has([data-score-editor]:hover)]:bg-transparent!")}>
-            {onTeamSelect ? <button type="button" aria-label={`${idx + 1}팀 승리 선택`} aria-pressed={outcome === team} disabled={selectionDisabled} onClick={() => onTeamSelect(team)} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-wait" /> : null}
+            {onTeamSelect ? <button type="button" aria-label={tx("{0}팀 승리 선택", idx + 1)} aria-pressed={outcome === team} disabled={selectionDisabled} onClick={() => onTeamSelect(team)} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-wait" /> : null}
             <div className={cn("space-y-2", onTeamSelect && "pointer-events-none")}>
             {BALANCE_SLOTS.map((slot) => {
               const userId = balanceSlotMember(roster[team], slot);
@@ -150,12 +153,12 @@ export function ClanBalanceRosterBoard({
                     )}
                   >
                     <span className="sr-only">
-                      {team === "team1" ? "1팀" : "2팀"} {slot.label}
+                      {team === "team1" ? tx("1팀") : tx("2팀")} {slot.label}
                     </span>
                     <BalancePlayerCardContent userId={userId} nickname={nickname} info={info} score={score} showScore={Boolean(showPlayerCardScore && snapshot && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={mode} mirrored={team === "team2"} scoreControl={userId ? renderScore?.(userId) : undefined} />
                     {!userId ? (
                       <span className="text-[10px] text-muted-foreground">
-                        참가자 대기
+                        {tx("참가자 대기")}
                       </span>
                     ) : null}
                   </div>

@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { Suspense } from "react";
 import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import Link from "next/link";
@@ -13,9 +14,13 @@ import styles from "@/components/entry/entry.module.css";
 
 const gameOrder = ["overwatch", "valorant", "lol", "pubg"];
 
-export const metadata = { title: "게임 선택 · ClanSync" };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("게임 선택 · ClanSync") };
+}
 
 export default async function GamesPage() {
+  const tx = await getTranslator();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in?next=/games");
@@ -84,9 +89,9 @@ export default async function GamesPage() {
       </header>
       <main className={styles.gamesContent}>
         {loadError ? (
-          <div className={styles.empty} role="alert"><h1 className={styles.gameHeading}>게임 목록을 불러오지 못했습니다</h1><p className="mt-3">잠시 후 다시 시도해 주십시오.</p><Link className={`${styles.secondaryButton} mt-5`} href="/games">다시 불러오기</Link></div>
+          <div className={styles.empty} role="alert"><h1 className={styles.gameHeading}>{tx("게임 목록을 불러오지 못했습니다")}</h1><p className="mt-3">{tx("잠시 후 다시 시도해 주십시오.")}</p><Link className={`${styles.secondaryButton} mt-5`} href="/games">{tx("다시 불러오기")}</Link></div>
         ) : cards.length ? <GameCardGrid cards={cards} /> : (
-          <div className={styles.empty}><h1 className={styles.gameHeading}>게임 선택</h1><p className="mt-3">아직 등록된 게임이 없습니다.</p></div>
+          <div className={styles.empty}><h1 className={styles.gameHeading}>{tx("게임 선택")}</h1><p className="mt-3">{tx("아직 등록된 게임이 없습니다.")}</p></div>
         )}
       </main>
     </div>

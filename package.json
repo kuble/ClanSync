@@ -2,6 +2,12 @@
   "name": "clansync",
   "version": "0.1.0",
   "private": true,
+  "imports": {
+    "#use-translator": {
+      "react-server": "./src/lib/i18n/use-server-translator.ts",
+      "default": "./src/lib/i18n/use-client-translator.ts"
+    }
+  },
   "scripts": {
     "dev": "next dev",
     "dev:qa": "node scripts/dev-qa.mjs",

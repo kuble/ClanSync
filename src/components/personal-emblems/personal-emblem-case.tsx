@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { LayoutGrid, Star } from "lucide-react";
@@ -155,6 +156,7 @@ export function PersonalEmblemCaseDisplay({ featured, href, nickname, variant = 
   featured: (PersonalEmblem | CaseEmblem)[]; href: string; nickname: string;
   variant?: "compact" | "profile" | "namecard"; error?: string; pending?: boolean; refresh?: () => void;
 }) {
+  const tx = useTranslator();
   const slots = [0, 1, 2].map(index => {
     const emblem = featured[index];
     const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
@@ -169,27 +171,28 @@ export function PersonalEmblemCaseDisplay({ featured, href, nickname, variant = 
     </Link> : <span key={index} className={className} style={emblem ? socketStyle(emblem) : undefined} data-featured-emblem-reference={reference} title={title}>{contents}</span>;
   });
   if (variant === "namecard") return <Link href={href} className={cn(styles.launcher, styles.embeddedCase)} data-personal-emblem-launcher aria-label={nickname + " 엠블럼 케이스 열기"}>
-    <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">{slots}</span></span>
+    <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label={tx("대표 엠블럼 3칸")}>{slots}</span></span>
   </Link>;
   if (variant === "profile") return <div className={cn(styles.launcher, styles.profile)} data-personal-emblem-launcher>
     <Link href={href} className={styles.profileCase} aria-label={nickname + " 엠블럼 케이스 열기"}>
-      <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">{slots}</span></span>
+      <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label={tx("대표 엠블럼 3칸")}>{slots}</span></span>
     </Link>
     <div className={error ? styles.launcherFeedback : "sr-only"} role={error ? "alert" : "status"}>
-      {pending ? "대표 엠블럼을 불러오는 중…" : error ? <><span>{error}</span><Button size="sm" variant="ghost" aria-label="대표 엠블럼 다시 불러오기" onClick={refresh}>다시 불러오기</Button></> : !featured.length ? "획득한 엠블럼을 이곳에 전시할 수 있습니다." : null}
+      {pending ? tx("대표 엠블럼을 불러오는 중…") : error ? <><span>{tx(error)}</span><Button size="sm" variant="ghost" aria-label={tx("대표 엠블럼 다시 불러오기")} onClick={refresh}>{tx("다시 불러오기")}</Button></> : !featured.length ? tx("획득한 엠블럼을 이곳에 전시할 수 있습니다.") : null}
     </div>
   </div>;
   return <div className={cn(styles.launcher, styles.compact)} data-personal-emblem-launcher>
     <div className={cn(caseStyles.case, styles.tray)}>
-      <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">
+      <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label={tx("대표 엠블럼 3칸")}>
         {slots}
       </div>
     </div>
-    {href && <Link href={href} className={styles.caseLink}>엠블럼 케이스 보기 →</Link>}
+    {href && <Link href={href} className={styles.caseLink}>{tx("엠블럼 케이스 보기 →")}</Link>}
   </div>;
 }
 
 export function PersonalEmblemCase({ initialCollection }: { initialCollection: PersonalEmblemCollection }) {
+  const tx = useTranslator();
   const { clanId, userId } = initialCollection;
   const { target, collection, error, pending, refresh, save, savePending } = useEmblemCollection(clanId, userId, initialCollection);
   const sources = collection?.sources ?? (collection ? [collection] : []);
@@ -231,7 +234,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   }
   function gameSegment() {
     const games = [...new Map(sources.map(source => [source.gameSlug, source.gameName ?? source.gameSlug])).entries()];
-    return <RubberSegment label="엠블럼 게임" labelPosition="hidden" value={gameFilter} onChange={changeGame} options={[
+    return <RubberSegment label={tx("엠블럼 게임")} labelPosition="hidden" value={gameFilter} onChange={changeGame} options={[
       { id: "all", label: "전체 게임", icon: <LayoutGrid size={17} /> },
       ...games.map(([slug, name]) => ({ id: slug, label: name, icon: <GameLogo slug={slug} name={name} className="size-[18px]" /> })),
     ]} />;
@@ -258,7 +261,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       {inDetail ? pin : <DialogTrigger render={pin} />}
       {collection?.canFeature && canPick(emblem) && <Button type="button" variant="outline" size="icon" className={cn(styles.featureStar, styles.quickStar)}
         data-emblem-feature-key={emblem.localKey}
-        aria-label={label} title={label} aria-pressed={picked} disabled={savePending || pending} focusableWhenDisabled
+        aria-label={tx(label)} title={tx(label)} aria-pressed={picked} disabled={savePending || pending} focusableWhenDisabled
         aria-haspopup={featuredKeys.length === 3 && !picked ? "dialog" : undefined}
         onClick={event => feature(emblem, event.currentTarget)}>
         <Star aria-hidden="true" className={cn("size-4", picked && "fill-primary text-primary")} />
@@ -268,13 +271,13 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
 
   const replacementDialog = <Dialog open={replacing} onOpenChange={open => { if (!open) setReplacement(undefined); }}>
     <DialogContent className="sm:max-w-md" finalFocus={featureButton}>
-      <DialogTitle>대표 엠블럼 교체</DialogTitle>
-      <DialogDescription>세 칸이 모두 찼습니다. 교체할 엠블럼을 선택해 주십시오.</DialogDescription>
+      <DialogTitle>{tx("대표 엠블럼 교체")}</DialogTitle>
+      <DialogDescription>{tx("세 칸이 모두 찼습니다. 교체할 엠블럼을 선택해 주십시오.")}</DialogDescription>
       {replacementEmblem && <div className={styles.replacementPreview}>
         <EmblemArtwork emblem={replacementEmblem} eager className={styles.replacementArtwork} />
-        <div><p className="font-semibold">{replacementEmblem.description}</p><p className="text-xs text-muted-foreground">{periodLabel(replacementEmblem)} · 새로 진열</p></div>
+        <div><p className="font-semibold">{replacementEmblem.description}</p><p className="text-xs text-muted-foreground">{periodLabel(replacementEmblem)} {tx("· 새로 진열")}</p></div>
       </div>}
-      <div className={styles.replacementGrid} role="group" aria-label="교체할 대표 엠블럼">
+      <div className={styles.replacementGrid} role="group" aria-label={tx("교체할 대표 엠블럼")}>
         {featured.map(emblem => <button key={emblem.key} type="button" className={styles.replacementOption}
           data-replace-emblem-key={emblem.localKey} data-replace-emblem-reference={emblem.key} disabled={savePending || pending}
           aria-label={periodLabel(emblem) + " " + emblem.description + " · " + emblem.source.clanName + " 대신 진열"} onClick={() => void replace(emblem.key)}>
@@ -284,8 +287,8 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
         </button>)}
       </div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-muted-foreground" role="status">{savePending ? "교체 중…" : "선택한 한 칸만 교체됩니다."}</span>
-        <Button type="button" variant="outline" size="sm" onClick={() => setReplacement(undefined)}>취소</Button>
+        <span className="text-xs text-muted-foreground" role="status">{savePending ? tx("교체 중…") : tx("선택한 한 칸만 교체됩니다.")}</span>
+        <Button type="button" variant="outline" size="sm" onClick={() => setReplacement(undefined)}>{tx("취소")}</Button>
       </div>
     </DialogContent>
   </Dialog>;
@@ -294,12 +297,12 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
     <div data-personal-emblem-case className={styles.pageLayout}>
       <header className={styles.pageHeader}>
         <div className={styles.pageHeading}>
-          <h2 className="text-xl font-semibold">엠블럼 케이스</h2>
+          <h2 className="text-xl font-semibold">{tx("엠블럼 케이스")}</h2>
         </div>
-      <section className={styles.featuredSection} aria-label="대표 엠블럼 진열">
-        <h3 className={styles.featuredLabel}>대표 엠블럼</h3>
+      <section className={styles.featuredSection} aria-label={tx("대표 엠블럼 진열")}>
+        <h3 className={styles.featuredLabel}>{tx("대표 엠블럼")}</h3>
         <div className={cn(caseStyles.case, styles.headerTray)} aria-busy={pending}>
-          <div className={cn(caseStyles.caseGrid, styles.headerGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
+          <div className={cn(caseStyles.caseGrid, styles.headerGrid)} role="group" aria-label={tx("선택한 대표 엠블럼 3칸")}>
             {[0, 1, 2].map(index => {
               const emblem = featured[index];
               const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
@@ -308,7 +311,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
                 title={emblem.description + " · " + periodLabel(emblem) + " · " + (emblem.source.gameName ?? emblem.source.gameSlug) + " · " + emblem.source.clanName}
                 onClick={() => { if (gameFilter !== "all" && gameFilter !== emblem.source.gameSlug) setGameFilter(emblem.source.gameSlug); inspect(emblem); }}>
                 <Socket /><EmblemArtwork emblem={emblem} eager className={styles.pinArtwork} />
-              </button>} /> : <span key={index} className={className} role="img" aria-label="빈 대표 엠블럼 칸"><Socket /></span>;
+              </button>} /> : <span key={index} className={className} role="img" aria-label={tx("빈 대표 엠블럼 칸")}><Socket /></span>;
             })}
           </div>
         </div>
@@ -316,20 +319,20 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       </header>
       <div className={styles.toolbar}>
         <div className={styles.toolbarFilters}>
-          <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
+          <RubberSegment label={tx("엠블럼 분류")} labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
           {gameSegment()}
         </div>
         <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
-          {pending ? "엠블럼을 불러오는 중…" : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
-          {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>다시 불러오기</Button>}
+          {pending ? tx("엠블럼을 불러오는 중…") : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
+          {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>{tx("다시 불러오기")}</Button>}
         </div>
       </div>
-      <div role="region" tabIndex={0} aria-label="엠블럼 목록" className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
+      <div role="region" tabIndex={0} aria-label={tx("엠블럼 목록")} className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
         <div className={styles.groups}>
-          {filter !== "milestone" && visibleEmblems.length > 0 && <section aria-label="종류별 수상 엠블럼">
+          {filter !== "milestone" && visibleEmblems.length > 0 && <section aria-label={tx("종류별 수상 엠블럼")}>
             <div className={styles.groups}>{(["month", "year"] as const).map(period => {
               const entries = awards.filter(emblem => emblem.period === period);
-              return <section key={period} aria-label={period === "month" ? "월간 수상 엠블럼" : "연간 수상 엠블럼"}>
+              return <section key={period} aria-label={period === "month" ? tx("월간 수상 엠블럼") : tx("연간 수상 엠블럼")}>
                 <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{Object.entries(awardFamilies).map(([category, family]) => {
                   const emblem = entries.find(entry => entry.family === family);
                   const label = `${period === "month" ? "월간" : "연간"} ${category} 미획득`;
@@ -337,67 +340,67 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
                   const preview: CaseEmblem = { key, localKey: key, kind: "award", family, period, earned: false, date: null,
                     description: `${period === "month" ? "월간" : "연간"} ${category}`, artwork: `/personal-emblems/v1/awards/${period}/${family}-gold.png`, source: visibleEmblems[0].source };
                   return emblem ? catalogPin(emblem) : <DialogTrigger key={family} render={<button type="button" className={cn(caseStyles.pin, caseStyles.artworkSocket, styles.pin)}
-                    aria-label={label} title={label} data-unearned-award={period + ":" + family}
+                    aria-label={tx(label)} title={tx(label)} data-unearned-award={period + ":" + family}
                     style={socketStyle(preview)} onClick={() => inspect(preview)}><Socket /></button>} />;
                 })}</div>
               </section>;
             })}</div>
           </section>}
-          {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
+          {milestones.length > 0 && <section aria-label={tx("누적 달성 엠블럼")}>
             <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => catalogPin(emblem))}</div>
           </section>}
-          {!visibleEmblems.length && (pending || error) && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : "다시 불러오면 엠블럼을 확인할 수 있습니다."}</p>}
+          {!visibleEmblems.length && (pending || error) && <p className={styles.empty}>{pending ? tx("획득 기록을 확인하고 있습니다.") : tx("다시 불러오면 엠블럼을 확인할 수 있습니다.")}</p>}
         </div>
       </div>
     </div>
     {selected && <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:max-w-3xl sm:p-7" data-personal-emblem-detail>
       <div className={caseStyles.seriesHeader}>
         <EmblemArtwork emblem={selected} eager className={cn(caseStyles.pin, caseStyles.seriesArtwork, !selected.earned && caseStyles.unearnedPreview)} />
-        <section id={detailsId} className={caseStyles.seriesDescription} aria-label="엠블럼 상세" aria-live="polite">
+        <section id={detailsId} className={caseStyles.seriesDescription} aria-label={tx("엠블럼 상세")} aria-live="polite">
           <DialogTitle className="text-2xl font-semibold">{selected.description}</DialogTitle>
-          <DialogDescription className="sr-only">획득 조건과 수상·달성 기록</DialogDescription>
-          <span className={cn(caseStyles.seriesStatus, selected.earned && caseStyles.earnedStatus)}>{selected.earned ? "획득" : "미획득 · 미리보기"}</span>
+          <DialogDescription className="sr-only">{tx("획득 조건과 수상·달성 기록")}</DialogDescription>
+          <span className={cn(caseStyles.seriesStatus, selected.earned && caseStyles.earnedStatus)}>{selected.earned ? tx("획득") : tx("미획득 · 미리보기")}</span>
           <dl className={caseStyles.seriesFacts}>
             {selected.kind === "award" && !selected.earned ? <>
-              <div><dt>수상 구분</dt><dd>{selected.period === "month" ? "월간" : "연간"}</dd></div>
-              <div><dt>등급</dt><dd>금 · 1위 / 은 · 2위 / 동 · 3위</dd></div>
+              <div><dt>{tx("수상 구분")}</dt><dd>{selected.period === "month" ? tx("월간") : tx("연간")}</dd></div>
+              <div><dt>{tx("등급")}</dt><dd>{tx("금 · 1위 / 은 · 2위 / 동 · 3위")}</dd></div>
             </> : <>
-            <div><dt>게임</dt><dd>{selected.source.gameName ?? selected.source.gameSlug}</dd></div>
-            <div><dt>클랜</dt><dd>{selected.source.clanName}</dd></div>
-            <div><dt>{selected.kind === "award" ? "수상 기간" : "달성일"}</dt><dd>{periodLabel(selected)}</dd></div>
+            <div><dt>{tx("게임")}</dt><dd>{selected.source.gameName ?? selected.source.gameSlug}</dd></div>
+            <div><dt>{tx("클랜")}</dt><dd>{selected.source.clanName}</dd></div>
+            <div><dt>{selected.kind === "award" ? tx("수상 기간") : tx("달성일")}</dt><dd>{periodLabel(selected)}</dd></div>
             </>}
-            <div><dt>획득 조건</dt><dd>{selected.kind === "award"
-              ? `${selected.period === "month" ? "월간" : "연간"} 명예의 전당에서 ${awardCriteria[selected.family as AwardFamily]} 상위 3위 안에 들면 획득합니다.`
-              : `${selected.description} 시 획득합니다.`}</dd></div>
-            {selected.kind === "milestone" && selected.progress !== undefined && selected.source.active !== false && <div><dt>현재 진행</dt><dd>{(selected.progress ?? 0).toLocaleString("ko-KR")} / {(selected.target ?? 0).toLocaleString("ko-KR")} {selected.unit}</dd></div>}
+            <div><dt>{tx("획득 조건")}</dt><dd>{selected.kind === "award"
+              ? tx("{0} 명예의 전당에서 {1} 상위 3위 안에 들면 획득합니다.", selected.period === "month" ? "월간" : "연간", awardCriteria[selected.family as AwardFamily])
+              : tx("{0} 시 획득합니다.", selected.description)}</dd></div>
+            {selected.kind === "milestone" && selected.progress !== undefined && selected.source.active !== false && <div><dt>{tx("현재 진행")}</dt><dd>{(selected.progress ?? 0).toLocaleString(tx.locale)} / {(selected.target ?? 0).toLocaleString(tx.locale)} {selected.unit}</dd></div>}
           </dl>
-          {selected.kind === "award" && !selected.earned && <p className="text-xs leading-relaxed text-muted-foreground">클랜의 집계·참여 기준을 충족해야 하며, 기간 마감 후 순위에 따라 금·은·동 엠블럼을 획득합니다.</p>}
+          {selected.kind === "award" && !selected.earned && <p className="text-xs leading-relaxed text-muted-foreground">{tx("클랜의 집계·참여 기준을 충족해야 하며, 기간 마감 후 순위에 따라 금·은·동 엠블럼을 획득합니다.")}</p>}
           {selected.kind === "milestone" && selected.progress !== undefined && selected.source.active !== false && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
             max={selected.target ?? 1} value={Math.min(selected.progress ?? 0, selected.target ?? 1)} />}
-          {collection?.canFeature && selected.earned && !canPickSelected && <p className="text-xs text-muted-foreground">최고 획득 단계만 대표로 지정할 수 있습니다.</p>}
+          {collection?.canFeature && selected.earned && !canPickSelected && <p className="text-xs text-muted-foreground">{tx("최고 획득 단계만 대표로 지정할 수 있습니다.")}</p>}
         </section>
       </div>
-      {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label="수상 이력">
+      {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label={tx("수상 이력")}>
         <div className={styles.controls}>
-          <h3 className="text-sm font-semibold">수상 이력</h3>
-          <RubberSegment label="수상 등급" labelPosition="hidden" options={rankFilters} value={rankFilter} onChange={value => {
+          <h3 className="text-sm font-semibold">{tx("수상 이력")}</h3>
+          <RubberSegment label={tx("수상 등급")} labelPosition="hidden" options={rankFilters} value={rankFilter} onChange={value => {
             setRankFilter(value);
             const next = awardHistory.find(emblem => value === "all" || emblem.rank === Number(value));
             if (next && value !== "all" && selected.rank !== Number(value)) inspect(next);
           }} />
         </div>
-        <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="같은 종류의 수상 이력">
+        <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label={tx("같은 종류의 수상 이력")}>
           {filteredAwardHistory.map(emblem => <div key={emblem.key} className={styles.historyEntry}>
-            {catalogPin(emblem, true)}
+            {tx(catalogPin(emblem, true))}
             <p className={styles.historyCaption}>{periodLabel(emblem)}</p>
           </div>)}
-          {!filteredAwardHistory.length && <p className={styles.historyEmpty} role="status">이 등급의 수상 이력이 없습니다.</p>}
+          {!filteredAwardHistory.length && <p className={styles.historyEmpty} role="status">{tx("이 등급의 수상 이력이 없습니다.")}</p>}
         </div></div>
       </section>}
-      {stages.length > 0 && <section className="mt-2 space-y-3" aria-label="성장의 기록">
-        <div className={styles.controls}><h3 className="text-sm font-semibold">성장의 기록</h3></div>
-        <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="단계별 엠블럼">
-          {stages.map(emblem => <div key={emblem.key} className={styles.historyEntry}>{catalogPin(emblem, true)}
+      {stages.length > 0 && <section className="mt-2 space-y-3" aria-label={tx("성장의 기록")}>
+        <div className={styles.controls}><h3 className="text-sm font-semibold">{tx("성장의 기록")}</h3></div>
+        <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label={tx("단계별 엠블럼")}>
+          {stages.map(emblem => <div key={emblem.key} className={styles.historyEntry}>{tx(catalogPin(emblem, true))}
             {emblem.earned && <p className={styles.historyCaption}>{periodLabel(emblem)}</p>}
           </div>)}
         </div></div>

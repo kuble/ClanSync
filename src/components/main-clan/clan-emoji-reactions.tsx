@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import Image from "next/image";
 import { useEffect, useRef, useState, useTransition, type ComponentProps, type ReactElement } from "react";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ export function EmojiReactionButton({ count, children, loadPeople, ...props }: C
 }
 
 function ReactionPeopleTooltip({ button, count, loadPeople }: { button: ReactElement; count: number; loadPeople: () => Promise<ReactionPeopleResult> }) {
+  const tx = useTranslator();
   const [people, setPeople] = useState<{ names?: string[]; error?: string }>({});
   const request = useRef(0);
   useEffect(() => () => { request.current++; }, []);
@@ -36,11 +38,11 @@ function ReactionPeopleTooltip({ button, count, loadPeople }: { button: ReactEle
   return <Tooltip onOpenChange={open => { void showPeople(open); }}>
     <TooltipTrigger render={button} />
     <TooltipContent role="tooltip" className="max-w-56 flex-col items-start gap-1.5">
-      <span className="font-semibold">공감한 멤버</span>
-      {people.names ? people.names.length ? <ul aria-label="공감한 멤버" className="max-h-48 space-y-1 overflow-y-auto break-words">
+      <span className="font-semibold">{tx("공감한 멤버")}</span>
+      {people.names ? people.names.length ? <ul aria-label={tx("공감한 멤버")} className="max-h-48 space-y-1 overflow-y-auto break-words">
         {people.names.map((name, index) => <li key={index}>{name}</li>)}
-        {count > people.names.length && <li>외 {count - people.names.length}명</li>}
-      </ul> : <span>공감이 없습니다.</span> : <span role="status">{people.error ?? "불러오는 중…"}</span>}
+        {count > people.names.length && <li>{tx("외")} {count - people.names.length}{tx("명")}</li>}
+      </ul> : <span>{tx("공감이 없습니다.")}</span> : <span role="status">{people.error ?? tx("불러오는 중…")}</span>}
     </TooltipContent>
   </Tooltip>;
 }
@@ -51,6 +53,7 @@ export function ClanEmojiReactions({ gameSlug, clanId, postId, target, emojis: s
   loadPeople?: (emojiId: string) => Promise<ReactionPeopleResult>;
   disabled?: boolean;
 }) {
+  const tx = useTranslator();
   const context = useClanEmojis();
   const emojis = supplied ?? context.emojis;
   const [pending,start] = useTransition();
@@ -66,8 +69,8 @@ export function ClanEmojiReactions({ gameSlug, clanId, postId, target, emojis: s
       if(!result.ok)toast.error(result.error); else if("reactions" in result)setUpdated({baseline,rows:result.reactions!});
     } catch {toast.error("공감을 저장하지 못했습니다. 다시 시도해 주십시오.");}
   }); }
-  return <div className="flex flex-wrap items-center gap-1.5" aria-label="클랜 이모티콘 공감">
-    {emojis.map(emoji=>{const row=rows.find(r=>r.emoji_id===emoji.id);return row&&<EmojiReactionButton key={emoji.id} count={row.total} disabled={disabled || pending} aria-pressed={row.mine} aria-label={`${emoji.name} 공감 ${row.total}명`} loadPeople={loadPeople ? () => loadPeople(emoji.id) : undefined} onClick={()=>toggle(emoji.id)}><Image unoptimized src={clanEmojiUrl(clanId,emoji.id)} alt="" width={20} height={20} className="size-5 object-contain"/></EmojiReactionButton>;})}
-    {showPicker && <ClanEmojiPicker label={pickerLabel} title="공감 선택" disabled={disabled || pending} options={standardOptions} onSelect={(value,emoji)=>{if(emoji)toggle(emoji.id);else onStandardSelect?.(value);}}/>}
+  return <div className="flex flex-wrap items-center gap-1.5" aria-label={tx("클랜 이모티콘 공감")}>
+    {emojis.map(emoji=>{const row=rows.find(r=>r.emoji_id===emoji.id);return row&&<EmojiReactionButton key={emoji.id} count={row.total} disabled={disabled || pending} aria-pressed={row.mine} aria-label={tx("{0} 공감 {1}명", emoji.name, row.total)} loadPeople={loadPeople ? () => loadPeople(emoji.id) : undefined} onClick={()=>toggle(emoji.id)}><Image unoptimized src={clanEmojiUrl(clanId,emoji.id)} alt="" width={20} height={20} className="size-5 object-contain"/></EmojiReactionButton>;})}
+    {showPicker && <ClanEmojiPicker label={pickerLabel} title={tx("공감 선택")} disabled={disabled || pending} options={standardOptions} onSelect={(value,emoji)=>{if(emoji)toggle(emoji.id);else onStandardSelect?.(value);}}/>}
   </div>;
 }

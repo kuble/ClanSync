@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, BarChart3, CreditCard, ImageIcon, LayoutDashboard, Megaphone, Swords, UserRoundPlus, Users } from "lucide-react";
@@ -18,6 +19,7 @@ export function ClanManageNavigation({ selected, pendingCount, basePath }: {
   pendingCount: number;
   basePath: string;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [, start] = useTransition();
   useEffect(() => {
@@ -36,13 +38,13 @@ export function ClanManageNavigation({ selected, pendingCount, basePath }: {
   const groups = [...new Set(visibleSections.map((section) => section.group))];
   const requestBadge = pendingCount > 0 ? <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] tabular-nums text-primary">{pendingCount}</span> : undefined;
   return <div className="min-w-0 space-y-2">
-    <ClanSectionLinks label="클랜 관리 분류" items={groups.map((name) => ({
+    <ClanSectionLinks label={tx("클랜 관리 분류")} items={groups.map((name) => ({
       label: name, href: `${basePath}?tab=${name === group ? selected : visibleSections.find((section) => section.group === name)!.key}`,
       selected: name === group, badge: name === "구성원 관리" ? requestBadge : undefined,
     }))} />
-    <ClanSectionLinks label="클랜 관리 항목" compact items={visibleSections.filter((section) => section.group === group).map(({ key, label, description }) => ({
+    <ClanSectionLinks label={tx("클랜 관리 항목")} compact items={visibleSections.filter((section) => section.group === group).map(({ key, label, description }) => ({
       label, description, href: `${basePath}?tab=${key}`, selected: key === selected,
-      icon: <NavigationIcon icon={icons[key]} label={label} />, badge: key === "requests" ? requestBadge : undefined,
+      icon: <NavigationIcon icon={icons[key]} label={tx(label)} />, badge: key === "requests" ? requestBadge : undefined,
     }))} />
   </div>;
 }

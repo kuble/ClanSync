@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useId, useLayoutEffect, useRef, type ReactNode } from "react";
 import styles from "./rubber-segment.module.css";
 
@@ -11,6 +12,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
   label: string;
   labelPosition?: "inline" | "top" | "hidden";
 }) {
+  const tx = useTranslator();
   const track = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const thumb = useRef<HTMLSpanElement>(null);
@@ -48,14 +50,14 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
   };
 
   return <div className={`flex min-w-0 max-w-full gap-2 ${labelPosition === "top" ? "flex-col items-start" : "items-center"}`}>
-    {labelPosition !== "hidden" && <span className="shrink-0 text-[11px] text-muted-foreground">{label}</span>}
+    {labelPosition !== "hidden" && <span className="shrink-0 text-[11px] text-muted-foreground">{tx(label)}</span>}
     <div ref={viewport} className="min-w-0 max-w-full overflow-x-auto rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div ref={track} role="radiogroup" aria-label={label} className="relative flex w-max items-center rounded-lg border bg-muted/30 p-[3px]">
+      <div ref={track} role="radiogroup" aria-label={tx(label)} className="relative flex w-max items-center rounded-lg border bg-muted/30 p-[3px]">
         <span ref={thumb} aria-hidden className={`${styles.thumb} pointer-events-none absolute inset-y-[3px] z-0 rounded-[calc(var(--radius-lg)-4px)] bg-primary/80 opacity-0 shadow-sm`}>
           <span key={value} className={`${styles.pulse} block size-full rounded-[inherit]`} />
         </span>
         {options.map((option, i) => <button key={option.id} ref={(node) => { buttons.current[i] = node; }} type="button" role="radio"
-          aria-checked={i === index} aria-label={option.label} aria-describedby={option.description ? `${descriptionId}-${i}` : undefined} title={option.icon ? option.label : undefined} tabIndex={i === index ? 0 : -1}
+          aria-checked={i === index} aria-label={tx(option.label)} aria-describedby={option.description ? `${descriptionId}-${i}` : undefined} title={option.icon ? tx(option.label) : undefined} tabIndex={i === index ? 0 : -1}
           onClick={() => choose(i)}
           onKeyDown={(event) => {
             const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1
@@ -65,10 +67,10 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
           }}
           className={`relative z-10 min-h-8 min-w-12 whitespace-nowrap rounded-[calc(var(--radius-lg)-4px)] px-3 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${i === index ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
           <span className="inline-flex items-center justify-center gap-1.5">
-            {option.icon ? <span aria-hidden="true" className="flex items-center justify-center">{option.icon}</span> : option.label}
+            {option.icon ? <span aria-hidden="true" className="flex items-center justify-center">{option.icon}</span> : tx(option.label)}
             {option.badge}
           </span>
-          {option.description && <span id={`${descriptionId}-${i}`} className="sr-only">{option.description}</span>}
+          {option.description && <span id={`${descriptionId}-${i}`} className="sr-only">{tx(option.description)}</span>}
         </button>)}
       </div>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useState, type ReactNode } from "react";
 import type { ClanStatsDetail } from "@/lib/clan/stats/load-clan-stats";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ export type StatsDetailCache = Map<string, Promise<ClanStatsDetail>>;
 
 /** Cache belongs to one mounted, authorized page model, never to a shared module. */
 export function StatsDetailLoader({ url, cache, initial, children, compact = false }: { url?: string; cache: StatsDetailCache; initial?: ClanStatsDetail; compact?: boolean; children: (detail: ClanStatsDetail, pending: boolean) => ReactNode }) {
+  const tx = useTranslator();
   const [result, setResult] = useState<{ cache: StatsDetailCache; url: string; detail?: ClanStatsDetail; error?: string }>();
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -30,10 +32,10 @@ export function StatsDetailLoader({ url, cache, initial, children, compact = fal
   const current = result?.cache === cache && result.url === url ? result : undefined;
   if (current?.detail || initial) return <div className="relative" aria-busy={!!url && !current?.detail}>
     <div role={url && !current?.detail ? current?.error ? "alert" : "status" : undefined} className={`flex items-center justify-end gap-2 px-2 text-xs text-muted-foreground ${compact ? "absolute inset-x-0 -top-4 h-4" : "h-7"}`}>
-      {url && !current?.detail && <><span className="min-w-0 truncate" title={current?.error}>{current?.error ?? "기록을 불러오는 중…"}</span>{current?.error && <button type="button" className="shrink-0 underline" onClick={() => setAttempt((n) => n + 1)}>다시 불러오기</button>}</>}
+      {url && !current?.detail && <><span className="min-w-0 truncate" title={current?.error}>{current?.error ?? tx("기록을 불러오는 중…")}</span>{current?.error && <button type="button" className="shrink-0 underline" onClick={() => setAttempt((n) => n + 1)}>{tx("다시 불러오기")}</button>}</>}
     </div>
     {children(current?.detail ?? initial!, !!url && !current?.detail)}
   </div>;
-  if (current?.error) return <div role="alert" className="min-h-64 rounded-xl border p-6 text-sm"><p>{current.error}</p><Button className="mt-3" variant="outline" size="sm" onClick={() => { setResult(undefined); setAttempt((n) => n + 1); }}>다시 불러오기</Button></div>;
-  return <div role="status" className="min-h-64 space-y-4 rounded-xl border p-6"><p className="text-sm text-muted-foreground">통계 기록을 불러오는 중…</p><div className="h-8 animate-pulse rounded bg-muted motion-reduce:animate-none" /><div className="h-32 animate-pulse rounded bg-muted motion-reduce:animate-none" /></div>;
+  if (current?.error) return <div role="alert" className="min-h-64 rounded-xl border p-6 text-sm"><p>{tx(current.error)}</p><Button className="mt-3" variant="outline" size="sm" onClick={() => { setResult(undefined); setAttempt((n) => n + 1); }}>{tx("다시 불러오기")}</Button></div>;
+  return <div role="status" className="min-h-64 space-y-4 rounded-xl border p-6"><p className="text-sm text-muted-foreground">{tx("통계 기록을 불러오는 중…")}</p><div className="h-8 animate-pulse rounded bg-muted motion-reduce:animate-none" /><div className="h-32 animate-pulse rounded bg-muted motion-reduce:animate-none" /></div>;
 }

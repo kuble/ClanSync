@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
@@ -64,6 +65,7 @@ export function ClanBadges({
   collection: ClanBadgeCollection; gameSlug: string; clanId: string;
   compact?: boolean; canManage?: boolean; previewOnly?: boolean; className?: string;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [group, setGroup] = useState("전체");
@@ -147,17 +149,17 @@ export function ClanBadges({
   }
 
   return <Dialog open={seriesOpen} onOpenChange={setSeriesOpen}><div inert={previewOnly} aria-hidden={previewOnly || undefined} className={cn("space-y-4", className)}>
-    {!compact && <RubberSegment label="배지 컬렉션" labelPosition="hidden" value={group} onChange={setGroup}
+    {!compact && <RubberSegment label={tx("배지 컬렉션")} labelPosition="hidden" value={group} onChange={setGroup}
       options={categories.map(category => {
         const hasNew = unread.some(b => category.id === "전체" || category.groups.includes(b.group));
         return { id: category.id, label: category.id, description: hasNew ? "새로 획득한 배지가 있습니다." : undefined, badge: hasNew ?
-          <span data-new-badges aria-label="새 배지" className="inline-flex size-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold leading-none text-white">N</span> : undefined };
+          <span data-new-badges aria-label={tx("새 배지")} className="inline-flex size-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold leading-none text-white">N</span> : undefined };
       })} />}
     <div data-badge-case className={cn(styles.case, compact && styles.compactCase)}>
       <div className={styles.casePlate}>{collection.clanName}</div>
-      <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} role="group" aria-label="배지 진열">
+      <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} role="group" aria-label={tx("배지 진열")}>
         {badges.map(b => <DialogTrigger key={b.key} render={renderPin(b, compact, seriesOpen && seriesKey === b.key, () => inspect(b), undefined, true)} />)}
-        {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주십시오.</p>}
+        {badges.length === 0 && <p className={styles.caseEmpty}>{tx("대표 배지를 지정해 주십시오.")}</p>}
       </div>
     </div>
     {seriesSelected && seriesRepresentative && <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:max-w-3xl sm:p-7">
@@ -169,33 +171,33 @@ export function ClanBadges({
                 sizes="(max-width: 640px) 180px, 260px" className={styles.badgeImage} />
             : <BadgeEmblem badge={seriesSelected} compact={false} />}
         </div>
-        <section id={seriesDetailsId} className={styles.seriesDescription} aria-label="배지 계열 설명" aria-live="polite">
-          <p className="text-xs text-muted-foreground">{seriesSelected.group}{"series" in seriesSelected && " · "+CLAN_BADGE_SERIES_NAMES[seriesSelected.series]}</p>
-          <DialogTitle className="text-2xl font-semibold">{seriesSelected.name}</DialogTitle>
-          <DialogDescription className="leading-7">{seriesSelected.story}</DialogDescription>
+        <section id={seriesDetailsId} className={styles.seriesDescription} aria-label={tx("배지 계열 설명")} aria-live="polite">
+          <p className="text-xs text-muted-foreground">{tx(seriesSelected.group)}{"series" in seriesSelected && " · "+CLAN_BADGE_SERIES_NAMES[seriesSelected.series]}</p>
+          <DialogTitle className="text-2xl font-semibold">{tx(seriesSelected.name)}</DialogTitle>
+          <DialogDescription className="leading-7">{tx(seriesSelected.story)}</DialogDescription>
           <span className={cn(styles.seriesStatus, seriesSelected.earned && styles.earnedStatus)}>
-            {seriesSelected.earned ? "획득" : "미획득 · 미리보기"}
+            {seriesSelected.earned ? tx("획득") : tx("미획득 · 미리보기")}
           </span>
           <dl className={styles.seriesFacts}>
-            <div><dt>획득 방식</dt><dd>{acquisitionMethod(seriesSelected)}</dd></div>
-            <div><dt>{seriesSelected.earned ? "획득일" : seriesSelected.metric === "anniversary" ? "획득 예정일" : "현재 진행"}</dt>
+            <div><dt>{tx("획득 방식")}</dt><dd>{tx(acquisitionMethod(seriesSelected))}</dd></div>
+            <div><dt>{seriesSelected.earned ? tx("획득일") : seriesSelected.metric === "anniversary" ? tx("획득 예정일") : tx("현재 진행")}</dt>
               <dd>{seriesSelected.earned
-                ? seriesSelected.earnedAt ? badgeDate.format(new Date(seriesSelected.earnedAt)) : "확인 필요"
+                ? seriesSelected.earnedAt ? badgeDate.format(new Date(seriesSelected.earnedAt)) : tx("확인 필요")
                 : seriesSelected.progress}</dd></div>
           </dl>
           {!compact && canManage && seriesSelected.earned && seriesSelected.key === seriesRepresentative.key &&
             <Button size="sm" variant="outline" disabled={pending} onClick={() => feature(seriesRepresentative.key)}>
               <Star className={cn("size-4", featured.includes(seriesRepresentative.key) && "fill-primary text-primary")} />
-              {featured.includes(seriesRepresentative.key) ? "대표 배지 해제" : "대표 배지 지정"}
+              {featured.includes(seriesRepresentative.key) ? tx("대표 배지 해제") : tx("대표 배지 지정")}
             </Button>}
         </section>
       </div>
-      {series.length > 0 && <section className="mt-2 space-y-3" aria-label="계열의 기록">
+      {series.length > 0 && <section className="mt-2 space-y-3" aria-label={tx("계열의 기록")}>
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="text-sm font-semibold">성장의 기록</h3><p className="text-right text-xs text-muted-foreground">{series.map(b => "years" in b ? b.years + (b.group === "동료" ? "년" : "주년") : b.target.toLocaleString("ko-KR") + (b.group === "멤버" ? "명" : b.group === "게시판" ? "개" : "회")).join(" · ")}</p>
+          <h3 className="text-sm font-semibold">{tx("성장의 기록")}</h3><p className="text-right text-xs text-muted-foreground">{series.map(b => "years" in b ? b.years + (b.group === "동료" ? "년" : "주년") : b.target.toLocaleString(tx.locale) + (b.group === "멤버" ? "명" : b.group === "게시판" ? "개" : "회")).join(" · ")}</p>
         </div>
         <div className={styles.case}>
-          <div className={styles.caseGrid} role="group" aria-label="연관 단계 배지">
+          <div className={styles.caseGrid} role="group" aria-label={tx("연관 단계 배지")}>
             {series.map(b => renderPin(b, false, b.key === seriesSelected.key, () => setSeriesKey(b.key), seriesDetailsId))}
           </div>
         </div>
@@ -222,17 +224,18 @@ function renderPin(badge: ClanBadge, compact: boolean, selected: boolean, onClic
 }
 
 export function ClanHeroBadges({ collection, href }: { collection: ClanBadgeCollection | null; href: string }) {
+  const tx = useTranslator();
   const representatives = collection ? getClanBadgeRepresentatives(collection.badges) : [];
   const selected = collection ? getFeaturedClanBadgeKeys(collection) : [];
   const badges = selected.flatMap(key => representatives.filter(badge => badge.key === key && badge.earned)).slice(0, 3);
-  return <section aria-label="클랜 배지" className={styles.heroBadges}>
-    <Link href={href} aria-label="클랜 배지" className={styles.heroBadgesLink}>
-      <span className={styles.heroBadgesLabel}>클랜 배지 <ChevronRight size={12} aria-hidden="true" /></span>
+  return <section aria-label={tx("클랜 배지")} className={styles.heroBadges}>
+    <Link href={href} aria-label={tx("클랜 배지")} className={styles.heroBadgesLink}>
+      <span className={styles.heroBadgesLabel}>{tx("클랜 배지")} <ChevronRight size={12} aria-hidden="true" /></span>
       <span className={styles.heroBadgePins}>
         {badges.map(badge => <span key={badge.key} className={styles.heroPin} data-badge={badge.key} title={badge.name}>
-          <span className="sr-only">{badge.name}</span><BadgeEmblem badge={badge} compact />
+          <span className="sr-only">{tx(badge.name)}</span><BadgeEmblem badge={badge} compact />
         </span>)}
-        {!badges.length && <span className="text-xs">{collection ? "대표 배지 없음" : "배지를 불러오지 못했습니다"}</span>}
+        {!badges.length && <span className="text-xs">{collection ? tx("대표 배지 없음") : tx("배지를 불러오지 못했습니다")}</span>}
       </span>
     </Link>
   </section>;

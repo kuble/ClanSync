@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { Button } from "@/components/ui/button";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
@@ -30,9 +31,10 @@ export function predictionContext(roster: BalanceRoster, scores: MaSnapshot, mod
   return JSON.stringify([teams, mode, map, [...new Set(bannedHeroes)].sort()]);
 }
 export function ScoreModeToggle({ value, onChange, premium }: { value: ScoreMode; onChange: (value: ScoreMode) => void; premium: boolean }) {
-  return <div role="group" aria-label="점수 표시" className="inline-flex gap-1 rounded-lg bg-muted/50 p-1">
-    <Button size="sm" variant={value === "m" ? "secondary" : "ghost"} aria-pressed={value === "m"} title="운영진이 평가한 점수" onClick={() => onChange("m")}>{SCORE_LABEL.m}</Button>
-    {premium ? <Button size="sm" variant={value === "a" ? "secondary" : "ghost"} aria-pressed={value === "a"} title="분석용 추정 점수" onClick={() => onChange("a")}>{SCORE_LABEL.a}</Button> : null}
+  const tx = useTranslator();
+  return <div role="group" aria-label={tx("점수 표시")} className="inline-flex gap-1 rounded-lg bg-muted/50 p-1">
+    <Button size="sm" variant={value === "m" ? "secondary" : "ghost"} aria-pressed={value === "m"} title={tx("운영진이 평가한 점수")} onClick={() => onChange("m")}>{tx(SCORE_LABEL.m)}</Button>
+    {premium ? <Button size="sm" variant={value === "a" ? "secondary" : "ghost"} aria-pressed={value === "a"} title={tx("분석용 추정 점수")} onClick={() => onChange("a")}>{tx(SCORE_LABEL.a)}</Button> : null}
   </div>;
 }
 
@@ -56,9 +58,10 @@ export function BalanceComparisonBar({ title, team1Label, team2Label, team1Share
 function EstimateRow({ title, context, estimate, ready, waiting, sample = false }: {
   title: string; context: string; estimate?: BalanceEstimate; ready: boolean; waiting: string; sample?: boolean;
 }) {
+  const tx = useTranslator();
   const valid = isValidBalanceEstimate(estimate, context, ready);
   const team1 = valid ? estimate!.team1 : null;
-  return <div aria-label="예측 승률"><BalanceComparisonBar
+  return <div aria-label={tx("예측 승률")}><BalanceComparisonBar
     title={title}
     team1Label={team1 == null ? "—" : formatPercent(team1)}
     team2Label={team1 == null ? "—" : formatPercent(100 - team1)}
@@ -74,6 +77,7 @@ export function BalanceTeamInsights({ roster, scores, mode, map, premium, overal
   overall?: BalanceEstimate; byMap?: BalanceEstimate;
   showMap?: boolean; compact?: boolean; sample?: boolean;
 }) {
+  const tx = useTranslator();
   const teams = [roster.team1, roster.team2].map((team) => [team.tank, ...team.dmg, ...team.sup]);
   const complete = teams.flat().every(Boolean) && new Set(teams.flat()).size === 10;
   const selectedMap = showMap ? map : null;
@@ -82,7 +86,7 @@ export function BalanceTeamInsights({ roster, scores, mode, map, premium, overal
   // as though they included the newly selected map.
   const estimate = selectedMap ? byMap : overall;
   if (!premium) return null;
-  return <aside aria-label="팀 밸런스 비교" className={compact ? "mb-3 space-y-2 rounded-xl bg-muted/25 px-3 py-3 sm:px-4" : "space-y-4 rounded-xl border bg-muted/15 p-4"} aria-live="polite">
-      <EstimateRow title={bannedHeroes ? "예측 승률 · 맵·영웅 밴 반영" : selectedMap ? `예측 승률 · ${selectedMap} 반영` : "예측 승률"} context={context} estimate={sample ? sampleBalanceEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? bannedHeroes ? "밴·포지션 영향 모델 준비 중" : "예측 준비 중" : "10명 편성 후 확인"} />
+  return <aside aria-label={tx("팀 밸런스 비교")} className={compact ? "mb-3 space-y-2 rounded-xl bg-muted/25 px-3 py-3 sm:px-4" : "space-y-4 rounded-xl border bg-muted/15 p-4"} aria-live="polite">
+      <EstimateRow title={bannedHeroes ? tx("예측 승률 · 맵·영웅 밴 반영") : selectedMap ? tx("예측 승률 · {0} 반영", selectedMap) : tx("예측 승률")} context={context} estimate={sample ? sampleBalanceEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? bannedHeroes ? "밴·포지션 영향 모델 준비 중" : "예측 준비 중" : "10명 편성 후 확인"} />
   </aside>;
 }

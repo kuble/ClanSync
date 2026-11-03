@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useMemo, useState } from "react";
 import { Crown, Swords, UserRound, History } from "lucide-react";
 import { ClanSectionPicker } from "./clan-section-picker";
@@ -18,6 +19,7 @@ import { PersonalStats } from "./clan-personal-stats";
 import { Button } from "@/components/ui/button";
 
 export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: { gameSlug: string; clanId: string; model: ClanStatsPageModel; initialPlayer?: string }) {
+  const tx = useTranslator();
   const requestedPersonId = /^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(initialPlayer ?? "") ? initialPlayer : undefined;
   const showPersonalTab = true;
   const people = model.personal.profilePeople ?? model.personal.people;
@@ -45,16 +47,16 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
   }
   return <div className="mx-auto w-full max-w-[1120px] space-y-6">
     <Tabs value={tab} onValueChange={selectTab} className="w-full gap-4">
-      <ClanSectionPicker label="통계 선택" items={sections.map(({value,label,icon: Icon}) => ({
+      <ClanSectionPicker label={tx("통계 선택")} items={sections.map(({value,label,icon: Icon}) => ({
         label, icon: <Icon className="size-4" aria-hidden />, selected: tab === value, onSelect: () => selectTab(value),
       }))}>
         <div className="flex items-center gap-2 border-b">
           <TabsList variant="line" className="h-auto min-w-0 flex-1">
             {sections.map(({value,label,icon: Icon}) => <TabsTrigger key={value} value={value} onClick={() => selectTab(value)}>
-              <Icon className="size-4" aria-hidden />{label}
+              <Icon className="size-4" aria-hidden />{tx(label)}
             </TabsTrigger>)}
           </TabsList>
-          {model.hof.exposeHof && <Badge variant="secondary">명예의 전당 공개 중</Badge>}
+          {model.hof.exposeHof && <Badge variant="secondary">{tx("명예의 전당 공개 중")}</Badge>}
         </div>
       </ClanSectionPicker>
       <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
@@ -62,7 +64,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails
         ? <StatsDetailLoader compact cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail, pending) => detail.kind === "archive" && <ClanMatchHistory pending={pending} model={{ ...model, archive: detail.archive }} settings={settingsFor("records")} />}</StatsDetailLoader>
         : <ClanMatchHistory model={model} settings={settingsFor("records")} />}</TabsContent>}
-      {showPersonalTab && <TabsContent value="personal">{personId && !canViewSelectedStats ? <div className="space-y-3"><div className="flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setPersonId(null)}>멤버 선택</Button></div><StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} hof={model.hof} userId={personId} nickname={people.find(person => person.userId === personId)?.nickname ?? "플레이어"} /><section className="flex items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4"><p className="text-sm text-muted-foreground">개인 기록 열람이 제한되어 있습니다.</p>{settingsFor("personal")}</section></div> : personId ? model.deferredDetails
+      {showPersonalTab && <TabsContent value="personal">{personId && !canViewSelectedStats ? <div className="space-y-3"><div className="flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setPersonId(null)}>{tx("멤버 선택")}</Button></div><StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} hof={model.hof} userId={personId} nickname={people.find(person => person.userId === personId)?.nickname ?? "플레이어"} /><section className="flex items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4"><p className="text-sm text-muted-foreground">{tx("개인 기록 열람이 제한되어 있습니다.")}</p>{settingsFor("personal")}</section></div> : personId ? model.deferredDetails
         ? <StatsDetailLoader compact cache={cache} initial={{ kind: "personal", person: model.personal.people.find(person => person.userId === personId)! }} url={`/api/clans/${clanId}/stats?section=personal&userId=${personId}`}>{(detail, pending) => detail.kind === "personal" && <PersonalStats key={personId} pending={pending} model={{ ...model, personal: { ...model.personal, people: [detail.person] } }} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />}</StatsDetailLoader>
         : <PersonalStats key={personId} model={model} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />
         : <StatsMemberPicker people={people} onSelect={choosePerson} settings={settingsFor("personal")} />}</TabsContent>}

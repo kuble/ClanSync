@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useRouter } from "next/navigation";
 import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ export function StorePremiumPlanDialog({
   gameSlug: string;
   clanId: string;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const manageHref = `/games/${gameSlug}/clan/${clanId}/manage?tab=subscription`;
   const showManageCta = actorRole === "leader" || actorRole === "officer";
@@ -65,7 +67,7 @@ export function StorePremiumPlanDialog({
         showCloseButton
       >
         <DialogHeader>
-          <DialogTitle>Free / Premium 플랜 비교</DialogTitle>
+          <DialogTitle>{tx("Free / Premium 플랜 비교")}</DialogTitle>
           <DialogDescription>{roleLeadCopy(actorRole)}</DialogDescription>
         </DialogHeader>
 
@@ -73,7 +75,7 @@ export function StorePremiumPlanDialog({
           <table className="w-full text-left text-xs">
             <thead className="bg-muted/60 text-muted-foreground border-b">
               <tr>
-                <th className="px-2 py-2 font-medium">영역</th>
+                <th className="px-2 py-2 font-medium">{tx("영역")}</th>
                 <th className="px-2 py-2 font-medium">Free</th>
                 <th className="px-2 py-2 font-medium">Premium</th>
               </tr>
@@ -95,13 +97,12 @@ export function StorePremiumPlanDialog({
         </div>
 
         <p className="text-muted-foreground text-xs">
-          유료 결제는 준비 중입니다. 현재 클랜 플랜과 제공 기능은 클랜 관리에서
-          확인할 수 있습니다.
+          {tx("유료 결제는 준비 중입니다. 현재 클랜 플랜과 제공 기능은 클랜 관리에서 확인할 수 있습니다.")}
         </p>
 
         <DialogFooter className="sm:justify-between">
           <DialogClose render={<Button type="button" variant="ghost" />}>
-            닫기
+            {tx("닫기")}
           </DialogClose>
           {showManageCta ? (
             <Button
@@ -111,7 +112,7 @@ export function StorePremiumPlanDialog({
                 router.push(manageHref);
               }}
             >
-              구독·결제 탭으로 이동
+              {tx("구독·결제 탭으로 이동")}
             </Button>
           ) : null}
         </DialogFooter>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -80,6 +81,7 @@ export function ClanBalanceSettings({
   planPremium: boolean;
   regularRoom: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [draft, setDraft] = useState(settings);
   const [previewFocus, setPreviewFocus] = useState<PreviewSettingFocus | null>(null);
@@ -101,7 +103,7 @@ export function ClanBalanceSettings({
       !sameBanSettings(banSettings, savedRules.banSettings)
     ) {
       toast.error(
-        "다른 운영진이 규칙을 다시 변경했습니다. 최신 설정을 확인하십시오.",
+        tx("다른 운영진이 규칙을 다시 변경했습니다. 최신 설정을 확인하십시오."),
       );
     }
     onOpenChange(false);
@@ -191,8 +193,8 @@ export function ClanBalanceSettings({
       >
         <div className={styles.panel} data-testid="balance-settings-panel">
         <SheetHeader>
-          <SheetTitle><HelpText label="경기 설정" help="편성, 화면 표시와 경기 구성을 관리합니다. 설정 적용을 누르면 현재 내전에 반영합니다." /></SheetTitle>
-          {!editable && <SheetDescription>경기가 시작되어 설정이 잠겼습니다.</SheetDescription>}
+          <SheetTitle><HelpText label={tx("경기 설정")} help={tx("편성, 화면 표시와 경기 구성을 관리합니다. 설정 적용을 누르면 현재 내전에 반영합니다.")} /></SheetTitle>
+          {!editable && <SheetDescription>{tx("경기가 시작되어 설정이 잠겼습니다.")}</SheetDescription>}
         </SheetHeader>
         <div className="space-y-7 px-5 pb-6">
           {rulesChanged ? (
@@ -200,22 +202,21 @@ export function ClanBalanceSettings({
               role="alert"
               className="rounded-lg border border-amber-500/40 p-3 text-sm"
             >
-              다른 운영진이 규칙을 변경했습니다. 닫은 뒤 다시 열어 최신 설정을
-              확인하십시오.
+              {tx("다른 운영진이 규칙을 변경했습니다. 닫은 뒤 다시 열어 최신 설정을 확인하십시오.")}
             </p>
           ) : null}
           <Tabs defaultValue="formation" className="gap-5">
             <TabsList className="grid h-10 w-full grid-cols-3">
-              <TabsTrigger value="formation">편성</TabsTrigger>
-              <TabsTrigger value="display">화면 표시</TabsTrigger>
-              <TabsTrigger value="bans">경기 구성</TabsTrigger>
+              <TabsTrigger value="formation">{tx("편성")}</TabsTrigger>
+              <TabsTrigger value="display">{tx("화면 표시")}</TabsTrigger>
+              <TabsTrigger value="bans">{tx("경기 구성")}</TabsTrigger>
             </TabsList>
             <TabsContent value="formation" className="space-y-6 rounded-xl border bg-muted/10 p-4">
           <fieldset
             disabled={locked || !formationEditable}
             className="space-y-3"
           >
-            <legend className="mb-3 font-semibold text-sm">역할 배정</legend>
+            <legend className="mb-3 font-semibold text-sm">{tx("역할 배정")}</legend>
             {(
               [
                 [
@@ -251,16 +252,16 @@ export function ClanBalanceSettings({
                   }}
                 />
                 <span>
-                  <strong>{label}</strong>
+                  <strong>{tx(label)}</strong>
                 </span>
               </label>
             ))}
           </fieldset>
           <div>
           <fieldset disabled={locked || !formationEditable}>
-            <legend className="font-semibold text-sm">팀원 선발</legend>
+            <legend className="font-semibold text-sm">{tx("팀원 선발")}</legend>
             <select
-              aria-label="팀원 선발 방식"
+              aria-label={tx("팀원 선발 방식")}
               className={field}
               value={draft.teams}
               onChange={(e) => {
@@ -276,7 +277,7 @@ export function ClanBalanceSettings({
                 .filter(([key]) => draft.roles === "manual" || key !== "keep")
                 .map(([value, label]) => (
                   <option key={value} value={value}>
-                    {label}
+                    {tx(label)}
                   </option>
                 ))}
             </select>
@@ -294,10 +295,10 @@ export function ClanBalanceSettings({
                 {draft.roles === "manual" ? (
                   ([0, 1] as const).map((i) => (
                     <label key={i} className="block min-w-0 text-xs">
-                      {i + 1}팀 주장
+                      {i + 1}{tx("팀 주장")}
                       <select
                         className={field}
-                        aria-label={`${i + 1}팀 주장`}
+                        aria-label={tx("{0}팀 주장", i + 1)}
                         value={draft.captains?.[i] ?? ""}
                         onChange={(e) => {
                           if (!e.target.value) {
@@ -324,7 +325,7 @@ export function ClanBalanceSettings({
                             });
                         }}
                       >
-                        <option value="">탱커 (기본)</option>
+                        <option value="">{tx("탱커 (기본)")}</option>
                         {players
                           .filter(
                             (p) =>
@@ -338,7 +339,7 @@ export function ClanBalanceSettings({
                           )
                           .map((p) => (
                             <option key={p.id} value={p.id}>
-                              {names.get(p.id)} · {ROLE_LABEL[p.role]}
+                              {names.get(p.id)} · {tx(ROLE_LABEL[p.role])}
                             </option>
                           ))}
                       </select>
@@ -396,10 +397,10 @@ export function ClanBalanceSettings({
               </div>
             ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
-              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="아이템을 3개 이상 선택해 주십시오. 켜면 아이템 구성 화면이 열립니다. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><Switch aria-label="전략 아이템 사용" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setItemEditorOpen(event.target.checked); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
+              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label={tx("전략 아이템 사용")} help={tx("아이템을 3개 이상 선택해 주십시오. 켜면 아이템 구성 화면이 열립니다. 효과는 운영진이 경기 규칙에 직접 적용합니다.")} /><Switch aria-label={tx("전략 아이템 사용")} checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setItemEditorOpen(event.target.checked); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
               {draft.auctionItemsEnabled ? <div className={`${styles.dependentSettings} space-y-3`}>
-                <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label>
-                <Button variant="outline" size="sm" className="w-full" onClick={() => setItemEditorOpen(true)}>아이템 구성</Button>
+                <label className="block text-xs">{tx("전략 준비 시간(초)")}<input type="number" aria-label={tx("전략 준비 시간(초)")} min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setItemEditorOpen(true)}>{tx("아이템 구성")}</Button>
               </div> : null}
             </div> : null}
           </fieldset>
@@ -416,12 +417,12 @@ export function ClanBalanceSettings({
           </Tabs>
           {editable && activeVote ? (
             <p className="text-xs text-muted-foreground">
-              밴 설정을 변경하면 해당 투표를 초기화합니다.
+              {tx("밴 설정을 변경하면 해당 투표를 초기화합니다.")}
             </p>
           ) : null}
           {editable ? (
             <Button className="w-full" disabled={locked} onClick={save}>
-              {pending || savedRules ? "적용 중…" : "설정 적용"}
+              {pending || savedRules ? tx("적용 중…") : tx("설정 적용")}
             </Button>
           ) : null}
         </div>

@@ -1,9 +1,13 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { PlayerProfileVisit } from "@/lib/profile/visibility";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "플레이어 개인 기록 · ClanSync", robots: { index: false, follow: false } };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("플레이어 개인 기록 · ClanSync"), robots: { index: false, follow: false } };
+}
 
 /** Old profile links resolve to the existing clan record, without a separate profile screen. */
 export default async function PlayerProfilePage({ params }: { params: Promise<{ userId: string }> }) {

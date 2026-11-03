@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useState, useTransition, useOptimistic, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -37,6 +38,7 @@ export function ClanBalancePrematchControls({
   endSessionControl?: ReactNode;
   editingOnly?: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [selectedMap, setSelectedMap] = useOptimistic(session.resolved_map_label);
@@ -78,7 +80,7 @@ export function ClanBalancePrematchControls({
   }
 
   return (
-    <section className="space-y-6" aria-label="경기 준비">
+    <section className="space-y-6" aria-label={tx("경기 준비")}>
       {needsMapVote && canManage ? (
         <div className="space-y-3">
           <MapTypeFilter value={types} onChange={setTypes} disabled={pending} />
@@ -93,8 +95,8 @@ export function ClanBalancePrematchControls({
         />
       ) : session.resolved_map_label ? (
         <div className="flex items-center justify-between gap-3" data-balance-guide="map-vote">
-          <p className="text-sm"><span className="mr-2 text-muted-foreground">경기 맵</span><strong>{session.resolved_map_label}</strong></p>
-          {!session.map_ban_enabled && canManage ? <Button size="sm" variant="outline" disabled={pending} onClick={() => setManualMapOpen(true)}>맵 변경</Button> : null}
+          <p className="text-sm"><span className="mr-2 text-muted-foreground">{tx("경기 맵")}</span><strong>{tx(session.resolved_map_label)}</strong></p>
+          {!session.map_ban_enabled && canManage ? <Button size="sm" variant="outline" disabled={pending} onClick={() => setManualMapOpen(true)}>{tx("맵 변경")}</Button> : null}
         </div>
       ) : null}
       {renderInsights?.(selectedMap)}
@@ -105,13 +107,13 @@ export function ClanBalancePrematchControls({
             disabled={pending || (!needsMapVote && !session.resolved_map_label)}
             onClick={advance}
           >
-            {pending ? "적용 중…" : label}
+            {pending ? tx("적용 중…") : tx(label)}
             <ArrowRight className="size-4" />
           </Button>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          운영진이 경기를 준비하고 있습니다.
+          {tx("운영진이 경기를 준비하고 있습니다.")}
         </p>
       )}
     </section>

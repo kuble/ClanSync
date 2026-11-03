@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateHistoricalMscoreAction } from "@/app/actions/clan-stats-score";
@@ -16,6 +17,7 @@ const matchLabel = (match: PersonalMatch) => `${new Intl.DateTimeFormat("ko-KR",
 export function StatsScoreEditor({ gameSlug, clanId, playerId, matches }: {
   gameSlug: string; clanId: string; playerId: string; matches: PersonalMatch[];
 }) {
+  const tx = useTranslator();
   const editable = matches.filter((match) => match.source === "balance");
   const [open, setOpen] = useState(false);
   const [roundId, setRoundId] = useState(editable[0]?.id ?? "");
@@ -41,16 +43,16 @@ export function StatsScoreEditor({ gameSlug, clanId, playerId, matches }: {
     });
   };
   return <Dialog open={open} onOpenChange={(next) => { setOpen(next); setError(""); if (next) setScore(String(selected?.evaluation ?? 0)); }}>
-    <StatTooltip label="평가 점수 수정" description="선택한 역할의 경기별 평가 점수를 수정합니다." render={<DialogTrigger render={<Button type="button" size="icon" variant="ghost" className="size-7" aria-label="평가 점수 수정" />} />}><Pencil className="size-3.5" aria-hidden="true" /></StatTooltip>
+    <StatTooltip label={tx("평가 점수 수정")} description={tx("선택한 역할의 경기별 평가 점수를 수정합니다.")} render={<DialogTrigger render={<Button type="button" size="icon" variant="ghost" className="size-7" aria-label={tx("평가 점수 수정")} />} />}><Pencil className="size-3.5" aria-hidden="true" /></StatTooltip>
     <DialogContent>
-      <DialogHeader><DialogTitle>평가 점수 수정</DialogTitle><DialogDescription>선택한 내전의 평가 점수만 변경합니다.</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>{tx("평가 점수 수정")}</DialogTitle><DialogDescription>{tx("선택한 내전의 평가 점수만 변경합니다.")}</DialogDescription></DialogHeader>
       <div className="space-y-4">
-        <label className="block space-y-1.5 text-sm"><span>수정할 경기</span><select aria-label="수정할 경기" value={selected.id} onChange={(event) => { const next = editable.find((match) => match.id === event.target.value); setRoundId(event.target.value); setScore(String(next?.evaluation ?? 0)); setError(""); }} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+        <label className="block space-y-1.5 text-sm"><span>{tx("수정할 경기")}</span><select aria-label={tx("수정할 경기")} value={selected.id} onChange={(event) => { const next = editable.find((match) => match.id === event.target.value); setRoundId(event.target.value); setScore(String(next?.evaluation ?? 0)); setError(""); }} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
           {editable.map((match) => <option key={match.id} value={match.id}>{matchLabel(match)}</option>)}
         </select></label>
-        <label className="block space-y-1.5 text-sm"><span>평가 점수</span><Input aria-label="평가 점수 입력" type="number" min={MA_SCORE_MIN} max={MA_SCORE_MAX} step="0.1" value={score} onChange={(event) => { setScore(event.target.value); setError(""); }} /></label>
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-        <Button type="button" onClick={save} disabled={pending}>{pending ? "저장 중…" : "점수 저장"}</Button>
+        <label className="block space-y-1.5 text-sm"><span>{tx("평가 점수")}</span><Input aria-label={tx("평가 점수 입력")} type="number" min={MA_SCORE_MIN} max={MA_SCORE_MAX} step="0.1" value={score} onChange={(event) => { setScore(event.target.value); setError(""); }} /></label>
+        {error && <p role="alert" className="text-sm text-destructive">{tx(error)}</p>}
+        <Button type="button" onClick={save} disabled={pending}>{pending ? tx("저장 중…") : tx("점수 저장")}</Button>
       </div>
     </DialogContent>
   </Dialog>;

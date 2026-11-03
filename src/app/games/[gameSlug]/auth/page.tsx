@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import Link from "next/link";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { ArrowLeft } from "lucide-react";
@@ -10,11 +11,15 @@ import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import styles from "@/components/onboarding/onboarding.module.css";
 
-export const metadata = { title: "게임 ID 등록 · ClanSync" };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("게임 ID 등록 · ClanSync") };
+}
 
 export default async function GameAuthPage({ params, searchParams }: {
   params: Promise<{ gameSlug: string }>; searchParams: Promise<{ reauth?: string; next?: string }>;
 }) {
+  const tx = await getTranslator();
   const [{ gameSlug }, { reauth, next }] = await Promise.all([params, searchParams]);
   const cfg = getGameAuthConfig(gameSlug);
   const devSimulator = allowDevGameLink(process.env);
@@ -38,11 +43,11 @@ export default async function GameAuthPage({ params, searchParams }: {
     {cfg ? <>
       <section className={styles.authCard}>
         <div className={styles.gameIcon} aria-hidden="true"><GameLogo slug={gameSlug} name={gameName} className="size-7" /></div>
-        <h1 className={styles.heading}>{gameName} 게임 ID {reauth ? "수정" : "등록"}</h1>
-        <p className={styles.description}>{canRegister ? `클랜에서 사용할 ${gameSlug === "overwatch" ? "배틀태그" : "라이엇 ID"}를 ${reauth ? "수정" : "등록"}합니다.` : "이 게임의 ID 등록은 준비 중입니다."}</p>
+        <h1 className={styles.heading}>{tx(gameName)} {tx("게임 ID")} {reauth ? tx("수정") : tx("등록")}</h1>
+        <p className={styles.description}>{canRegister ? tx("클랜에서 사용할 {0}를 {1}합니다.", gameSlug === "overwatch" ? "배틀태그" : "라이엇 ID", reauth ? "수정" : "등록") : tx("이 게임의 ID 등록은 준비 중입니다.")}</p>
         {canRegister && <GameAuthConnect gameSlug={gameSlug} oauthReady={cfg.oauthReady} devSimulatorAvailable={devSimulator} nextPath={nextPath} initialBattleTag={initialBattleTag} initialRiotId={initialRiotId} />}
       </section>
-    </> : <section className={styles.authCard}><h1 className={styles.heading}>지원하지 않는 게임</h1><p className={styles.description}>게임 선택에서 이용 가능한 게임을 확인해 주십시오.</p></section>}
-    <Link href={cancelPath} className={styles.back}><ArrowLeft size={15} aria-hidden="true" />{cancelPath === "/games" ? "게임 선택으로" : "프로필로 돌아가기"}</Link>
+    </> : <section className={styles.authCard}><h1 className={styles.heading}>{tx("지원하지 않는 게임")}</h1><p className={styles.description}>{tx("게임 선택에서 이용 가능한 게임을 확인해 주십시오.")}</p></section>}
+    <Link href={cancelPath} className={styles.back}><ArrowLeft size={15} aria-hidden="true" />{cancelPath === "/games" ? tx("게임 선택으로") : tx("프로필로 돌아가기")}</Link>
   </main></AccountShell>;
 }

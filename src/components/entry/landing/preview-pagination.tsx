@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useId, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./preview.module.css";
@@ -7,12 +8,13 @@ import styles from "./preview.module.css";
 type Slide = { id: string; label: string; content: ReactNode };
 
 export function PreviewPagination({ label, slides }: { label: string; slides: Slide[] }) {
+  const tx = useTranslator();
   const id = useId();
   const [active, setActive] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const select = (index: number) => setActive((index + slides.length) % slides.length);
 
-  return <div className={styles.pagination} role="region" aria-label={label}>
+  return <div className={styles.pagination} role="region" aria-label={tx(label)}>
     <div className={styles.slideStack}>
       {slides.map((slide, index) => <div
         key={slide.id} id={`${id}-panel-${index}`} role="tabpanel"
@@ -22,8 +24,8 @@ export function PreviewPagination({ label, slides }: { label: string; slides: Sl
       >{slide.content}</div>)}
     </div>
     <div className={styles.paginationControls}>
-      <button type="button" aria-label={`${label} 이전 페이지`} onClick={() => select(active - 1)}><ChevronLeft size={18} aria-hidden /></button>
-      <div role="tablist" aria-label={`${label} 페이지 선택`}>
+      <button type="button" aria-label={tx("{0} 이전 페이지", label)} onClick={() => select(active - 1)}><ChevronLeft size={18} aria-hidden /></button>
+      <div role="tablist" aria-label={tx("{0} 페이지 선택", label)}>
         {slides.map((slide, index) => <button
           key={slide.id} ref={(node) => { tabs.current[index] = node; }}
           type="button" role="tab" id={`${id}-tab-${index}`}
@@ -41,10 +43,10 @@ export function PreviewPagination({ label, slides }: { label: string; slides: Sl
             select(next);
             tabs.current[next]?.focus();
           }}
-        ><span className={styles.paginationDot} aria-hidden /><span>{slide.label}</span></button>)}
+        ><span className={styles.paginationDot} aria-hidden /><span>{tx(slide.label)}</span></button>)}
       </div>
-      <button type="button" aria-label={`${label} 다음 페이지`} onClick={() => select(active + 1)}><ChevronRight size={18} aria-hidden /></button>
+      <button type="button" aria-label={tx("{0} 다음 페이지", label)} onClick={() => select(active + 1)}><ChevronRight size={18} aria-hidden /></button>
     </div>
-    <p className="sr-only" aria-live="polite" aria-atomic="true">{slides[active].label}, {active + 1} / {slides.length}</p>
+    <p className="sr-only" aria-live="polite" aria-atomic="true">{tx(slides[active].label)}, {active + 1} / {slides.length}</p>
   </div>;
 }

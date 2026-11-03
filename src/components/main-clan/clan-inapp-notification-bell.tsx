@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Bell } from "lucide-react";
@@ -34,6 +35,7 @@ export function ClanInAppNotificationBell({
   initialItems: ClanInAppNotificationVM[];
   initialUnreadCount: number;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [badgeHidden, setBadgeHidden] = useState(false);
@@ -117,7 +119,7 @@ export function ClanInAppNotificationBell({
           "hover:bg-muted/80 text-muted-foreground hover:text-foreground relative inline-flex size-9 items-center justify-center rounded-md transition-colors",
           "focus-visible:ring-ring outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
         )}
-        aria-label={`알림${showBadge ? ` ${badgeText}건 미읽음` : ""}`}
+        aria-label={tx("알림{0}", showBadge ? ` ${badgeText}건 미읽음` : "")}
       >
         <Bell className="size-5" aria-hidden />
         {showBadge > 0 ? (
@@ -135,7 +137,7 @@ export function ClanInAppNotificationBell({
         className="flex w-[min(100vw-2rem,380px)] flex-col gap-0 p-0"
       >
         <SheetHeader className="border-border shrink-0 space-y-1 border-b px-4 py-3 text-left">
-          <SheetTitle className="text-base">알림</SheetTitle>
+          <SheetTitle className="text-base">{tx("알림")}</SheetTitle>
         </SheetHeader>
 
         <div className="flex min-h-0 flex-1 flex-col">
@@ -151,7 +153,7 @@ export function ClanInAppNotificationBell({
             disabled={pending || initialUnreadCount === 0}
             onClick={onMarkAll}
           >
-            모두 읽음
+            {tx("모두 읽음")}
           </Button>
         </div>
       </SheetContent>

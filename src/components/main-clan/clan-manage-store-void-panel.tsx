@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -32,6 +33,7 @@ export function ClanManageStoreVoidPanel({
   clanRows: ManageStoreVoidRowVM[];
   personalRows: ManageStoreVoidRowVM[];
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ purchaseId: string; text: string } | null>(
@@ -46,12 +48,10 @@ export function ClanManageStoreVoidPanel({
     <div className="space-y-6">
       {clanRows.length > 0 ? (
         <VoidSection
-          title="클랜 코인 사용 내역 정정"
+          title={tx("클랜 코인 사용 내역 정정")}
           description={
             <>
-              운영진은 클랜 코인으로 잘못 구매한 상품을 취소할 수 있습니다.
-              사용한 코인은 클랜에 돌려드리며, 배너 슬롯 구매를 취소하면 등록된
-              배너도 해제됩니다. 본인의 구매는 다른 운영진에게 정정을 요청해 주십시오.
+              {tx("운영진은 클랜 코인으로 잘못 구매한 상품을 취소할 수 있습니다. 사용한 코인은 클랜에 돌려드리며, 배너 슬롯 구매를 취소하면 등록된 배너도 해제됩니다. 본인의 구매는 다른 운영진에게 정정을 요청해 주십시오.")}
             </>
           }
           gameSlug={gameSlug}
@@ -68,12 +68,10 @@ export function ClanManageStoreVoidPanel({
 
       {personalRows.length > 0 ? (
         <VoidSection
-          title="개인 코인 사용 내역 정정"
+          title={tx("개인 코인 사용 내역 정정")}
           description={
             <>
-              운영진은 활동 중인 클랜원이 개인 코인으로 잘못 구매한 상품을
-              취소할 수 있습니다. 코인은 구매자에게 돌려드리며, 해당 구매로 받은
-              꾸미기 효과는 해제됩니다. 본인의 구매는 다른 운영진에게 정정을 요청해 주십시오.
+              {tx("운영진은 활동 중인 클랜원이 개인 코인으로 잘못 구매한 상품을 취소할 수 있습니다. 코인은 구매자에게 돌려드리며, 해당 구매로 받은 꾸미기 효과는 해제됩니다. 본인의 구매는 다른 운영진에게 정정을 요청해 주십시오.")}
             </>
           }
           gameSlug={gameSlug}
@@ -116,6 +114,7 @@ function VoidSection({
   setFeedback: (v: { purchaseId: string; text: string } | null) => void;
   routerRefresh: () => void;
 }) {
+  const tx = useTranslator();
   return (
     <section className="space-y-3 rounded-lg border p-4">
       <div>
@@ -133,14 +132,14 @@ function VoidSection({
               <span className="font-medium">{row.itemNameKo}</span>
               <span className="text-muted-foreground">
                 {" "}
-                · {row.priceCoins.toLocaleString("ko-KR")} 코인 · 구매자 {row.buyerNickname}
+                · {row.priceCoins.toLocaleString(tx.locale)} {tx("코인 · 구매자")} {row.buyerNickname}
               </span>
               <div className="text-muted-foreground text-xs">{row.purchasedAtLabel}</div>
             </div>
 
             {row.isBuyerSelf ? (
               <p className="text-muted-foreground text-xs">
-                본인이 구매한 상품은 다른 운영진에게 정정을 요청해 주십시오.
+                {tx("본인이 구매한 상품은 다른 운영진에게 정정을 요청해 주십시오.")}
               </p>
             ) : (
               <VoidRowForm
@@ -193,6 +192,7 @@ function VoidRowForm({
   onResult: (text: string, ok: boolean) => void;
   startTransition: (cb: () => void) => void;
 }) {
+  const tx = useTranslator();
   const [reason, setReason] = useState("");
 
   const confirmMsg =
@@ -234,20 +234,20 @@ function VoidRowForm({
     >
       <div className="min-w-0 flex-1 space-y-1">
         <Label htmlFor={`void-reason-${pool}-${purchaseId}`} className="text-xs">
-          정정 사유
+          {tx("정정 사유")}
         </Label>
         <Input
           id={`void-reason-${pool}-${purchaseId}`}
           name="reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="예: 중복 구매 오류"
+          placeholder={tx("예: 중복 구매 오류")}
           disabled={disabled}
           autoComplete="off"
         />
       </div>
       <Button type="submit" variant="destructive" size="sm" disabled={disabled}>
-        구매 취소
+        {tx("구매 취소")}
       </Button>
     </form>
   );

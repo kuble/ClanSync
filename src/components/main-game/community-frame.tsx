@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import {
@@ -87,6 +88,7 @@ export function CommunityFrame({
   onNavigate: (value: MainGameCommunityTab) => void;
   children: ReactNode;
 }) {
+  const tx = useTranslator();
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 960px)");
@@ -109,34 +111,34 @@ export function CommunityFrame({
       className={styles.shell}
     >
       <a href="#community-content" className={styles.skip}>
-        본문으로 이동
+        {tx("본문으로 이동")}
       </a>
       <header className={styles.header}>
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), styles.mobileTrigger)} aria-label="메뉴 열기">
+          <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), styles.mobileTrigger)} aria-label={tx("메뉴 열기")}>
             <Menu size={20} />
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <SheetHeader className="border-b p-5">
-              <SheetTitle>{gameName} 커뮤니티</SheetTitle>
+              <SheetTitle>{tx(gameName)} {tx("커뮤니티")}</SheetTitle>
             </SheetHeader>
-            <nav aria-label="모바일 커뮤니티 메뉴" className={styles.drawerNav}>
+            <nav aria-label={tx("모바일 커뮤니티 메뉴")} className={styles.drawerNav}>
               <Link href={clanHubHref}>
                 <NavigationIcon icon={Shield} label={clanLabel} />
                 {clanLabel}
               </Link>
               <Link href="/profile">
-                <NavigationIcon icon={UserRound} label="프로필" />
-                프로필
+                <NavigationIcon icon={UserRound} label={tx("프로필")} />
+                {tx("프로필")}
               </Link>
             </nav>
           </SheetContent>
         </Sheet>
-        <Link href="/games" className={styles.brand} aria-label="게임 선택">
-          <NavigationIcon icon={BrandSymbol} label="게임 선택" size={22} />
+        <Link href="/games" className={styles.brand} aria-label={tx("게임 선택")}>
+          <NavigationIcon icon={BrandSymbol} label={tx("게임 선택")} size={22} />
         </Link>
         <span aria-hidden>/</span>
-        <Link href={`/games/${encodeURIComponent(gameSlug)}`}>{gameName}</Link>
+        <Link href={`/games/${encodeURIComponent(gameSlug)}`}>{tx(gameName)}</Link>
         <Link
           href={clanHubHref}
           className={styles.headerAction}
@@ -149,36 +151,36 @@ export function CommunityFrame({
       </header>
       <main id="community-content" className={styles.content}>
         <div className={styles.inner}>
-          <ClanSectionPicker label="커뮤니티 메뉴" selectionLabel="커뮤니티 선택" items={navigation.map(({ value, label, icon: Icon }) => ({
+          <ClanSectionPicker label={tx("커뮤니티 메뉴")} selectionLabel={tx("커뮤니티 선택")} items={navigation.map(({ value, label, icon: Icon }) => ({
             label, icon: <Icon className="size-4" aria-hidden />, selected: value === tab, onSelect: () => navigate(value),
           }))}>
-            <aside className={styles.rail} aria-label="커뮤니티 탐색">
+            <aside className={styles.rail} aria-label={tx("커뮤니티 탐색")}>
               <TabsList
                 variant="line"
                 className={styles.nav}
-                aria-label="커뮤니티 메뉴"
+                aria-label={tx("커뮤니티 메뉴")}
               >
                 {navigation.map(({ value, label, icon: Icon }) => (
                   <TabsTrigger
                     key={value}
                     value={value}
-                    aria-label={label}
-                    title={label}
+                    aria-label={tx(label)}
+                    title={tx(label)}
                     className={styles.navItem}
                   >
                     <Icon aria-hidden />
-                    <span>{label}</span>
+                    <span>{tx(label)}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
-              <nav className={styles.bottom} aria-label="계정 및 클랜">
+              <nav className={styles.bottom} aria-label={tx("계정 및 클랜")}>
                 <Link href={clanHubHref} aria-label={clanLabel} title={clanLabel}>
                   <NavigationIcon icon={Shield} label={clanLabel} />
                   <span>{clanLabel}</span>
                 </Link>
-                <Link href="/profile" aria-label="프로필" title="프로필">
-                  <NavigationIcon icon={UserRound} label="프로필" />
-                  <span>프로필</span>
+                <Link href="/profile" aria-label={tx("프로필")} title={tx("프로필")}>
+                  <NavigationIcon icon={UserRound} label={tx("프로필")} />
+                  <span>{tx("프로필")}</span>
                 </Link>
               </nav>
             </aside>
@@ -192,7 +194,7 @@ export function CommunityFrame({
                 {tab === "home"
                   ? gameName + " 커뮤니티"
                   : tab === "lfg"
-                    ? "같이 할 사람"
+                    ? tx("같이 할 사람")
                     : current.label}
               </h1>
               <p>{current.description}</p>
@@ -200,7 +202,7 @@ export function CommunityFrame({
           </div>
           {!gameActive ? (
             <p className="mb-4 text-sm text-muted-foreground">
-              이 게임은 현재 비활성 상태입니다.
+              {tx("이 게임은 현재 비활성 상태입니다.")}
             </p>
           ) : null}
           {children}

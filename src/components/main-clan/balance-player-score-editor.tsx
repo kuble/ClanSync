@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Popover } from "@base-ui/react/popover";
@@ -12,6 +13,7 @@ import { MA_SCORE_MIN, MA_SCORE_MAX } from "@/lib/balance/ma-snapshot";
 export function BalancePlayerScoreEditor({ gameSlug, clanId, sessionId, userId, nickname, value }: {
   gameSlug: string; clanId: string; sessionId: string; userId: string; nickname: string; value: number | null | undefined;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -35,16 +37,16 @@ export function BalancePlayerScoreEditor({ gameSlug, clanId, sessionId, userId, 
       if (open) setDraft(String(value ?? 0));
       setEditing(open);
     }}>
-      <Popover.Trigger aria-label={`${nickname} 평가 점수 수정`} title="평가 점수 수정" className={`rounded-lg border border-current/10 bg-background/50 px-2 py-2 text-sm font-bold tabular-nums hover:border-primary/60 focus-visible:outline-2 focus-visible:outline-ring sm:min-w-16 sm:text-base ${editing ? "w-full opacity-0" : ""}`}>{formatBalanceScore(value).replace(/점$/, "")}</Popover.Trigger>
+      <Popover.Trigger aria-label={tx("{0} 평가 점수 수정", nickname)} title={tx("평가 점수 수정")} className={`rounded-lg border border-current/10 bg-background/50 px-2 py-2 text-sm font-bold tabular-nums hover:border-primary/60 focus-visible:outline-2 focus-visible:outline-ring sm:min-w-16 sm:text-base ${editing ? "w-full opacity-0" : ""}`}>{formatBalanceScore(value).replace(/점$/, "")}</Popover.Trigger>
       <Popover.Portal container={editor}>
         <Popover.Backdrop className="pointer-events-auto fixed inset-0 z-50" data-testid="balance-score-backdrop" />
         <Popover.Positioner side="bottom" align="end" sideOffset={-40} className="z-50">
           <Popover.Popup className="w-32 max-w-[calc(100vw-2rem)] rounded-lg bg-background p-1">
-            <Popover.Title className="sr-only">{nickname} 평가 점수 변경</Popover.Title>
+            <Popover.Title className="sr-only">{nickname} {tx("평가 점수 변경")}</Popover.Title>
             <form noValidate className="grid grid-cols-[minmax(0,1fr)_20px_20px] items-center gap-1" onSubmit={(event) => { event.preventDefault(); if (!pending) save(); }}>
-              <input aria-label={`${nickname} 평가 점수`} type="text" inputMode="decimal" value={draft} disabled={pending} onChange={(event) => setDraft(event.target.value)} className="h-9 w-full min-w-0 rounded-lg border bg-background px-1 text-center text-xs tabular-nums focus-visible:outline-2 focus-visible:outline-ring sm:text-sm" />
-              <button type="submit" aria-label={`${nickname} 점수 저장`} disabled={pending} className="rounded-md p-0.5 text-primary focus-visible:outline-2 focus-visible:outline-ring"><Check className="size-4" /></button>
-              <Popover.Close aria-label={`${nickname} 점수 취소`} disabled={pending} className="rounded-md p-0.5 text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"><X className="size-4" /></Popover.Close>
+              <input aria-label={tx("{0} 평가 점수", nickname)} type="text" inputMode="decimal" value={draft} disabled={pending} onChange={(event) => setDraft(event.target.value)} className="h-9 w-full min-w-0 rounded-lg border bg-background px-1 text-center text-xs tabular-nums focus-visible:outline-2 focus-visible:outline-ring sm:text-sm" />
+              <button type="submit" aria-label={tx("{0} 점수 저장", nickname)} disabled={pending} className="rounded-md p-0.5 text-primary focus-visible:outline-2 focus-visible:outline-ring"><Check className="size-4" /></button>
+              <Popover.Close aria-label={tx("{0} 점수 취소", nickname)} disabled={pending} className="rounded-md p-0.5 text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"><X className="size-4" /></Popover.Close>
             </form>
           </Popover.Popup>
         </Popover.Positioner>

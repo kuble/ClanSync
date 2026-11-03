@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Trophy } from "lucide-react";
@@ -17,23 +18,24 @@ const columns: { key: ArchiveDaySortKey; label: string; accessibleLabel?: string
 ];
 
 export function ArchiveDayTable({ records, pending = false }: { records: ClanArchiveMatch[]; pending?: boolean }) {
+  const tx = useTranslator();
   const [sort, setSort] = useState<{ key: ArchiveDaySortKey; direction: "asc" | "desc" }>({ key: "rate", direction: "desc" });
   const totals = useMemo(() => buildArchiveDayStats(records), [records]);
   const rows = sortArchiveDayStats(totals, sort.key, sort.direction);
   const SortIcon = sort.direction === "asc" ? ArrowUp : ArrowDown;
-  return <aside className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-muted/15 min-[1100px]:h-auto min-[1100px]:max-h-[max(560px,calc(100dvh-15rem))] min-[1100px]:min-h-[560px]" aria-label="선택한 날짜 내전 기록">
+  return <aside className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-muted/15 min-[1100px]:h-auto min-[1100px]:max-h-[max(560px,calc(100dvh-15rem))] min-[1100px]:min-h-[560px]" aria-label={tx("선택한 날짜 내전 기록")}>
     <div className="flex flex-wrap items-center justify-between gap-1 border-b px-4 py-3">
-      <h5 className="flex items-center gap-2 text-xs font-semibold"><Trophy className="size-4 text-amber-500" aria-hidden="true" />이날의 내전 기록</h5>
-      <span className="text-[10px] text-muted-foreground">당일 전체 내전 기준</span>
+      <h5 className="flex items-center gap-2 text-xs font-semibold"><Trophy className="size-4 text-amber-500" aria-hidden="true" />{tx("이날의 내전 기록")}</h5>
+      <span className="text-[10px] text-muted-foreground">{tx("당일 전체 내전 기준")}</span>
     </div>
-    <div className="min-h-0 flex-1 overflow-auto [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-ring" role="region" aria-label="당일 기록 표 스크롤" tabIndex={0}>
-      <table className="w-full min-w-[430px] table-fixed text-xs tabular-nums" aria-label="당일 내전 기록 정렬 표">
+    <div className="min-h-0 flex-1 overflow-auto [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-ring" role="region" aria-label={tx("당일 기록 표 스크롤")} tabIndex={0}>
+      <table className="w-full min-w-[430px] table-fixed text-xs tabular-nums" aria-label={tx("당일 내전 기록 정렬 표")}>
         <colgroup><col className="w-[26%]" /><col className="w-[21%]" /><col className="w-[13%]" /><col className="w-[16%]" /><col className="w-[12%]" /><col className="w-[12%]" /></colgroup>
         <thead className="sticky top-0 z-10 bg-card text-[10px] text-muted-foreground">
           <tr>{columns.map((column) => <th key={column.key} scope="col" aria-sort={sort.key === column.key ? sort.direction === "asc" ? "ascending" : "descending" : "none"} className="border-b p-0 font-medium">
-            <button type="button" aria-label={`${column.accessibleLabel ?? column.label} 정렬`} onClick={() => setSort((old) => ({ key: column.key, direction: old.key === column.key ? old.direction === "asc" ? "desc" : "asc" : column.key === "nickname" ? "asc" : "desc" }))}
+            <button type="button" aria-label={tx("{0} 정렬", column.accessibleLabel ?? column.label)} onClick={() => setSort((old) => ({ key: column.key, direction: old.key === column.key ? old.direction === "asc" ? "desc" : "asc" : column.key === "nickname" ? "asc" : "desc" }))}
               className={cn("flex w-full items-center justify-center gap-0.5 py-2.5 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring", column.key === "nickname" && "justify-start pl-3", sort.key === column.key && "text-foreground")}>
-              <span>{column.key === "currentStreak" || column.key === "maxWinStreak" || column.key === "maxLossStreak" ? <span className="mb-0.5 block font-normal text-muted-foreground">{column.key === "currentStreak" ? "당일" : "최장"}</span> : null}{column.label}</span>{sort.key === column.key && <SortIcon className="size-2.5 shrink-0" aria-hidden="true" />}
+              <span>{column.key === "currentStreak" || column.key === "maxWinStreak" || column.key === "maxLossStreak" ? <span className="mb-0.5 block font-normal text-muted-foreground">{column.key === "currentStreak" ? tx("당일") : tx("최장")}</span> : null}{tx(column.label)}</span>{sort.key === column.key && <SortIcon className="size-2.5 shrink-0" aria-hidden="true" />}
             </button>
           </th>)}</tr>
         </thead>
@@ -45,7 +47,7 @@ export function ArchiveDayTable({ records, pending = false }: { records: ClanArc
             {row.currentStreak === 0 ? "—" : `${Math.abs(row.currentStreak)}${row.currentStreak > 0 ? "연승" : "연패"}`}
           </td>
           <td className="text-center">{row.maxWinStreak}</td><td className="text-center">{row.maxLossStreak}</td>
-        </tr>)}{!rows.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-muted-foreground"><span role={pending ? "status" : undefined}>{pending ? "내전 결과를 불러오는 중…" : "집계할 내전 결과가 없습니다."}</span></td></tr>}</tbody>
+        </tr>)}{!rows.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-muted-foreground"><span role={pending ? "status" : undefined}>{pending ? tx("내전 결과를 불러오는 중…") : tx("집계할 내전 결과가 없습니다.")}</span></td></tr>}</tbody>
       </table>
     </div>
   </aside>;

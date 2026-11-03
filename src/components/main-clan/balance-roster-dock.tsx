@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useId, useState, type ReactNode } from "react";
 import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,13 +18,14 @@ export function BalanceRosterDock({ members, children, showMembers = true }: {
   children: ReactNode;
   showMembers?: boolean;
 }) {
+  const tx = useTranslator();
   const helpId = useId();
   const [position, setPosition] = useState<Position>("left");
   const [dragging, setDragging] = useState(false);
   const [target, setTarget] = useState<Position | null>(null);
   const finish = () => { setDragging(false); setTarget(null); };
-  const handle = <button type="button" draggable className={styles.handle} aria-label="클랜원 목록 이동" aria-describedby={helpId} aria-expanded={dragging}
-      title="끌어서 이동 · 방향키로 배치"
+  const handle = <button type="button" draggable className={styles.handle} aria-label={tx("클랜원 목록 이동")} aria-describedby={helpId} aria-expanded={dragging}
+      title={tx("끌어서 이동 · 방향키로 배치")}
       onClick={() => { setDragging((value) => !value); setTarget(null); }}
       onDragStart={(event) => {
         event.dataTransfer.setData(DRAG_TYPE, "members");
@@ -40,15 +42,15 @@ export function BalanceRosterDock({ members, children, showMembers = true }: {
     </button>;
   if (!showMembers) return <>{children}</>;
   return <div className={styles.container}>
-    <p id={helpId} className="sr-only">손잡이를 참여자 목록의 위, 왼쪽, 오른쪽, 아래로 끌어 배치하십시오. 손잡이를 누른 뒤 부착 위치를 선택하거나 방향키로도 옮길 수 있습니다.</p>
+    <p id={helpId} className="sr-only">{tx("손잡이를 참여자 목록의 위, 왼쪽, 오른쪽, 아래로 끌어 배치하십시오. 손잡이를 누른 뒤 부착 위치를 선택하거나 방향키로도 옮길 수 있습니다.")}</p>
     <div className={styles.layout} data-member-position={position}>
       <div className={cn(styles.members, dragging && "opacity-50")}>{members(handle)}</div>
       <div className={styles.board}>
         {children}
-        {dragging && <div className={styles.targets} aria-label="클랜원 목록 부착 위치">
+        {dragging && <div className={styles.targets} aria-label={tx("클랜원 목록 부착 위치")}>
           {positions.map((item) => <button type="button" key={item.value} data-dock-target={item.value}
             className={cn(styles.target, styles[item.value], target === item.value && styles.targetActive)}
-            aria-label={`클랜원 목록 ${item.label}에 부착`}
+            aria-label={tx("클랜원 목록 {0}에 부착", item.label)}
             onDragOver={(event) => {
               if (!event.dataTransfer.types.includes(DRAG_TYPE)) return;
               event.preventDefault();
@@ -63,7 +65,7 @@ export function BalanceRosterDock({ members, children, showMembers = true }: {
               setPosition(item.value);
               finish();
             }}
-            onClick={() => { setPosition(item.value); finish(); }}>{item.label}</button>)}
+            onClick={() => { setPosition(item.value); finish(); }}>{tx(item.label)}</button>)}
         </div>}
       </div>
     </div>

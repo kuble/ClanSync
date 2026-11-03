@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { StatHelp } from "@/components/main-clan/stat-help";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -14,6 +15,7 @@ export type AltAccountRow = { id: string; game_id: string; alt_nick: string; not
 type Props = { gameId: string; gameSlug: string; disclosureLines: string[]; initialRows: AltAccountRow[]; onChanged?: () => void };
 
 export function ProfileGameAltAccounts({ gameId, gameSlug, disclosureLines, initialRows, onChanged }: Props) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
@@ -46,21 +48,21 @@ export function ProfileGameAltAccounts({ gameId, gameSlug, disclosureLines, init
     });
   }
   return <section className={styles.altSection} data-alt-accounts-panel={gameSlug}>
-    <div className={styles.sectionHeader}><h4 aria-label="부계정 · 자기신고"><StatHelp title="부계정 · 자기신고">{disclosureLines.length ? disclosureLines.join(" ") : "이 게임의 활성 클랜에 소속되어 있지 않으면 본인만 조회할 수 있습니다."}</StatHelp></h4><Button type="button" size="sm" variant="outline" onClick={() => { setError(null); setOpen(true); }}><Plus size={13} aria-hidden="true" />부계정 추가</Button></div>
-    {initialRows.length ? <ul className={styles.altList}>{initialRows.map((row) => <li className={styles.altRow} key={row.id} data-alt-account-row={gameSlug}><div><strong>{row.alt_nick}</strong>{row.note ? <p>{row.note}</p> : null}</div><div className="flex shrink-0 gap-1"><Button type="button" size="icon" variant="ghost" title="부계정 수정" disabled={pending} onClick={() => { setError(null); setEditing(row); setNick(row.alt_nick); setAgreed(false); setOpen(true); }} aria-label={`${row.alt_nick} 부계정 수정`}><Pencil size={14} aria-hidden="true" /></Button><Button type="button" size="icon" variant="ghost" title="부계정 삭제" disabled={pending} onClick={() => { setError(null); setDeleting(row); }} aria-label={`${row.alt_nick} 부계정 삭제`}><Trash2 size={14} aria-hidden="true" /></Button></div></li>)}</ul> : <p className={styles.sectionText}>등록된 부계정이 없습니다.</p>}
+    <div className={styles.sectionHeader}><h4 aria-label={tx("부계정 · 자기신고")}><StatHelp title={tx("부계정 · 자기신고")}>{disclosureLines.length ? disclosureLines.join(" ") : tx("이 게임의 활성 클랜에 소속되어 있지 않으면 본인만 조회할 수 있습니다.")}</StatHelp></h4><Button type="button" size="sm" variant="outline" onClick={() => { setError(null); setOpen(true); }}><Plus size={13} aria-hidden="true" />{tx("부계정 추가")}</Button></div>
+    {initialRows.length ? <ul className={styles.altList}>{initialRows.map((row) => <li className={styles.altRow} key={row.id} data-alt-account-row={gameSlug}><div><strong>{row.alt_nick}</strong>{row.note ? <p>{row.note}</p> : null}</div><div className="flex shrink-0 gap-1"><Button type="button" size="icon" variant="ghost" title={tx("부계정 수정")} disabled={pending} onClick={() => { setError(null); setEditing(row); setNick(row.alt_nick); setAgreed(false); setOpen(true); }} aria-label={tx("{0} 부계정 수정", row.alt_nick)}><Pencil size={14} aria-hidden="true" /></Button><Button type="button" size="icon" variant="ghost" title={tx("부계정 삭제")} disabled={pending} onClick={() => { setError(null); setDeleting(row); }} aria-label={tx("{0} 부계정 삭제", row.alt_nick)}><Trash2 size={14} aria-hidden="true" /></Button></div></li>)}</ul> : <p className={styles.sectionText}>{tx("등록된 부계정이 없습니다.")}</p>}
     <Dialog open={open} onOpenChange={(value) => { if (!pending) { if (value) setOpen(true); else closeAdd(); } }}>
-      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>{editing ? "부계정 수정" : "부계정 추가"}</DialogTitle><DialogDescription>같은 게임에서 사용하는 추가 계정의 닉네임을 기록하십시오.</DialogDescription></DialogHeader>
-        <p className={styles.notice}>부계정은 자기신고 정보입니다.<br />클랜의 공개 범위 설정에 따라 같은 클랜의 운영진 또는 구성원에게 공개될 수 있습니다.</p>
-        <label className="grid gap-2 text-xs">부계정 닉네임<Input value={nick} disabled={pending} maxLength={32} onChange={(event) => setNick(event.target.value)} placeholder="예: Player#1234" /></label>
-        <label className="flex items-start gap-2 text-xs leading-relaxed"><input type="checkbox" checked={agreed} disabled={pending} onChange={(event) => setAgreed(event.target.checked)} className="accent-primary mt-0.5 size-4 shrink-0" /><span>자기신고 정보임을 이해하며, 위 공개 범위에 동의합니다.</span></label>
-        {error ? <p className={styles.error} role="alert">{error}</p> : null}
-        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={closeAdd}>취소</Button><Button type="button" disabled={pending || !nick.trim() || !agreed} onClick={onAddSubmit}>{pending ? "저장 중…" : editing ? "수정" : "추가"}</Button></DialogFooter>
+      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>{editing ? tx("부계정 수정") : tx("부계정 추가")}</DialogTitle><DialogDescription>{tx("같은 게임에서 사용하는 추가 계정의 닉네임을 기록하십시오.")}</DialogDescription></DialogHeader>
+        <p className={styles.notice}>{tx("부계정은 자기신고 정보입니다.")}<br />{tx("클랜의 공개 범위 설정에 따라 같은 클랜의 운영진 또는 구성원에게 공개될 수 있습니다.")}</p>
+        <label className="grid gap-2 text-xs">{tx("부계정 닉네임")}<Input value={nick} disabled={pending} maxLength={32} onChange={(event) => setNick(event.target.value)} placeholder={tx("예: Player#1234")} /></label>
+        <label className="flex items-start gap-2 text-xs leading-relaxed"><input type="checkbox" checked={agreed} disabled={pending} onChange={(event) => setAgreed(event.target.checked)} className="accent-primary mt-0.5 size-4 shrink-0" /><span>{tx("자기신고 정보임을 이해하며, 위 공개 범위에 동의합니다.")}</span></label>
+        {error ? <p className={styles.error} role="alert">{tx(error)}</p> : null}
+        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={closeAdd}>{tx("취소")}</Button><Button type="button" disabled={pending || !nick.trim() || !agreed} onClick={onAddSubmit}>{pending ? tx("저장 중…") : editing ? tx("수정") : tx("추가")}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
     <Dialog open={deleting != null} onOpenChange={(value) => { if (!pending && !value) setDeleting(null); }}>
-      <DialogContent><DialogHeader><DialogTitle>부계정 등록 삭제</DialogTitle><DialogDescription>「{deleting?.alt_nick}」을 부계정 목록에서 삭제하시겠습니까? 게임 계정 자체는 삭제되지 않습니다.</DialogDescription></DialogHeader>
-        {error ? <p className={styles.error} role="alert">{error}</p> : null}
-        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={() => setDeleting(null)}>취소</Button><Button type="button" variant="destructive" disabled={pending} onClick={onDelete}>{pending ? "삭제 중…" : "삭제"}</Button></DialogFooter>
+      <DialogContent><DialogHeader><DialogTitle>{tx("부계정 등록 삭제")}</DialogTitle><DialogDescription>「{deleting?.alt_nick}{tx("」을 부계정 목록에서 삭제하시겠습니까? 게임 계정 자체는 삭제되지 않습니다.")}</DialogDescription></DialogHeader>
+        {error ? <p className={styles.error} role="alert">{tx(error)}</p> : null}
+        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={() => setDeleting(null)}>{tx("취소")}</Button><Button type="button" variant="destructive" disabled={pending} onClick={onDelete}>{pending ? tx("삭제 중…") : tx("삭제")}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { ArrowUpRight, ChevronLeft, ChevronRight, Medal, Send } from "lucide-react";
@@ -27,18 +28,20 @@ function coachIconRole(role: string) {
   return role === "tank" ? "tank" : role === "dmg" ? "damage" : role === "sup" ? "support" : "flex";
 }
 function CoachTags({ coach }: { coach: ClanCoach }) {
+  const tx = useTranslator();
   const role = coachIconRole(coach.role);
   const first = coach.tier[0], last = coach.tier[coach.tier.length - 1];
   const tagClass = "h-auto min-h-7 gap-1 rounded-md bg-muted/30 px-2 text-[10px] font-medium";
   return <span className="flex max-w-full flex-wrap items-center gap-1.5">
-    <Badge variant="outline" className={tagClass} aria-label={`역할: ${coachRoleLabel(coach.role)}`}><OverwatchRoleIcon role={role} className="size-3.5" />{coachRoleLabel(coach.role)}</Badge>
-    <Badge variant="outline" className={tagClass} aria-label={`티어: ${coachTierLabel(coach.tier)}`}>
-      {!first ? <><Medal className="size-4" aria-hidden />전체</> : <><TierIcon tier={first} />{coachTierLabel([first])}{last !== first && <><span className="px-0.5 text-muted-foreground" aria-hidden>~</span><TierIcon tier={last} />{coachTierLabel([last])}</>}</>}
+    <Badge variant="outline" className={tagClass} aria-label={tx("역할: {0}", coachRoleLabel(coach.role))}><OverwatchRoleIcon role={role} className="size-3.5" />{coachRoleLabel(coach.role)}</Badge>
+    <Badge variant="outline" className={tagClass} aria-label={tx("티어: {0}", coachTierLabel(coach.tier))}>
+      {!first ? <><Medal className="size-4" aria-hidden />{tx("전체")}</> : <><TierIcon tier={first} />{coachTierLabel([first])}{last !== first && <><span className="px-0.5 text-muted-foreground" aria-hidden>~</span><TierIcon tier={last} />{coachTierLabel([last])}</>}</>}
     </Badge>
   </span>;
 }
 
 export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: ClanCoach[]; userId: string; onRequest: (id: string) => void }) {
+  const tx = useTranslator();
   const track = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -81,14 +84,14 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
     return () => window.clearInterval(timer);
   }, [autoEnabled, hovered, selected, coaches.length, reducedMotion]);
 
-  return <section ref={root} className="min-w-0 space-y-1.5" aria-label="코칭 선생님" aria-roledescription="캐러셀"
+  return <section ref={root} className="min-w-0 space-y-1.5" aria-label={tx("코칭 선생님")} aria-roledescription="캐러셀"
     onPointerEnter={event => { if (event.pointerType === "mouse") setHovered(true); }} onPointerLeave={() => setHovered(false)}
     onPointerDown={event => { if (event.pointerType !== "mouse") setHovered(true); }} onPointerUp={event => { if (event.pointerType !== "mouse") setHovered(false); }} onPointerCancel={() => setHovered(false)}>
-    {!coaches.length ? <p className="py-5 text-center text-sm text-muted-foreground">아직 등록된 선생님이 없습니다.</p> : <>
-      <div ref={track} tabIndex={0} aria-label="코칭 선생님 목록" className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring">
+    {!coaches.length ? <p className="py-5 text-center text-sm text-muted-foreground">{tx("아직 등록된 선생님이 없습니다.")}</p> : <>
+      <div ref={track} tabIndex={0} aria-label={tx("코칭 선생님 목록")} className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring">
         {coaches.map(coach => <button key={coach.userId} type="button" onClick={() => setSelectedId(coach.userId)} aria-label={coach.name + " 선생님 소개 보기"}
           className="group flex w-[280px] max-w-[90%] shrink-0 snap-start flex-col gap-2 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring">
-          <span className="flex w-full items-center gap-2.5"><ClanPlayerAvatar userId={coach.userId} label={coach.name} size={36} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{coach.name}</span><span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground"><span aria-hidden className={"size-1.5 rounded-full " + (coach.accepting ? "bg-primary" : "bg-muted-foreground")} />{coach.accepting ? "신청 가능" : "신청 잠시 중단"}</span></span><ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden /></span>
+          <span className="flex w-full items-center gap-2.5"><ClanPlayerAvatar userId={coach.userId} label={coach.name} size={36} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{coach.name}</span><span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground"><span aria-hidden className={"size-1.5 rounded-full " + (coach.accepting ? "bg-primary" : "bg-muted-foreground")} />{coach.accepting ? tx("신청 가능") : tx("신청 잠시 중단")}</span></span><ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden /></span>
           <CoachTags coach={coach} />
         </button>)}
       </div>
@@ -101,14 +104,14 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
               <span aria-hidden className="pointer-events-none absolute -right-12 -bottom-10 -z-10 -rotate-12 text-primary/10">
                 <OverwatchRoleIcon role={coachIconRole(selected.role)} className="size-48" />
               </span>
-              <DialogDescription className="font-semibold text-foreground">코칭 선생님 소개</DialogDescription>
+              <DialogDescription className="font-semibold text-foreground">{tx("코칭 선생님 소개")}</DialogDescription>
               <div className="flex items-center gap-4">
                 <ClanPlayerAvatar userId={selected.userId} label={selected.name} size={64} />
                 <div className="min-w-0 space-y-1">
                   <DialogTitle className="text-xl font-bold tracking-tight [overflow-wrap:anywhere]">{selected.name}</DialogTitle>
                   <p className="flex items-center gap-2 text-xs">
                     <span aria-hidden className={"size-2 rounded-full " + (selected.accepting ? "bg-primary" : "bg-muted-foreground")} />
-                    {selected.accepting ? "신청 가능" : "신청 잠시 중단"}
+                    {selected.accepting ? tx("신청 가능") : tx("신청 잠시 중단")}
                   </p>
                 </div>
               </div>
@@ -121,14 +124,14 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
                     onClick={() => { setSelectedId(null); onRequest(selected.userId); }} />}>
                     <Send aria-hidden />
                   </TooltipTrigger>
-                  <TooltipContent>피드백 신청</TooltipContent>
+                  <TooltipContent>{tx("피드백 신청")}</TooltipContent>
                 </Tooltip>
               </div>
             </DialogHeader>
           <Tabs key={selected.userId} defaultValue="bio" className="min-h-0 flex-1 gap-0">
-            <TabsList variant="line" aria-label="선생님 프로필" className="mx-5 h-11 shrink-0 self-stretch">
-              <TabsTrigger value="bio">선생님 소개</TabsTrigger>
-              <TabsTrigger value="expertise">코칭 내용</TabsTrigger>
+            <TabsList variant="line" aria-label={tx("선생님 프로필")} className="mx-5 h-11 shrink-0 self-stretch">
+              <TabsTrigger value="bio">{tx("선생님 소개")}</TabsTrigger>
+              <TabsTrigger value="expertise">{tx("코칭 내용")}</TabsTrigger>
             </TabsList>
             {[["bio", selected.bio || "등록된 소개가 없습니다."], ["expertise", selected.expertise]].map(([value, content]) => (
               <TabsContent key={value} value={value} tabIndex={0}
@@ -138,12 +141,12 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
             ))}
           </Tabs>
           <div className="flex shrink-0 items-center justify-between border-t px-5 py-2">
-            <Button type="button" variant="ghost" aria-label="이전 선생님" disabled={coaches.length < 2} onClick={() => navigateCoach(-1)}>
-              <ChevronLeft /> 이전
+            <Button type="button" variant="ghost" aria-label={tx("이전 선생님")} disabled={coaches.length < 2} onClick={() => navigateCoach(-1)}>
+              <ChevronLeft /> {tx("이전")}
             </Button>
             <span className="text-xs tabular-nums text-muted-foreground">{selectedIndex + 1} / {coaches.length}</span>
-            <Button type="button" variant="ghost" aria-label="다음 선생님" disabled={coaches.length < 2} onClick={() => navigateCoach(1)}>
-              다음 <ChevronRight />
+            <Button type="button" variant="ghost" aria-label={tx("다음 선생님")} disabled={coaches.length < 2} onClick={() => navigateCoach(1)}>
+              {tx("다음")} <ChevronRight />
             </Button>
           </div>
         </>}

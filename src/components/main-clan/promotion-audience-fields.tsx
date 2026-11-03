@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useState } from "react";
 import { CLAN_STYLES, OVERWATCH_POSITIONS } from "@/lib/clan/recruitment";
 import styles from "./clan-promotion-settings.module.css";
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function PromotionAudienceFields({ gameSlug, initialStyle, initialPositions, disabled }: Props) {
+  const tx = useTranslator();
   const [positions, setPositions] = useState(initialPositions);
 
   function togglePosition(position: string) {
@@ -25,19 +27,19 @@ export function PromotionAudienceFields({ gameSlug, initialStyle, initialPositio
 
   return <div className={styles.audienceFields}>
     <label className={styles.styleField}>
-      <span>지향</span>
+      <span>{tx("지향")}</span>
       <select name="style" defaultValue={initialStyle ?? ""} disabled={disabled}>
-        <option value="">지향 무관</option>
-        {CLAN_STYLES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+        <option value="">{tx("지향 무관")}</option>
+        {CLAN_STYLES.map(({ value, label }) => <option key={value} value={value}>{tx(label)}</option>)}
       </select>
     </label>
     {gameSlug === "overwatch" && <fieldset disabled={disabled} className={styles.positions} aria-describedby="position-choice-hint">
-      <legend>주포지션</legend>
-      <span id="position-choice-hint" className={styles.choiceHint}>복수 선택</span>
+      <legend>{tx("주포지션")}</legend>
+      <span id="position-choice-hint" className={styles.choiceHint}>{tx("복수 선택")}</span>
       <div className={styles.positionToggle}>
-        <button type="button" aria-pressed={!positions.length} onClick={() => setPositions([])}>전체</button>
+        <button type="button" aria-pressed={!positions.length} onClick={() => setPositions([])}>{tx("전체")}</button>
         {OVERWATCH_POSITIONS.map(({ value, label }) => <button key={value} type="button"
-          aria-pressed={positions.includes(value)} onClick={() => togglePosition(value)}>{label}</button>)}
+          aria-pressed={positions.includes(value)} onClick={() => togglePosition(value)}>{tx(label)}</button>)}
       </div>
       {(positions.length ? positions : ["all"]).map(value => <input key={value} type="hidden" name="recruitment_positions" value={value} />)}
     </fieldset>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useOptimistic, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
   myVote: HeroBanVote | null; allVotes: readonly HeroBanVote[]; canResolve: boolean; userId: string;
   roster: BalanceRoster; bansPerTeam: 1 | 2; resolvedHeroes: string[] | null;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const saved = [myVote?.pick_1, myVote?.pick_2].filter((id): id is string => Boolean(id));
@@ -71,17 +73,17 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
   return <div className="space-y-6" data-testid="hero-ban-selection">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h4 className="flex items-center gap-2 text-base font-bold"><Ban className="size-5 text-warning" />영웅 밴</h4>
-        <p className="mt-2 text-xs text-muted-foreground">팀당 최대 {bansPerTeam}명 · 팀 내 득표순으로 결정됩니다. 선택하지 않으면 기권합니다.</p>
+        <h4 className="flex items-center gap-2 text-base font-bold"><Ban className="size-5 text-warning" />{tx("영웅 밴")}</h4>
+        <p className="mt-2 text-xs text-muted-foreground">{tx("팀당 최대")} {bansPerTeam}{tx("명 · 팀 내 득표순으로 결정됩니다. 선택하지 않으면 기권합니다.")}</p>
       </div>
-      <span role="timer" className="flex items-center gap-2 rounded-lg border px-3 py-2 font-bold tabular-nums"><Timer className="size-4" />{expired ? "투표 종료" : remain + "s"}</span>
+      <span role="timer" className="flex items-center gap-2 rounded-lg border px-3 py-2 font-bold tabular-nums"><Timer className="size-4" />{expired ? tx("투표 종료") : remain + "s"}</span>
     </div>
     {expired ? <div className="grid gap-3 sm:grid-cols-2" data-testid="hero-ban-results">
       {(["team1", "team2"] as const).map((team, index) => <section key={team} aria-label={(index + 1) + "팀 밴 현황"}
         className={cn("rounded-xl border p-3", index === 0 ? "border-sky-500/30 bg-sky-500/5" : "border-rose-500/30 bg-rose-500/5")}>
         <div className="mb-3 flex items-center justify-between text-xs">
-          <strong className={index === 0 ? "text-team-blue" : "text-team-red"}>{index + 1}팀 {myTeam === team ? "· 내 팀" : ""}</strong>
-          <span className="text-muted-foreground">{allVotes.filter((vote) => heroVoteTeam(roster, vote.user_id) === team).length} / 5명 선택</span>
+          <strong className={index === 0 ? "text-team-blue" : "text-team-red"}>{index + 1}{tx("팀")} {myTeam === team ? tx("· 내 팀") : ""}</strong>
+          <span className="text-muted-foreground">{allVotes.filter((vote) => heroVoteTeam(roster, vote.user_id) === team).length} {tx("/ 5명 선택")}</span>
         </div>
         <div className="flex gap-2">
           {Array.from({ length: bansPerTeam }, (_, slot) => {
@@ -91,19 +93,19 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
             });
             return <div key={slot} className="flex min-h-14 flex-1 items-center gap-2 rounded-lg border bg-background/40 px-2 py-1">
               {entry && hero ? <><HeroPortrait hero={hero} className="h-12 w-11 rounded object-cover object-top" />
-                <div><p className="text-xs font-semibold">{owHeroLabel(entry.heroId)}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.votes}표 · {ROLES.find((role) => role.id === entry.role)?.label}</p></div></>
-                : <span className="text-xs text-muted-foreground">밴 없음</span>}
+                <div><p className="text-xs font-semibold">{tx(owHeroLabel(entry.heroId))}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.votes}{tx("표 ·")} {ROLES.find((role) => role.id === entry.role)?.label}</p></div></>
+                : <span className="text-xs text-muted-foreground">{tx("밴 없음")}</span>}
             </div>;
           })}
         </div>
       </section>)}
     </div> : <><div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-      <p className="text-muted-foreground">{myTeam ? "초상화를 눌러 선택 · 다시 누르면 취소" : "관전 중 · 출전자만 투표할 수 있습니다."}</p>
-      {myTeam ? <span role="status">{pending ? "저장 중…" : picks.length ? picks.map(owHeroLabel).join(" · ") : "선택 없음"} <span className="ml-2 tabular-nums text-muted-foreground">{picks.length}/{bansPerTeam}</span></span> : null}
+      <p className="text-muted-foreground">{myTeam ? tx("초상화를 눌러 선택 · 다시 누르면 취소") : tx("관전 중 · 출전자만 투표할 수 있습니다.")}</p>
+      {myTeam ? <span role="status">{pending ? tx("저장 중…") : picks.length ? picks.map(owHeroLabel).join(" · ") : tx("선택 없음")} <span className="ml-2 tabular-nums text-muted-foreground">{picks.length}/{bansPerTeam}</span></span> : null}
     </div>
     <div className="space-y-5">
       {ROLES.map(({ id: role, label, Icon }) => <section key={role} aria-label={label + " 영웅"}>
-        <h5 className="mb-2 flex items-center gap-2 text-xs font-bold text-muted-foreground"><Icon className="size-4" />{label}</h5>
+        <h5 className="mb-2 flex items-center gap-2 text-xs font-bold text-muted-foreground"><Icon className="size-4" />{tx(label)}</h5>
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-8 lg:grid-cols-11">
           {OW_HEROES.filter((hero) => hero.role === role).map((hero) => {
             const selected = picks.includes(hero.id);
@@ -112,16 +114,16 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
               className={cn("group relative overflow-hidden rounded-md border bg-muted/30 text-center transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default", selected ? "border-amber-400 bg-amber-400/15 ring-2 ring-amber-400/50" : "border-border hover:border-foreground/60 disabled:opacity-50")}>
               <HeroPortrait hero={hero} className={cn("aspect-square w-full object-cover object-top", selected && "opacity-60")} />
               {selected ? <Ban className="absolute left-1/2 top-1/3 size-7 -translate-x-1/2 text-amber-300 drop-shadow" aria-hidden="true" /> : null}
-              <span className="block truncate px-1 py-1.5 text-[10px] font-semibold">{hero.nameKo}</span>
+              <span className="block truncate px-1 py-1.5 text-[10px] font-semibold">{tx(hero.nameKo)}</span>
             </button>;
           })}
         </div>
       </section>)}
     </div></>}
     {expired ? <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4" data-balance-guide="primary">
-      <p className="text-xs text-muted-foreground">무투표 팀은 밴 없음 · 동률은 영웅 고정 순서 · 양 팀 중복은 한 번만 제외</p>
-      {canResolve ? <Button disabled={pending || !expired} onClick={beginMatch}><Check className="size-4" />경기 시작<ArrowRight className="size-4" /></Button>
-        : <span className="text-xs text-muted-foreground">운영진이 경기를 시작하면 밴이 확정됩니다.</span>}
+      <p className="text-xs text-muted-foreground">{tx("무투표 팀은 밴 없음 · 동률은 영웅 고정 순서 · 양 팀 중복은 한 번만 제외")}</p>
+      {canResolve ? <Button disabled={pending || !expired} onClick={beginMatch}><Check className="size-4" />{tx("경기 시작")}<ArrowRight className="size-4" /></Button>
+        : <span className="text-xs text-muted-foreground">{tx("운영진이 경기를 시작하면 밴이 확정됩니다.")}</span>}
     </div> : null}
   </div>;
 }

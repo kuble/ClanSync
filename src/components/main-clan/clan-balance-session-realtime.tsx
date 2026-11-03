@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +16,7 @@ export function ClanBalanceSessionRealtime({
   clanId: string;
   roundKey: string;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [refreshPending, startRefresh] = useTransition();
   const refreshingRef = useRef(false);
@@ -197,7 +199,7 @@ export function ClanBalanceSessionRealtime({
       data-connection-status={status}
     >
       {status === "CHANNEL_ERROR" || status === "TIMED_OUT"
-        ? "실시간 연결을 다시 확인하고 있습니다."
+        ? tx("실시간 연결을 다시 확인하고 있습니다.")
         : null}
     </span>
   );

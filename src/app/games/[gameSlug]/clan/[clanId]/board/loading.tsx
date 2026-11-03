@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { usePathname } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -16,9 +17,10 @@ function PostRows() {
 }
 
 export default function BoardLoading() {
+  const tx = useTranslator();
   const [section = "notices", postId] = usePathname().split("/board/")[1]?.split("/") ?? [];
-  return <div aria-busy="true" aria-label="게시판 로딩" className="min-h-full space-y-5">
-    <p role="status" className="sr-only">게시글을 불러오는 중…</p>
+  return <div aria-busy="true" aria-label={tx("게시판 로딩")} className="min-h-full space-y-5">
+    <p role="status" className="sr-only">{tx("게시글을 불러오는 중…")}</p>
     <div aria-hidden="true" className="space-y-5">
       {postId ? <>
         <Skeleton className="h-10 w-36" />

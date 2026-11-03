@@ -36,7 +36,7 @@ export type ClanDashboardModel = {
   events: ClanEventRecord[];
   createdAt: string;
   completedIntraCount: number | null;
-  previousMonth: string;
+  previousMonth: { year: number; month: number };
   communityLinks: ClanCommunityLinks;
   discordConnected: boolean | null;
   mvp: {
@@ -151,7 +151,7 @@ export async function loadClanDashboard(
     events: events.data ?? [],
     createdAt: clan.data.created_at,
     completedIntraCount: history.completedRegular,
-    previousMonth: `${month.y}년 ${month.m}월`,
+    previousMonth: { year: month.y, month: month.m },
     communityLinks: readClanCommunityLinks(settings.data?.community_links),
     discordConnected: discord.error ? null : !!discord.data,
     mvp: { winRate: [], participation: [], prediction: [] },

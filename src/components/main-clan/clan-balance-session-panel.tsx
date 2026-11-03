@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
 
@@ -151,6 +152,7 @@ export function ClanBalanceSessionPanel({
   qaPreviewEnabled?: boolean;
   playerSessionInfo?: PlayerSessionInfoMap;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const rosterRef = useRef<ClanBalanceRosterEditorHandle>(null);
@@ -298,8 +300,8 @@ export function ClanBalanceSessionPanel({
           : session?.match_outcome === "draw" ? "무승부" : null;
   const endSessionControl = session && canManage ? <Button variant="destructive" size="sm"
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
-    title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하십시오." : undefined}
-    onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
+    title={session.phase !== "editing" && session.match_outcome === "pending" ? tx("경기 결과 또는 무효를 먼저 기록하십시오.") : undefined}
+    onClick={() => setConfirmEnd(true)}>{tx("세션 종료")}</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
   const baseScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
   const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, session?.resolved_map_label ?? null, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players);
@@ -317,8 +319,8 @@ export function ClanBalanceSessionPanel({
       data-formation-transition={awaitingFormation || preparingMatch ? "true" : undefined}
     >
       <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
-        <DialogContent><DialogHeader><DialogTitle>내전을 종료하시겠습니까?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
-          <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => setConfirmEnd(false)}>돌아가기</Button><Button variant="destructive" disabled={pending} onClick={() => {
+        <DialogContent><DialogHeader><DialogTitle>{tx("내전을 종료하시겠습니까?")}</DialogTitle><DialogDescription>{flash ? tx("깜짝 내전의 모든 경기·참여·투표 기록이 삭제되며 복구할 수 없습니다.") : tx("현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다.")}</DialogDescription></DialogHeader>
+          <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => setConfirmEnd(false)}>{tx("돌아가기")}</Button><Button variant="destructive" disabled={pending} onClick={() => {
             if (!session) return;
             runAction("세션을 종료했습니다.", async () => {
               const saved = await flushRoster();
@@ -327,7 +329,7 @@ export function ClanBalanceSessionPanel({
               if (result.ok) { setConfirmEnd(false); router.replace(`/games/${gameSlug}/clan/${clanId}/balance`); }
               return result;
             });
-          }}>종료 확정</Button></div>
+          }}>{tx("종료 확정")}</Button></div>
         </DialogContent>
       </Dialog>
       <ClanBalanceSessionRealtime
@@ -408,30 +410,30 @@ export function ClanBalanceSessionPanel({
             <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">
               <Swords className="size-4 text-primary" aria-hidden="true" />
               {session?.phase === "match_live"
-                ? "경기 현황"
+                ? tx("경기 현황")
                 : session?.phase === "map_ban"
-                  ? "맵 투표"
+                  ? tx("맵 투표")
                   : session?.phase === "hero_ban"
-                    ? "영웅 밴"
+                    ? tx("영웅 밴")
                     : mapScreen && !preparingMatch
                       ? session?.resolved_map_label
-                        ? "경기 준비"
+                        ? tx("경기 준비")
                         : session?.map_ban_enabled
-                          ? "맵 유형 선택"
-                          : "맵 선택"
+                          ? tx("맵 유형 선택")
+                          : tx("맵 선택")
                       : canManage
-                        ? "밸런스 편집"
-                        : "팀 편성"}
+                        ? tx("밸런스 편집")
+                        : tx("팀 편성")}
               {session ? (
                 <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  경기 {session.round_number}
+                  {tx("경기")} {session.round_number}
                 </span>
               ) : null}
             </h3>
             {series ? (
               <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
                 {series.session_date?.replaceAll("-", ".")}
-                {series.closed_at ? " · 세션 종료" : null}
+                {series.closed_at ? tx(" · 세션 종료") : null}
               </p>
             ) : null}
           </div>
@@ -440,7 +442,7 @@ export function ClanBalanceSessionPanel({
             {session && (!mapScreen || preparingMatch) ? <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Radio className="size-3 text-emerald-500" aria-hidden="true" />
-                {hostNickname ? "호스트 · " + hostNickname : "세션 진행 중"}
+                {hostNickname ? "호스트 · " + hostNickname : tx("세션 진행 중")}
               </span>
             </div> : null}
           </div>
@@ -449,8 +451,8 @@ export function ClanBalanceSessionPanel({
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="화면 안내"
-                title="화면 안내"
+                aria-label={tx("화면 안내")}
+                title={tx("화면 안내")}
                 onClick={() => setGuideOpen(true)}
               >
                 <CircleHelp className="size-4" />
@@ -463,8 +465,8 @@ export function ClanBalanceSessionPanel({
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="경기 설정"
-                title="경기 설정"
+                aria-label={tx("경기 설정")}
+                title={tx("경기 설정")}
                 data-balance-guide="settings"
                 disabled={pending || busyFormation}
                 onClick={() => setSettingsOpen(true)}
@@ -484,10 +486,10 @@ export function ClanBalanceSessionPanel({
                 className="flex flex-wrap items-center justify-between gap-3"
               >
                 <p className="text-xs text-muted-foreground">
-                  세션을 열고 참가자와 경기 규칙을 정하십시오.
+                  {tx("세션을 열고 참가자와 경기 규칙을 정하십시오.")}
                 </p>
                 <Button type="submit" disabled={pending}>
-                  {pending ? "세션 여는 중…" : "세션 열기"}
+                  {pending ? tx("세션 여는 중…") : tx("세션 열기")}
                   <ArrowRight className="size-4" />
                 </Button>
               </form>
@@ -497,10 +499,9 @@ export function ClanBalanceSessionPanel({
               <div className="mb-5 rounded-2xl bg-primary/10 p-5">
                 <Gamepad2 className="size-8 text-primary" aria-hidden="true" />
               </div>
-              <h4 className="text-lg font-semibold">경기를 준비 중입니다</h4>
+              <h4 className="text-lg font-semibold">{tx("경기를 준비 중입니다")}</h4>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-                운영진이 세션을 열면 팀 배치와 밴픽이 이곳에 표시됩니다. 잠시 후
-                함께 경기를 시작해 보십시오.
+                {tx("운영진이 세션을 열면 팀 배치와 밴픽이 이곳에 표시됩니다. 잠시 후 함께 경기를 시작해 보십시오.")}
               </p>
               <Button
                 type="button"
@@ -508,7 +509,7 @@ export function ClanBalanceSessionPanel({
                 className="mt-6"
                 onClick={() => router.refresh()}
               >
-                새로고침
+                {tx("새로고침")}
               </Button>
             </div>
           )
@@ -520,7 +521,7 @@ export function ClanBalanceSessionPanel({
                 {scoreControl ?? <span />}
                 {canManage && formation ? (
                   <ClanBalanceRevealComplete state={formation} serverNow={presentationNow}>
-                    <Button size="icon" variant="ghost" title="명단 수정" aria-label="명단 수정" disabled={pending || busyFormation}
+                    <Button size="icon" variant="ghost" title={tx("명단 수정")} aria-label={tx("명단 수정")} disabled={pending || busyFormation}
                       onClick={() => runAction("명단을 수정할 수 있습니다.", () => updateFormationAction(gameSlug, clanId, session.id, session.formation_revision, { type: "reset" }))}>
                       <RotateCcw className="size-4" />
                     </Button>
@@ -672,7 +673,7 @@ export function ClanBalanceSessionPanel({
                     role="status"
                     className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground"
                   >
-                    맵 후보를 불러오지 못했습니다. 페이지를 새로고침해 주십시오.
+                    {tx("맵 후보를 불러오지 못했습니다. 페이지를 새로고침해 주십시오.")}
                   </p>
                 )}
               </div>
@@ -683,8 +684,8 @@ export function ClanBalanceSessionPanel({
                 {session.resolved_map_label ? (
                   <p className="flex items-center gap-2 rounded-lg bg-muted/40 px-4 py-3 text-xs">
                     <Map className="size-4 text-primary" aria-hidden="true" />
-                    <span className="text-muted-foreground">경기 맵</span>
-                    <strong>{session.resolved_map_label}</strong>
+                    <span className="text-muted-foreground">{tx("경기 맵")}</span>
+                    <strong>{tx(session.resolved_map_label)}</strong>
                   </p>
                 ) : null}
                 {isOverwatchBalanceGame(gameSlug) ? (
@@ -698,7 +699,7 @@ export function ClanBalanceSessionPanel({
                     resolvedHeroes={session.banned_heroes}
                   />
                 ) : canManage ? (
-                  <Button onClick={() => runAction("경기를 시작했습니다.", () => skipHeroBanPhaseAction(gameSlug, clanId, session.id))}>경기 시작</Button>
+                  <Button onClick={() => runAction("경기를 시작했습니다.", () => skipHeroBanPhaseAction(gameSlug, clanId, session.id))}>{tx("경기 시작")}</Button>
                 ) : null}
               </div>
             ) : null}
@@ -726,14 +727,14 @@ export function ClanBalanceSessionPanel({
                 {session.banned_heroes?.length ? (
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <Shield className="size-3.5" aria-hidden="true" />밴 영웅
+                      <Shield className="size-3.5" aria-hidden="true" />{tx("밴 영웅")}
                     </span>
                     {session.banned_heroes.map((id) => (
                       <span
                         key={id}
                         className="rounded-md border border-rose-500/20 bg-rose-500/5 px-2 py-1"
                       >
-                        {owHeroLabel(id)}
+                        {tx(owHeroLabel(id))}
                       </span>
                     ))}
                   </div>
@@ -770,10 +771,10 @@ export function ClanBalanceSessionPanel({
                         )
                       }
                     >
-                      다음 경기
+                      {tx("다음 경기")}
                     </Button>
                   </div> : null}
-                  {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : null}
+                  {flash ? <p className="text-xs text-muted-foreground">{tx("깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.")}</p> : null}
                 </div>
               </div>
             ) : null}

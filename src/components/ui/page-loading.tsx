@@ -1,10 +1,12 @@
+import { useTranslator } from "#use-translator";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function PageLoading({ label }: { label: string }) {
+  const tx = useTranslator();
   return (
     <section aria-busy="true" className="min-h-[calc(100dvh-12rem)] space-y-6">
       <p role="status" className="sr-only">
-        {label}
+        {tx(label)}
       </p>
       <div aria-hidden="true" className="space-y-6">
         <div className="space-y-3">

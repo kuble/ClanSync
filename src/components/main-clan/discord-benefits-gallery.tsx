@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useId, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, CalendarDays, ChevronDown, Megaphone, Swords, Vote } from "lucide-react";
@@ -24,27 +25,29 @@ const samples: DiscordNotificationRow[] = [
 ];
 
 function Preview({ index }: { index: number }) {
+  const tx = useTranslator();
   const item = benefits[index];
   const [open, setOpen] = useState(false);
   const [pollEnded, setPollEnded] = useState(true);
   const card = buildDiscordNotificationCard({ ...samples[index], ...(item.id === "poll" ? { slot_kind: pollEnded ? "poll_ended" : "poll_created" } : {}) }, { siteUrl: "https://clansync.example", now: new Date("2026-10-12T10:00:00Z") });
-  return <><div className="overflow-hidden rounded-xl border border-border bg-background" role="region" aria-label={`${item.title} 활용 예시`}>
-    <div className="flex items-center justify-between border-b border-border px-4 py-3 text-xs"><span className="font-medium text-muted-foreground">#{item.channel}</span><span className="rounded-md bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">발송 예시</span></div>
-    {item.id === "poll" && <div className="flex gap-2 px-4 pt-3">{[{ ended: false, label: "시작 알림" }, { ended: true, label: "종료 알림" }].map(({ ended, label }) => <button key={label} type="button" aria-pressed={pollEnded === ended} onClick={() => setPollEnded(ended)} className={cn("rounded-md px-2.5 py-1 text-xs focus-visible:outline-2 focus-visible:outline-ring", pollEnded === ended ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted")}>{label}</button>)}</div>}
-    <div className="flex gap-3 p-4"><span role="img" aria-label="ClanSync 프로필" className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background"><BrandSymbol size={22} /></span>
-      <div className="min-w-0 flex-1"><p className="text-xs font-semibold">ClanSync<span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-[9px] text-primary">앱</span></p>
+  return <><div className="overflow-hidden rounded-xl border border-border bg-background" role="region" aria-label={tx("{0} 활용 예시", item.title)}>
+    <div className="flex items-center justify-between border-b border-border px-4 py-3 text-xs"><span className="font-medium text-muted-foreground">#{item.channel}</span><span className="rounded-md bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{tx("발송 예시")}</span></div>
+    {item.id === "poll" && <div className="flex gap-2 px-4 pt-3">{[{ ended: false, label: "시작 알림" }, { ended: true, label: "종료 알림" }].map(({ ended, label }) => <button key={label} type="button" aria-pressed={pollEnded === ended} onClick={() => setPollEnded(ended)} className={cn("rounded-md px-2.5 py-1 text-xs focus-visible:outline-2 focus-visible:outline-ring", pollEnded === ended ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted")}>{tx(label)}</button>)}</div>}
+    <div className="flex gap-3 p-4"><span role="img" aria-label={tx("ClanSync 프로필")} className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background"><BrandSymbol size={22} /></span>
+      <div className="min-w-0 flex-1"><p className="text-xs font-semibold">ClanSync<span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-[9px] text-primary">{tx("앱")}</span></p>
         <div className="mt-2 border-l-2 bg-muted/40 p-3" style={{ borderColor: `#${card.color.toString(16)}` }}><p className="mb-1.5 text-[11px] font-medium text-muted-foreground">{card.category}</p><p className="text-[13px] font-semibold leading-relaxed">{card.title}</p><p className="mt-1.5 whitespace-pre-wrap break-words text-xs text-muted-foreground">{card.body}</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">{card.action}<ArrowUpRight className="size-3" aria-hidden /></span></div>
       </div>
     </div>
-    <div className="border-t border-border"><p className="px-4 py-2 text-[10px] text-muted-foreground">링크를 누르면 · {item.screen}</p><button type="button" aria-label={`${item.screen} 크게 보기`} onClick={() => setOpen(true)} className="relative block w-full focus-visible:outline-2 focus-visible:outline-ring"><Image src={`/images/discord/${item.image}.jpg`} alt={`${item.screen} 서비스 화면 예시`} width={1210} height={756} sizes="(max-width: 640px) 90vw, 600px" className="aspect-[16/10] w-full object-cover object-top" /><span className="absolute bottom-2 right-2 rounded bg-background/90 px-2 py-1 text-[10px] text-muted-foreground">크게 보기</span></button></div>
-  </div><Dialog open={open} onOpenChange={setOpen}><DialogContent className="sm:max-w-5xl"><DialogHeader><DialogTitle>{item.screen}</DialogTitle></DialogHeader><Image src={`/images/discord/${item.image}.jpg`} alt={`${item.screen} 서비스 화면 예시 확대`} width={1210} height={756} sizes="90vw" className="max-h-[75dvh] w-full object-contain" /></DialogContent></Dialog></>;
+    <div className="border-t border-border"><p className="px-4 py-2 text-[10px] text-muted-foreground">{tx("링크를 누르면 ·")} {item.screen}</p><button type="button" aria-label={tx("{0} 크게 보기", item.screen)} onClick={() => setOpen(true)} className="relative block w-full focus-visible:outline-2 focus-visible:outline-ring"><Image src={`/images/discord/${item.image}.jpg`} alt={tx("{0} 서비스 화면 예시", item.screen)} width={1210} height={756} sizes="(max-width: 640px) 90vw, 600px" className="aspect-[16/10] w-full object-cover object-top" /><span className="absolute bottom-2 right-2 rounded bg-background/90 px-2 py-1 text-[10px] text-muted-foreground">{tx("크게 보기")}</span></button></div>
+  </div><Dialog open={open} onOpenChange={setOpen}><DialogContent className="sm:max-w-5xl"><DialogHeader><DialogTitle>{item.screen}</DialogTitle></DialogHeader><Image src={`/images/discord/${item.image}.jpg`} alt={tx("{0} 서비스 화면 예시 확대", item.screen)} width={1210} height={756} sizes="90vw" className="max-h-[75dvh] w-full object-contain" /></DialogContent></Dialog></>;
 }
 
 export function DiscordBenefitsGallery() {
+  const tx = useTranslator();
   const [selected, setSelected] = useState(0);
   const id = useId();
-  return <section aria-label="Discord 활용 갤러리" className="space-y-4">
-    <div><h4 className="text-sm font-semibold">우리 클랜의 소식을, Discord까지</h4><p className="mt-1 text-xs leading-relaxed text-muted-foreground">실제 알림과 같은 구성입니다. 제목·내용·시각은 예시이며, 링크를 누르면 해당 화면으로 연결됩니다.</p></div>
+  return <section aria-label={tx("Discord 활용 갤러리")} className="space-y-4">
+    <div><h4 className="text-sm font-semibold">{tx("우리 클랜의 소식을, Discord까지")}</h4><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{tx("실제 알림과 같은 구성입니다. 제목·내용·시각은 예시이며, 링크를 누르면 해당 화면으로 연결됩니다.")}</p></div>
     <div className="grid items-start gap-4 xl:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.2fr)]">
       <div className="overflow-hidden rounded-xl border border-border bg-card">{benefits.map((item, index) => <div key={item.id} className="border-b border-border last:border-b-0">
         <button id={`${id}-trigger-${index}`} type="button" aria-expanded={selected === index} aria-controls={`${id}-panel-${index}`} onClick={() => setSelected(index)} className={cn("flex min-h-16 w-full items-center gap-3 px-4 py-4 text-left text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring", selected === index ? "bg-primary/5 text-foreground" : "text-muted-foreground hover:bg-muted/40")}>

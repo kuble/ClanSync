@@ -1,10 +1,12 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useTransition, type ReactNode, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./clan-discovery.module.css";
 
 export function ClanDiscoveryFilterForm({children, action}: {children: ReactNode; action: string}) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -19,6 +21,6 @@ export function ClanDiscoveryFilterForm({children, action}: {children: ReactNode
   return <form action={action} method="get" className={styles.filters} onSubmit={submit} aria-busy={pending}
     onChange={event => { if (event.target instanceof HTMLInputElement && event.target.name === "eligible") event.currentTarget.requestSubmit(); }}>
     {children}
-    <span role="status" className={styles.filterStatus}>{pending ? "조건에 맞는 클랜을 찾고 있습니다." : ""}</span>
+    <span role="status" className={styles.filterStatus}>{pending ? tx("조건에 맞는 클랜을 찾고 있습니다.") : ""}</span>
   </form>;
 }

@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { forbidden, redirect } from "next/navigation";
 import ClanEmblemCasePage from "@/app/games/[gameSlug]/clan/[clanId]/emblems/page";
 import { AccountShell } from "@/components/onboarding/account-shell";
@@ -6,12 +7,16 @@ import { uuidPattern } from "@/lib/clan/board";
 import { loadProfilePersonalEmblemCase } from "@/lib/personal-emblems/load-profile-case";
 import { PersonalEmblemCase } from "@/components/personal-emblems/personal-emblem-case";
 
-export const metadata = { title: "엠블럼 · ClanSync" };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("엠블럼 · ClanSync") };
+}
 
 export default async function ProfileEmblemsPage({ params, searchParams }: {
   params: Promise<{ userId: string }>;
   searchParams: Promise<{ clan?: string | string[] }>;
 }) {
+  const tx = await getTranslator();
   const [{ userId }, { clan: clanId }] = await Promise.all([params, searchParams]);
   if (!uuidPattern.test(userId) || (clanId !== undefined && (typeof clanId !== "string" || !uuidPattern.test(clanId)))) forbidden();
   const user = await getRequestUser();
@@ -21,7 +26,7 @@ export default async function ProfileEmblemsPage({ params, searchParams }: {
     const collection = await loadProfilePersonalEmblemCase(client, userId);
     if (!collection) forbidden();
     return <AccountShell context="엠블럼" profileHref={user.id === userId ? "/profile" : `/profile/${userId}`}>
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-7"><section aria-label="개인 엠블럼">
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-7"><section aria-label={tx("개인 엠블럼")}>
         <PersonalEmblemCase key={userId + user.id} initialCollection={collection} />
       </section></main>
     </AccountShell>;

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslator } from "#use-translator";
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
@@ -49,6 +50,7 @@ function DialogContent({
   showCloseButton?: boolean
   overlayClassName?: string
 }) {
+  const tx = useTranslator();
   return (
     <DialogPortal>
       <DialogOverlay className={overlayClassName} />
@@ -74,7 +76,7 @@ function DialogContent({
           >
             <XIcon
             />
-            <span className="sr-only">닫기</span>
+            <span className="sr-only">{tx("닫기")}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>

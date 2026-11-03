@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useId, useMemo, useRef, type PointerEvent } from "react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ function Wheel({ label, options, value, onChange, disabled }: {
   label: string; options: readonly { value: string; label: string }[]; value: string;
   onChange: (value: string) => void; disabled: boolean;
 }) {
+  const tx = useTranslator();
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; top: number; moved: boolean } | null>(null);
@@ -50,10 +52,10 @@ function Wheel({ label, options, value, onChange, disabled }: {
     if (moved) select(Math.round(event.currentTarget.scrollTop / ROW));
   }
   return <div className="min-w-0">
-    <p className="mb-2 text-center text-xs text-muted-foreground">{label}</p>
+    <p className="mb-2 text-center text-xs text-muted-foreground">{tx(label)}</p>
     <div className="relative rounded-lg bg-muted/30">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[72px] h-9 rounded-md border-y border-primary/30 bg-primary/10" />
-      <div ref={ref} role="listbox" aria-label={label} aria-disabled={disabled} tabIndex={disabled ? -1 : 0}
+      <div ref={ref} role="listbox" aria-label={tx(label)} aria-disabled={disabled} tabIndex={disabled ? -1 : 0}
         aria-activedescendant={`${id}-${index}`}
         className={cn("relative h-[180px] snap-y snap-mandatory overflow-y-auto overscroll-contain py-[72px] text-center outline-none select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:ring-2 focus-visible:ring-ring", disabled && "pointer-events-none opacity-50")}
         onKeyDown={(event) => {
@@ -80,7 +82,7 @@ function Wheel({ label, options, value, onChange, disabled }: {
           }
         }} onPointerUp={finish} onPointerCancel={finish} onPointerLeave={(event) => { if (!drag.current?.moved) finish(event); }}>
         {options.map((option, i) => <div key={option.value} id={`${id}-${i}`} role="option" aria-selected={i === index}
-          onClick={() => select(i)} className={cn("relative flex h-9 shrink-0 snap-center cursor-pointer items-center justify-center whitespace-nowrap text-xs tabular-nums", i === index ? "font-semibold text-foreground" : "text-muted-foreground/60")}>{option.label}</div>)}
+          onClick={() => select(i)} className={cn("relative flex h-9 shrink-0 snap-center cursor-pointer items-center justify-center whitespace-nowrap text-xs tabular-nums", i === index ? "font-semibold text-foreground" : "text-muted-foreground/60")}>{tx(option.label)}</div>)}
       </div>
     </div>
   </div>;
@@ -89,6 +91,7 @@ function Wheel({ label, options, value, onChange, disabled }: {
 export function BalanceSchedulePicker({ value, onChange, serverNow, weekly = false, disabled = false, label }: {
   value: string; onChange: (value: string) => void; serverNow: number; weekly?: boolean; disabled?: boolean; label?: string;
 }) {
+  const tx = useTranslator();
   const [date, time] = value.split("T");
   const [hour, minute] = time.split(":");
   const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
@@ -107,12 +110,12 @@ export function BalanceSchedulePicker({ value, onChange, serverNow, weekly = fal
     onChange(weekly ? nextWeeklyDate(weekday, nextTime, serverNow) : `${date}T${nextTime}`);
   }
   return <fieldset className="min-w-0 space-y-2" disabled={disabled}>
-    <legend className="text-xs font-semibold">{label ?? (weekly ? "매주 요일·시각" : "예약 날짜·시각")} (한국 시간)</legend>
+    <legend className="text-xs font-semibold">{label ?? (weekly ? tx("매주 요일·시각") : tx("예약 날짜·시각"))} {tx("(한국 시간)")}</legend>
     <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(2,minmax(0,1fr))] gap-2">
-      <Wheel label={weekly ? "요일" : "날짜"} options={weekly ? weekdays.map((label, i) => ({ value: String(i), label })) : dateOptions} value={weekly ? String(weekday) : date} disabled={disabled}
+      <Wheel label={weekly ? tx("요일") : tx("날짜")} options={weekly ? weekdays.map((label, i) => ({ value: String(i), label })) : dateOptions} value={weekly ? String(weekday) : date} disabled={disabled}
         onChange={(next) => onChange(weekly ? nextWeeklyDate(Number(next), `${hour}:${minute}`, serverNow) : `${next}T${hour}:${minute}`)} />
-      <Wheel label="시" options={hours} value={hour} disabled={disabled} onChange={(next) => changeTime(next, minute)} />
-      <Wheel label="분" options={minutes} value={minute} disabled={disabled} onChange={(next) => changeTime(hour, next)} />
+      <Wheel label={tx("시")} options={hours} value={hour} disabled={disabled} onChange={(next) => changeTime(next, minute)} />
+      <Wheel label={tx("분")} options={minutes} value={minute} disabled={disabled} onChange={(next) => changeTime(hour, next)} />
     </div>
   </fieldset>;
 }

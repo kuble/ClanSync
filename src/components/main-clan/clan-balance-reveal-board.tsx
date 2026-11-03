@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useState, type ReactNode } from "react";
 import type { FormationState } from "@/lib/balance/formation";
 import { ROLE_LABEL } from "@/lib/balance/formation";
@@ -56,6 +57,7 @@ export function ClanBalanceRevealBoard({
   showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
 }) {
+  const tx = useTranslator();
   const [reduced, setReduced] = useState(false);
   const draw = state?.draw;
   const end = draw ? draw.startedAt + draw.durationMs : 0;
@@ -124,15 +126,15 @@ export function ClanBalanceRevealBoard({
     );
   return (
     <div
-      aria-label="공개 추첨 진행"
+      aria-label={tx("공개 추첨 진행")}
       data-draw-id={draw.id}
       data-reveal-count={revealed}
     >
       <div className="mb-3 flex items-center justify-between gap-2 text-xs">
         <strong className="text-primary">
           {elapsed < 650
-            ? "추첨 순서를 섞고 있습니다"
-            : "순서대로 역할과 자리를 공개합니다"}
+            ? tx("추첨 순서를 섞고 있습니다")
+            : tx("순서대로 역할과 자리를 공개합니다")}
         </strong>
         <span className="tabular-nums text-muted-foreground">
           {revealed} / 10
@@ -182,8 +184,8 @@ export function ClanBalanceRevealBoard({
                     </strong>
                     <span className="text-[10px] text-muted-foreground">
                       {visible
-                        ? `${state.order.indexOf(id!) + 1}번 · ${ROLE_LABEL[slot.role]}`
-                        : "추첨 중"}
+                        ? tx("{0}번 · {1}", state.order.indexOf(id!) + 1, ROLE_LABEL[slot.role])
+                        : tx("추첨 중")}
                     </span>
                   </div>
                 </div>
@@ -193,7 +195,7 @@ export function ClanBalanceRevealBoard({
         ))}
       </div>
       <p role="status" className="sr-only">
-        추첨 순서와 역할을 공개하고 있습니다.
+        {tx("추첨 순서와 역할을 공개하고 있습니다.")}
       </p>
     </div>
   );

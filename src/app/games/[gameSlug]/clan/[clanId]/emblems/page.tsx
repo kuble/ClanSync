@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { forbidden } from "next/navigation";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
@@ -10,6 +11,7 @@ export default async function EmblemPage({ params, searchParams }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
   searchParams: Promise<{ player?: string | string[] }>;
 }) {
+  const tx = await getTranslator();
   const [{ gameSlug, clanId }, query] = await Promise.all([params, searchParams]);
   const [ctx, client, user] = await Promise.all([
     getRequestMainClanContext(gameSlug, clanId), getRequestClient(), getRequestUser(),
@@ -20,7 +22,7 @@ export default async function EmblemPage({ params, searchParams }: {
   const collection = personId === user.id ? await loadOwnedPersonalEmblemCase(client, clanId)
     : await loadClanPersonalEmblemCollection(client, user.id, clanId, personId);
   if (!collection) forbidden();
-  return <section className="space-y-5" aria-label="개인 엠블럼">
+  return <section className="space-y-5" aria-label={tx("개인 엠블럼")}>
     <PersonalEmblemCase key={clanId + personId + user.id} initialCollection={collection} />
   </section>;
 }

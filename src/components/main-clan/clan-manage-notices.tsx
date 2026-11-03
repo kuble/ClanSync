@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { ClanEmojiInput } from "./clan-emoji-content";
 import { HelpText } from "./help-text";
 
@@ -56,6 +57,7 @@ export function ClanManageNotices({
   canManage?: boolean;
   floatingCreate?: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [editor, setEditor] = useState<ManagedClanNotice | "new" | null>(null);
@@ -100,16 +102,16 @@ export function ClanManageNotices({
         <div>
           <h3 id="manage-notices-title" className="flex items-center gap-2 text-sm font-bold">
             <Megaphone className="size-4 shrink-0 text-primary" aria-hidden="true" />
-            <HelpText label="클랜 공지" help="중요한 소식을 클랜원에게 전하십시오. 고정한 공지가 먼저 표시됩니다." />
+            <HelpText label={tx("클랜 공지")} help={tx("중요한 소식을 클랜원에게 전하십시오. 고정한 공지가 먼저 표시됩니다.")} />
           </h3>
         </div>
-        {canManage && (floatingCreate ? <BoardCreateButton label="공지 작성" onClick={(event)=>edit("new",event.currentTarget)}/> : <Button
+        {canManage && (floatingCreate ? <BoardCreateButton label={tx("공지 작성")} onClick={(event)=>edit("new",event.currentTarget)}/> : <Button
           type="button"
           size="sm"
           onClick={(event) => edit("new", event.currentTarget)}
         >
           <Plus className="size-3.5" />
-          공지 작성
+          {tx("공지 작성")}
         </Button>)}
       </div>
       {loadFailed ? (
@@ -117,7 +119,7 @@ export function ClanManageNotices({
           className="rounded-lg bg-destructive/5 p-5 text-sm text-destructive"
           role="alert"
         >
-          공지를 불러오지 못했습니다. 새로고침 후 확인해 주십시오.
+          {tx("공지를 불러오지 못했습니다. 새로고침 후 확인해 주십시오.")}
         </p>
       ) : notices.length === 0 ? (
         <div className="flex flex-col items-center rounded-lg border border-dashed border-border py-10 text-center">
@@ -125,9 +127,9 @@ export function ClanManageNotices({
             className="mb-3 size-6 text-muted-foreground/60"
             aria-hidden="true"
           />
-          <p className="text-[13px] font-semibold">아직 등록된 공지가 없습니다</p>
+          <p className="text-[13px] font-semibold">{tx("아직 등록된 공지가 없습니다")}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            첫 공지로 클랜원에게 인사를 건네보십시오.
+            {tx("첫 공지로 클랜원에게 인사를 건네보십시오.")}
           </p>
         </div>
       ) : (
@@ -142,14 +144,14 @@ export function ClanManageNotices({
                   {notice.isPinned && (
                     <Pin
                       className="size-3.5 shrink-0 text-primary"
-                      aria-label="고정 공지"
+                      aria-label={tx("고정 공지")}
                     />
                   )}
                   <Link href={"/games/"+gameSlug+"/clan/"+clanId+"/board/notices/"+notice.id} className="truncate hover:text-primary">{notice.title}</Link>
                 </p>
                 <p className="mt-1.5 text-[11px] text-muted-foreground">
                   {notice.author} ·{" "}
-                  {new Intl.DateTimeFormat("ko-KR", {
+                  {new Intl.DateTimeFormat(tx.locale, {
                     timeZone: "Asia/Seoul",
                     dateStyle: "medium",
                   }).format(new Date(notice.createdAt))}
@@ -184,8 +186,8 @@ export function ClanManageNotices({
                   variant="ghost"
                   size="icon-sm"
                   disabled={pending}
-                  aria-label={`${notice.title} 편집`}
-                  title="공지 편집"
+                  aria-label={tx("{0} 편집", notice.title)}
+                  title={tx("공지 편집")}
                   onClick={(event) => edit(notice, event.currentTarget)}
                 >
                   <Pencil />
@@ -195,8 +197,8 @@ export function ClanManageNotices({
                   variant="ghost"
                   size="icon-sm"
                   disabled={pending}
-                  aria-label={`${notice.title} 삭제`}
-                  title="공지 삭제"
+                  aria-label={tx("{0} 삭제", notice.title)}
+                  title={tx("공지 삭제")}
                   onClick={() => setRemoving(notice)}
                 >
                   <Trash2 className="text-destructive" />
@@ -233,10 +235,10 @@ export function ClanManageNotices({
         >
           <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
             <SheetTitle>
-              {editor === "new" ? "공지 작성" : "공지 편집"}
+              {editor === "new" ? tx("공지 작성") : tx("공지 편집")}
             </SheetTitle>
             <SheetDescription>
-              활동 중인 클랜원에게만 공개됩니다.
+              {tx("활동 중인 클랜원에게만 공개됩니다.")}
             </SheetDescription>
           </SheetHeader>
           <form
@@ -255,7 +257,7 @@ export function ClanManageNotices({
           >
             <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">
             <div className="space-y-2">
-              <Label htmlFor="notice-title">제목</Label>
+              <Label htmlFor="notice-title">{tx("제목")}</Label>
               <Input
                 ref={editorTitle}
                 id="notice-title"
@@ -264,15 +266,15 @@ export function ClanManageNotices({
                 maxLength={200}
                 defaultValue={editor && editor !== "new" ? editor.title : ""}
                 disabled={pending}
-                placeholder="클랜원에게 전할 소식"
+                placeholder={tx("클랜원에게 전할 소식")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notice-content">본문</Label>
-              <ClanEmojiInput id="notice-content" name="content" label="본문" value={noticeContent} onChange={setNoticeContent} maxLength={20000} disabled={pending} placeholder="공지 내용을 입력해 주십시오." className="min-h-48"/>
+              <Label htmlFor="notice-content">{tx("본문")}</Label>
+              <ClanEmojiInput id="notice-content" name="content" label={tx("본문")} value={noticeContent} onChange={setNoticeContent} maxLength={20000} disabled={pending} placeholder={tx("공지 내용을 입력해 주십시오.")} className="min-h-48"/>
             </div>
             <label className="flex items-center justify-between gap-3 text-sm">
-              대시보드 상단에 고정
+              {tx("대시보드 상단에 고정")}
               <Switch
                 name="is_pinned"
                 defaultChecked={
@@ -289,10 +291,10 @@ export function ClanManageNotices({
                 disabled={pending}
                 onClick={() => setEditor(null)}
               >
-                취소
+                {tx("취소")}
               </Button>
               <Button type="submit" disabled={pending}>
-                {pending ? "저장 중…" : "공지 저장"}
+                {pending ? tx("저장 중…") : tx("공지 저장")}
               </Button>
             </SheetFooter>
           </form>
@@ -306,17 +308,16 @@ export function ClanManageNotices({
       >
         <DialogContent showCloseButton={!pending}>
           <DialogHeader>
-            <DialogTitle>공지를 삭제하시겠습니까?</DialogTitle>
+            <DialogTitle>{tx("공지를 삭제하시겠습니까?")}</DialogTitle>
             <DialogDescription>
-              ‘{removing?.title}’ 공지가 삭제됩니다. 삭제한 공지는 복구할 수
-              없습니다.
+              ‘{removing?.title}{tx("’ 공지가 삭제됩니다. 삭제한 공지는 복구할 수 없습니다.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose
               render={<Button variant="outline" disabled={pending} />}
             >
-              취소
+              {tx("취소")}
             </DialogClose>
             <Button
               type="button"
@@ -331,7 +332,7 @@ export function ClanManageNotices({
                   );
               }}
             >
-              {pending ? "삭제 중…" : "공지 삭제"}
+              {pending ? tx("삭제 중…") : tx("공지 삭제")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -353,26 +354,27 @@ export function ClanManageRules({
   loadFailed: boolean;
   canManage?: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [retrying, retry] = useTransition();
   if (loadFailed) {
     return (
       <section className={panel} id="rules" aria-labelledby="manage-rules-title">
-        <h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />클랜 규칙</h3>
+        <h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("클랜 규칙")}</h3>
         <p className="my-4 text-sm text-destructive" role="alert">
-          기존 규칙을 불러오지 못했습니다. 다시 불러온 뒤 수정해 주십시오.
+          {tx("기존 규칙을 불러오지 못했습니다. 다시 불러온 뒤 수정해 주십시오.")}
         </p>
         <Button type="button" variant="outline" size="sm" disabled={retrying}
           onClick={() => retry(() => router.refresh())}>
-          {retrying ? "불러오는 중…" : "규칙 다시 불러오기"}
+          {retrying ? tx("불러오는 중…") : tx("규칙 다시 불러오기")}
         </Button>
       </section>
     );
   }
   if (!canManage) {
     const rules = parseClanRules(initialRules);
-    return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />클랜 규칙</h3>
-      {rules.length ? <ol aria-label="클랜 규칙 목록" className="mt-4 divide-y divide-border">{rules.map((rule, index) => <li key={index} className="flex gap-3 py-3 text-sm leading-6"><span aria-hidden="true" className="w-5 shrink-0 text-muted-foreground">{index + 1}.</span><p className="min-w-0 flex-1 break-words">{rule}</p></li>)}</ol> : <p className="mt-4 text-sm text-muted-foreground">등록된 규칙이 없습니다.</p>}
+    return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("클랜 규칙")}</h3>
+      {rules.length ? <ol aria-label={tx("클랜 규칙 목록")} className="mt-4 divide-y divide-border">{rules.map((rule, index) => <li key={index} className="flex gap-3 py-3 text-sm leading-6"><span aria-hidden="true" className="w-5 shrink-0 text-muted-foreground">{index + 1}.</span><p className="min-w-0 flex-1 break-words">{rule}</p></li>)}</ol> : <p className="mt-4 text-sm text-muted-foreground">{tx("등록된 규칙이 없습니다.")}</p>}
     </section>;
   }
   // Mount the editor only after a successful read, including after a retry.

@@ -1,11 +1,13 @@
+import { useTranslator } from "#use-translator";
 import { Skeleton } from "@/components/ui/skeleton";
 import styles from "@/components/entry/entry.module.css";
 
 export default function GamesLoading() {
+  const tx = useTranslator();
   return (
     <div className={styles.gamesPage}>
       <div className={styles.navbar} aria-hidden="true"><div className={styles.navbarInner}><Skeleton className="h-7 w-32" /><Skeleton className="h-10 w-16" /></div></div>
-      <main className={styles.gamesContent} role="status" aria-label="게임 목록을 불러오는 중입니다.">
+      <main className={styles.gamesContent} role="status" aria-label={tx("게임 목록을 불러오는 중입니다.")}>
         <div className={styles.gameHeader} aria-hidden="true">
           <div><Skeleton className="h-11 w-36" /><Skeleton className="mt-2 h-6 w-64 max-w-full" /></div>
           <div className={styles.search}><Skeleton className="h-[46px] w-full rounded-[10px]" /></div>

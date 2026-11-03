@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { StatHelp } from "@/components/main-clan/stat-help";
 import { useRef, useState } from "react";
 import { saveAutoLoginAction } from "@/app/actions/profile-auto-login";
@@ -6,16 +7,17 @@ import { Switch } from "@/components/ui/switch";
 import styles from "./profile.module.css";
 
 export function ProfileAutoLogin({ initial }: { initial: boolean }) {
+  const tx = useTranslator();
   const [value, setValue] = useState(initial);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const busy = useRef(false);
-  return <div className={styles.autoLogin}><div className={styles.autoLoginRow}><strong><StatHelp title="자동 로그인">켜 두면 이 브라우저에서 로그인을 계속 유지합니다. 끄면 기존 1일 기준을 사용합니다.</StatHelp></strong><Switch aria-label="자동 로그인" checked={value} disabled={pending} onChange={async (event) => {
+  return <div className={styles.autoLogin}><div className={styles.autoLoginRow}><strong><StatHelp title={tx("자동 로그인")}>{tx("켜 두면 이 브라우저에서 로그인을 계속 유지합니다. 끄면 기존 1일 기준을 사용합니다.")}</StatHelp></strong><Switch aria-label={tx("자동 로그인")} checked={value} disabled={pending} onChange={async (event) => {
     if (busy.current) return;
     const next = event.target.checked;
     busy.current = true; setPending(true); setError("");
     try { const result = await saveAutoLoginAction(next); if (result.ok) setValue(result.value); else setError(result.error); }
     catch { setError("자동 로그인 설정을 저장하지 못했습니다. 다시 시도해 주십시오."); }
     finally { busy.current = false; setPending(false); }
-  }} /></div><span role="status" className="sr-only">{pending ? "자동 로그인 설정 저장 중" : ""}</span>{error && <p role="alert" className={styles.error}>{error}</p>}</div>;
+  }} /></div><span role="status" className="sr-only">{pending ? tx("자동 로그인 설정 저장 중") : ""}</span>{error && <p role="alert" className={styles.error}>{tx(error)}</p>}</div>;
 }

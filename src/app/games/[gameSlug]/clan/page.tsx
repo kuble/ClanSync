@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { InquiryButton } from "@/components/onboarding/inquiry-button";
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
@@ -22,12 +23,16 @@ import { CLAN_STYLES, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/c
 const PAGE_SIZE = 5;
 const UUID = /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i;
 const CLAN_FIELDS = "id, name, icon_url, description, rules, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, subscription_tier, favorites:clan_favorites(clan_id), promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
-export const metadata = { title: "클랜 찾기 · ClanSync" };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("클랜 찾기 · ClanSync") };
+}
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
   params: Promise<{ gameSlug: string }>;
   searchParams: Promise<{ pending?: string; q?: string; page?: string; style?: string; tier?: string; promotion?: string; eligible?: string; seed?: string }>;
 }) {
+  const tx = await getTranslator();
   const [{ gameSlug }, { q = "", page: pageStr, style: styleQuery = "", tier: tierQuery = "", promotion = "", eligible, seed: seedQuery }] = await Promise.all([params, searchParams]);
   const eligibleOnly = eligible === "1";
   const seed = seedQuery && UUID.test(seedQuery) ? seedQuery : randomUUID();
@@ -102,38 +107,38 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   return <AccountShell><main className={discover.content} data-clan-discovery>
     <header className={discover.intro}>
       <span className={discover.gameMark} aria-hidden><GameLogo slug={gameSlug} name={game.name_ko} className="size-7" /></span>
-      <div><p>{game.name_ko}</p><h1>클랜 찾기</h1></div>
+      <div><p>{tx(game.name_ko)}</p><h1>{tx("클랜 찾기")}</h1></div>
     </header>
       <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug}
         pendingClanId={pendingBrief?.clanId} blockingClanName={pendingBrief?.clanName} pinnedPendingClan={pinnedPendingClan}
         clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"}
-        createContent={state.clanStatus === "member" ? <p className={styles.empty}>이미 이 게임의 클랜에 소속되어 있습니다.</p> : <ClanCreateForm gameSlug={gameSlug} />}
+        createContent={state.clanStatus === "member" ? <p className={styles.empty}>{tx("이미 이 게임의 클랜에 소속되어 있습니다.")}</p> : <ClanCreateForm gameSlug={gameSlug} />}
         pendingActions={pendingBrief && <>
           <InquiryButton clanId={pendingBrief.clanId} />
-          <form action={cancelBound}><Button type="submit" variant="destructive" size="sm">신청 취소</Button></form>
+          <form action={cancelBound}><Button type="submit" variant="destructive" size="sm">{tx("신청 취소")}</Button></form>
         </>}
         filters={<ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
           <input type="hidden" name="tab" value="join" />
           <div className={discover.filterHeader}>
-            <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />검색 조건</h2>
+            <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />{tx("검색 조건")}</h2>
             {term || style || tier || eligibleOnly ? (
-              <Link href={`/games/${gameSlug}/clan?tab=join`} aria-label="초기화" title="검색 조건 초기화"
+              <Link href={`/games/${gameSlug}/clan?tab=join`} aria-label={tx("초기화")} title={tx("검색 조건 초기화")}
                 className={buttonVariants({ variant: "ghost", size: "icon-sm", className: "text-muted-foreground" })}>
                 <RotateCcw aria-hidden />
               </Link>
             ) : null}
           </div>
-          <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
-          <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{CLAN_STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-          <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <div className={discover.search}><label htmlFor="q" className="sr-only">{tx("클랜 검색")}</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder={tx("클랜 이름으로 검색")} /></div><input type="hidden" name="page" value="1" />
+          <label>{tx("지향")}<select key={style} name="style" defaultValue={style}><option value="">{tx("전체")}</option>{CLAN_STYLES.map((option) => <option key={option.value} value={option.value}>{tx(option.label)}</option>)}</select></label>
+          <label>{tx("모집 티어")}<select key={tier} name="tier" defaultValue={tier}><option value="">{tx("전체")}</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{tx(label)}</option>)}</select></label>
           <div className={discover.eligibilityFilter}><Tooltip>
-            <label><TooltipTrigger key={String(eligibleOnly)} render={<input type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} aria-describedby="recommendation-hint" />} /><span className={discover.filterSwitch} aria-hidden /><span>추천 클랜</span></label>
-            <TooltipContent role="tooltip">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</TooltipContent>
-          </Tooltip><span id="recommendation-hint" className="sr-only">내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.</span></div>
-          <Button type="submit" className="min-h-[38px]">검색</Button>
+            <label><TooltipTrigger key={String(eligibleOnly)} render={<input type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} aria-describedby="recommendation-hint" />} /><span className={discover.filterSwitch} aria-hidden /><span>{tx("추천 클랜")}</span></label>
+            <TooltipContent role="tooltip">{tx("내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.")}</TooltipContent>
+          </Tooltip><span id="recommendation-hint" className="sr-only">{tx("내 성별과 출생연도가 모집 조건에 맞는 클랜을 표시합니다.")}</span></div>
+          <Button type="submit" className="min-h-[38px]">{tx("검색")}</Button>
         </ClanDiscoveryFilterForm>}
         listingFailed={!!listError}
-        pagination={totalPages > 1 && <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav>}
+        pagination={totalPages > 1 && <nav className={styles.pagination} aria-label={tx("클랜 목록 페이지")}>{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>{tx("이전")}</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>{tx("다음")}</Link> : null}</nav>}
       />
   </main></AccountShell>;
 }

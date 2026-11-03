@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useId, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -66,6 +67,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
   serverNow: number;
   initialRoomId?: string;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(initialRoomId ?? null);
@@ -106,25 +108,25 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="truncate text-left text-sm font-semibold">{room.title}</span>
-            <span className="text-xs text-muted-foreground">{room.kind === "regular" ? "정규" : "깜짝"}</span>
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", room.status === "open" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground")}>{room.status === "open" ? "열림" : STATUS[room.status]}</span>
+            <span className="text-xs text-muted-foreground">{room.kind === "regular" ? tx("정규") : tx("깜짝")}</span>
+            <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", room.status === "open" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground")}>{room.status === "open" ? tx("열림") : STATUS[room.status]}</span>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1"><Clock3 className="size-3" aria-hidden="true" /><time dateTime={room.scheduled_at}>{displayStart(room.scheduled_at)}</time></span>
             <span>{room.delegateNickname ?? room.creatorNickname}</span>
-            {room.schedule_id && room.scheduleEnabled !== false ? <span className="inline-flex items-center gap-1"><Repeat2 className="size-3" aria-hidden="true" />{room.repeatEveryDays === 7 || !room.repeatEveryDays ? "매주" : `${room.repeatEveryDays}일마다`}</span> : null}
-            {room.kind === "flash" ? <span className="inline-flex items-center gap-1"><UsersRound className="size-3" aria-hidden="true" />참여 {room.rsvpCounts.going}</span> : null}
+            {room.schedule_id && room.scheduleEnabled !== false ? <span className="inline-flex items-center gap-1"><Repeat2 className="size-3" aria-hidden="true" />{room.repeatEveryDays === 7 || !room.repeatEveryDays ? tx("매주") : tx("{0}일마다", room.repeatEveryDays)}</span> : null}
+            {room.kind === "flash" ? <span className="inline-flex items-center gap-1"><UsersRound className="size-3" aria-hidden="true" />{tx("참여")} {room.rsvpCounts.going}</span> : null}
           </div>
           {room.kind === "flash" && room.status === "scheduled" && !rsvpOpen ? <p className="mt-1 text-xs text-muted-foreground">{participationHint}</p> : null}
         </div>
         <div className="col-start-2 grid shrink-0 grid-cols-[2rem_5rem] items-center justify-self-end gap-1" data-testid="balance-room-actions">
           <div className="flex size-8 items-center justify-center">
-            {room.kind === "regular" || canManage ? <Button size="icon-sm" variant="ghost" aria-label={`${room.title} 방 정보`} title="방 정보" onClick={() => setDetailId(room.id)}><MoreHorizontal className="size-4" aria-hidden="true" /></Button> : null}
+            {room.kind === "regular" || canManage ? <Button size="icon-sm" variant="ghost" aria-label={tx("{0} 방 정보", room.title)} title={tx("방 정보")} onClick={() => setDetailId(room.id)}><MoreHorizontal className="size-4" aria-hidden="true" /></Button> : null}
           </div>
           <div className="flex justify-end [&>a]:w-full [&>button]:w-full">
           {room.status === "open" && room.series_id ? (
-            <Link className={buttonVariants({ size: "sm", variant: "outline" })} href={roomPath(room.id)}>입장<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
-          ) : room.status === "scheduled" && room.kind === "flash" ? <Button size="sm" variant={room.myRsvp === "going" ? "secondary" : "outline"} aria-pressed={room.myRsvp === "going"} disabled={pending || !canCreate || !rsvpOpen} title={participationHint} onClick={() => run(() => setBalanceRoomRsvpAction(gameSlug, clanId, room.id, room.myRsvp === "going" ? "no" : "going"), room.myRsvp === "going" ? "참여를 취소했습니다." : "참여 신청이 완료되었습니다.")}>{room.myRsvp === "going" ? "참여 취소" : "참여"}</Button> : room.status === "scheduled" ? <Button size="sm" variant="outline" onClick={() => setDetailId(room.id)}>예약 보기</Button> : null}
+            <Link className={buttonVariants({ size: "sm", variant: "outline" })} href={roomPath(room.id)}>{tx("입장")}<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
+          ) : room.status === "scheduled" && room.kind === "flash" ? <Button size="sm" variant={room.myRsvp === "going" ? "secondary" : "outline"} aria-pressed={room.myRsvp === "going"} disabled={pending || !canCreate || !rsvpOpen} title={participationHint} onClick={() => run(() => setBalanceRoomRsvpAction(gameSlug, clanId, room.id, room.myRsvp === "going" ? "no" : "going"), room.myRsvp === "going" ? "참여를 취소했습니다." : "참여 신청이 완료되었습니다.")}>{room.myRsvp === "going" ? tx("참여 취소") : tx("참여")}</Button> : room.status === "scheduled" ? <Button size="sm" variant="outline" onClick={() => setDetailId(room.id)}>{tx("예약 보기")}</Button> : null}
           </div>
         </div>
       </li>
@@ -132,22 +134,22 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
   }
 
   return (
-    <section className="space-y-4" aria-label="내전 로비" data-testid="clan-balance-lobby">
+    <section className="space-y-4" aria-label={tx("내전 로비")} data-testid="clan-balance-lobby">
       <BalanceLobbyRealtime clanId={clanId} roomIds={rooms.map((room) => room.id)} />
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs tabular-nums text-muted-foreground">진행·예약 {active.length}개</span>
+        <span className="text-xs tabular-nums text-muted-foreground">{tx("진행·예약")} {active.length}{tx("개")}</span>
         <div className="flex items-center gap-1">
-          {staff ? <Button size="icon-sm" variant="ghost" aria-label="내전 기록" title="내전 기록" onClick={() => setHistoryOpen(true)}><History className="size-4" aria-hidden="true" /></Button> : null}
-          <Button size="icon-sm" variant="ghost" aria-label="로비 안내" title="로비 안내" onClick={() => setGuideOpen(true)}><CircleHelp className="size-4" aria-hidden="true" /></Button>
-          {canCreate ? <Button size="sm" className="w-7 px-0 sm:w-auto sm:px-3" aria-label="내전 만들기" title="내전 만들기" data-lobby-guide="add" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden="true" /><span className="hidden sm:inline">내전 만들기</span></Button> : null}
+          {staff ? <Button size="icon-sm" variant="ghost" aria-label={tx("내전 기록")} title={tx("내전 기록")} onClick={() => setHistoryOpen(true)}><History className="size-4" aria-hidden="true" /></Button> : null}
+          <Button size="icon-sm" variant="ghost" aria-label={tx("로비 안내")} title={tx("로비 안내")} onClick={() => setGuideOpen(true)}><CircleHelp className="size-4" aria-hidden="true" /></Button>
+          {canCreate ? <Button size="sm" className="w-7 px-0 sm:w-auto sm:px-3" aria-label={tx("내전 만들기")} title={tx("내전 만들기")} data-lobby-guide="add" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden="true" /><span className="hidden sm:inline">{tx("내전 만들기")}</span></Button> : null}
         </div>
       </div>
       <div data-lobby-guide="list" className="overflow-hidden rounded-xl border bg-card">
-        {active.length ? <ul aria-label="진행·예약 내전" className="divide-y">{active.map(row)}</ul> : (
+        {active.length ? <ul aria-label={tx("진행·예약 내전")} className="divide-y">{active.map(row)}</ul> : (
           <div className="flex min-h-36 flex-col items-center justify-center gap-3 px-4 py-7 text-center">
             <CalendarDays className="size-6 text-muted-foreground/50" aria-hidden="true" />
-            <p className="text-sm text-muted-foreground">아직 열린 내전이 없습니다.</p>
-            {canCreate ? <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>첫 내전 만들기</Button> : null}
+            <p className="text-sm text-muted-foreground">{tx("아직 열린 내전이 없습니다.")}</p>
+            {canCreate ? <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>{tx("첫 내전 만들기")}</Button> : null}
           </div>
         )}
       </div>
@@ -168,6 +170,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
 
 type CreateInput = { kind: RoomKind; title: string; scheduledAt?: string | null; rsvpStartsAt?: string | null; repeatEveryDays?: number | null };
 function CreateRoomSheet({ staff, serverNow, pending, onClose, onSubmit }: { staff: boolean; serverNow: number; pending: boolean; onClose: () => void; onSubmit: (input: CreateInput) => void }) {
+  const tx = useTranslator();
   const [kind, setKind] = useState<RoomKind>(staff ? "regular" : "flash");
   const [title, setTitle] = useState("");
   const [scheduled, setScheduled] = useState(false);
@@ -182,18 +185,18 @@ function CreateRoomSheet({ staff, serverNow, pending, onClose, onSubmit }: { sta
   return (
     <Sheet open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
       <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]" showCloseButton={!pending}>
-        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle><HelpText label="내전 만들기" help={staff ? "정규 내전과 깜짝 내전을 열거나 예약하십시오." : "직접 진행할 깜짝 내전을 열거나 예약하십시오."} /></SheetTitle><SheetDescription className="sr-only">내전 종류와 시작 시각을 설정합니다.</SheetDescription></SheetHeader>
+        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle><HelpText label={tx("내전 만들기")} help={staff ? tx("정규 내전과 깜짝 내전을 열거나 예약하십시오.") : tx("직접 진행할 깜짝 내전을 열거나 예약하십시오.")} /></SheetTitle><SheetDescription className="sr-only">{tx("내전 종류와 시작 시각을 설정합니다.")}</SheetDescription></SheetHeader>
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 pb-6">
-            <fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">종류</legend><div className="grid grid-cols-2 gap-2">{([{ value: "regular", label: "정규 내전", icon: CalendarDays }, { value: "flash", label: "깜짝 내전", icon: Zap }] as const).map(({ value, label, icon: Icon }) => <label key={value} className={cn("flex items-center gap-2 rounded-lg border p-3 text-sm", kind === value && "border-primary bg-primary/5", value === "regular" && !staff && "opacity-40")}><input type="radio" name="room-kind" value={value} checked={kind === value} disabled={value === "regular" && !staff} onChange={() => setKind(value)} className="accent-primary" /><Icon className="size-4 shrink-0" aria-hidden="true" />{label}</label>)}</div></fieldset>
-            <label className="block text-xs font-semibold">내전 이름<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} placeholder={kind === "regular" ? "금요일 정규 내전" : "오늘 저녁 깜짝"} /></label>
-            <fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">시작</legend><div className="flex gap-5 text-sm"><label className="flex items-center gap-2"><input type="radio" name="room-start" checked={!scheduled} onChange={() => setScheduled(false)} className="accent-primary" />지금</label><label className="flex items-center gap-2"><input type="radio" name="room-start" checked={scheduled} onChange={() => setScheduled(true)} className="accent-primary" />예약</label></div>
-            {scheduled && kind === "regular" ? <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 p-3 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />매주 같은 요일·시각</span><RoomToggle label="매주 같은 요일·시각" checked={weekly} onChange={(checked) => { setWeekly(checked); if (checked) setDate(nextWeeklyDate(new Date(`${date.slice(0, 10)}T00:00:00Z`).getUTCDay(), date.slice(11), serverNow)); }} /></div> : null}
+            <fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">{tx("종류")}</legend><div className="grid grid-cols-2 gap-2">{([{ value: "regular", label: "정규 내전", icon: CalendarDays }, { value: "flash", label: "깜짝 내전", icon: Zap }] as const).map(({ value, label, icon: Icon }) => <label key={value} className={cn("flex items-center gap-2 rounded-lg border p-3 text-sm", kind === value && "border-primary bg-primary/5", value === "regular" && !staff && "opacity-40")}><input type="radio" name="room-kind" value={value} checked={kind === value} disabled={value === "regular" && !staff} onChange={() => setKind(value)} className="accent-primary" /><Icon className="size-4 shrink-0" aria-hidden="true" />{tx(label)}</label>)}</div></fieldset>
+            <label className="block text-xs font-semibold">{tx("내전 이름")}<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} placeholder={kind === "regular" ? tx("금요일 정규 내전") : tx("오늘 저녁 깜짝")} /></label>
+            <fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">{tx("시작")}</legend><div className="flex gap-5 text-sm"><label className="flex items-center gap-2"><input type="radio" name="room-start" checked={!scheduled} onChange={() => setScheduled(false)} className="accent-primary" />{tx("지금")}</label><label className="flex items-center gap-2"><input type="radio" name="room-start" checked={scheduled} onChange={() => setScheduled(true)} className="accent-primary" />{tx("예약")}</label></div>
+            {scheduled && kind === "regular" ? <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 p-3 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />{tx("매주 같은 요일·시각")}</span><RoomToggle label={tx("매주 같은 요일·시각")} checked={weekly} onChange={(checked) => { setWeekly(checked); if (checked) setDate(nextWeeklyDate(new Date(`${date.slice(0, 10)}T00:00:00Z`).getUTCDay(), date.slice(11), serverNow)); }} /></div> : null}
             {scheduled ? <div className={`${styles.dependentSettings} mt-4`}><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} weekly={kind === "regular" && weekly} disabled={pending} /></div> : null}
             </fieldset>
             {scheduled && kind === "flash" ? <RsvpFields enabled={rsvp} value={pollDate} onEnabled={setRsvp} onChange={setPollDate} serverNow={serverNow} /> : null}
           </fieldset>
-          <div className="shrink-0 border-t px-5 py-4"><Button type="submit" className="w-full" disabled={pending || !title.trim()}>{pending ? "만드는 중…" : "내전 만들기"}</Button></div>
+          <div className="shrink-0 border-t px-5 py-4"><Button type="submit" className="w-full" disabled={pending || !title.trim()}>{pending ? tx("만드는 중…") : tx("내전 만들기")}</Button></div>
         </form>
       </SheetContent>
     </Sheet>
@@ -201,17 +204,19 @@ function CreateRoomSheet({ staff, serverNow, pending, onClose, onSubmit }: { sta
 }
 
 function RoomToggle({ label, checked, disabled, controls, onChange }: { label: string; checked: boolean; disabled?: boolean; controls?: string; onChange: (checked: boolean) => void }) {
-  return <Switch aria-label={label} checked={checked} aria-controls={controls} disabled={disabled} onChange={event => onChange(event.target.checked)} />;
+  const tx = useTranslator();
+  return <Switch aria-label={tx(label)} checked={checked} aria-controls={controls} disabled={disabled} onChange={event => onChange(event.target.checked)} />;
 }
 
 function RsvpFields({ enabled, value, onEnabled, onChange, serverNow }: { enabled: boolean; value: string; onEnabled: (value: boolean) => void; onChange: (value: string) => void; serverNow: number }) {
+  const tx = useTranslator();
   const detailsId = useId();
-  return <section className="rounded-xl border bg-muted/10 p-4" aria-label="참석 투표 설정">
+  return <section className="rounded-xl border bg-muted/10 p-4" aria-label={tx("참석 투표 설정")}>
     <div className="flex items-center justify-between gap-3 text-sm font-medium">
-      <HelpText label="참석 투표 자동 개설" help="선택한 시각에 이벤트의 참석·불참 투표가 시작됩니다. 투표 결과와 내전 참여 현황은 함께 갱신되고, 내전을 열면 투표가 마감됩니다. 출전 명단은 직접 편성합니다." />
-      <RoomToggle label="참석 투표 자동 개설" checked={enabled} controls={detailsId} onChange={onEnabled} />
+      <HelpText label={tx("참석 투표 자동 개설")} help={tx("선택한 시각에 이벤트의 참석·불참 투표가 시작됩니다. 투표 결과와 내전 참여 현황은 함께 갱신되고, 내전을 열면 투표가 마감됩니다. 출전 명단은 직접 편성합니다.")} />
+      <RoomToggle label={tx("참석 투표 자동 개설")} checked={enabled} controls={detailsId} onChange={onEnabled} />
     </div>
-    {enabled ? <div id={detailsId} className={`${styles.dependentSettings} mt-4`}><BalanceSchedulePicker label="투표 개설 날짜·시각" value={value} onChange={onChange} serverNow={serverNow} /></div> : null}
+    {enabled ? <div id={detailsId} className={`${styles.dependentSettings} mt-4`}><BalanceSchedulePicker label={tx("투표 개설 날짜·시각")} value={value} onChange={onChange} serverNow={serverNow} /></div> : null}
   </section>;
 }
 
@@ -221,6 +226,7 @@ function RoomDetailSheet({ room, members, serverNow, leader, canManage, pending,
   onClose: () => void; onUpdate: (input: UpdateInput) => void; onOpen: () => void; onCancel: () => void; onDelegate: (id: string | null) => void; onSchedule: (enabled: boolean) => void;
   onNextReservation?: () => void;
 }) {
+  const tx = useTranslator();
   const formId = useId();
   const [title, setTitle] = useState(room.title);
   const [date, setDate] = useState(kstInput(room.scheduled_at));
@@ -241,22 +247,23 @@ function RoomDetailSheet({ room, members, serverNow, leader, canManage, pending,
   return (
     <Sheet open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
       <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]" showCloseButton={!pending}>
-        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle>내전 정보</SheetTitle><SheetDescription className="text-xs">{room.kind === "regular" ? "정규" : "깜짝"} · {STATUS[room.status]} · {room.creatorNickname}</SheetDescription></SheetHeader>
+        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle>{tx("내전 정보")}</SheetTitle><SheetDescription className="text-xs">{room.kind === "regular" ? tx("정규") : tx("깜짝")} · {tx(STATUS[room.status])} · {room.creatorNickname}</SheetDescription></SheetHeader>
         <div className="board-scroll min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 pb-6">
-          {onNextReservation ? <Button variant="outline" size="sm" onClick={onNextReservation}>다음 예약 보기</Button> : null}
-          {editable ? <form id={formId} onSubmit={save}><fieldset disabled={pending} className="space-y-6"><label className="block text-xs font-semibold">내전 이름<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} /></label><fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">시작</legend><div className={styles.dependentSettings}><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} weekly={recurring} disabled={pending} /></div></fieldset>{room.kind === "flash" ? <RsvpFields enabled={rsvp} value={pollDate} onEnabled={setRsvp} onChange={setPollDate} serverNow={serverNow} /> : null}</fieldset></form> : <div className="space-y-2"><h3 className="font-semibold">{room.title}</h3><p className="text-xs text-muted-foreground">{displayStart(room.scheduled_at)} · 한국 시간</p></div>}
+          {onNextReservation ? <Button variant="outline" size="sm" onClick={onNextReservation}>{tx("다음 예약 보기")}</Button> : null}
+          {editable ? <form id={formId} onSubmit={save}><fieldset disabled={pending} className="space-y-6"><label className="block text-xs font-semibold">{tx("내전 이름")}<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} /></label><fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">{tx("시작")}</legend><div className={styles.dependentSettings}><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} weekly={recurring} disabled={pending} /></div></fieldset>{room.kind === "flash" ? <RsvpFields enabled={rsvp} value={pollDate} onEnabled={setRsvp} onChange={setPollDate} serverNow={serverNow} /> : null}</fieldset></form> : <div className="space-y-2"><h3 className="font-semibold">{room.title}</h3><p className="text-xs text-muted-foreground">{displayStart(room.scheduled_at)} {tx("· 한국 시간")}</p></div>}
 
-          {leader && room.kind === "regular" && !ended ? <section className="space-y-3 rounded-xl border bg-muted/10 p-4"><label className="block text-xs font-semibold">임시 진행 운영진<select value={delegate} onChange={(event) => setDelegate(event.target.value)} disabled={pending} className={field}><option value="">위임 없음</option>{members.filter((member) => member.role === "officer").map((member) => <option key={member.user_id} value={member.user_id}>{member.nickname}</option>)}</select></label><p className="text-[11px] text-muted-foreground">이 방이 종료되면 위임이 해제됩니다.</p><Button variant="outline" size="sm" disabled={pending || delegate === (room.delegated_to ?? "")} onClick={() => onDelegate(delegate || null)}>{delegate ? "진행 운영진 지정" : "위임 해제"}</Button></section> : room.delegateNickname ? <p className="text-xs text-muted-foreground">진행 운영진 · {room.delegateNickname}</p> : null}
-          {canManage && room.schedule_id ? <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/10 p-4 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />반복 예약 유지</span><RoomToggle label="반복 예약 유지" checked={room.scheduleEnabled !== false} disabled={pending} onChange={onSchedule} /></div> : null}
-          {canManage && room.status === "scheduled" ? <div className="space-y-3 border-t pt-4"><Button className="w-full" disabled={pending} onClick={onOpen}>지금 열기<ArrowUpRight className="size-4" aria-hidden="true" /></Button>{confirmCancel ? <div className="rounded-lg border border-destructive/30 p-3"><p className="text-xs">이 내전 예약을 취소하시겠습니까?</p><div className="mt-3 flex justify-end gap-2"><Button variant="ghost" size="sm" disabled={pending} onClick={() => setConfirmCancel(false)}>돌아가기</Button><Button variant="destructive" size="sm" disabled={pending} onClick={onCancel}>취소 확정</Button></div></div> : <Button variant="ghost" className="w-full text-muted-foreground" disabled={pending} onClick={() => setConfirmCancel(true)}>이번 내전 취소</Button>}</div> : null}
+          {leader && room.kind === "regular" && !ended ? <section className="space-y-3 rounded-xl border bg-muted/10 p-4"><label className="block text-xs font-semibold">{tx("임시 진행 운영진")}<select value={delegate} onChange={(event) => setDelegate(event.target.value)} disabled={pending} className={field}><option value="">{tx("위임 없음")}</option>{members.filter((member) => member.role === "officer").map((member) => <option key={member.user_id} value={member.user_id}>{member.nickname}</option>)}</select></label><p className="text-[11px] text-muted-foreground">{tx("이 방이 종료되면 위임이 해제됩니다.")}</p><Button variant="outline" size="sm" disabled={pending || delegate === (room.delegated_to ?? "")} onClick={() => onDelegate(delegate || null)}>{delegate ? tx("진행 운영진 지정") : tx("위임 해제")}</Button></section> : room.delegateNickname ? <p className="text-xs text-muted-foreground">{tx("진행 운영진 ·")} {room.delegateNickname}</p> : null}
+          {canManage && room.schedule_id ? <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/10 p-4 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />{tx("반복 예약 유지")}</span><RoomToggle label={tx("반복 예약 유지")} checked={room.scheduleEnabled !== false} disabled={pending} onChange={onSchedule} /></div> : null}
+          {canManage && room.status === "scheduled" ? <div className="space-y-3 border-t pt-4"><Button className="w-full" disabled={pending} onClick={onOpen}>{tx("지금 열기")}<ArrowUpRight className="size-4" aria-hidden="true" /></Button>{confirmCancel ? <div className="rounded-lg border border-destructive/30 p-3"><p className="text-xs">{tx("이 내전 예약을 취소하시겠습니까?")}</p><div className="mt-3 flex justify-end gap-2"><Button variant="ghost" size="sm" disabled={pending} onClick={() => setConfirmCancel(false)}>{tx("돌아가기")}</Button><Button variant="destructive" size="sm" disabled={pending} onClick={onCancel}>{tx("취소 확정")}</Button></div></div> : <Button variant="ghost" className="w-full text-muted-foreground" disabled={pending} onClick={() => setConfirmCancel(true)}>{tx("이번 내전 취소")}</Button>}</div> : null}
         </div>
-        {editable ? <div className="shrink-0 border-t px-5 py-4"><Button type="submit" form={formId} className="w-full" disabled={pending || !title.trim()}>예약 변경 저장</Button></div> : null}
+        {editable ? <div className="shrink-0 border-t px-5 py-4"><Button type="submit" form={formId} className="w-full" disabled={pending || !title.trim()}>{tx("예약 변경 저장")}</Button></div> : null}
       </SheetContent>
     </Sheet>
   );
 }
 
 function LobbyGuide({ canCreate, onClose }: { canCreate: boolean; onClose: () => void }) {
+  const tx = useTranslator();
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const steps = canCreate ? [
@@ -273,5 +280,5 @@ function LobbyGuide({ canCreate, onClose }: { canCreate: boolean; onClose: () =>
     window.addEventListener("scroll", measure, true);
     return () => { cancelAnimationFrame(frame); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
   }, [current.target]);
-  return <GuideDialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}><GuideDialog.Portal><GuideDialog.Backdrop className="fixed inset-0 z-50 bg-black/60" />{rect ? <div aria-hidden="true" className="pointer-events-none fixed z-50 rounded-xl ring-2 ring-primary ring-offset-4 ring-offset-transparent" style={rect} /> : null}<GuideDialog.Popup className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border bg-background p-5 shadow-2xl outline-none"><p className="mb-2 text-xs text-muted-foreground">{step + 1} / {steps.length}</p><GuideDialog.Title className="font-semibold">{current.title}</GuideDialog.Title><GuideDialog.Description className="mt-2 text-sm leading-relaxed text-muted-foreground">{current.text}</GuideDialog.Description><div className="mt-4 flex justify-between"><Button variant="ghost" size="sm" onClick={onClose}>닫기</Button><Button size="sm" onClick={() => step + 1 === steps.length ? onClose() : setStep(step + 1)}>{step + 1 === steps.length ? "완료" : "다음"}</Button></div></GuideDialog.Popup></GuideDialog.Portal></GuideDialog.Root>;
+  return <GuideDialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}><GuideDialog.Portal><GuideDialog.Backdrop className="fixed inset-0 z-50 bg-black/60" />{rect ? <div aria-hidden="true" className="pointer-events-none fixed z-50 rounded-xl ring-2 ring-primary ring-offset-4 ring-offset-transparent" style={rect} /> : null}<GuideDialog.Popup className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border bg-background p-5 shadow-2xl outline-none"><p className="mb-2 text-xs text-muted-foreground">{step + 1} / {steps.length}</p><GuideDialog.Title className="font-semibold">{current.title}</GuideDialog.Title><GuideDialog.Description className="mt-2 text-sm leading-relaxed text-muted-foreground">{current.text}</GuideDialog.Description><div className="mt-4 flex justify-between"><Button variant="ghost" size="sm" onClick={onClose}>{tx("닫기")}</Button><Button size="sm" onClick={() => step + 1 === steps.length ? onClose() : setStep(step + 1)}>{step + 1 === steps.length ? tx("완료") : tx("다음")}</Button></div></GuideDialog.Popup></GuideDialog.Portal></GuideDialog.Root>;
 }

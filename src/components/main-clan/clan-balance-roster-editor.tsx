@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 
 import { contextualScores } from "@/lib/balance/analysis-context";
@@ -128,6 +129,7 @@ export function ClanBalanceRosterEditor({
   playerCardInfo?: PlayerCardInfoMode;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
+  const tx = useTranslator();
   const helpId = useId();
   const [autosave] = useState(
     () =>
@@ -264,8 +266,8 @@ export function ClanBalanceRosterEditor({
               size="icon"
               disabled={history.length === 0}
               onClick={undo}
-              aria-label="명단 변경 되돌리기"
-              title="되돌리기"
+              aria-label={tx("명단 변경 되돌리기")}
+              title={tx("되돌리기")}
             >
               <Undo2 className="size-4" aria-hidden="true" />
             </Button>
@@ -275,8 +277,8 @@ export function ClanBalanceRosterEditor({
               size="icon"
               disabled={usedIds.size === 0}
               onClick={() => apply(structuredClone(EMPTY_ROSTER))}
-              aria-label="출전 명단 초기화"
-              title="초기화"
+              aria-label={tx("출전 명단 초기화")}
+              title={tx("초기화")}
             >
               <RotateCcw className="size-4" aria-hidden="true" />
             </Button> : null}
@@ -287,27 +289,23 @@ export function ClanBalanceRosterEditor({
   return (
     <div className="space-y-3">
       <p id={helpId} className="sr-only">
-        {teamAdjustment ? "배정된 역할을 유지하며 같은 역할의 두 선수를 끌거나 차례로 눌러 팀 배치를 교환하십시오." : <>
-        클랜원을 누르면 1팀부터 순서대로 빈자리에 들어가며, 원하는 자리로 끌어 넣을 수도 있습니다.
-        채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르십시오. 참여자를 끌어
-        다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는 참여자와
-        도착할 자리를 차례로 누르십시오. 우클릭이나 Delete 키로 자리를 비우고
-        Escape 키로 이동 선택을 취소할 수 있습니다.
+        {teamAdjustment ? tx("배정된 역할을 유지하며 같은 역할의 두 선수를 끌거나 차례로 눌러 팀 배치를 교환하십시오.") : <>
+        {tx("클랜원을 누르면 1팀부터 순서대로 빈자리에 들어가며, 원하는 자리로 끌어 넣을 수도 있습니다. 채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르십시오. 참여자를 끌어 다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는 참여자와 도착할 자리를 차례로 누르십시오. 우클릭이나 Delete 키로 자리를 비우고 Escape 키로 이동 선택을 취소할 수 있습니다.")}
         </>}
       </p>
-      {teamAdjustment ? <p className="text-xs text-muted-foreground">같은 역할끼리 교환해 팀 밸런스를 조정하십시오.</p> : null}
+      {teamAdjustment ? <p className="text-xs text-muted-foreground">{tx("같은 역할끼리 교환해 팀 밸런스를 조정하십시오.")}</p> : null}
       <BalanceRosterDock showMembers={!teamAdjustment} members={(handle) => (
       <div data-roster-sidebar className="flex flex-col gap-2">
       {rosterAside}
       <section
         className="overflow-hidden rounded-xl border bg-muted/15"
-        aria-label="참가 가능 클랜원"
+        aria-label={tx("참가 가능 클랜원")}
       >
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
           <div className="flex items-center gap-2">
           {handle}
           <h4 className="text-xs font-semibold">
-            참가자{" "}
+            {tx("참가자")}{" "}
             <span className="ml-1 tabular-nums text-muted-foreground">
               {availablePool.length}
             </span>
@@ -320,14 +318,14 @@ export function ClanBalanceRosterEditor({
               aria-hidden="true"
             />
             <input
-              aria-label="참가자 닉네임 검색"
+              aria-label={tx("참가자 닉네임 검색")}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="닉네임 검색"
+              placeholder={tx("닉네임 검색")}
               className="min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
           </label>
-          {activeMember ? <p className="w-full text-xs text-primary" role="status">교체할 참여자 자리를 선택하십시오.</p> : null}
+          {activeMember ? <p className="w-full text-xs text-primary" role="status">{tx("교체할 참여자 자리를 선택하십시오.")}</p> : null}
         </div>
         <div data-roster-members className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
           {visiblePool.length ? (
@@ -353,7 +351,7 @@ export function ClanBalanceRosterEditor({
                   else { setActiveSlot(null); setActiveMember(activeMember === member.user_id ? null : member.user_id); }
                 }}
                 onKeyDown={(event) => { if (event.key === "Escape") clearInteraction(); }}
-                aria-label={`${member.nickname} 출전 명단에 추가`}
+                aria-label={tx("{0} 출전 명단에 추가", member.nickname)}
                 className={cn("flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-disabled:cursor-default aria-disabled:opacity-50", canEdit && "cursor-grab active:cursor-grabbing", draggedMember === member.user_id && "opacity-50", activeMember === member.user_id && "ring-2 ring-primary")}
               >
                 <span className="truncate">{member.nickname}</span>
@@ -362,17 +360,17 @@ export function ClanBalanceRosterEditor({
           ) : (
             <p className="col-span-full py-3 text-xs text-muted-foreground">
               {query.trim()
-                ? "검색 결과가 없습니다."
+                ? tx("검색 결과가 없습니다.")
                 : pool.length
-                  ? "출전 명단에 추가할 클랜원이 없습니다."
-                  : "참가할 수 있는 클랜원이 없습니다."}
+                  ? tx("출전 명단에 추가할 클랜원이 없습니다.")
+                  : tx("참가할 수 있는 클랜원이 없습니다.")}
             </p>
           )}
         </div>
       </section>
       </div>
       )}>
-      <div aria-label="출전 명단 편집" aria-describedby={helpId} className="rounded-xl bg-muted/35">
+      <div aria-label={tx("출전 명단 편집")} aria-describedby={helpId} className="rounded-xl bg-muted/35">
         {toolbar}
         <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} />
         <div className="space-y-2 p-2 sm:p-3">
@@ -388,7 +386,7 @@ export function ClanBalanceRosterEditor({
                 const nickname = userId
                   ? (nickById.get(userId) ?? "탈퇴한 멤버")
                   : "빈자리";
-                const teamLabel = team === "team1" ? "1팀" : "2팀";
+                const teamLabel = tx(team === "team1" ? "1팀" : "2팀");
                 return (
                   <div key={team} className="contents">
                     {index === 1 ? <BalanceRoleIcon slot={slot} /> : null}
@@ -398,7 +396,7 @@ export function ClanBalanceRosterEditor({
                       data-roster-slot={key}
                       disabled={!canEdit}
                       draggable={canEdit && Boolean(userId)}
-                      aria-label={`${teamLabel} ${slot.label}: ${nickname}`}
+                      aria-label={`${teamLabel} ${tx(slot.label)}: ${nickname}`}
                       aria-pressed={activeSlot === key}
                       aria-describedby={helpId}
                       className={cn(
@@ -459,7 +457,7 @@ export function ClanBalanceRosterEditor({
                         } else clearInteraction();
                       }}
                     >
-                      {draggedMember && userId && dropSlot === key ? <span className="absolute right-2 top-1 text-[10px] font-semibold text-primary">교체</span> : null}
+                      {draggedMember && userId && dropSlot === key ? <span className="absolute right-2 top-1 text-[10px] font-semibold text-primary">{tx("교체")}</span> : null}
                       <BalancePlayerCardContent userId={userId} nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? displayScores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && displayScores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
                     </button>
                     </BalancePlayerDetails>
@@ -488,7 +486,7 @@ export function ClanBalanceRosterEditor({
                   void autosave.retry();
                 }}
               >
-                {error.remote ? "내 변경 다시 적용" : "다시 시도"}
+                {error.remote ? tx("내 변경 다시 적용") : tx("다시 시도")}
               </Button>
             ) : null}
             {error.remote ? (
@@ -499,7 +497,7 @@ export function ClanBalanceRosterEditor({
                 disabled={saving}
                 onClick={() => autosave.loadRemote()}
               >
-                최신 명단 불러오기
+                {tx("최신 명단 불러오기")}
               </Button>
             ) : null}
           </div>

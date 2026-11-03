@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import {
@@ -13,6 +14,7 @@ import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests"
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
+import { ProfileLanguage } from "@/components/profile/profile-language";
 import { loadNamecard } from "@/lib/profile/load-namecard";
 import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { cookies } from "next/headers";
@@ -20,7 +22,10 @@ import { getSessionMaxAge, REMEMBERED_SESSION_SECONDS } from "@/lib/supabase/ses
 import styles from "@/components/profile/profile.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "플레이어 프로필 · ClanSync" };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("플레이어 프로필 · ClanSync") };
+}
 
 
 function genderLabel(g: string): string {
@@ -41,6 +46,7 @@ type JoinRow = {
 };
 
 export default async function ProfilePage() {
+  const tx = await getTranslator();
   const supabase = await createClient();
   const {
     data: { user },
@@ -190,20 +196,20 @@ export default async function ProfilePage() {
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
         games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, isVerified: game.isVerified, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick), canManageAlts: !!game.accountId }))}>
-        {row && <section className={styles.identityFacts} aria-label="기본 정보"><dl>
-          <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
-          <div><dt>출생 연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
-          <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
+        {row && <section className={styles.identityFacts} aria-label={tx("기본 정보")}><dl>
+          <div><dt>{tx("성별")}</dt><dd>{tx(genderLabel(String(row.gender)))}</dd></div>
+          <div><dt>{tx("출생 연도")}</dt><dd>{row.birth_year ?? tx("미등록")}</dd></div>
+          <div><dt>{tx("가입일")}</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString(tx.locale, { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
         </dl></section>}
       </ProfileIdentity>
     </div>
     } account={<div className={styles.accountLayout}>
       <div className={`${styles.accountColumn} ${styles.accountSettings}`}>
-        {row ? <section className={`${styles.settingsAccount} ${styles.accountSection}`} aria-label="내 계정"><h2>내 계정</h2><dl className={styles.detailGrid}>
-          <div><dt>이메일</dt><dd>{row.email || user.email}</dd></div>
-          <div><dt>언어</dt><dd>{({ ko: "한국어", en: "English", ja: "日本語" } as Record<string, string>)[row.language] ?? row.language}</dd></div>
-        </dl><ProfileAutoLogin key={user.id} initial={getSessionMaxAge((await cookies()).getAll()) === REMEMBERED_SESSION_SECONDS} /></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p>}
-        <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
+        {row ? <section className={`${styles.settingsAccount} ${styles.accountSection}`} aria-labelledby="my-account-heading"><h2 id="my-account-heading">{tx("내 계정")}</h2><dl className={styles.detailGrid}>
+          <div><dt>{tx("이메일")}</dt><dd>{row.email || user.email}</dd></div>
+          <div><dt><label htmlFor="profile-language">{tx("언어")}</label></dt><dd><ProfileLanguage initial={row.language} /></dd></div>
+        </dl><ProfileAutoLogin key={user.id} initial={getSessionMaxAge((await cookies()).getAll()) === REMEMBERED_SESSION_SECONDS} /></section> : <p className={styles.error} role="alert">{tx("계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.")}</p>}
+        <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">{tx("로그아웃")}</Button></form><ProfileDeleteAccountButton /></div>
 
       </div>
       <div className={styles.accountColumn}>

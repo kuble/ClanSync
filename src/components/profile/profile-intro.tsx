@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useId, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { saveProfileIntroAction } from "@/app/actions/profile-intro";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import styles from "./profile-intro.module.css";
 
 export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
+  const tx = useTranslator();
   const inputId = useId();
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const [intro, setIntro] = useState(initialIntro);
@@ -53,7 +55,7 @@ export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
     <div className={styles.intro}>
       {editing ? (
         <form onSubmit={(event) => { event.preventDefault(); void save(); }} className={styles.form}>
-          <label htmlFor={inputId} className={styles.label}>한 줄 소개</label>
+          <label htmlFor={inputId} className={styles.label}>{tx("한 줄 소개")}</label>
           <textarea
             id={inputId}
             className={styles.input}
@@ -77,24 +79,24 @@ export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
             }}
           />
           <div className={styles.formFooter}>
-            <span id={`${inputId}-count`} className={styles.count}>{draft.length} / 120자</span>
+            <span id={`${inputId}-count`} className={styles.count}>{draft.length} {tx("/ 120자")}</span>
             <div className={styles.actions}>
-              <Button type="button" variant="ghost" disabled={saving} onClick={finishEditing}>취소</Button>
-              <Button type="submit" disabled={saving}>{saving ? "저장 중…" : "소개 저장"}</Button>
+              <Button type="button" variant="ghost" disabled={saving} onClick={finishEditing}>{tx("취소")}</Button>
+              <Button type="submit" disabled={saving}>{saving ? tx("저장 중…") : tx("소개 저장")}</Button>
             </div>
           </div>
-          {error && <p id={`${inputId}-error`} className={styles.error} role="alert">{error}</p>}
+          {error && <p id={`${inputId}-error`} className={styles.error} role="alert">{tx(error)}</p>}
         </form>
       ) : (
         <button
           ref={editButtonRef}
           type="button"
           className={styles.summary}
-          aria-label="한 줄 소개 편집"
-          title="한 줄 소개 편집"
+          aria-label={tx("한 줄 소개 편집")}
+          title={tx("한 줄 소개 편집")}
           onClick={beginEditing}
         >
-          <span className={styles.text}>{intro || "한 줄 소개를 남겨보십시오"}</span>
+          <span className={styles.text}>{intro || tx("한 줄 소개를 남겨보십시오")}</span>
           <span className={styles.editIcon}>
             <Pencil aria-hidden="true" />
           </span>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { ClanSectionPicker } from "./clan-section-picker";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -14,10 +15,11 @@ export function ClanSectionLinks({ label, selectionLabel, items, compact = false
   compact?: boolean;
   wrap?: boolean;
 }) {
-  return <ClanSectionPicker label={label} selectionLabel={selectionLabel} items={items}><nav aria-label={label} className={cn("relative min-w-0 max-w-full", !wrap && "overflow-x-auto [scrollbar-width:thin]", !compact && "border-b border-border")}>
+  const tx = useTranslator();
+  return <ClanSectionPicker label={tx(label)} selectionLabel={selectionLabel} items={items}><nav aria-label={tx(label)} className={cn("relative min-w-0 max-w-full", !wrap && "overflow-x-auto [scrollbar-width:thin]", !compact && "border-b border-border")}>
     <div className={cn("flex gap-2", wrap ? "w-full flex-wrap" : "w-max", !compact && ["min-w-full", lineStyles.list])}>
       {items.map((item) => {
-        const content = <>{item.icon}{item.label}{item.badge}</>;
+        const content = <>{item.icon}{tx(item.label)}{item.badge}</>;
         const link = <Link key={item.href} href={item.href} scroll={false} prefetch={false}
         aria-current={item.selected ? "page" : undefined}
         className={cn("flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap px-4 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
@@ -25,7 +27,7 @@ export function ClanSectionLinks({ label, selectionLabel, items, compact = false
           item.selected ? compact ? "bg-primary/10 text-primary" : "text-foreground" : "text-muted-foreground hover:bg-muted/40 hover:text-foreground")}>
           {content}
         </Link>;
-        return item.description ? <StatTooltip key={item.href} label={item.label} description={item.description} render={link}>{content}</StatTooltip> : link;
+        return item.description ? <StatTooltip key={item.href} label={tx(item.label)} description={tx(item.description)} render={link}>{content}</StatTooltip> : link;
       })}
     </div>
   </nav></ClanSectionPicker>;

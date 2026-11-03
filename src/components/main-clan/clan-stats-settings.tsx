@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { Switch } from "@/components/ui/switch";
 
 import { useState, useTransition } from "react";
@@ -35,6 +36,7 @@ export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
 function StatsAccessSettings({ model, gameSlug, clanId, scope, onDone }: {
   model: ClanStatsPageModel; gameSlug: string; clanId: string; scope: "records" | "intra"; onDone: () => void;
 }) {
+  const tx = useTranslator();
   const [pending, start] = useTransition();
   const rows = scope === "records" ? [
     { key: "view_match_records", label: "경기 열람", roles: ["leader", "officer"] },
@@ -43,20 +45,20 @@ function StatsAccessSettings({ model, gameSlug, clanId, scope, onDone }: {
     { key: "delete_match_records", label: "경기 삭제", roles: ["leader"] },
   ] : [{ key: "view_intra_stats", label: "통계 열람", roles: ["leader", "officer", "member"] }];
   return <form className="flex min-h-0 flex-1 flex-col" action={(fd) => start(async () => {
-    try { await saveClanHofConfigFormAction(gameSlug, clanId, fd); toast.success("설정을 저장했습니다."); onDone(); }
-    catch { toast.error("설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오."); }
+    try { await saveClanHofConfigFormAction(gameSlug, clanId, fd); toast.success(tx("설정을 저장했습니다.")); onDone(); }
+    catch { toast.error(tx("설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.")); }
   })}>
     <input type="hidden" name="settings_scope" value={scope} />
     <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 overflow-y-auto px-5">
-      <table className="w-full rounded-xl border text-sm" aria-label="역할별 권한">
-        <thead><tr className="border-b text-xs text-muted-foreground"><th scope="col" className="p-3 text-left">권한</th>{["클랜장", "운영진", "멤버"].map((label) => <th scope="col" className="p-2" key={label}>{label}</th>)}</tr></thead>
+      <table className="w-full rounded-xl border text-sm" aria-label={tx("역할별 권한")}>
+        <thead><tr className="border-b text-xs text-muted-foreground"><th scope="col" className="p-3 text-left">{tx("권한")}</th>{["클랜장", "운영진", "멤버"].map((label) => <th scope="col" className="p-2" key={label}>{tx(label)}</th>)}</tr></thead>
         <tbody>{rows.map(({ key, label, roles }) => {
           const selected = scope === "records" ? model.statsSettings?.recordRoles[key] ?? roles : model.statsSettings?.intraRoles ?? roles;
-          return <tr key={key} className="border-b last:border-b-0"><th scope="row" className="p-3 text-left font-medium">{label}</th>{([{ id: "leader", label: "클랜장" }, { id: "officer", label: "운영진" }, { id: "member", label: "멤버" }] as const).map((role) => <td key={role.id} className="p-2 text-center"><Switch name={key} value={role.id} aria-label={`${label} ${role.label}`} defaultChecked={role.id === "leader" || selected.includes(role.id)} disabled={role.id === "leader"} />{role.id === "leader" && <input type="hidden" name={key} value="leader" />}</td>)}</tr>;
+          return <tr key={key} className="border-b last:border-b-0"><th scope="row" className="p-3 text-left font-medium">{tx(label)}</th>{([{ id: "leader", label: "클랜장" }, { id: "officer", label: "운영진" }, { id: "member", label: "멤버" }] as const).map((role) => <td key={role.id} className="p-2 text-center"><Switch name={key} value={role.id} aria-label={`${label} ${role.label}`} defaultChecked={role.id === "leader" || selected.includes(role.id)} disabled={role.id === "leader"} />{role.id === "leader" && <input type="hidden" name={key} value="leader" />}</td>)}</tr>;
         })}</tbody>
       </table>
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">클랜장은 항상 허용됩니다.{scope === "records" && " 추가·편집·삭제 권한을 가진 사람도 경기 열람이 허용되어야 작업할 수 있습니다."}</p>
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{tx("클랜장은 항상 허용됩니다.")}{scope === "records" && " 추가·편집·삭제 권한을 가진 사람도 경기 열람이 허용되어야 작업할 수 있습니다."}</p>
     </fieldset>
-    <div className="flex shrink-0 justify-end gap-2 border-t px-5 py-4"><Button variant="outline" type="button" disabled={pending} onClick={onDone}>취소</Button><Button type="submit" disabled={pending}>{pending ? "저장 중…" : "저장"}</Button></div>
+    <div className="flex shrink-0 justify-end gap-2 border-t px-5 py-4"><Button variant="outline" type="button" disabled={pending} onClick={onDone}>{tx("취소")}</Button><Button type="submit" disabled={pending}>{pending ? tx("저장 중…") : tx("저장")}</Button></div>
   </form>;
 }

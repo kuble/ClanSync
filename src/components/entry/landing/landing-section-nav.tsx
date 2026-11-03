@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useRef, useState } from "react";
 import styles from "./preview.module.css";
 
@@ -10,6 +11,7 @@ const sections = [
 ];
 
 export function LandingSectionNav() {
+  const tx = useTranslator();
   const nav = useRef<HTMLElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -44,8 +46,8 @@ export function LandingSectionNav() {
     };
   }, []);
 
-  return <nav ref={nav} aria-label="서비스 소개" className={styles.sectionNav}>
+  return <nav ref={nav} aria-label={tx("서비스 소개")} className={styles.sectionNav}>
     {sections.map(({ id, label }) => <a key={id} href={`#${id}`}
-      aria-current={activeId === id ? "location" : undefined}>{label}</a>)}
+      aria-current={activeId === id ? "location" : undefined}>{tx(label)}</a>)}
   </nav>;
 }

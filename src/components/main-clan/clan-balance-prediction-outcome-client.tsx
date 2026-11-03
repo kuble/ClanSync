@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Check, Crown, Equal, RotateCcw, Timer, Trophy } from "lucide-react";
@@ -32,6 +33,7 @@ export function ClanBalancePredictionClient({
   predictionCount: number;
   deadlineIso: string | null;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [now, setNow] = useState<number | null>(null);
@@ -67,13 +69,13 @@ export function ClanBalancePredictionClient({
   return (
     <section
       className="overflow-hidden rounded-xl border border-primary/20 bg-primary/[0.025]"
-      aria-label="승부예측"
+      aria-label={tx("승부예측")}
     >
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <h4 className="flex items-center gap-2 text-sm font-semibold">
             <Crown className="size-4 text-amber-500" aria-hidden="true" />
-            승부예측
+            {tx("승부예측")}
           </h4>
           <span className="text-[10px] font-bold text-primary">Premium</span>
         </div>
@@ -81,13 +83,13 @@ export function ClanBalancePredictionClient({
           <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-xs">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Timer className="size-3.5" aria-hidden="true" />
-              예측 마감
+              {tx("예측 마감")}
             </span>
             <strong className="tabular-nums">
               {remainSec === null
                 ? "—"
                 : expired
-                  ? "마감됨"
+                  ? tx("마감됨")
                   : Math.floor(remainSec / 60) +
                     ":" +
                     String(remainSec % 60).padStart(2, "0")}
@@ -117,7 +119,7 @@ export function ClanBalancePredictionClient({
               ) : (
                 <Trophy className="size-4" aria-hidden="true" />
               )}
-              {team === 1 ? "블루(팀1) 승" : team === 2 ? "레드(팀2) 승" : "무승부"}
+              {team === 1 ? tx("블루(팀1) 승") : team === 2 ? tx("레드(팀2) 승") : tx("무승부")}
             </button>
           ))}
         </div>
@@ -125,7 +127,7 @@ export function ClanBalancePredictionClient({
           role="status"
           className="text-center text-[11px] text-muted-foreground"
         >
-          {predictionCount}명 참여
+          {predictionCount}{tx("명 참여")}
           {myPickTeam
             ? " · " + (myPickTeam === 1 ? "블루 승" : myPickTeam === 2 ? "레드 승" : "무승부") + " 선택됨"
             : ""}
@@ -141,6 +143,7 @@ export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, ros
   disabled: boolean; snapshot?: import("@/lib/balance/ma-snapshot").MaSnapshot; renderScore?: (userId: string) => import("react").ReactNode;
   endSessionControl?: import("react").ReactNode;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [outcome, setOutcome] = useState<Exclude<MatchOutcome, "pending"> | null>(null);
@@ -163,17 +166,17 @@ export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, ros
     <ClanBalanceRosterBoard roster={roster} pool={pool} outcome={outcome ?? "pending"}
       onTeamSelect={choose} selectionDisabled={pending || disabled} snapshot={snapshot} renderScore={renderScore}
       showPlayerCardScore={Boolean(snapshot)} showPlayerCardInfo={false} showTeamComparisonSummary={false} showPlayerSessionSummary={false} />
-    <section className="flex flex-wrap items-center justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]" aria-label="경기 결과와 세션 종료">
+    <section className="flex flex-wrap items-center justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]" aria-label={tx("경기 결과와 세션 종료")}>
       <div className="justify-self-start">{endSessionControl}</div>
       <div className="flex items-center gap-2">
-      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("draw")}><Equal className="size-4" aria-hidden="true" />무승부</Button>
-      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("void")}><RotateCcw className="size-4" aria-hidden="true" />무효 · 재경기</Button>
+      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("draw")}><Equal className="size-4" aria-hidden="true" />{tx("무승부")}</Button>
+      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("void")}><RotateCcw className="size-4" aria-hidden="true" />{tx("무효 · 재경기")}</Button>
       </div>
       <span className="hidden sm:block" aria-hidden="true" />
     </section>
     <Dialog open={confirmOpen} onOpenChange={(open) => { if (!pending) { setConfirmOpen(open); if (!open) setOutcome(null); } }}>
-      <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{label}로 확정하시겠습니까?</DialogTitle><DialogDescription>{outcome === "void" ? "전적·예측 보상에서 제외됩니다." : "확정한 결과는 변경할 수 없습니다."}</DialogDescription></DialogHeader>
-        <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => { setConfirmOpen(false); setOutcome(null); }}>취소</Button><Button disabled={pending || disabled} onClick={confirm}>{pending ? "확정 중…" : "확정"}</Button></div>
+      <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{tx(label)}{tx("로 확정하시겠습니까?")}</DialogTitle><DialogDescription>{outcome === "void" ? tx("전적·예측 보상에서 제외됩니다.") : tx("확정한 결과는 변경할 수 없습니다.")}</DialogDescription></DialogHeader>
+        <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => { setConfirmOpen(false); setOutcome(null); }}>{tx("취소")}</Button><Button disabled={pending || disabled} onClick={confirm}>{pending ? tx("확정 중…") : tx("확정")}</Button></div>
       </DialogContent>
     </Dialog>
   </div>;

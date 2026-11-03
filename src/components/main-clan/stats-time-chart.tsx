@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useId, useRef, useState } from "react";
 
 type Point = { at: string; value: number | null };
@@ -8,6 +9,7 @@ const dateLabel = (at: string) => new Intl.DateTimeFormat("ko-KR", { timeZone: "
 
 /** Time-proportional x-axis. Missing snapshots break the line rather than imply a score. */
 export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습니다.", busy = false }: { label: string; lines: Line[]; unit: string; empty?: string; busy?: boolean }) {
+  const tx = useTranslator();
   const root = useRef<HTMLDivElement>(null);
   const description = useId();
   const [width, setWidth] = useState(640);
@@ -35,10 +37,10 @@ export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습�
   const ticks = first === last ? [first] : Array.from({ length: width < 420 ? 3 : 5 }, (_, index) => index);
   const dateTicks = first === last ? ticks : ticks.map((_, index) => first + (last - first) * index / (ticks.length - 1));
   return <div ref={root} className="relative w-full min-w-0">
-    {busy || !values.length ? <p role={busy ? "status" : undefined} className={`flex items-center justify-center text-sm text-muted-foreground ${lines.length > 1 ? "h-[232px]" : "h-52"}`}>{busy ? "기록을 불러오는 중…" : empty}</p> : <>
-      {lines.length > 1 && <div className="mb-2 flex gap-4 text-xs">{lines.map((line) => <span key={line.label} className="flex items-center gap-1.5"><span className="size-2 rounded-full" style={{ background: line.color }} />{line.label}</span>)}</div>}
+    {busy || !values.length ? <p role={busy ? "status" : undefined} className={`flex items-center justify-center text-sm text-muted-foreground ${lines.length > 1 ? "h-[232px]" : "h-52"}`}>{busy ? tx("기록을 불러오는 중…") : empty}</p> : <>
+      {lines.length > 1 && <div className="mb-2 flex gap-4 text-xs">{lines.map((line) => <span key={line.label} className="flex items-center gap-1.5"><span className="size-2 rounded-full" style={{ background: line.color }} />{tx(line.label)}</span>)}</div>}
       <svg viewBox={`0 0 ${width} 208`} className="h-52 w-full touch-pan-y outline-none focus-visible:ring-2 focus-visible:ring-primary" role="img" tabIndex={0}
-        aria-label={`${label}. 좌우 방향키로 날짜별 값 확인`} aria-describedby={selected === null ? undefined : description}
+        aria-label={tx("{0}. 좌우 방향키로 날짜별 값 확인", label)} aria-describedby={selected === null ? undefined : description}
         onPointerMove={(event) => {
           const px = (event.clientX - event.currentTarget.getBoundingClientRect().left) * width / event.currentTarget.getBoundingClientRect().width;
           setActive(timestamps.reduce((best, time, index) => Math.abs(x(time) - px) < Math.abs(x(timestamps[best]) - px) ? index : best, 0));
@@ -64,9 +66,9 @@ export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습�
         {dateTicks.map((time, index) => <text key={time} x={x(time)} y="199" textAnchor={index === 0 ? "start" : index === dateTicks.length - 1 ? "end" : "middle"} className="fill-muted-foreground text-[10px]">{dateLabel(new Date(time).toISOString())}</text>)}
         {selected !== null && <g><line x1={x(selected)} x2={x(selected)} y1={top} y2={bottom} stroke="currentColor" strokeOpacity=".3" />{selectedLines.map((line) => line.point?.value != null && <circle key={line.label} cx={x(selected)} cy={y(line.point.value)} r="4" fill={line.color} stroke="var(--card)" strokeWidth="2" />)}</g>}
       </svg>
-      {selected !== null && <div id={description} role="status" aria-label={`${label} 선택 값`} className="pointer-events-none absolute top-3 z-10 rounded-lg border bg-popover px-3 py-2 text-xs shadow-md" style={{ left: Math.max(0, Math.min(width - 172, x(selected) - 80)) }}>
+      {selected !== null && <div id={description} role="status" aria-label={tx("{0} 선택 값", label)} className="pointer-events-none absolute top-3 z-10 rounded-lg border bg-popover px-3 py-2 text-xs shadow-md" style={{ left: Math.max(0, Math.min(width - 172, x(selected) - 80)) }}>
         <div className="mb-1 text-muted-foreground">{dateLabel(new Date(selected).toISOString())}</div>
-        {selectedLines.map((line) => <div key={line.label} className="flex justify-between gap-4"><span>{line.label}</span><strong>{line.point?.value == null ? "기록 없음" : `${line.point.value}${unit}`}</strong></div>)}
+        {selectedLines.map((line) => <div key={line.label} className="flex justify-between gap-4"><span>{tx(line.label)}</span><strong>{line.point?.value == null ? tx("기록 없음") : `${line.point.value}${unit}`}</strong></div>)}
       </div>}
     </>}
   </div>;
@@ -76,6 +78,7 @@ export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습�
 export function StatsSignedTrendChart({ label, points, unit, empty = "기록이 없습니다.", busy = false }: {
   label: string; points: { at: string; value: number }[]; unit: string; empty?: string; busy?: boolean;
 }) {
+  const tx = useTranslator();
   const root = useRef<HTMLDivElement>(null);
   const clipId = useId();
   const description = useId();
@@ -104,9 +107,9 @@ export function StatsSignedTrendChart({ label, points, unit, empty = "기록이 
   const tickCount = width < 420 ? 3 : 5;
   const ticks = first === last ? [first] : Array.from({ length: tickCount }, (_, index) => first + (last - first) * index / (tickCount - 1));
   return <div ref={root} className="relative w-full min-w-0">
-    {busy || !sorted.length ? <p role={busy ? "status" : undefined} className="flex h-52 items-center justify-center text-sm text-muted-foreground">{busy ? "기록을 불러오는 중…" : empty}</p> : <>
+    {busy || !sorted.length ? <p role={busy ? "status" : undefined} className="flex h-52 items-center justify-center text-sm text-muted-foreground">{busy ? tx("기록을 불러오는 중…") : empty}</p> : <>
       <svg viewBox={`0 0 ${width} 208`} className="h-52 w-full touch-pan-y outline-none focus-visible:ring-2 focus-visible:ring-primary" role="img" tabIndex={0}
-        aria-label={`${label}. 0${unit} 기준. 좌우 방향키로 날짜별 값 확인`} aria-describedby={selected ? description : undefined}
+        aria-label={tx("{0}. 0{1} 기준. 좌우 방향키로 날짜별 값 확인", label, unit)} aria-describedby={selected ? description : undefined}
         onPointerMove={(event) => {
           const px = (event.clientX - event.currentTarget.getBoundingClientRect().left) * width / event.currentTarget.getBoundingClientRect().width;
           setActive(sorted.reduce((best, point, index) => Math.abs(x(Date.parse(point.at)) - px) < Math.abs(x(Date.parse(sorted[best].at)) - px) ? index : best, 0));
@@ -129,7 +132,7 @@ export function StatsSignedTrendChart({ label, points, unit, empty = "기록이 
         {ticks.map((time, index) => <text key={time} x={x(time)} y="201" textAnchor={index === 0 ? "start" : index === ticks.length - 1 ? "end" : "middle"} className="fill-muted-foreground text-[10px]">{dateLabel(new Date(time).toISOString())}</text>)}
         {selected && <g><line x1={x(Date.parse(selected.at))} x2={x(Date.parse(selected.at))} y1={top} y2={bottom} stroke="currentColor" strokeOpacity=".3" /><circle cx={x(Date.parse(selected.at))} cy={y(selected.value)} r="4" fill={selected.value < 0 ? "var(--color-rose-400)" : "var(--color-emerald-400)"} stroke="var(--card)" strokeWidth="2" /></g>}
       </svg>
-      {selected && <div id={description} role="status" aria-label={`${label} 선택 값`} className="pointer-events-none absolute top-3 z-10 rounded-lg border bg-popover px-3 py-2 text-xs shadow-md" style={{ left: Math.max(0, Math.min(width - 172, x(Date.parse(selected.at)) - 80)) }}><div className="text-muted-foreground">{dateLabel(selected.at)}</div><strong className="tabular-nums">{selected.value > 0 ? "+" : ""}{selected.value.toLocaleString()}{unit}</strong></div>}
+      {selected && <div id={description} role="status" aria-label={tx("{0} 선택 값", label)} className="pointer-events-none absolute top-3 z-10 rounded-lg border bg-popover px-3 py-2 text-xs shadow-md" style={{ left: Math.max(0, Math.min(width - 172, x(Date.parse(selected.at)) - 80)) }}><div className="text-muted-foreground">{dateLabel(selected.at)}</div><strong className="tabular-nums">{selected.value > 0 ? "+" : ""}{selected.value.toLocaleString()}{tx(unit)}</strong></div>}
     </>}
   </div>;
 }

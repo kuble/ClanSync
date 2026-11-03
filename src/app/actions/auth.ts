@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { writeLanguage } from "@/lib/i18n/server";
+import { supportedLanguage } from "@/lib/i18n/language";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { headers } from "next/headers";
 import {
@@ -56,7 +58,7 @@ export async function signInAction(
   const user = data.user;
   const [profile] = await Promise.all([
     supabase.from("users").update({ auto_login: remember }).eq("id", user.id)
-      .select("id").maybeSingle(),
+      .select("id,language").maybeSingle(),
     clearLoginLockout(email, ip),
   ]);
 
@@ -80,6 +82,7 @@ export async function signInAction(
     }
   }
 
+  await writeLanguage(supportedLanguage(profile.data?.language));
   redirect(next);
 }
 

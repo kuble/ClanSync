@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import Link from "next/link";
 import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import { ArrowLeft } from "lucide-react";
@@ -50,6 +51,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   clanId: string;
   room: Database["public"]["Tables"]["balance_rooms"]["Row"];
 }) {
+  const tx = await getTranslator();
   const supabase = await getRequestClient();
   const user = await getRequestUser();
   if (!user) {
@@ -229,7 +231,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   const serverNow = Date.now();
   return (
     <div className="space-y-3">
-      <Link href={`/games/${gameSlug}/clan/${clanId}/balance`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />내전 로비</Link>
+      <Link href={`/games/${gameSlug}/clan/${clanId}/balance`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />{tx("내전 로비")}</Link>
 
       <ClanBalanceSessionPanel
         key={session.id}

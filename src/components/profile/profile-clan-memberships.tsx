@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -12,38 +13,39 @@ import styles from "./profile.module.css";
 
 type Membership = { clanId: string; clanName: string; gameSlug: string; gameName: string; role: string };
 export function ProfileClanMemberships({ rows, userId }: { rows: Membership[]; userId: string }) {
+  const tx = useTranslator();
   const [leaving, setLeaving] = useState<Membership | null>(null);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
   const router = useRouter();
   if (!rows.length) return null;
-  return <section className={styles.accountClans} aria-label="내 클랜">
-    <h2 className={styles.accountSubheading}>내 클랜</h2>
+  return <section className={styles.accountClans} aria-label={tx("내 클랜")}>
+    <h2 className={styles.accountSubheading}>{tx("내 클랜")}</h2>
     <ul className={styles.accountClanList}>{rows.map((row) => <li key={row.clanId} className={styles.accountClanRow}>
-      <div className={styles.accountClanName}><Link className="text-sm font-semibold hover:text-primary" href={`/games/${row.gameSlug}/clan/${row.clanId}`}>{row.clanName}</Link><span className={styles.accountClanRole}>{row.role === "leader" ? "클랜장" : row.role === "officer" ? "운영진" : "멤버"}</span></div>
-      <div className={styles.accountClanActions}><Link className={styles.accountRecordLink} href={`/games/${row.gameSlug}/clan/${row.clanId}/stats?player=${encodeURIComponent(userId)}`}>개인 기록 보기<ArrowUpRight size={14} aria-hidden="true" /></Link><Button variant="destructive" size="sm" title="클랜 탈퇴" onClick={() => { setError(""); setLeaving(row); }} aria-label={`${row.clanName} 클랜 탈퇴`}><LogOut className="size-3.5" aria-hidden="true" />클랜 탈퇴</Button></div>
+      <div className={styles.accountClanName}><Link className="text-sm font-semibold hover:text-primary" href={`/games/${row.gameSlug}/clan/${row.clanId}`}>{row.clanName}</Link><span className={styles.accountClanRole}>{row.role === "leader" ? tx("클랜장") : row.role === "officer" ? tx("운영진") : tx("멤버")}</span></div>
+      <div className={styles.accountClanActions}><Link className={styles.accountRecordLink} href={`/games/${row.gameSlug}/clan/${row.clanId}/stats?player=${encodeURIComponent(userId)}`}>{tx("개인 기록 보기")}<ArrowUpRight size={14} aria-hidden="true" /></Link><Button variant="destructive" size="sm" title={tx("클랜 탈퇴")} onClick={() => { setError(""); setLeaving(row); }} aria-label={tx("{0} 클랜 탈퇴", row.clanName)}><LogOut className="size-3.5" aria-hidden="true" />{tx("클랜 탈퇴")}</Button></div>
     </li>)}</ul>
     <Dialog open={!!leaving} onOpenChange={(open) => { if (!open && !pending) setLeaving(null); }}>
       <DialogContent showCloseButton={!pending} className="gap-0 p-0 sm:max-w-md" style={{ scrollbarGutter: "auto" }}>
         <div className="min-w-0 space-y-4 break-keep p-5 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="pr-8 leading-6">클랜을 탈퇴하시겠습니까?</DialogTitle>
+            <DialogTitle className="pr-8 leading-6">{tx("클랜을 탈퇴하시겠습니까?")}</DialogTitle>
             <DialogDescription className="leading-relaxed [overflow-wrap:anywhere]">
-              <span className="font-medium text-foreground">{leaving?.clanName}</span>에서 탈퇴하며 멤버 권한이 종료됩니다.
+              <span className="font-medium text-foreground">{leaving?.clanName}</span>{tx("에서 탈퇴하며 멤버 권한이 종료됩니다.")}
             </DialogDescription>
           </DialogHeader>
-          <p className="text-sm leading-relaxed text-muted-foreground">계정과 보유 코인·아이템·엠블럼, 작성한 글·댓글, 내전 기록과 통계는 남습니다.</p>
-          {leaving?.role === "leader" && <p className="border-l-2 border-border pl-3 text-xs leading-relaxed text-muted-foreground">클랜장은 클랜장 권한을 위임한 뒤 탈퇴할 수 있습니다.</p>}
-          {error && <p role="alert" className="text-sm leading-relaxed text-destructive">{error}</p>}
+          <p className="text-sm leading-relaxed text-muted-foreground">{tx("계정과 보유 코인·아이템·엠블럼, 작성한 글·댓글, 내전 기록과 통계는 남습니다.")}</p>
+          {leaving?.role === "leader" && <p className="border-l-2 border-border pl-3 text-xs leading-relaxed text-muted-foreground">{tx("클랜장은 클랜장 권한을 위임한 뒤 탈퇴할 수 있습니다.")}</p>}
+          {error && <p role="alert" className="text-sm leading-relaxed text-destructive">{tx(error)}</p>}
         </div>
-        <DialogFooter className="m-0 px-5 py-4 sm:px-6"><Button type="button" className="h-11 sm:h-8" variant="outline" disabled={pending} onClick={() => setLeaving(null)}>취소</Button><Button type="button" className="h-11 sm:h-8" variant="destructive" disabled={pending || leaving?.role === "leader"} onClick={() => {
+        <DialogFooter className="m-0 px-5 py-4 sm:px-6"><Button type="button" className="h-11 sm:h-8" variant="outline" disabled={pending} onClick={() => setLeaving(null)}>{tx("취소")}</Button><Button type="button" className="h-11 sm:h-8" variant="destructive" disabled={pending || leaving?.role === "leader"} onClick={() => {
           if (!leaving) return;
           start(async () => {
             const result = await leaveClanAction(leaving.gameSlug, leaving.clanId);
             if (!result.ok) { setError(result.error); return; }
-            setLeaving(null); toast.success("클랜에서 탈퇴했습니다. 이전 기록은 유지됩니다."); router.refresh();
+            setLeaving(null); toast.success(tx("클랜에서 탈퇴했습니다. 이전 기록은 유지됩니다.")); router.refresh();
           });
-        }}>{pending ? "처리 중…" : "클랜 탈퇴"}</Button></DialogFooter>
+        }}>{pending ? tx("처리 중…") : tx("클랜 탈퇴")}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </section>;

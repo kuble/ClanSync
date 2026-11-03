@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { ClanBannerImage } from "@/components/cosmetics/clan-banner-image";
 import { usePathname } from "next/navigation";
@@ -51,6 +52,7 @@ function NavLinks({
   basePath: string;
   onNavigate?: () => void;
 }) {
+  const tx = useTranslator();
   const pathname = usePathname();
   return (
     <div className={styles.nav}>
@@ -63,14 +65,14 @@ function NavLinks({
             key={href}
             href={href}
             prefetch={false}
-            aria-label={label}
-            title={label}
+            aria-label={tx(label)}
+            title={tx(label)}
             aria-current={active ? "page" : undefined}
             className={styles.navLink}
             onClick={onNavigate}
           >
-            <NavigationIcon icon={Icon} label={label} />
-            <span className={styles.navText}>{label}</span>
+            <NavigationIcon icon={Icon} label={tx(label)} />
+            <span className={styles.navText}>{tx(label)}</span>
             {dot ? <span className={styles.dot} aria-hidden /> : null}
           </Link>
         );
@@ -92,8 +94,9 @@ export function ClanHero({
   showLobbyAction?: boolean;
   communityLinks?: ReactNode;
 }) {
+  const tx = useTranslator();
   return (
-    <section className={styles.hero} aria-label="클랜 소개">
+    <section className={styles.hero} aria-label={tx("클랜 소개")}>
       {ctx.bannerUrl ? (
         <>
           <ClanBannerImage url={ctx.bannerUrl} />
@@ -111,11 +114,11 @@ export function ClanHero({
       <div className={styles.clanInfo}>
         <h1>{ctx.clanName}</h1>
         <div className={styles.clanMeta}>
-          <span>{ctx.gameName}</span>
+          <span>{tx(ctx.gameName)}</span>
           {ctx.memberCount != null ? (
             <span>
               <Users size={13} aria-hidden />
-              {ctx.memberCount}명
+              {ctx.memberCount}{tx("명")}
             </span>
           ) : null}
           {ctx.styleLabel ? <span>{ctx.styleLabel}</span> : null}
@@ -129,8 +132,8 @@ export function ClanHero({
             href={basePath + "/balance"}
             className={cn(buttonVariants({ size: "sm" }), styles.heroAction)}
           >
-            <NavigationIcon icon={Scale} label="내전 로비" />
-            내전 로비 열기
+            <NavigationIcon icon={Scale} label={tx("내전 로비")} />
+            {tx("내전 로비 열기")}
           </Link>
         ) : null}
       </div>
@@ -147,6 +150,7 @@ export function MainClanShell({
   inAppNotifications: { items: ClanInAppNotificationVM[]; unreadCount: number };
   children: React.ReactNode;
 }) {
+  const tx = useTranslator();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const basePath = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
@@ -199,7 +203,7 @@ export function MainClanShell({
   return (
     <div className={styles.shell}>
       <a href="#main-content" className={styles.skipLink}>
-        본문으로 이동
+        {tx("본문으로 이동")}
       </a>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
@@ -209,16 +213,16 @@ export function MainClanShell({
                 buttonVariants({ variant: "ghost", size: "icon-sm" }),
                 styles.mobileTrigger,
               )}
-              aria-label="메뉴 열기"
+              aria-label={tx("메뉴 열기")}
             >
               <Menu aria-hidden />
             </SheetTrigger>
             <SheetContent side="left" className={styles.drawer}>
               <SheetHeader className="border-b p-5 text-left">
                 <SheetTitle>{ctx.clanName}</SheetTitle>
-                <p className="text-xs text-muted-foreground">{ctx.gameName}</p>
+                <p className="text-xs text-muted-foreground">{tx(ctx.gameName)}</p>
               </SheetHeader>
-              <nav aria-label="모바일 클랜 메뉴" className="py-3">
+              <nav aria-label={tx("모바일 클랜 메뉴")} className="py-3">
                 <NavLinks
                   items={items}
                   basePath={basePath}
@@ -236,7 +240,7 @@ export function MainClanShell({
           </Sheet>
           <HeaderBreadcrumbs currentOnlyOnMobile items={[
             { label: ctx.gameName, href: `/games/${ctx.gameSlug}` },
-            { label: ctx.clanName, href: basePath },
+            { label: ctx.clanName, translate: false, href: basePath },
             ...(pageTitle ? [{ label: pageTitle }] : []),
           ]} />
         </div>
@@ -248,12 +252,12 @@ export function MainClanShell({
             initialUnreadCount={inAppNotifications.unreadCount}
           />} />
       </header>
-      <aside className={styles.rail} aria-label="클랜 탐색">
-        <nav aria-label="클랜 메뉴">
+      <aside className={styles.rail} aria-label={tx("클랜 탐색")}>
+        <nav aria-label={tx("클랜 메뉴")}>
           <NavLinks items={items} basePath={basePath} />
         </nav>
         <div className={styles.bottom}>
-          <nav aria-label="계정 및 커뮤니티">
+          <nav aria-label={tx("계정 및 커뮤니티")}>
             <NavLinks items={bottomItems} basePath={basePath} />
           </nav>
         </div>

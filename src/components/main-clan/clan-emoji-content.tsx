@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Image from "next/image";
 import { createContext, useContext, useLayoutEffect, useRef, useState, type RefObject, type ReactNode } from "react";
 import { Popover } from "@base-ui/react/popover";
@@ -25,6 +26,7 @@ export function ClanEmojiPicker({ label = "이모티콘 선택", title = "이모
   label?: string; title?: string; disabled?: boolean; onSelect: (value: string, emoji?: ClanEmoji) => void;
   onOpen?: () => void; finalFocus?: RefObject<HTMLElement | null>; options?: readonly { value: string; emoji: string; label: string }[]; custom?: boolean;
 }) {
+  const tx = useTranslator();
   const { clanId, emojis } = useClanEmojis();
   const [open, setOpen] = useState(false), [query, setQuery] = useState("");
   const [tab, setTab] = useState<"custom" | "basic">("custom");
@@ -32,17 +34,17 @@ export function ClanEmojiPicker({ label = "이모티콘 선택", title = "이모
   const showCustom = shared && (tab === "custom" || !options.length);
   const choose = (value: string, emoji?: ClanEmoji) => { setOpen(false); onSelect(value, emoji); };
   return <Popover.Root open={open} onOpenChange={value => { if (value) { onOpen?.(); setQuery(""); } setOpen(value); }}>
-    <Popover.Trigger render={<Button type="button" size="icon-sm" variant="ghost" disabled={disabled} />} aria-label={label} title={label}><SmilePlus className="size-4" aria-hidden /></Popover.Trigger>
+    <Popover.Trigger render={<Button type="button" size="icon-sm" variant="ghost" disabled={disabled} />} aria-label={tx(label)} title={tx(label)}><SmilePlus className="size-4" aria-hidden /></Popover.Trigger>
     <Popover.Portal><Popover.Positioner side="top" align="start" sideOffset={8} className="z-[80]">
       <Popover.Popup finalFocus={finalFocus} className="w-72 max-w-[calc(100vw-2rem)] rounded-xl border bg-popover p-3 text-popover-foreground shadow-xl outline-none">
         <Popover.Title className="mb-3 text-xs font-semibold">{title}</Popover.Title>
-        {shared && options.length > 0 && <div className="mb-3 flex gap-1 border-b pb-2" role="group" aria-label="이모티콘 분류">{(["custom", "basic"] as const).map(key => <button key={key} type="button" aria-pressed={tab === key} className={cn("rounded-md px-3 py-1.5 text-xs", tab === key ? "bg-primary/15 text-primary" : "text-muted-foreground")} onClick={() => setTab(key)}>{key === "custom" ? "클랜 공용" : "기본"}</button>)}</div>}
-        <label className="mb-3 flex items-center gap-2 rounded-lg border px-2 py-1.5"><Search className="size-3.5 text-muted-foreground" aria-hidden /><input aria-label="이모티콘 검색" placeholder="이름 검색" className="min-w-0 w-full bg-transparent text-xs outline-none" value={query} onChange={event => setQuery(event.target.value)} /></label>
-        <div className="board-scroll grid max-h-52 min-h-11 grid-cols-5 gap-1 overflow-y-auto" aria-label={showCustom ? "클랜 공용 이모티콘" : "기본 이모티콘"}>
-          {showCustom ? emojis.filter(emoji => emoji.name.toLowerCase().includes(query.toLowerCase())).map(emoji => <button key={emoji.id} type="button" aria-label={`${emoji.name} 이모티콘`} title={emoji.name} className="grid size-11 place-items-center rounded-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" onClick={() => choose(emojiToken(emoji.id), emoji)}><Image unoptimized src={clanEmojiUrl(clanId, emoji.id)} alt="" width={32} height={32} className="size-8 object-contain" /></button>)
-          : options.filter(option => option.label.includes(query)).map(option => <button key={option.value} type="button" aria-label={`${option.label} ${title === "공감 선택" ? "공감" : "이모티콘"}`} title={option.label} className="grid size-11 place-items-center rounded-lg text-2xl hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" onClick={() => choose(option.value)}>{option.emoji}</button>)}
+        {shared && options.length > 0 && <div className="mb-3 flex gap-1 border-b pb-2" role="group" aria-label={tx("이모티콘 분류")}>{(["custom", "basic"] as const).map(key => <button key={key} type="button" aria-pressed={tab === key} className={cn("rounded-md px-3 py-1.5 text-xs", tab === key ? "bg-primary/15 text-primary" : "text-muted-foreground")} onClick={() => setTab(key)}>{key === "custom" ? tx("클랜 공용") : tx("기본")}</button>)}</div>}
+        <label className="mb-3 flex items-center gap-2 rounded-lg border px-2 py-1.5"><Search className="size-3.5 text-muted-foreground" aria-hidden /><input aria-label={tx("이모티콘 검색")} placeholder={tx("이름 검색")} className="min-w-0 w-full bg-transparent text-xs outline-none" value={query} onChange={event => setQuery(event.target.value)} /></label>
+        <div className="board-scroll grid max-h-52 min-h-11 grid-cols-5 gap-1 overflow-y-auto" aria-label={showCustom ? tx("클랜 공용 이모티콘") : tx("기본 이모티콘")}>
+          {showCustom ? emojis.filter(emoji => emoji.name.toLowerCase().includes(query.toLowerCase())).map(emoji => <button key={emoji.id} type="button" aria-label={tx("{0} 이모티콘", emoji.name)} title={emoji.name} className="grid size-11 place-items-center rounded-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" onClick={() => choose(emojiToken(emoji.id), emoji)}><Image unoptimized src={clanEmojiUrl(clanId, emoji.id)} alt="" width={32} height={32} className="size-8 object-contain" /></button>)
+          : options.filter(option => option.label.includes(query)).map(option => <button key={option.value} type="button" aria-label={`${option.label} ${title === "공감 선택" ? "공감" : "이모티콘"}`} title={tx(option.label)} className="grid size-11 place-items-center rounded-lg text-2xl hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" onClick={() => choose(option.value)}>{option.emoji}</button>)}
         </div>
-        {!shared && !options.length && <p className="py-3 text-xs text-muted-foreground">등록된 공용 이모티콘이 없습니다.</p>}
+        {!shared && !options.length && <p className="py-3 text-xs text-muted-foreground">{tx("등록된 공용 이모티콘이 없습니다.")}</p>}
       </Popover.Popup>
     </Popover.Positioner></Popover.Portal>
   </Popover.Root>;
@@ -79,6 +81,7 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
   placeholder?: string; className?: string; name?: string; editorRef?: RefObject<HTMLDivElement | null>; pickerLabel?:string;
   variant?:"comment"|"post"|"caption"; actions?:ReactNode; textOnly?:boolean;
 }) {
+  const tx = useTranslator();
   const context = useClanEmojis();
   const singleLine = variant === "caption";
   const ownRef = useRef<HTMLDivElement>(null), input = editorRef ?? ownRef;
@@ -127,12 +130,12 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
   }
   return <div className={cn(styles.composer,variant==="post"&&styles.post,singleLine&&styles.caption)}>
     {name && <input type="hidden" name={name} value={value} />}
-    <div id={id} ref={input} role="textbox" aria-label={label} aria-multiline={!singleLine} aria-disabled={disabled} contentEditable={!disabled} suppressContentEditableWarning
+    <div id={id} ref={input} role="textbox" aria-label={tx(label)} aria-multiline={!singleLine} aria-disabled={disabled} contentEditable={!disabled} suppressContentEditableWarning
       data-placeholder={placeholder} data-empty={!value || undefined} className={cn("board-scroll",styles.editor,className)}
       onInput={commit} onBlur={remember} onKeyUp={remember} onMouseUp={remember} onKeyDown={event=>{if(event.nativeEvent.isComposing)return;if(event.key==="Enter"&&!disabled){if(event.ctrlKey||event.metaKey){event.preventDefault();event.currentTarget.closest("form")?.requestSubmit();}else if(singleLine)event.preventDefault();}}}
       onPaste={event => { event.preventDefault(); remember(); insert(event.clipboardData.getData("text/plain")); }} onDrop={event => event.preventDefault()}
       onCopy={event => { const current = window.getSelection(); if (!current?.rangeCount) return; const wrapper = document.createElement("div"); wrapper.append(current.getRangeAt(0).cloneContents()); event.clipboardData.setData("text/plain", readText(wrapper)); event.preventDefault(); }} />
-    <div className={styles.toolbar}>{!textOnly && <ClanEmojiPicker label={pickerLabel??`${label} 이모티콘 선택`} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} />}<span className={styles.counter}>{value.length} / {maxLength.toLocaleString("ko-KR")}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>
-    {error && <p role="alert" className="px-3 pb-2 text-xs text-destructive">{error}</p>}
+    <div className={styles.toolbar}>{!textOnly && <ClanEmojiPicker label={pickerLabel??tx("{0} 이모티콘 선택", label)} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} />}<span className={styles.counter}>{value.length} / {maxLength.toLocaleString(tx.locale)}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>
+    {error && <p role="alert" className="px-3 pb-2 text-xs text-destructive">{tx(error)}</p>}
   </div>;
 }

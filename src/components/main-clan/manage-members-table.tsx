@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,6 +51,7 @@ export function ManageMembersTable({
   clanId: string;
   rows: ManageMemberRow[];
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [query, setQuery] = useState("");
@@ -148,7 +150,7 @@ export function ManageMembersTable({
 
   return (
     <div className="@container/members space-y-4">
-      <RubberSegment label="구성원 구분" labelPosition="hidden" value={scope} onChange={(next) => { setScope(next); setFilter("all"); setPageIndex(0); }} options={[
+      <RubberSegment label={tx("구성원 구분")} labelPosition="hidden" value={scope} onChange={(next) => { setScope(next); setFilter("all"); setPageIndex(0); }} options={[
         { id: "current", label: "현재 구성원", badge: rows.filter((row) => row.status === "active").length },
         { id: "former", label: "이전 구성원", badge: rows.filter((row) => row.status !== "active").length },
       ]} />
@@ -157,15 +159,15 @@ export function ManageMembersTable({
           <span
             key={key}
             className="inline-flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-muted-foreground"
-            aria-label={`${activityLabels[key]} ${rows.filter(row => row.status === "active" && activity(row) === key).length}명`}
+            aria-label={tx("{0} {1}명", activityLabels[key], rows.filter(row => row.status === "active" && activity(row) === key).length)}
             title={activityLabels[key]}
           >
             <span aria-hidden="true" className={`size-2 rounded-full ${activityClass[key]}`} />
-            {rows.filter((row) => row.status === "active" && activity(row) === key).length}명
+            {rows.filter((row) => row.status === "active" && activity(row) === key).length}{tx("명")}
           </span>
         ))}
         <span className="self-center text-[11px] text-muted-foreground">
-          매일 00:00 내전 참여 기준 · 4주 비활성 · 8주 휴면
+          {tx("매일 00:00 내전 참여 기준 · 4주 비활성 · 8주 휴면")}
         </span>
       </div>}
       <div className="flex flex-wrap items-center gap-2">
@@ -175,8 +177,8 @@ export function ManageMembersTable({
             aria-hidden="true"
           />
           <Input
-            aria-label="구성원 검색"
-            placeholder={`${identityLabel} 검색`}
+            aria-label={tx("구성원 검색")}
+            placeholder={tx("{0} 검색", identityLabel)}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -186,7 +188,7 @@ export function ManageMembersTable({
           />
         </div>
         <select
-          aria-label={scope === "current" ? "활동 상태" : "재가입 상태"}
+          aria-label={scope === "current" ? tx("활동 상태") : tx("재가입 상태")}
           value={filter}
           onChange={(event) => {
             setFilter(event.target.value);
@@ -194,8 +196,8 @@ export function ManageMembersTable({
           }}
           className="h-[44px] w-20 rounded-lg border border-input bg-background px-2 text-xs @min-[720px]/members:h-9 @min-[720px]/members:w-auto @min-[720px]/members:px-3"
         >
-          <option value="all">전체</option>
-          {scope === "current" ? <><option value="active">활성만</option><option value="inactive">비활성만</option><option value="dormant">휴면만</option></> : <><option value="left">재가입 가능</option><option value="banned">재가입 차단</option></>}
+          <option value="all">{tx("전체")}</option>
+          {scope === "current" ? <><option value="active">{tx("활성만")}</option><option value="inactive">{tx("비활성만")}</option><option value="dormant">{tx("휴면만")}</option></> : <><option value="left">{tx("재가입 가능")}</option><option value="banned">{tx("재가입 차단")}</option></>}
         </select>
       </div>
       <div className="overflow-x-auto rounded-lg border">
@@ -203,12 +205,12 @@ export function ManageMembersTable({
           <thead className="bg-muted/50 text-muted-foreground border-b text-xs font-medium uppercase">
             <tr>
               <th className="px-3 py-2">{identityLabel}</th>
-              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">게임 인증</th>
-              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{scope === "current" ? "활동" : "상태"}</th>
-              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{scope === "current" ? "역할" : "이전 역할"}</th>
-              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">가입</th>
-              {scope === "former" && <th className="hidden whitespace-nowrap px-3 py-2 @min-[720px]/members:table-cell">탈퇴·강퇴일</th>}
-              <th className="w-[144px] px-1 py-2 text-right @min-[720px]/members:w-auto @min-[720px]/members:px-3">작업</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{tx("게임 인증")}</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{scope === "current" ? tx("활동") : tx("상태")}</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{scope === "current" ? tx("역할") : tx("이전 역할")}</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{tx("가입")}</th>
+              {scope === "former" && <th className="hidden whitespace-nowrap px-3 py-2 @min-[720px]/members:table-cell">{tx("탈퇴·강퇴일")}</th>}
+              <th className="w-[144px] px-1 py-2 text-right @min-[720px]/members:w-auto @min-[720px]/members:px-3">{tx("작업")}</th>
             </tr>
           </thead>
           <tbody>
@@ -220,21 +222,21 @@ export function ManageMembersTable({
                   <Link
                     href={`/games/${gameSlug}/clan/${clanId}/stats?player=${encodeURIComponent(m.userId)}`}
                     prefetch={false}
-                    aria-label={`${memberName(m)} 개인 기록`}
+                    aria-label={tx("{0} 개인 기록", memberName(m))}
                     className="min-w-0 rounded-sm text-left [overflow-wrap:anywhere] hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
                   >
                     {memberName(m)}
                   </Link>
                   </div>
-                  {scope === "former" && <span className="mt-1 block text-[10px] font-normal text-muted-foreground @min-[720px]/members:hidden">{m.status === "banned" ? "재가입 차단" : "재가입 가능"}</span>}
+                  {scope === "former" && <span className="mt-1 block text-[10px] font-normal text-muted-foreground @min-[720px]/members:hidden">{m.status === "banned" ? tx("재가입 차단") : tx("재가입 가능")}</span>}
                 </td>
                 <td className="hidden px-3 py-2 text-xs @min-[720px]/members:table-cell">
-                  <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? "인증 완료" : "미인증"}</span>
+                  <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? tx("인증 완료") : tx("미인증")}</span>
                 </td>
                 <td className="text-muted-foreground hidden px-3 py-2 text-xs @min-[720px]/members:table-cell">
-                  {scope === "current" ? <span role="img" aria-label={`${memberName(m)} ${activityLabels[activity(m)]}`} title={activityHint(m)} className={`inline-block size-2.5 rounded-full ring-2 ring-background ${activityClass[activity(m)]}`} /> : <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{m.status === "banned" ? "강퇴 · 재가입 차단" : m.departureKind === "kicked" ? "강퇴 · 재가입 허용" : m.departureKind === "left" ? "자진 탈퇴" : "탈퇴"}</span>}
+                  {scope === "current" ? <span role="img" aria-label={`${memberName(m)} ${activityLabels[activity(m)]}`} title={activityHint(m)} className={`inline-block size-2.5 rounded-full ring-2 ring-background ${activityClass[activity(m)]}`} /> : <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{m.status === "banned" ? tx("강퇴 · 재가입 차단") : m.departureKind === "kicked" ? tx("강퇴 · 재가입 허용") : m.departureKind === "left" ? tx("자진 탈퇴") : tx("탈퇴")}</span>}
                 </td>
-                <td className="hidden px-3 py-2 @min-[720px]/members:table-cell">{roleLabel(m.role)}</td>
+                <td className="hidden px-3 py-2 @min-[720px]/members:table-cell">{tx(roleLabel(m.role))}</td>
                 <td className="text-muted-foreground hidden px-3 py-2 text-xs @min-[720px]/members:table-cell">
                   {m.joinedLabel}
                 </td>
@@ -242,8 +244,8 @@ export function ManageMembersTable({
                 <td className="w-[144px] px-1 py-2 text-right @min-[720px]/members:w-auto @min-[720px]/members:px-3">
                   <div className="flex items-center justify-end gap-0 @min-[720px]/members:flex-wrap @min-[720px]/members:gap-1 @max-[720px]/members:[&_button]:size-[44px]">
                     {m.status === "active" && <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={memberName(m)} gameTag={m.gameTag} linkedCount={m.linkedCount} />}
-                    {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${memberName(m)} 재가입 허용`} title="재가입 허용" onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
-                    {m.actions.canTransferLeadership && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${memberName(m)} 클랜장 위임 후 멤버로 강등`} title="클랜장 위임 후 멤버로 강등" onClick={() => { setTransferError(""); setSuccessorId(""); setTransferring(m); }}><ShieldMinus aria-hidden="true" /></Button>}
+                    {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={tx("{0} 재가입 허용", memberName(m))} title={tx("재가입 허용")} onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
+                    {m.actions.canTransferLeadership && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={tx("{0} 클랜장 위임 후 멤버로 강등", memberName(m))} title={tx("클랜장 위임 후 멤버로 강등")} onClick={() => { setTransferError(""); setSuccessorId(""); setTransferring(m); }}><ShieldMinus aria-hidden="true" /></Button>}
                     {m.actions.canPromote ? (
                       <form onSubmit={onPromote} className="inline">
                         <input
@@ -261,8 +263,8 @@ export function ManageMembersTable({
                           variant="ghost"
                           size="icon-sm"
                           disabled={pending}
-                          aria-label={`${memberName(m)} 운영진 승격`}
-                          title="운영진 승격"
+                          aria-label={tx("{0} 운영진 승격", memberName(m))}
+                          title={tx("운영진 승격")}
                         >
                           <ChevronsUp aria-hidden="true" />
                         </Button>
@@ -285,8 +287,8 @@ export function ManageMembersTable({
                           variant="ghost"
                           size="icon-sm"
                           disabled={pending}
-                          aria-label={`${memberName(m)} 멤버로 강등`}
-                          title="멤버로 강등"
+                          aria-label={tx("{0} 멤버로 강등", memberName(m))}
+                          title={tx("멤버로 강등")}
                         >
                           <ShieldMinus aria-hidden="true" />
                         </Button>
@@ -298,8 +300,8 @@ export function ManageMembersTable({
                         variant="destructive"
                         size="icon-sm"
                         disabled={pending}
-                        aria-label={`${memberName(m)} 강퇴`}
-                        title="강퇴"
+                        aria-label={tx("{0} 강퇴", memberName(m))}
+                        title={tx("강퇴")}
                         onClick={() => onKick(m.userId, memberName(m))}
                       >
                         <UserRoundMinus aria-hidden="true" />
@@ -313,7 +315,7 @@ export function ManageMembersTable({
         </table>
         {visible.length === 0 && (
           <p className="p-8 text-center text-sm text-muted-foreground">
-            조건에 맞는 멤버가 없습니다.
+            {tx("조건에 맞는 멤버가 없습니다.")}
           </p>
         )}
       </div>
@@ -322,7 +324,7 @@ export function ManageMembersTable({
           type="button"
           variant="outline"
           size="icon-sm"
-          aria-label="이전 구성원 페이지"
+          aria-label={tx("이전 구성원 페이지")}
           disabled={currentPage === 0}
           onClick={() => setPageIndex(currentPage - 1)}
         >
@@ -333,7 +335,7 @@ export function ManageMembersTable({
           type="button"
           variant="outline"
           size="icon-sm"
-          aria-label="다음 구성원 페이지"
+          aria-label={tx("다음 구성원 페이지")}
           disabled={currentPage >= pageCount - 1}
           onClick={() => setPageIndex(currentPage + 1)}
         >
@@ -341,34 +343,34 @@ export function ManageMembersTable({
         </Button>
       </div>
       <Dialog open={!!transferring} onOpenChange={(open) => { if (!open && !pending) setTransferring(null); }}>
-        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>클랜장 위임 및 강등</DialogTitle><DialogDescription>새 클랜장을 선택하십시오. 위임 후 본인은 멤버로 변경되며 클랜장 전용 권한을 사용할 수 없습니다.</DialogDescription></DialogHeader>
-          <label className="grid gap-2 text-sm font-medium">새 클랜장<select className="min-h-11 min-w-0 rounded-md border bg-background px-3 text-sm" value={successorId} disabled={pending} onChange={event => { setSuccessorId(event.target.value); setTransferError(""); }}><option value="">구성원을 선택하십시오.</option>{successors.map(row => <option key={row.userId} value={row.userId}>{memberName(row)} · {roleLabel(row.role)}</option>)}</select></label>
-          {!successors.length && <p className="text-sm text-muted-foreground">위임할 활성 구성원이 없습니다. 다른 구성원이 가입한 뒤 위임할 수 있습니다.</p>}
-          {transferError && <p role="alert" className="text-sm text-destructive">{transferError}</p>}
-          <div className="flex justify-end gap-2 border-t pt-4"><Button variant="outline" disabled={pending} onClick={() => setTransferring(null)}>취소</Button><Button disabled={pending || !successorId} onClick={() => {
+        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>{tx("클랜장 위임 및 강등")}</DialogTitle><DialogDescription>{tx("새 클랜장을 선택하십시오. 위임 후 본인은 멤버로 변경되며 클랜장 전용 권한을 사용할 수 없습니다.")}</DialogDescription></DialogHeader>
+          <label className="grid gap-2 text-sm font-medium">{tx("새 클랜장")}<select className="min-h-11 min-w-0 rounded-md border bg-background px-3 text-sm" value={successorId} disabled={pending} onChange={event => { setSuccessorId(event.target.value); setTransferError(""); }}><option value="">{tx("구성원을 선택하십시오.")}</option>{successors.map(row => <option key={row.userId} value={row.userId}>{memberName(row)} · {tx(roleLabel(row.role))}</option>)}</select></label>
+          {!successors.length && <p className="text-sm text-muted-foreground">{tx("위임할 활성 구성원이 없습니다. 다른 구성원이 가입한 뒤 위임할 수 있습니다.")}</p>}
+          {transferError && <p role="alert" className="text-sm text-destructive">{tx(transferError)}</p>}
+          <div className="flex justify-end gap-2 border-t pt-4"><Button variant="outline" disabled={pending} onClick={() => setTransferring(null)}>{tx("취소")}</Button><Button disabled={pending || !successorId} onClick={() => {
             if (!transferring || !successorId) return;
             start(async () => {
               try {
                 const result = await transferClanLeadershipAction(gameSlug, clanId, successorId);
                 if (!result.ok) { setTransferError(result.error); return; }
-                setTransferring(null); toast.success("클랜장을 위임했습니다. 본인의 역할은 멤버로 변경되었습니다.");
+                setTransferring(null); toast.success(tx("클랜장을 위임했습니다. 본인의 역할은 멤버로 변경되었습니다."));
                 router.replace(`/games/${gameSlug}/clan/${clanId}`); router.refresh();
               } catch { setTransferError("위임하지 못했습니다. 연결을 확인하고 다시 시도해 주십시오."); }
             });
-          }}>{pending ? "위임 중…" : "위임하고 멤버로 변경"}</Button></div>
+          }}>{pending ? tx("위임 중…") : tx("위임하고 멤버로 변경")}</Button></div>
         </DialogContent>
       </Dialog>
       <Dialog open={!!allowing} onOpenChange={(open) => { if (!open && !pending) setAllowing(null); }}>
-        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용하시겠습니까?</DialogTitle><DialogDescription>{allowing ? memberName(allowing) : ""} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
-          {allowError && <p role="alert" className="text-xs text-destructive">{allowError}</p>}
-          <div className="flex justify-end gap-2 border-t pt-4"><Button size="sm" variant="outline" disabled={pending} onClick={() => setAllowing(null)}>취소</Button><Button size="sm" disabled={pending} onClick={() => {
+        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>{tx("재가입을 허용하시겠습니까?")}</DialogTitle><DialogDescription>{allowing ? memberName(allowing) : ""} {tx("님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.")}</DialogDescription></DialogHeader>
+          {allowError && <p role="alert" className="text-xs text-destructive">{tx(allowError)}</p>}
+          <div className="flex justify-end gap-2 border-t pt-4"><Button size="sm" variant="outline" disabled={pending} onClick={() => setAllowing(null)}>{tx("취소")}</Button><Button size="sm" disabled={pending} onClick={() => {
             if (!allowing) return;
             start(async () => {
               const result = await allowClanRejoinAction(gameSlug, clanId, allowing.userId);
               if (!result.ok) { setAllowError(result.error); return; }
-              setAllowing(null); toast.success("재가입을 허용했습니다. 가입 신청 후 승인이 필요합니다."); router.refresh();
+              setAllowing(null); toast.success(tx("재가입을 허용했습니다. 가입 신청 후 승인이 필요합니다.")); router.refresh();
             });
-          }}>{pending ? "처리 중…" : "재가입 허용"}</Button></div>
+          }}>{pending ? tx("처리 중…") : tx("재가입 허용")}</Button></div>
         </DialogContent>
       </Dialog>
     </div>

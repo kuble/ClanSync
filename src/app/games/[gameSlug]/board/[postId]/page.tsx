@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -19,6 +20,7 @@ export default async function BoardPostDetailPage({
 }: {
   params: Promise<{ gameSlug: string; postId: string }>;
 }) {
+  const tx = await getTranslator();
   const { gameSlug, postId } = await params;
 
   const supabase = await createClient();
@@ -57,7 +59,7 @@ export default async function BoardPostDetailPage({
               "h-auto px-0 py-0",
             )}
           >
-            ← {game.name_ko} · 홍보 탭으로
+            ← {tx(game.name_ko)} {tx("· 홍보 탭으로")}
           </Link>
         </nav>
 
@@ -69,11 +71,11 @@ export default async function BoardPostDetailPage({
           <header className="border-b pb-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-xs font-medium uppercase">
-                게시판 · {typeLabel}
+                {tx("게시판 ·")} {typeLabel}
               </span>
               {row.is_pinned ? (
                 <span className="bg-primary/15 text-primary rounded px-2 py-0.5 text-xs font-medium">
-                  상단 고정
+                  {tx("상단 고정")}
                 </span>
               ) : null}
             </div>
@@ -81,28 +83,28 @@ export default async function BoardPostDetailPage({
               {row.title}
             </h1>
             <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              <span>작성: {row.author_nickname}</span>
+              <span>{tx("작성:")} {row.author_nickname}</span>
               <span>
-                게시 시각 {formatCommunityDate(row.created_at)}
+                {tx("게시 시각")} {formatCommunityDate(row.created_at)}
               </span>
               <Link
                 href={`${base}/clan/${row.clan_id}`}
                 className="text-primary underline-offset-4 hover:underline"
               >
-                「{row.clan_name}」 클랜
+                「{row.clan_name}{tx("」 클랜")}
               </Link>
             </div>
           </header>
           <div className="mt-5 max-w-none">
             <p className="text-foreground break-words whitespace-pre-wrap text-sm leading-8 md:text-[15px]">
-              {row.content || "(내용 없음)"}
+              {row.content || tx("(내용 없음)")}
             </p>
           </div>
         </article>
 
         {!game.is_active ? (
           <p className="text-muted-foreground mt-8 text-xs">
-            이 게임은 현재 비활성 상태입니다.
+            {tx("이 게임은 현재 비활성 상태입니다.")}
           </p>
         ) : null}
       </main>

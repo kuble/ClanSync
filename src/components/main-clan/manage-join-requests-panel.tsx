@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
@@ -35,6 +36,7 @@ export function ManageJoinRequestsPanel({
   clanId: string;
   rows: ManageJoinRequestRow[];
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [rejectId, setRejectId] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export function ManageJoinRequestsPanel({
   if (rows.length === 0) {
     return (
       <p className="px-5 py-8 text-center text-sm text-muted-foreground">
-        대기 중인 가입 신청이 없습니다.
+        {tx("대기 중인 가입 신청이 없습니다.")}
       </p>
     );
   }
@@ -93,15 +95,15 @@ export function ManageJoinRequestsPanel({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <p className="min-w-0 text-base font-semibold wrap-anywhere">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
-                <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
+                <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? tx("게임 인증 완료") : tx("게임 미인증")}</span>
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <span>{playerProfileDetails(row.profile)}</span>
                 <time dateTime={row.appliedAt}>
-                  신청일 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
+                  {tx("신청일")} {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
                 </time>
               </div>
-              {row.returningMember && <p className="mt-1 text-xs font-medium text-primary">재가입 · 기존 내전 기록 유지</p>}
+              {row.returningMember && <p className="mt-1 text-xs font-medium text-primary">{tx("재가입 · 기존 내전 기록 유지")}</p>}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -115,7 +117,7 @@ export function ManageJoinRequestsPanel({
                   setRejectId((v) => (v === row.id ? null : row.id))
                 }
               >
-                거절
+                {tx("거절")}
               </Button>
               <Button
                 type="button"
@@ -124,18 +126,18 @@ export function ManageJoinRequestsPanel({
                 data-testid={`manage-join-approve-${row.id}`}
                 onClick={() => setApproving(row)}
               >
-                가입 승인
+                {tx("가입 승인")}
               </Button>
             </div>
           </div>
           {rejectId === row.id ? (
             <div id={`reject-form-${row.id}`} className="mt-4 space-y-2 border-t pt-4">
-              <Label htmlFor={`reject-${row.id}`}>거절 사유 (선택)</Label>
+              <Label htmlFor={`reject-${row.id}`}>{tx("거절 사유 (선택)")}</Label>
               <Input
                 id={`reject-${row.id}`}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="신청자에게 전달할 짧은 사유"
+                placeholder={tx("신청자에게 전달할 짧은 사유")}
                 maxLength={500}
               />
               <div className="flex gap-2">
@@ -146,7 +148,7 @@ export function ManageJoinRequestsPanel({
                   disabled={busy}
                   onClick={() => void submitReject(row.id)}
                 >
-                  거절 확정
+                  {tx("거절 확정")}
                 </Button>
                 <Button
                   type="button"
@@ -157,7 +159,7 @@ export function ManageJoinRequestsPanel({
                     setRejectReason("");
                   }}
                 >
-                  취소
+                  {tx("취소")}
                 </Button>
               </div>
             </div>

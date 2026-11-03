@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { Switch } from "@/components/ui/switch";
 import { HelpText } from "./help-text";
 
@@ -28,6 +29,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
   onSaved?: () => Promise<void>;
   disabled?: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [saving, startTransition] = useTransition();
   const pending = saving || disabled;
@@ -87,20 +89,20 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Gift className="size-4" aria-hidden="true" /></span>
           <div>
-            <h3 className="text-sm font-bold"><HelpText label={onChange ? "이 내전 아이템" : "클랜 기본 아이템"} help={onChange ? "이 깜짝 내전에서만 사용합니다. 설정 적용을 누르면 저장되며 같은 방의 다음 경기에도 이어집니다." : "클랜의 정규·깜짝 내전에 공통으로 제공하는 아이템입니다. 변경은 다음 경매부터 반영합니다."} /></h3>
+            <h3 className="text-sm font-bold"><HelpText label={onChange ? tx("이 내전 아이템") : tx("클랜 기본 아이템")} help={onChange ? tx("이 깜짝 내전에서만 사용합니다. 설정 적용을 누르면 저장되며 같은 방의 다음 경기에도 이어집니다.") : tx("클랜의 정규·깜짝 내전에 공통으로 제공하는 아이템입니다. 변경은 다음 경매부터 반영합니다.")} /></h3>
           </div>
         </div>
-        <Button variant="outline" size="sm" disabled={pending || loadError} onClick={() => { setEditor("new"); setDeleteId(null); }}><Plus className="size-3.5" aria-hidden="true" />아이템 추가</Button>
+        <Button variant="outline" size="sm" disabled={pending || loadError} onClick={() => { setEditor("new"); setDeleteId(null); }}><Plus className="size-3.5" aria-hidden="true" />{tx("아이템 추가")}</Button>
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className={cn("font-medium", !onChange && activeCount < 3 ? "text-warning" : "text-primary")}>사용 중 {activeCount}개{!onChange && activeCount < 3 && " · 3개 이상 등록하면 사용할 수 있습니다."}</span>
+        <span className={cn("font-medium", !onChange && activeCount < 3 ? "text-warning" : "text-primary")}>{tx("사용 중")} {activeCount}{tx("개")}{!onChange && activeCount < 3 && " · 3개 이상 등록하면 사용할 수 있습니다."}</span>
       </div>
       {loadError ? (
-        <p className="mt-4 text-sm text-destructive" role="alert">아이템 목록을 불러오지 못했습니다. 새로고침 후 다시 확인해 주십시오.</p>
+        <p className="mt-4 text-sm text-destructive" role="alert">{tx("아이템 목록을 불러오지 못했습니다. 새로고침 후 다시 확인해 주십시오.")}</p>
       ) : items.length === 0 ? (
         <div className="mt-4 rounded-lg border border-dashed border-border px-4 py-5 text-center">
-          <p className="text-sm text-muted-foreground">{onChange ? "이 내전에서 쓸 아이템을 추가해 보십시오." : "클랜만의 아이템과 가격을 등록해 보십시오."}</p>
-          {!onChange && <Button className="mt-3" variant="secondary" size="sm" disabled={pending} onClick={() => run(() => addClanAuctionItemExamplesAction(gameSlug, clanId), "예시 아이템 3개를 추가했습니다.")}>예시 아이템 추가</Button>}
+          <p className="text-sm text-muted-foreground">{onChange ? tx("이 내전에서 쓸 아이템을 추가해 보십시오.") : tx("클랜만의 아이템과 가격을 등록해 보십시오.")}</p>
+          {!onChange && <Button className="mt-3" variant="secondary" size="sm" disabled={pending} onClick={() => run(() => addClanAuctionItemExamplesAction(gameSlug, clanId), "예시 아이템 3개를 추가했습니다.")}>{tx("예시 아이템 추가")}</Button>}
         </div>
       ) : (
         <ul className="mt-4 divide-y divide-border rounded-lg border border-border">
@@ -111,28 +113,28 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
                   <p className={cn("break-words text-sm font-semibold", !item.enabled && "text-muted-foreground")}>{item.name}</p>
                   {item.description && <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.description}</p>}
                 </div>
-                <span className="shrink-0 text-sm font-bold tabular-nums">{item.cost.toLocaleString("ko-KR")}<span className="ml-0.5 text-xs font-normal text-muted-foreground">pt</span></span>
+                <span className="shrink-0 text-sm font-bold tabular-nums">{item.cost.toLocaleString(tx.locale)}<span className="ml-0.5 text-xs font-normal text-muted-foreground">pt</span></span>
                 <div className="col-span-2 flex items-center justify-end gap-1 sm:col-span-1">
-                  <button type="button" role="switch" aria-label={`${item.name} 사용`} aria-checked={item.enabled} disabled={pending} className={cn("relative mr-1 h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", item.enabled ? "border-primary bg-primary" : "border-input bg-muted")} onClick={() => run(() => saveItem(item.id, { name: item.name, description: item.description, cost: item.cost, enabled: !item.enabled }), item.enabled ? "아이템 사용을 껐습니다." : "아이템 사용을 켰습니다.")}>
+                  <button type="button" role="switch" aria-label={tx("{0} 사용", item.name)} aria-checked={item.enabled} disabled={pending} className={cn("relative mr-1 h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", item.enabled ? "border-primary bg-primary" : "border-input bg-muted")} onClick={() => run(() => saveItem(item.id, { name: item.name, description: item.description, cost: item.cost, enabled: !item.enabled }), item.enabled ? "아이템 사용을 껐습니다." : "아이템 사용을 켰습니다.")}>
                     <span aria-hidden="true" className={cn("absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform", item.enabled ? "translate-x-5" : "translate-x-0")} />
                   </button>
-                  <Button variant="ghost" size="icon-sm" aria-label={`${item.name} 수정`} disabled={pending} onClick={() => { setEditor(item); setDeleteId(null); }}><Pencil className="size-3.5" aria-hidden="true" /></Button>
-                  <Button variant="ghost" size="icon-sm" aria-label={`${item.name} 삭제`} disabled={pending} onClick={() => setDeleteId(item.id)}><Trash2 className="size-3.5" aria-hidden="true" /></Button>
+                  <Button variant="ghost" size="icon-sm" aria-label={tx("{0} 수정", item.name)} disabled={pending} onClick={() => { setEditor(item); setDeleteId(null); }}><Pencil className="size-3.5" aria-hidden="true" /></Button>
+                  <Button variant="ghost" size="icon-sm" aria-label={tx("{0} 삭제", item.name)} disabled={pending} onClick={() => setDeleteId(item.id)}><Trash2 className="size-3.5" aria-hidden="true" /></Button>
                 </div>
               </div>
-              {deleteId === item.id && <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-xs"><span className="mr-auto text-muted-foreground">이 아이템을 삭제하시겠습니까?</span><Button variant="ghost" size="sm" disabled={pending} onClick={() => setDeleteId(null)}>취소</Button><Button variant="destructive" size="sm" disabled={pending} onClick={() => run(() => deleteItem(item.id), "아이템을 삭제했습니다.")}>삭제</Button></div>}
+              {deleteId === item.id && <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-xs"><span className="mr-auto text-muted-foreground">{tx("이 아이템을 삭제하시겠습니까?")}</span><Button variant="ghost" size="sm" disabled={pending} onClick={() => setDeleteId(null)}>{tx("취소")}</Button><Button variant="destructive" size="sm" disabled={pending} onClick={() => run(() => deleteItem(item.id), "아이템을 삭제했습니다.")}>{tx("삭제")}</Button></div>}
             </li>
           ))}
         </ul>
       )}
       {editor && (
-        <form key={editor === "new" ? "new" : editor.id} onSubmit={save} className="mt-4 space-y-4 rounded-lg border border-primary/30 bg-primary/5 p-4" aria-label={editor === "new" ? "아이템 추가" : "아이템 수정"}>
+        <form key={editor === "new" ? "new" : editor.id} onSubmit={save} className="mt-4 space-y-4 rounded-lg border border-primary/30 bg-primary/5 p-4" aria-label={editor === "new" ? tx("아이템 추가") : tx("아이템 수정")}>
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
-            <div className="space-y-2"><Label htmlFor="auction-item-name">아이템 이름</Label><Input id="auction-item-name" name="name" required maxLength={80} defaultValue={editor === "new" ? "" : editor.name} placeholder="예: 맵 선정권" disabled={pending} autoFocus /></div>
-            <div className="space-y-2"><Label htmlFor="auction-item-cost">가격 (pt)</Label><Input id="auction-item-cost" name="cost" type="number" min={0} max={100000} step={10} required defaultValue={editor === "new" ? 100 : editor.cost} disabled={pending} /></div>
+            <div className="space-y-2"><Label htmlFor="auction-item-name">{tx("아이템 이름")}</Label><Input id="auction-item-name" name="name" required maxLength={80} defaultValue={editor === "new" ? "" : editor.name} placeholder={tx("예: 맵 선정권")} disabled={pending} autoFocus /></div>
+            <div className="space-y-2"><Label htmlFor="auction-item-cost">{tx("가격 (pt)")}</Label><Input id="auction-item-cost" name="cost" type="number" min={0} max={100000} step={10} required defaultValue={editor === "new" ? 100 : editor.cost} disabled={pending} /></div>
           </div>
-          <div className="space-y-2"><Label htmlFor="auction-item-description">설명과 적용 방법</Label><textarea id="auction-item-description" name="description" maxLength={500} rows={3} defaultValue={editor === "new" ? "" : editor.description} placeholder="권한의 범위와 적용 방법을 적어 주십시오." disabled={pending} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50" /></div>
-          <div className="flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><Switch name="enabled" defaultChecked={editor === "new" || editor.enabled} disabled={pending} />경매에 사용</label><div className="flex gap-2"><Button variant="ghost" type="button" disabled={pending} onClick={() => setEditor(null)}>취소</Button><Button type="submit" disabled={pending}>{pending ? "저장 중…" : "아이템 저장"}</Button></div></div>
+          <div className="space-y-2"><Label htmlFor="auction-item-description">{tx("설명과 적용 방법")}</Label><textarea id="auction-item-description" name="description" maxLength={500} rows={3} defaultValue={editor === "new" ? "" : editor.description} placeholder={tx("권한의 범위와 적용 방법을 적어 주십시오.")} disabled={pending} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50" /></div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><Switch name="enabled" defaultChecked={editor === "new" || editor.enabled} disabled={pending} />{tx("경매에 사용")}</label><div className="flex gap-2"><Button variant="ghost" type="button" disabled={pending} onClick={() => setEditor(null)}>{tx("취소")}</Button><Button type="submit" disabled={pending}>{pending ? tx("저장 중…") : tx("아이템 저장")}</Button></div></div>
         </form>
       )}
     </section>

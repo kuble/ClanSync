@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useState } from "react";
 import { Dialog as Primitive } from "@base-ui/react/dialog";
 import { Button } from "@/components/ui/button";
@@ -149,6 +150,7 @@ export function ClanBalanceGuide({
   stage: BalanceGuideStage;
   canEditMscore: boolean;
 }) {
+  const tx = useTranslator();
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<{
     top: number;
@@ -213,7 +215,7 @@ export function ClanBalanceGuide({
           </Primitive.Title>
           <Primitive.Description className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {current.text}
-            {stage === "match" && current.target === "board" && canEditMscore ? " 점수를 누르면 평가 점수를 직접 수정합니다." : null}
+            {stage === "match" && current.target === "board" && canEditMscore ? tx(" 점수를 누르면 평가 점수를 직접 수정합니다.") : null}
           </Primitive.Description>
           <div className="mt-5 flex justify-between gap-2">
             <Button
@@ -223,7 +225,7 @@ export function ClanBalanceGuide({
                 setStep(0);
               }}
             >
-              닫기
+              {tx("닫기")}
             </Button>
             <div className="flex gap-2">
               {visibleStep > 0 ? (
@@ -231,7 +233,7 @@ export function ClanBalanceGuide({
                   variant="outline"
                   onClick={() => setStep(visibleStep - 1)}
                 >
-                  이전
+                  {tx("이전")}
                 </Button>
               ) : null}
               <Button
@@ -242,7 +244,7 @@ export function ClanBalanceGuide({
                   } else setStep(visibleStep + 1);
                 }}
               >
-                {visibleStep === steps.length - 1 ? "완료" : "다음"}
+                {visibleStep === steps.length - 1 ? tx("완료") : tx("다음")}
               </Button>
             </div>
           </div>

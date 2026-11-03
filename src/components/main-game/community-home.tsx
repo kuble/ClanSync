@@ -1,3 +1,4 @@
+import { useTranslator } from "#use-translator";
 import { formatCommunityDate } from "@/lib/main-game/format-community-date";
 import Link from "next/link";
 import {
@@ -34,6 +35,7 @@ export function CommunityHome({
   scrims: ScrimRoomRowOut[];
   onNavigate: (tab: MainGameCommunityTab) => void;
 }) {
+  const tx = useTranslator();
   const openScrims = scrims.filter(
     (s) => s.status === "draft" || s.status === "matched",
   );
@@ -46,9 +48,9 @@ export function CommunityHome({
         <header className={styles.cardHead}>
           <h2 id="community-promos">
             <Megaphone />
-            클랜 홍보
+            {tx("클랜 홍보")}
           </h2>
-          <span>함께할 클랜을 찾아보십시오</span>
+          <span>{tx("함께할 클랜을 찾아보십시오")}</span>
         </header>
         {promos.length ? (
           <div className={styles.promoGrid}>
@@ -64,13 +66,13 @@ export function CommunityHome({
                   </span>
                   <span>
                     <Users size={13} />
-                    {p.active_members}/{p.max_members}명
+                    {p.active_members}/{p.max_members}{tx("명")}
                   </span>
                 </div>
                 <h3>{p.clan_name}</h3>
                 <p>{p.title}</p>
                 <span className={styles.promoCta}>
-                  모집글 보기 <ArrowUpRight size={12} />
+                  {tx("모집글 보기")} <ArrowUpRight size={12} />
                 </span>
               </Link>
             ))}
@@ -86,7 +88,7 @@ export function CommunityHome({
           className={styles.more}
           onClick={() => onNavigate("promo")}
         >
-          클랜 홍보 전체 보기 <ArrowUpRight />
+          {tx("클랜 홍보 전체 보기")} <ArrowUpRight />
         </Button>
       </section>
       <section
@@ -96,9 +98,9 @@ export function CommunityHome({
         <header className={styles.cardHead}>
           <h2 id="community-scrims">
             <CalendarDays />
-            스크림 모집 중
+            {tx("스크림 모집 중")}
           </h2>
-          <span>다른 클랜과 함께하는 한 경기</span>
+          <span>{tx("다른 클랜과 함께하는 한 경기")}</span>
         </header>
         {openScrims.length ? (
           <div className={styles.scrimGrid}>
@@ -110,11 +112,11 @@ export function CommunityHome({
                 onClick={() => onNavigate("scrim")}
               >
                 <span className={styles.status}>
-                  {s.status === "draft" ? "상대 모집 중" : "일정 조율 중"}
+                  {s.status === "draft" ? tx("상대 모집 중") : tx("일정 조율 중")}
                 </span>
-                <strong>{s.title || `${s.clan_a_name}의 스크림`}</strong>
+                <strong>{s.title || tx("{0}의 스크림", s.clan_a_name)}</strong>
                 <span>
-                  {s.clan_a_name} <b>vs</b> {s.clan_b_name || "상대 클랜"}
+                  {s.clan_a_name} <b>vs</b> {s.clan_b_name || tx("상대 클랜")}
                 </span>
                 <small>
                   {formatCommunityDate(s.scheduled_at)}
@@ -133,17 +135,17 @@ export function CommunityHome({
           className={styles.more}
           onClick={() => onNavigate("scrim")}
         >
-          스크림 전체 보기 <ArrowUpRight />
+          {tx("스크림 전체 보기")} <ArrowUpRight />
         </Button>
       </section>
       <section className={styles.card} aria-labelledby="community-lfgs">
         <header className={styles.cardHead}>
           <h2 id="community-lfgs">
             <Search />
-            같이 할 사람
+            {tx("같이 할 사람")}
           </h2>
         </header>
-        <p className={styles.subtitle}>모집 마감이 가까운 파티</p>
+        <p className={styles.subtitle}>{tx("모집 마감이 가까운 파티")}</p>
         {lfgs.length ? (
           <ul className={styles.previewList}>
             {lfgs.slice(0, 4).map((l) => (
@@ -158,7 +160,7 @@ export function CommunityHome({
                       {l.mode} · {l.format}
                     </small>
                   </span>
-                  <em>{l.slots}명 모집</em>
+                  <em>{l.slots}{tx("명 모집")}</em>
                 </button>
               </li>
             ))}
@@ -174,17 +176,17 @@ export function CommunityHome({
           className={styles.more}
           onClick={() => onNavigate("lfg")}
         >
-          같이 할 사람 전체 보기 <ArrowUpRight />
+          {tx("같이 할 사람 전체 보기")} <ArrowUpRight />
         </Button>
       </section>
       <section className={styles.card} aria-labelledby="community-ranks">
         <header className={styles.cardHead}>
           <h2 id="community-ranks">
             <Trophy />
-            활동 중인 클랜
+            {tx("활동 중인 클랜")}
           </h2>
         </header>
-        <p className={styles.subtitle}>최근 활동 순</p>
+        <p className={styles.subtitle}>{tx("최근 활동 순")}</p>
         {ranks.length ? (
           <ol className={styles.previewList}>
             {ranks.slice(0, 4).map((r, i) => (
@@ -193,7 +195,7 @@ export function CommunityHome({
                   <span className={styles.rank}>{i + 1}</span>
                   <span className={styles.avatar}>{r.name.slice(0, 1)}</span>
                   <strong>{r.name}</strong>
-                  <em>{r.active_members}명</em>
+                  <em>{r.active_members}{tx("명")}</em>
                 </button>
               </li>
             ))}
@@ -209,7 +211,7 @@ export function CommunityHome({
           className={styles.more}
           onClick={() => onNavigate("rank")}
         >
-          클랜 활동 전체 보기 <ArrowUpRight />
+          {tx("클랜 활동 전체 보기")} <ArrowUpRight />
         </Button>
       </section>
     </div>

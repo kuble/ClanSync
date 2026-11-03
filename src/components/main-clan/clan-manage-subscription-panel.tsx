@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
@@ -20,6 +21,7 @@ export function ClanManageSubscriptionPanel({
   showDevPlanToggle: boolean;
   isLeader: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const togglePlan = toggleClanPlanDevFormAction.bind(
@@ -46,21 +48,20 @@ export function ClanManageSubscriptionPanel({
 
   return (
     <section className="space-y-3 rounded-xl border bg-card p-5">
-      <h3 className="text-sm font-semibold tracking-tight">구독·플랜</h3>
+      <h3 className="text-sm font-semibold tracking-tight">{tx("구독·플랜")}</h3>
       <p className="text-sm">
-        현재 플랜: <span className="font-medium">{tierLabel}</span>
+        {tx("현재 플랜:")} <span className="font-medium">{tierLabel}</span>
       </p>
       <p className="text-muted-foreground text-xs">
-        유료 구독 결제는 준비 중입니다. Premium 전용 상품과 기능은 Premium
-        클랜에서 이용할 수 있습니다.
+        {tx("유료 구독 결제는 준비 중입니다. Premium 전용 상품과 기능은 Premium 클랜에서 이용할 수 있습니다.")}
       </p>
       {showDevPlanToggle && isLeader ? (
         <form onSubmit={onToggle} className="flex flex-wrap items-center gap-2">
           <Button type="submit" variant="outline" size="sm" disabled={pending}>
-            테스트 플랜 전환
+            {tx("테스트 플랜 전환")}
           </Button>
           <span className="text-muted-foreground text-xs">
-            테스트용 Free / Premium 전환입니다. 실제 결제는 발생하지 않습니다.
+            {tx("테스트용 Free / Premium 전환입니다. 실제 결제는 발생하지 않습니다.")}
           </span>
         </form>
       ) : null}

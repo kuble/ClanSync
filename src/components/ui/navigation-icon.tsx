@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useLinkStatus } from "next/link";
 import { LoaderCircle } from "lucide-react";
 import type { ComponentType } from "react";
@@ -14,6 +15,7 @@ export function NavigationIcon({
   label: string;
   size?: number;
 }) {
+  const tx = useTranslator();
   const { pending } = useLinkStatus();
   return (
     <>
@@ -28,7 +30,7 @@ export function NavigationIcon({
         <Icon size={size} aria-hidden={true} />
       )}
       <span className="sr-only" role="status">
-        {pending ? `${label} 페이지로 이동 중` : ""}
+        {pending ? tx("{0} 페이지로 이동 중", label) : ""}
       </span>
     </>
   );

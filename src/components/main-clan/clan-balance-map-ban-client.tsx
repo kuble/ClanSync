@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useEffect, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -44,6 +45,7 @@ export function ClanBalanceMapBanClient({
   renderInsights?: (map: string | null) => ReactNode;
   serverNow?: number;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [now, setNow] = useState<number | null>(null);
@@ -132,10 +134,10 @@ export function ClanBalanceMapBanClient({
         <div>
           <h4 className="flex items-center gap-2 text-base font-semibold">
             <Map className="size-5 text-primary" aria-hidden="true" />
-            {revealing ? "전장을 추첨하고 있습니다" : displayedMap ? "맵이 확정되었습니다" : "어디에서 승부하시겠습니까?"}
+            {revealing ? tx("전장을 추첨하고 있습니다") : displayedMap ? tx("맵이 확정되었습니다") : tx("어디에서 승부하시겠습니까?")}
           </h4>
           <p className="mt-2 text-xs text-muted-foreground">
-            {revealing ? "득표 비율에 따라 전장이 선택됩니다." : displayedMap ? "잠시 후 다음 단계로 이동합니다." : "후보 3개 중 1곳에 투표합니다. 득표가 높을수록 선택될 확률이 올라갑니다."}
+            {revealing ? tx("득표 비율에 따라 전장이 선택됩니다.") : displayedMap ? tx("잠시 후 다음 단계로 이동합니다.") : tx("후보 3개 중 1곳에 투표합니다. 득표가 높을수록 선택될 확률이 올라갑니다.")}
           </p>
         </div>
         <div
@@ -148,12 +150,12 @@ export function ClanBalanceMapBanClient({
         >
           <Timer className="size-4" aria-hidden="true" />
           <span className="text-lg font-bold tabular-nums">
-            {revealing ? "추첨 중" : displayedMap
-              ? "맵 확정"
+            {revealing ? tx("추첨 중") : displayedMap
+              ? tx("맵 확정")
               : remainSec === null
                 ? "—"
                 : expired
-                  ? "투표 종료"
+                  ? tx("투표 종료")
                   : remainSec + "s"}
           </span>
         </div>
@@ -169,7 +171,7 @@ export function ClanBalanceMapBanClient({
             <span className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" aria-hidden="true" />
             <div className="absolute bottom-5 left-5 flex items-center gap-2 text-white">
               <Check className="size-5 text-primary" aria-hidden="true" />
-              <strong className="text-xl" data-testid="resolved-map">{displayedMap}</strong>
+              <strong className="text-xl" data-testid="resolved-map">{tx(displayedMap)}</strong>
             </div>
           </div>
         </article>
@@ -201,22 +203,22 @@ export function ClanBalanceMapBanClient({
               )}
             >
               <div className="relative h-36 overflow-hidden border-b sm:h-52 lg:h-64">
-                <BalanceMapImage label={label} className="transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" sizes="(max-width: 640px) 100vw, 33vw" />
+                <BalanceMapImage label={tx(label)} className="transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" sizes="(max-width: 640px) 100vw, 33vw" />
                 <span className="absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-black/30" aria-hidden="true" />
                 <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2 py-1 text-[10px] font-semibold tracking-widest text-white backdrop-blur-sm">
                   MAP 0{idx + 1}
                 </span>
                 {winner || (selected && !revealing) ? (
                   <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
-                    <Check className="size-3" aria-hidden="true" />{winner ? "선택된 맵" : "내 선택"}
+                    <Check className="size-3" aria-hidden="true" />{winner ? tx("선택된 맵") : tx("내 선택")}
                   </span>
                 ) : null}
               </div>
               <div className="space-y-4 p-4">
-                <span className="block text-sm font-bold">{label}</span>
+                <span className="block text-sm font-bold">{tx(label)}</span>
                 <div>
                   <div className="mb-2 flex items-center justify-between text-[11px]">
-                    <span className="text-muted-foreground">{count}표</span>
+                    <span className="text-muted-foreground">{count}{tx("표")}</span>
                     <strong className="tabular-nums">{formatPercent(share)}</strong>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -233,16 +235,16 @@ export function ClanBalanceMapBanClient({
       </div>}
       {resolveError && !resolvedMap ? (
         <div role="alert" className="flex flex-wrap items-center justify-end gap-3">
-          <p className="text-xs text-destructive">{resolveError}</p>
+          <p className="text-xs text-destructive">{tx(resolveError)}</p>
           <Button variant="outline" disabled={pending} onClick={() => {
             resolving.current = null; setResolveError(null); setResolveRetry((value) => value + 1);
-          }}>맵 확정 다시 시도</Button>
+          }}>{tx("맵 확정 다시 시도")}</Button>
         </div>
       ) : null}
       {advanceError ? (
         <div role="alert" className="flex flex-wrap items-center justify-end gap-3">
-          <p className="text-xs text-destructive">{advanceError}</p>
-          <Button variant="outline" onClick={() => setAdvanceError(null)}>다음 단계 다시 시도</Button>
+          <p className="text-xs text-destructive">{tx(advanceError)}</p>
+          <Button variant="outline" onClick={() => setAdvanceError(null)}>{tx("다음 단계 다시 시도")}</Button>
         </div>
       ) : null}
       {renderInsights?.(displayedMap)}

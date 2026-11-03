@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { PersonalStoreProducts } from "@/components/store/personal-store-products";
@@ -6,9 +7,13 @@ import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import styles from "@/components/profile/profile.module.css";
 
-export const metadata = { title: "개인 상점 · ClanSync" };
+export async function generateMetadata() {
+  const tx = await getTranslator();
+  return { title: tx("개인 상점 · ClanSync") };
+}
 
 export default async function PersonalStorePage() {
+  const tx = await getTranslator();
   const user = await getRequestUser();
   if (!user) redirect("/sign-in?next=/store");
   const db = await getRequestClient();
@@ -22,6 +27,6 @@ export default async function PersonalStorePage() {
   }).sort((a, b) => (a.slug === "overwatch" ? -1 : b.slug === "overwatch" ? 1 : a.slug.localeCompare(b.slug)));
   const error = !namecard.ok ? namecard.error : profiles.error ? "구매 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해 주십시오." : null;
   return <AccountShell context="개인 상점"><main className={styles.page}>
-    {error || !namecard.ok ? <section className="min-h-96 rounded-xl border p-6" role="alert"><h1 className="text-xl font-bold">네임카드 상점</h1><p className="mt-4 text-sm text-destructive">{error}</p><a className="mt-4 inline-block text-primary underline" href="/store">다시 불러오기</a></section> : <PersonalStoreProducts key={user.id} state={namecard.state} displayName={identities.find(item => item.name)?.name ?? "Player"} />}
+    {error || !namecard.ok ? <section className="min-h-96 rounded-xl border p-6" role="alert"><h1 className="text-xl font-bold">{tx("네임카드 상점")}</h1><p className="mt-4 text-sm text-destructive">{tx(error)}</p><a className="mt-4 inline-block text-primary underline" href="/store">{tx("다시 불러오기")}</a></section> : <PersonalStoreProducts key={user.id} state={namecard.state} displayName={identities.find(item => item.name)?.name ?? "Player"} />}
   </main></AccountShell>;
 }

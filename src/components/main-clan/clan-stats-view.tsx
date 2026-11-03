@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -62,6 +63,7 @@ function HofTable({
   children: React.ReactNode;
   empty: boolean;
 }) {
+  const tx = useTranslator();
   return (
     <div className="space-y-3 rounded-xl border bg-muted/10 p-4">
       <h4 className="flex items-center gap-2 text-foreground text-sm font-semibold">
@@ -70,7 +72,7 @@ function HofTable({
       </h4>
       {empty ? (
         <p className="rounded-lg border border-dashed px-4 py-8 text-center text-xs text-muted-foreground">
-          아직 등재 기준을 충족한 멤버가 없습니다.
+          {tx("아직 등재 기준을 충족한 멤버가 없습니다.")}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg ring-1 ring-border">
@@ -102,6 +104,7 @@ export function HofSettingsForm({
   onDone: () => void;
   scope?: "all" | "hof" | "personal";
 }) {
+  const tx = useTranslator();
   const [pending, start] = useTransition();
   const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
   const draft = useHofEligibilityDraft(cfg);
@@ -112,11 +115,11 @@ export function HofSettingsForm({
         start(async () => {
           try {
             await saveClanHofConfigFormAction(gameSlug, clanId, fd);
-            toast.success(scope === "personal" ? "개인 기록 설정을 저장했습니다." : "명예의 전당 설정을 저장했습니다.");
+            toast.success(tx(scope === "personal" ? "개인 기록 설정을 저장했습니다." : "명예의 전당 설정을 저장했습니다."));
             onDone();
           } catch {
             toast.error(
-              "설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.",
+              tx("설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오."),
             );
           }
         });
@@ -126,41 +129,41 @@ export function HofSettingsForm({
       <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col px-5">
       {scope === "personal" ? <div className="board-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pb-2">
         {PERSONAL_STATS_SECTIONS.filter(({ id }) => personalSections.includes(id)).map(({ id }) => <input key={id} type="hidden" name="member_personal_sections" value={id} />)}
-      <section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계">
-        <h4 className="text-sm font-semibold"><StatHelp title="공개할 통계">엠블럼은 항상 기본으로 표시됩니다.</StatHelp></h4>
+      <section className="space-y-4 rounded-xl border p-4" aria-label={tx("공개할 통계")}>
+        <h4 className="text-sm font-semibold"><StatHelp title={tx("공개할 통계")}>{tx("엠블럼은 항상 기본으로 표시됩니다.")}</StatHelp></h4>
         {PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <div key={id} className="flex items-center justify-between gap-3 text-sm">
-          <StatHelp title={label}>{description}</StatHelp>
-          <Switch aria-label={label} checked={personalSections.includes(id)} onChange={event => { const checked = event.currentTarget.checked; setPersonalSections(current => checked ? [...current, id] : current.filter(section => section !== id)); }} />
+          <StatHelp title={tx(label)}>{description}</StatHelp>
+          <Switch aria-label={tx(label)} checked={personalSections.includes(id)} onChange={event => { const checked = event.currentTarget.checked; setPersonalSections(current => checked ? [...current, id] : current.filter(section => section !== id)); }} />
         </div>)}
       </section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
-        <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label="명예의 전당 설정 영역">
-          {scope === "all" && <TabsTrigger value="access">열람·공개</TabsTrigger>}
-          <TabsTrigger value="ranking">순위 공개</TabsTrigger>
-          <TabsTrigger value="eligibility">등재 기준</TabsTrigger>
+        <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label={tx("명예의 전당 설정 영역")}>
+          {scope === "all" && <TabsTrigger value="access">{tx("열람·공개")}</TabsTrigger>}
+          <TabsTrigger value="ranking">{tx("순위 공개")}</TabsTrigger>
+          <TabsTrigger value="eligibility">{tx("등재 기준")}</TabsTrigger>
         </TabsList>
         <div className="board-scroll min-h-0 flex-1 overflow-y-auto pb-1">
       {scope === "all" && <TabsContent value="access" keepMounted>
       <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
-      <h4 id="hof-access-title" className="text-sm font-semibold">열람·공개</h4>
+      <h4 id="hof-access-title" className="text-sm font-semibold">{tx("열람·공개")}</h4>
       {isLeader && <label className="flex cursor-pointer items-start justify-between gap-3 border-t pt-3 text-sm">
-        <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
+        <span>{tx("명예의 전당을 클랜 프로필에 공개")}<span className="mt-1 block text-xs text-muted-foreground">{tx("클랜 프로필을 방문한 사람에게 공개합니다.")}</span></span>
         <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
       </label>}
       </section>
       </TabsContent>}
       <TabsContent value="ranking" keepMounted className="space-y-4">
-      {scope === "hof" && isLeader && <section className="space-y-3 rounded-xl border p-4" aria-label="프로필 공개">
-        <h4 className="text-sm font-semibold">프로필 공개</h4>
+      {scope === "hof" && isLeader && <section className="space-y-3 rounded-xl border p-4" aria-label={tx("프로필 공개")}>
+        <h4 className="text-sm font-semibold">{tx("프로필 공개")}</h4>
         <label className="flex cursor-pointer items-start justify-between gap-3 text-sm">
-          <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
+          <span>{tx("명예의 전당을 클랜 프로필에 공개")}<span className="mt-1 block text-xs text-muted-foreground">{tx("클랜 프로필을 방문한 사람에게 공개합니다.")}</span></span>
           <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
         </label>
       </section>}
       <section aria-labelledby="hof-ranking-title" className="space-y-3 rounded-xl border p-4">
-      <h4 id="hof-ranking-title" className="text-sm font-semibold">순위 공개 범위</h4>
+      <h4 id="hof-ranking-title" className="text-sm font-semibold">{tx("순위 공개 범위")}</h4>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="win_rate_visible_top">승률 순위 공개(구성원)</Label>
+          <Label htmlFor="win_rate_visible_top">{tx("승률 순위 공개(구성원)")}</Label>
           <select
             id="win_rate_visible_top"
             name="win_rate_visible_top"
@@ -171,7 +174,7 @@ export function HofSettingsForm({
           >
             {TOP_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}
+                {n === 0 ? tx("비공개") : n === 999 ? tx("전체") : tx("상위 {0}명", n)}
               </option>
             ))}
           </select>
@@ -179,13 +182,13 @@ export function HofSettingsForm({
         <input type="hidden" name="wins_visible_top" value={String(cfg.winsVisibleTop)} />
         <input type="hidden" name="streak_visible_top" value={String(cfg.streakVisibleTop)} />
         <div className="space-y-1">
-          <Label htmlFor="prediction_visible_top">승부예측 순위 공개</Label>
+          <Label htmlFor="prediction_visible_top">{tx("승부예측 순위 공개")}</Label>
           <select id="prediction_visible_top" name="prediction_visible_top" defaultValue={String(cfg.predictionVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
-            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}</option>)}
+            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? tx("비공개") : n === 999 ? tx("전체") : tx("상위 {0}명", n)}</option>)}
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="participation_visible_top">내전 참여 순위 공개</Label>
+          <Label htmlFor="participation_visible_top">{tx("내전 참여 순위 공개")}</Label>
           <select
             id="participation_visible_top"
             name="participation_visible_top"
@@ -196,13 +199,13 @@ export function HofSettingsForm({
           >
             {TOP_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}
+                {n === 0 ? tx("비공개") : n === 999 ? tx("전체") : tx("상위 {0}명", n)}
               </option>
             ))}
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="cumulative_visible_top">경기 출전 순위 공개</Label>
+          <Label htmlFor="cumulative_visible_top">{tx("경기 출전 순위 공개")}</Label>
           <select
             id="cumulative_visible_top"
             name="cumulative_visible_top"
@@ -213,7 +216,7 @@ export function HofSettingsForm({
           >
             {TOP_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}
+                {n === 0 ? tx("비공개") : n === 999 ? tx("전체") : tx("상위 {0}명", n)}
               </option>
             ))}
           </select>
@@ -221,10 +224,10 @@ export function HofSettingsForm({
       </div>
       </section>
       <section aria-labelledby="hof-period-title" className="space-y-3 rounded-xl border p-4">
-      <h4 id="hof-period-title" className="text-sm font-semibold">공개 시점</h4>
+      <h4 id="hof-period-title" className="text-sm font-semibold">{tx("공개 시점")}</h4>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="monthly_rank_visibility">월별 순위</Label>
+          <Label htmlFor="monthly_rank_visibility">{tx("월별 순위")}</Label>
           <select
             id="monthly_rank_visibility"
             name="monthly_rank_visibility"
@@ -233,12 +236,12 @@ export function HofSettingsForm({
               "border-input bg-background h-9 w-full rounded-md border px-2 text-sm",
             )}
           >
-            <option value="always">상시</option>
-            <option value="month_start">다음 달 1일 확정</option>
+            <option value="always">{tx("상시")}</option>
+            <option value="month_start">{tx("다음 달 1일 확정")}</option>
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="yearly_rank_visibility">연도별 순위</Label>
+          <Label htmlFor="yearly_rank_visibility">{tx("연도별 순위")}</Label>
           <select
             id="yearly_rank_visibility"
             name="yearly_rank_visibility"
@@ -247,8 +250,8 @@ export function HofSettingsForm({
               "border-input bg-background h-9 w-full rounded-md border px-2 text-sm",
             )}
           >
-            <option value="always">상시</option>
-            <option value="year_start">다음 해 1월 1일 확정</option>
+            <option value="always">{tx("상시")}</option>
+            <option value="year_start">{tx("다음 해 1월 1일 확정")}</option>
           </select>
         </div>
       </div>
@@ -262,9 +265,9 @@ export function HofSettingsForm({
       </Tabs>}
       </fieldset>
       <div className="flex shrink-0 justify-end gap-2 border-t px-5 py-4">
-        <Button type="button" variant="outline" disabled={pending} onClick={onDone}>취소</Button>
+        <Button type="button" variant="outline" disabled={pending} onClick={onDone}>{tx("취소")}</Button>
         <Button type="submit" disabled={pending}>
-          {pending ? "저장 중…" : "저장"}
+          {pending ? tx("저장 중…") : tx("저장")}
         </Button>
       </div>
     </form>
@@ -280,6 +283,7 @@ function MiniBars({
   labels: string[];
   title: string;
 }) {
+  const tx = useTranslator();
   const max = Math.max(1, ...values.map((value) => value ?? 0));
   return (
     <div className="overflow-x-auto">
@@ -316,7 +320,7 @@ function MiniBars({
               />
             </div>
             <span className="text-[10px] text-muted-foreground">
-              {labels[index]}월
+              {tx(labels[index])}{tx("월")}
             </span>
           </div>
         ))}
@@ -334,6 +338,7 @@ export function ClanStatsView({
   clanId: string;
   model: ClanStatsPageModel;
 }) {
+  const tx = useTranslator();
   const [hofOpen, setHofOpen] = useState(false);
   const { year: cy, month: cm } = currentKstYearMonth();
   const defaultMainTab = "summary";
@@ -365,13 +370,13 @@ export function ClanStatsView({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">클랜 통계</h2>
+          <h2 className="text-xl font-bold tracking-tight">{tx("클랜 통계")}</h2>
           <p className="text-muted-foreground mt-2 text-xs">
-            함께 쌓아온 기록. 경기와 멤버의 활동을 한눈에 살펴보십시오.
+            {tx("함께 쌓아온 기록. 경기와 멤버의 활동을 한눈에 살펴보십시오.")}
           </p>
         </div>
         {model.hof.exposeHof ? (
-          <Badge variant="secondary">명예의 전당 공개 중</Badge>
+          <Badge variant="secondary">{tx("명예의 전당 공개 중")}</Badge>
         ) : null}
       </div>
 
@@ -382,21 +387,21 @@ export function ClanStatsView({
         >
           <TabsTrigger value="summary">
             <BarChart3 className="size-3.5" aria-hidden="true" />
-            요약
+            {tx("요약")}
           </TabsTrigger>
           <TabsTrigger value="hof">
             <Crown className="hidden size-3.5 sm:block" aria-hidden="true" />
-            명예의 전당
+            {tx("명예의 전당")}
           </TabsTrigger>
           {showArchive ? (
             <TabsTrigger value="archive">
               <Swords className="hidden size-3.5 sm:block" aria-hidden="true" />
-              경기 기록
+              {tx("경기 기록")}
             </TabsTrigger>
           ) : null}
           <TabsTrigger value="rankmap">
             <Activity className="hidden size-3.5 sm:block" aria-hidden="true" />
-            앱 이용
+            {tx("앱 이용")}
           </TabsTrigger>
         </TabsList>
 
@@ -405,20 +410,20 @@ export function ClanStatsView({
             <Card className="relative min-h-44 border border-primary/15 shadow-none">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
-                  전체 경기 수
+                  {tx("전체 경기 수")}
                   <Swords className="size-5 text-primary" aria-hidden="true" />
                 </CardTitle>
-                <CardDescription>종료된 경기 합계</CardDescription>
+                <CardDescription>{tx("종료된 경기 합계")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold tracking-tight tabular-nums">
                   {model.summary.totalMatches}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  내전 {model.summary.intraCount} · 스크림{" "}
+                  {tx("내전")} {model.summary.intraCount} {tx("· 스크림")}{" "}
                   {model.summary.scrimCount}
                   {model.summary.eventCount
-                    ? ` · 이벤트 ${model.summary.eventCount}`
+                    ? tx(" · 이벤트 {0}", model.summary.eventCount)
                     : ""}
                 </p>
               </CardContent>
@@ -426,10 +431,10 @@ export function ClanStatsView({
             <Card className="min-h-44 shadow-none">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
-                  구성원
+                  {tx("구성원")}
                   <Users className="size-5 text-team-blue" aria-hidden="true" />
                 </CardTitle>
-                <CardDescription>현재 클랜 소속 인원</CardDescription>
+                <CardDescription>{tx("현재 클랜 소속 인원")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold tracking-tight tabular-nums">
@@ -440,13 +445,13 @@ export function ClanStatsView({
             <Card className="min-h-44 shadow-none">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
-                  클랜 설립일
+                  {tx("클랜 설립일")}
                   <CalendarDays
                     className="size-5 text-emerald-500"
                     aria-hidden="true"
                   />
                 </CardTitle>
-                <CardDescription>클랜 생성일 (KST 표시)</CardDescription>
+                <CardDescription>{tx("클랜 생성일 (KST 표시)")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-lg font-medium tabular-nums">
@@ -461,9 +466,9 @@ export function ClanStatsView({
           <Card size="sm">
             <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b pb-4">
               <div>
-                <CardTitle className="text-base">명예의 전당</CardTitle>
+                <CardTitle className="text-base">{tx("명예의 전당")}</CardTitle>
                 <CardDescription>
-                  우리 클랜의 기록을 만들어가는 멤버들
+                  {tx("우리 클랜의 기록을 만들어가는 멤버들")}
                 </CardDescription>
               </div>
               {model.permissions.setHofRules ? (
@@ -479,13 +484,13 @@ export function ClanStatsView({
                     }
                   >
                     <Settings2 className="size-4" aria-hidden />
-                    설정
+                    {tx("설정")}
                   </DialogTrigger>
                   <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
-                      <DialogTitle>명예의 전당 설정</DialogTitle>
+                      <DialogTitle>{tx("명예의 전당 설정")}</DialogTitle>
                       <DialogDescription>
-                        순위 공개 범위와 등재 기준을 정합니다.
+                        {tx("순위 공개 범위와 등재 기준을 정합니다.")}
                       </DialogDescription>
                     </DialogHeader>
                     <HofSettingsForm
@@ -503,9 +508,9 @@ export function ClanStatsView({
             <CardContent className="pt-4">
               <Tabs defaultValue="all">
                 <TabsList variant="line" className="mb-4">
-                  <TabsTrigger value="all">전체</TabsTrigger>
-                  <TabsTrigger value="month">이번 달 ({cm}월)</TabsTrigger>
-                  <TabsTrigger value="year">올해 ({cy})</TabsTrigger>
+                  <TabsTrigger value="all">{tx("전체")}</TabsTrigger>
+                  <TabsTrigger value="month">{tx("이번 달 (")}{cm}{tx("월)")}</TabsTrigger>
+                  <TabsTrigger value="year">{tx("올해 (")}{cy})</TabsTrigger>
                 </TabsList>
                 {(["all", "month", "year"] as const).map((key) => {
                   const block = model.hof.periods[key];
@@ -513,12 +518,12 @@ export function ClanStatsView({
                     <TabsContent key={key} value={key} className="space-y-6">
                       {block.undisclosed ? (
                         <p className="text-muted-foreground text-sm">
-                          {block.undisclosedHint}
+                          {tx(block.undisclosedHint)}
                         </p>
                       ) : (
                         <>
                           <HofTable
-                            title="승률 순위"
+                            title={tx("승률 순위")}
                             empty={block.winRate.length === 0}
                           >
                             <table className="w-full text-sm">
@@ -526,11 +531,11 @@ export function ClanStatsView({
                                 <tr>
                                   <th className="px-3 py-2 text-left">#</th>
                                   <th className="px-3 py-2 text-left">
-                                    닉네임
+                                    {tx("닉네임")}
                                   </th>
-                                  <th className="px-3 py-2 text-right">승</th>
-                                  <th className="px-3 py-2 text-right">패</th>
-                                  <th className="px-3 py-2 text-right">승률</th>
+                                  <th className="px-3 py-2 text-right">{tx("승")}</th>
+                                  <th className="px-3 py-2 text-right">{tx("패")}</th>
+                                  <th className="px-3 py-2 text-right">{tx("승률")}</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -569,7 +574,7 @@ export function ClanStatsView({
                             </table>
                           </HofTable>
                           <HofTable
-                            title="참여율 순위"
+                            title={tx("참여율 순위")}
                             empty={block.participation.length === 0}
                           >
                             <table className="w-full text-sm">
@@ -577,11 +582,11 @@ export function ClanStatsView({
                                 <tr>
                                   <th className="px-3 py-2 text-left">#</th>
                                   <th className="px-3 py-2 text-left">
-                                    닉네임
+                                    {tx("닉네임")}
                                   </th>
-                                  <th className="px-3 py-2 text-right">출전</th>
+                                  <th className="px-3 py-2 text-right">{tx("출전")}</th>
                                   <th className="px-3 py-2 text-right">
-                                    참여율
+                                    {tx("참여율")}
                                   </th>
                                 </tr>
                               </thead>
@@ -616,7 +621,7 @@ export function ClanStatsView({
                             </table>
                           </HofTable>
                           <HofTable
-                            title="누적 출전"
+                            title={tx("누적 출전")}
                             empty={block.cumulative.length === 0}
                           >
                             <table className="w-full text-sm">
@@ -624,10 +629,10 @@ export function ClanStatsView({
                                 <tr>
                                   <th className="px-3 py-2 text-left">#</th>
                                   <th className="px-3 py-2 text-left">
-                                    닉네임
+                                    {tx("닉네임")}
                                   </th>
                                   <th className="px-3 py-2 text-right">
-                                    출전 수
+                                    {tx("출전 수")}
                                   </th>
                                 </tr>
                               </thead>
@@ -673,13 +678,13 @@ export function ClanStatsView({
             <section className="space-y-5 rounded-2xl border bg-card p-4 sm:p-5">
               <div>
                 <h3 className="text-sm font-semibold">
-                  경기 기록{" "}
+                  {tx("경기 기록")}{" "}
                   <span className="ml-2 rounded-full bg-muted px-2 py-1 text-[9px] text-muted-foreground">
-                    운영진
+                    {tx("운영진")}
                   </span>
                 </h3>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  날짜별로 종료된 경기를 확인하십시오.
+                  {tx("날짜별로 종료된 경기를 확인하십시오.")}
                 </p>
               </div>
               <ClanStatsArchive archive={model.archive} />
@@ -690,29 +695,28 @@ export function ClanStatsView({
         <TabsContent value="rankmap" className="space-y-6">
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="text-base">월별 클랜 활동</CardTitle>
+              <CardTitle className="text-base">{tx("월별 클랜 활동")}</CardTitle>
               <CardDescription>
-                멤버가 클랜에 처음 방문한 날마다 1회 집계합니다. 같은 날의 추가
-                방문은 중복 계산하지 않습니다.
+                {tx("멤버가 클랜에 처음 방문한 날마다 1회 집계합니다. 같은 날의 추가 방문은 중복 계산하지 않습니다.")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 overflow-x-auto">
               <div className="flex flex-wrap items-center gap-2">
-                <PeriodSelect label="클랜 활동 연도" value={rankYear} onChange={setRankYear} options={rankYears.map((id) => ({ id, label: `${id}년` }))} />
+                <PeriodSelect label={tx("클랜 활동 연도")} value={rankYear} onChange={setRankYear} options={rankYears.map((id) => ({ id, label: `${id}년` }))} />
               </div>
               <table
-                aria-label="월별 클랜 활동일"
+                aria-label={tx("월별 클랜 활동일")}
                 className="w-full min-w-[620px] overflow-hidden rounded-lg text-xs [&_th]:bg-muted/40 [&_th]:py-3 [&_td]:py-4 [&_td]:border-b [&_td]:border-border/60"
               >
                 <thead>
                   <tr>
-                    <th className="p-1 text-left">연도</th>
+                    <th className="p-1 text-left">{tx("연도")}</th>
                     {monthLabels.map((m) => (
                       <th key={m} className="p-1 text-center">
-                        {m}월
+                        {m}{tx("월")}
                       </th>
                     ))}
-                    <th className="p-1 text-center">합계</th>
+                    <th className="p-1 text-center">{tx("합계")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -740,13 +744,13 @@ export function ClanStatsView({
 
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="text-base">내전 참여·경기 수</CardTitle>
-              <CardDescription>선택 연도의 월별 막대 (1~12월)</CardDescription>
+              <CardTitle className="text-base">{tx("내전 참여·경기 수")}</CardTitle>
+              <CardDescription>{tx("선택 연도의 월별 막대 (1~12월)")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
                 <p className="mb-2 text-sm font-medium">
-                  서로 다른 참여 멤버 수
+                  {tx("서로 다른 참여 멤버 수")}
                 </p>
                 <MiniBars
                   values={partVals}
@@ -755,7 +759,7 @@ export function ClanStatsView({
                 />
               </div>
               <div>
-                <p className="mb-2 text-sm font-medium">내전 경기 횟수</p>
+                <p className="mb-2 text-sm font-medium">{tx("내전 경기 횟수")}</p>
                 <MiniBars
                   values={intraVals}
                   labels={monthLabels}
@@ -766,8 +770,7 @@ export function ClanStatsView({
           </Card>
 
           <p className="text-muted-foreground text-xs">
-            미래 월은 집계 전으로 표시됩니다. 내전 참여 인원은 같은 달의 중복
-            출전을 제외한 멤버 수입니다.
+            {tx("미래 월은 집계 전으로 표시됩니다. 내전 참여 인원은 같은 달의 중복 출전을 제외한 멤버 수입니다.")}
           </p>
         </TabsContent>
       </Tabs>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslator } from "#use-translator";
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
@@ -50,6 +51,7 @@ function SheetContent({
   keepMounted?: boolean
   onBackdropPointerMove?: SheetPrimitive.Backdrop.Props["onPointerMove"]
 }) {
+  const tx = useTranslator();
   return (
     <SheetPortal keepMounted={keepMounted}>
       <SheetOverlay onPointerMove={onBackdropPointerMove} />
@@ -78,7 +80,7 @@ function SheetContent({
           >
             <XIcon
             />
-            <span className="sr-only">닫기</span>
+            <span className="sr-only">{tx("닫기")}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
@@ -32,6 +33,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
   gameSlug: string; clans: ClanListRow[]; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
   pendingActions: ReactNode; filters: ReactNode; listingFailed: boolean; pagination: ReactNode; createContent: ReactNode;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
@@ -90,7 +92,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
 
   function renderFavorite(clan: ClanListRow) {
     const isFavorite = savedFavorites[clan.id] ?? !!clan.isFavorite;
-    return <Button type="button" variant="ghost" size="icon-sm" aria-label={clan.name + " 즐겨찾기"} aria-pressed={isFavorite} title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"} disabled={savingFavorite}
+    return <Button type="button" variant="ghost" size="icon-sm" aria-label={clan.name + " 즐겨찾기"} aria-pressed={isFavorite} title={isFavorite ? tx("즐겨찾기 해제") : tx("즐겨찾기 추가")} disabled={savingFavorite}
       onClick={async () => {
         setSavingFavorite(true);
         try {
@@ -116,16 +118,16 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         </span>
         <span className={styles.clanText}>
           <span className={styles.clanIdentity}>
-            <button type="button" className={styles.detailTrigger} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={`${clan.name} 클랜 상세 보기`}><strong>{clan.name}</strong></button>
+            <button type="button" className={styles.detailTrigger} data-testid={`clan-details-${clan.id}`} onClick={() => setDetails(clan)} aria-haspopup="dialog" aria-label={tx("{0} 클랜 상세 보기", clan.name)}><strong>{clan.name}</strong></button>
             {renderFavorite(clan)}
             {isPending && (
               <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}>
-                <Clock3 size={12} aria-hidden />신청 대기 중
+                <Clock3 size={12} aria-hidden />{tx("신청 대기 중")}
               </Badge>
             )}
           </span>
           <span className={styles.cardTags}>
-            <span data-style={clan.style || undefined}><Compass size={12} aria-hidden /><span className="sr-only">클랜 지향 </span>{clan.style ? STYLE_LABEL[clan.style] ?? clan.style : "무관"}</span>
+            <span data-style={clan.style || undefined}><Compass size={12} aria-hidden /><span className="sr-only">{tx("클랜 지향")} </span>{clan.style ? STYLE_LABEL[clan.style] ?? clan.style : tx("무관")}</span>
             <span><CalendarDays size={12} aria-hidden />{recruitmentYearLabel({birth_year_from:clan.birth_year_from ?? null,min_birth_year:clan.min_birth_year ?? null})}</span>
             <span><Trophy size={12} aria-hidden />{recruitmentTierSummary(gameSlug, clan.tier_range ?? [])}</span>
           </span>
@@ -138,23 +140,23 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
 
   return <Tabs value={activeTab} onValueChange={value => { if (typeof value === "string") changeTab(value); }} className={`${onboarding.tabs} ${styles.tabs}`}>
     <TabsList variant="line" className={styles.tabList}>
-      {pendingClanId && <TabsTrigger value="pending">가입 대기</TabsTrigger>}
-      <TabsTrigger value="join">클랜 가입</TabsTrigger>
-      <TabsTrigger value="create">클랜 생성</TabsTrigger>
+      {pendingClanId && <TabsTrigger value="pending">{tx("가입 대기")}</TabsTrigger>}
+      <TabsTrigger value="join">{tx("클랜 가입")}</TabsTrigger>
+      <TabsTrigger value="create">{tx("클랜 생성")}</TabsTrigger>
     </TabsList>
-    {pendingClanId && <TabsContent value="pending"><section aria-label="현재 신청 중인 클랜" data-testid="clan-join-pinned-pending-section">
+    {pendingClanId && <TabsContent value="pending"><section aria-label={tx("현재 신청 중인 클랜")} data-testid="clan-join-pinned-pending-section">
       {pinnedPendingClan ? renderCard(pinnedPendingClan, true) : <article className={styles.clanCard} data-pending-card>
-        <div className="flex flex-wrap items-center gap-2"><strong>{blockingClanName || "클랜"}</strong><Badge variant="outline"><Clock3 aria-hidden />신청 대기 중</Badge></div>
+        <div className="flex flex-wrap items-center gap-2"><strong>{blockingClanName || tx("클랜")}</strong><Badge variant="outline"><Clock3 aria-hidden />{tx("신청 대기 중")}</Badge></div>
         <div className={styles.pendingActions}>{pendingActions}</div>
       </article>}
     </section></TabsContent>}
     <TabsContent value="join">
       <div className={styles.directory}>
         {filters}
-        <section className={styles.results} aria-label="클랜 검색 결과">
-          {listingFailed ? <p role="alert" className={onboarding.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
+        <section className={styles.results} aria-label={tx("클랜 검색 결과")}>
+          {listingFailed ? <p role="alert" className={onboarding.error}>{tx("클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.")}</p> : <>
             {clans.length ? <ul className={styles.clanList}>{clans.map(clan => <li key={clan.id}>{renderCard(clan)}</li>)}</ul>
-              : <p className={styles.empty}>{pendingClanId ? "검색 결과에 다른 클랜이 없습니다. 검색어와 필터를 바꿔 보십시오." : "조건에 맞는 클랜이 없습니다. 검색어를 바꾸거나 새 클랜을 만들어 보십시오."}</p>}
+              : <p className={styles.empty}>{pendingClanId ? tx("검색 결과에 다른 클랜이 없습니다. 검색어와 필터를 바꿔 보십시오.") : tx("조건에 맞는 클랜이 없습니다. 검색어를 바꾸거나 새 클랜을 만들어 보십시오.")}</p>}
             {pagination}
           </>}
         </section>
@@ -164,13 +166,13 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     <Dialog open={selected != null} onOpenChange={open => { if (!open && !busy) setSelected(null); }}>
       {selected && <DialogContent showCloseButton={!busy}>
         <DialogHeader>
-          <DialogTitle>{replaceOpen ? "진행 중인 신청이 있습니다" : selected.name + " 가입 신청"}</DialogTitle>
-          <DialogDescription>{replaceOpen ? `현재 「${blockName}」에 가입 신청 중입니다. 취소하고 「${selected.name}」에 새로 신청하시겠습니까?` : `「${selected.name}」에 가입 신청하시겠습니까?`}</DialogDescription>
+          <DialogTitle>{replaceOpen ? tx("진행 중인 신청이 있습니다") : selected.name + " 가입 신청"}</DialogTitle>
+          <DialogDescription>{replaceOpen ? tx("현재 「{0}」에 가입 신청 중입니다. 취소하고 「{1}」에 새로 신청하시겠습니까?", blockName, selected.name) : tx("「{0}」에 가입 신청하시겠습니까?", selected.name)}</DialogDescription>
         </DialogHeader>
-        {error && <p className={styles.error} role="alert">{error}</p>}
+        {error && <p className={styles.error} role="alert">{tx(error)}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" disabled={busy} onClick={() => setSelected(null)}>{replaceOpen ? "아니오" : "취소"}</Button>
-          <Button type="button" disabled={busy} data-testid={`clan-join-send-${selected.id}`} onClick={() => void runSubmit(replaceOpen)}>{busy ? "신청 중…" : replaceOpen ? "취소 후 새로 신청" : "가입 신청"}</Button>
+          <Button type="button" variant="outline" disabled={busy} onClick={() => setSelected(null)}>{replaceOpen ? tx("아니오") : tx("취소")}</Button>
+          <Button type="button" disabled={busy} data-testid={`clan-join-send-${selected.id}`} onClick={() => void runSubmit(replaceOpen)}>{busy ? tx("신청 중…") : replaceOpen ? tx("취소 후 새로 신청") : tx("가입 신청")}</Button>
         </DialogFooter>
       </DialogContent>}
     </Dialog>
@@ -181,7 +183,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           {canApply && <Button type="button" aria-haspopup="dialog" data-testid={`clan-join-open-${details.id}`}
             disabled={busy || effectivePendingId === details.id || (details.active_members != null && details.active_members >= details.max_members)}
             onClick={() => { closeDetails(); openApply(details); }}>
-            {effectivePendingId === details.id ? "신청 대기 중" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}
+            {effectivePendingId === details.id ? tx("신청 대기 중") : details.active_members != null && details.active_members >= details.max_members ? tx("정원 마감") : tx("가입 신청")}
           </Button>}
         </>} />}
     </Dialog>

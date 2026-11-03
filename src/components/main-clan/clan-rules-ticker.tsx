@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { ChevronRight, ScrollText } from "lucide-react";
@@ -15,6 +16,7 @@ const motionSnapshot = () => window.matchMedia("(prefers-reduced-motion: reduce)
 const serverMotion = () => false;
 
 export function ClanRulesTicker({ rules, href, failed }: { rules: string | null; href: string; failed: boolean }) {
+  const tx = useTranslator();
   const items = parseClanRules(rules);
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
@@ -27,12 +29,12 @@ export function ClanRulesTicker({ rules, href, failed }: { rules: string | null;
     const timer = window.setInterval(() => setIndex(previous => (previous + 1) % items.length), 8000);
     return () => window.clearInterval(timer);
   }, [running, items.length]);
-  const text = items[active] ?? (failed ? "규칙을 불러오지 못했습니다." : "등록된 규칙이 없습니다.");
-  return <section aria-label="클랜 규칙" className={styles.rulesTicker}
+  const text = items[active] ?? tx(failed ? "규칙을 불러오지 못했습니다." : "등록된 규칙이 없습니다.");
+  return <section aria-label={tx("클랜 규칙")} className={styles.rulesTicker}
     onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     onFocusCapture={event => setFocused(event.target.matches(":focus-visible"))} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
-    <Link href={href} className={styles.rulesLabel} aria-label="클랜 규칙"><ScrollText size={16} aria-hidden="true" /><span>클랜 규칙</span><ChevronRight size={12} aria-hidden="true" /></Link>
-    <Link href={href} className={styles.ruleWindow} title={text} aria-label={`규칙 ${active + 1}: ${text}`}>
+    <Link href={href} className={styles.rulesLabel} aria-label={tx("클랜 규칙")}><ScrollText size={16} aria-hidden="true" /><span>{tx("클랜 규칙")}</span><ChevronRight size={12} aria-hidden="true" /></Link>
+    <Link href={href} className={styles.ruleWindow} title={text} aria-label={tx("규칙 {0}: {1}", active + 1, text)}>
       <span key={active} data-rule-text className={styles.ruleFace}>{text}</span>
     </Link>
   </section>;

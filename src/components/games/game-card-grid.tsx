@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
@@ -8,7 +9,7 @@ import type { GameCardState } from "@/lib/routing/game-card-router";
 import { buildGameCardHref } from "@/lib/routing/game-card-router";
 import styles from "@/components/entry/entry.module.css";
 
-function statusLabel(card: GameCardState): { dot: string; text: string } {
+function statusLabel(card: GameCardState, tx: ReturnType<typeof useTranslator>): { dot: string; text: string } {
   if (card.disabled) return { dot: "bg-zinc-500", text: "출시 예정" };
   if (!card.auth) {
     if (card.clanStatus === "pending") return { dot: "bg-red-500", text: "게임 ID 미등록 · 신청 보류" };
@@ -16,8 +17,8 @@ function statusLabel(card: GameCardState): { dot: string; text: string } {
     return { dot: "bg-red-500", text: "게임 ID 미등록" };
   }
   if (card.clanStatus === "none") return { dot: "bg-sky-400", text: "클랜 찾는 중" };
-  if (card.clanStatus === "pending" && card.clanName) return { dot: "bg-sky-400", text: `${card.clanName} 가입 신청 중` };
-  if (card.clanStatus === "member" && card.clanName) return { dot: "bg-emerald-500", text: `${card.clanName} 가입됨` };
+  if (card.clanStatus === "pending" && card.clanName) return { dot: "bg-sky-400", text: tx("{0} 가입 신청 중", card.clanName) };
+  if (card.clanStatus === "member" && card.clanName) return { dot: "bg-emerald-500", text: tx("{0} 가입됨", card.clanName) };
   return { dot: "bg-zinc-500", text: "상태 확인 중" };
 }
 
@@ -32,6 +33,7 @@ export function GameCardGrid({ cards, basePath = "" }: {
   cards: (GameCardState & { title: string })[];
   basePath?: string;
 }) {
+  const tx = useTranslator();
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const visibleCards = cards.filter((card) => `${card.title} ${card.slug} ${searchAliases[card.slug] ?? ""}`.toLocaleLowerCase().includes(normalizedQuery));
@@ -41,27 +43,27 @@ export function GameCardGrid({ cards, basePath = "" }: {
   return (
     <>
       <header className={styles.gameHeader}>
-        <div><h1 className={styles.gameHeading}>게임 선택</h1><p className={styles.gameDescription}>게임별 클랜과 가입 상태를 한눈에 확인할 수 있습니다.</p></div>
+        <div><h1 className={styles.gameHeading}>{tx("게임 선택")}</h1><p className={styles.gameDescription}>{tx("게임별 클랜과 가입 상태를 한눈에 확인할 수 있습니다.")}</p></div>
         <div className={styles.search}>
           <Search size={16} aria-hidden="true" />
-          <input className={styles.input} type="search" aria-label="게임 검색" placeholder="게임 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <input className={styles.input} type="search" aria-label={tx("게임 검색")} placeholder={tx("게임 검색")} value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
       </header>
       {visibleCards.length ? <div className={styles.gameGroups}>
         {availableCards.length > 0 && <section aria-labelledby="available-games-title">
-          <h2 id="available-games-title" className={styles.gameGroupTitle}>이용 가능한 게임 <span>{availableCards.length}</span></h2>
+          <h2 id="available-games-title" className={styles.gameGroupTitle}>{tx("이용 가능한 게임")} <span>{availableCards.length}</span></h2>
           <div className={styles.gameGrid}>
           {availableCards.map((card) => {
-            const { dot, text } = statusLabel(card);
+            const { dot, text } = statusLabel(card, tx);
             const href = buildGameCardHref(basePath, card);
             const action = !card.auth ? "게임 ID 등록" : card.clanStatus === "member" ? "클랜으로 이동" : card.clanStatus === "pending" ? "신청 확인" : "클랜 찾기";
             const inner = <>
               <span className={styles.gameLogo} aria-hidden="true"><GameLogo slug={card.slug} name={card.title} className="size-7" /></span>
               <div className={styles.gameBody}>
-                <h3 className={styles.gameName}>{card.title}</h3>
-                <div className={styles.gameStatus}><span className={`${styles.gameDot} ${dot}`} aria-hidden="true" /><span>{text}</span></div>
+                <h3 className={styles.gameName}>{tx(card.title)}</h3>
+                <div className={styles.gameStatus}><span className={`${styles.gameDot} ${dot}`} aria-hidden="true" /><span>{tx(text)}</span></div>
               </div>
-              <span className={styles.gameAction}>{action}<ArrowRight size={17} aria-hidden="true" /></span>
+              <span className={styles.gameAction}>{tx(action)}<ArrowRight size={17} aria-hidden="true" /></span>
             </>;
             return href === "#" ?
               <div key={card.slug} className={styles.gameCard} aria-disabled="true">{inner}</div> :
@@ -70,16 +72,16 @@ export function GameCardGrid({ cards, basePath = "" }: {
           </div>
         </section>}
         {upcomingCards.length > 0 && <section className={styles.upcomingGames} aria-labelledby="upcoming-games-title">
-          <h2 id="upcoming-games-title" className={styles.gameGroupTitle}>출시 예정</h2>
+          <h2 id="upcoming-games-title" className={styles.gameGroupTitle}>{tx("출시 예정")}</h2>
           <ul className={styles.upcomingList}>
             {upcomingCards.map((card) => <li key={card.slug} className={styles.upcomingGame}>
               <span className={styles.upcomingLogo} aria-hidden="true"><GameLogo slug={card.slug} name={card.title} className="size-5" /></span>
-              <span>{card.title}</span>
-              <span className={styles.upcomingLabel}>준비 중</span>
+              <span>{tx(card.title)}</span>
+              <span className={styles.upcomingLabel}>{tx("준비 중")}</span>
             </li>)}
           </ul>
         </section>}
-      </div> : <p className={styles.empty} role="status">“{query}”에 해당하는 게임이 없습니다. 다른 이름으로 검색해 주십시오.</p>}
+      </div> : <p className={styles.empty} role="status">“{query}{tx("”에 해당하는 게임이 없습니다. 다른 이름으로 검색해 주십시오.")}</p>}
     </>
   );
 }

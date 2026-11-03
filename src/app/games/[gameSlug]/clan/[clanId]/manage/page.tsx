@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import { Suspense } from "react";
 import { forbidden, redirect } from "next/navigation";
 import { ClanManageNavigation } from "@/components/main-clan/clan-manage-tabs";
@@ -10,6 +11,7 @@ export default async function ManagePage({ params, searchParams }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
   searchParams: Promise<{ tab?: string | string[]; discord?: string }>;
 }) {
+  const tx = await getTranslator();
   const [{ gameSlug, clanId }, query] = await Promise.all([params, searchParams]);
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (ctx && query.tab === "notices") redirect("/games/"+gameSlug+"/clan/"+clanId+"/board/notices");
@@ -23,8 +25,8 @@ export default async function ManagePage({ params, searchParams }: {
       <ClanManageNavigation selected={selected} pendingCount={ctx.pendingJoinRequestCount} basePath={basePath} />
       <section tabIndex={0} className={`board-scroll min-h-80 min-w-0 space-y-4 focus-visible:outline-2 focus-visible:outline-ring ${selected === "promotion"
         ? "overflow-visible"
-        : "h-[calc(100dvh-16rem)] overflow-y-auto overscroll-contain"}`} aria-label={section.label}>
-        <Suspense key={selected} fallback={<div role="status" className="space-y-3"><span className="sr-only">{section.label} 불러오는 중</span><div className="h-28 animate-pulse rounded-xl bg-muted/50" /><div className="h-44 animate-pulse rounded-xl bg-muted/50" /></div>}>
+        : "h-[calc(100dvh-16rem)] overflow-y-auto overscroll-contain"}`} aria-label={tx(section.label)}>
+        <Suspense key={selected} fallback={<div role="status" className="space-y-3"><span className="sr-only">{tx(section.label)} {tx("불러오는 중")}</span><div className="h-28 animate-pulse rounded-xl bg-muted/50" /><div className="h-44 animate-pulse rounded-xl bg-muted/50" /></div>}>
           <ClanManageContent ctx={ctx} selected={selected} connectionResult={query.discord} />
         </Suspense>
       </section>

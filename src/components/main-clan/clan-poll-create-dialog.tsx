@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { Switch } from "@/components/ui/switch";
 
 import Link from "next/link";
@@ -38,6 +39,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
   onOpenChange: (open: boolean) => void;
   onCreated?: (scheduled: boolean) => void;
 }) {
+  const tx = useTranslator();
   const [pending, start] = useTransition();
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState([{ id: 0, label: "" }, { id: 1, label: "" }]);
@@ -162,10 +164,10 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
     <Sheet open onOpenChange={(open) => { if (!pending) onOpenChange(open); }}>
       <SheetContent initialFocus={titleRef} showCloseButton={false} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[600px]">
         <SheetHeader className="shrink-0 border-b bg-primary/5 px-5 py-5 pr-12 sm:px-6">
-          <SheetTitle className="flex items-center gap-3 text-xl font-semibold"><span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary"><Vote className="size-5" aria-hidden /></span>투표 만들기</SheetTitle>
-          <SheetDescription className="sr-only">질문과 선택지를 작성하고 시작·마감 시각을 정하십시오.</SheetDescription>
+          <SheetTitle className="flex items-center gap-3 text-xl font-semibold"><span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary"><Vote className="size-5" aria-hidden /></span>{tx("투표 만들기")}</SheetTitle>
+          <SheetDescription className="sr-only">{tx("질문과 선택지를 작성하고 시작·마감 시각을 정하십시오.")}</SheetDescription>
         </SheetHeader>
-        <Button type="button" variant="ghost" size="icon-sm" className="absolute right-3 top-4" disabled={pending} onClick={() => onOpenChange(false)} aria-label="닫기">
+        <Button type="button" variant="ghost" size="icon-sm" className="absolute right-3 top-4" disabled={pending} onClick={() => onOpenChange(false)} aria-label={tx("닫기")}>
           <X className="size-4" aria-hidden />
         </Button>
         <form ref={formRef} noValidate onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -174,25 +176,25 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
             <div className="space-y-4 rounded-xl border bg-card p-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="poll-title" className="font-semibold">투표 질문</Label>
+                <Label htmlFor="poll-title" className="font-semibold">{tx("투표 질문")}</Label>
                 <span className="text-[11px] tabular-nums text-muted-foreground">{title.length}/120</span>
               </div>
-              <Input ref={titleRef} id="poll-title" name="title" value={title} onChange={(event) => { setTitle(event.target.value); clearError("poll-title"); }} maxLength={120} placeholder="예: 이번 주 내전 진행일은 언제입니까?" className="h-11" {...inputErrorProps("poll-title")} />
+              <Input ref={titleRef} id="poll-title" name="title" value={title} onChange={(event) => { setTitle(event.target.value); clearError("poll-title"); }} maxLength={120} placeholder={tx("예: 이번 주 내전 진행일은 언제입니까?")} className="h-11" {...inputErrorProps("poll-title")} />
               <FieldError id="poll-title" errors={errors} />
             </div>
 
-            <section className="space-y-3" aria-label="선택지 작성">
+            <section className="space-y-3" aria-label={tx("선택지 작성")}>
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">선택지</h3>
-                <span className="text-[11px] text-muted-foreground">2~12개 · 항목당 80자</span>
+                <h3 className="text-sm font-semibold">{tx("선택지")}</h3>
+                <span className="text-[11px] text-muted-foreground">{tx("2~12개 · 항목당 80자")}</span>
               </div>
               <div className="space-y-2">
                 {options.map((option, index) => (
                   <div key={option.id} className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold tabular-nums text-primary">{index + 1}</span>
-                      <Input id={`poll-option-${option.id}`} ref={(node) => { if (node && focusOptionId.current === option.id) { node.focus(); focusOptionId.current = null; } }} aria-label={`선택지 ${index + 1}`} value={option.label} maxLength={80} placeholder={index === 0 ? "예: 금요일 오후 9시" : index === 1 ? "예: 토요일 오후 8시" : `선택지 ${index + 1}`} className="h-10 min-w-0 flex-1" onChange={(event) => { setOptions((current) => current.map((row) => row.id === option.id ? { ...row, label: event.target.value } : row)); setErrors({}); setSubmitError(null); }} {...inputErrorProps(`poll-option-${option.id}`)} />
-                      <Button type="button" variant="ghost" size="icon-sm" disabled={pending || options.length <= 2} onClick={() => removeOption(option.id)} aria-label={`선택지 ${index + 1} 삭제`}>
+                      <Input id={`poll-option-${option.id}`} ref={(node) => { if (node && focusOptionId.current === option.id) { node.focus(); focusOptionId.current = null; } }} aria-label={tx("선택지 {0}", index + 1)} value={option.label} maxLength={80} placeholder={index === 0 ? tx("예: 금요일 오후 9시") : index === 1 ? tx("예: 토요일 오후 8시") : tx("선택지 {0}", index + 1)} className="h-10 min-w-0 flex-1" onChange={(event) => { setOptions((current) => current.map((row) => row.id === option.id ? { ...row, label: event.target.value } : row)); setErrors({}); setSubmitError(null); }} {...inputErrorProps(`poll-option-${option.id}`)} />
+                      <Button type="button" variant="ghost" size="icon-sm" disabled={pending || options.length <= 2} onClick={() => removeOption(option.id)} aria-label={tx("선택지 {0} 삭제", index + 1)}>
                         <X className="size-4 text-muted-foreground" aria-hidden />
                       </Button>
                     </div>
@@ -201,31 +203,31 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
                 ))}
               </div>
               <Button type="button" variant="outline" size="sm" className="ml-8 border-dashed" disabled={pending || options.length >= 12} onClick={addOption}>
-                <Plus className="size-3.5" aria-hidden />선택지 추가
+                <Plus className="size-3.5" aria-hidden />{tx("선택지 추가")}
                 <span className="text-[11px] tabular-nums text-muted-foreground">{options.length}/12</span>
               </Button>
               <div className="grid gap-3 border-t pt-3 sm:grid-cols-2 sm:gap-6">
-                <PollToggle id="poll-multiple-choice" name="multiple_choice" label="다중 선택" description="여러 선택지를 함께 고를 수 있습니다." checked={multipleChoice} onChange={setMultipleChoice} />
-                <PollToggle id="poll-anonymous" name="anonymous" label="익명 투표" description="누가 투표했는지 이름을 공개하지 않습니다." checked={anonymous} onChange={setAnonymous} />
+                <PollToggle id="poll-multiple-choice" name="multiple_choice" label={tx("다중 선택")} description={tx("여러 선택지를 함께 고를 수 있습니다.")} checked={multipleChoice} onChange={setMultipleChoice} />
+                <PollToggle id="poll-anonymous" name="anonymous" label={tx("익명 투표")} description={tx("누가 투표했는지 이름을 공개하지 않습니다.")} checked={anonymous} onChange={setAnonymous} />
               </div>
             </section>
 
             </div>
             <div className="space-y-4 rounded-xl border bg-card p-4">
-            <h3 className="flex items-center gap-2 text-sm font-semibold"><Clock className="size-4 text-primary" aria-hidden />투표 일정</h3>
-            <section className="space-y-3" aria-label="시작 설정">
-              <PollToggle id="poll-scheduled" name="scheduled" label="시작 예약" description="지정한 시각부터 투표에 참여할 수 있습니다." controls="poll-start-settings" checked={scheduled} onChange={(value) => { setScheduled(value); clearError("poll-start"); }} />
-              {scheduled && <div id="poll-start-settings" className="ml-3 space-y-2 border-l-2 border-primary/25 pl-3"><Label htmlFor="poll-start">시작 일시</Label><Input id="poll-start" type="datetime-local" value={startsAt} onChange={(event) => { setStartsAt(event.target.value); clearError("poll-start"); clearDeadlineError(); }} {...inputErrorProps("poll-start")} /><FieldError id="poll-start" errors={errors} /></div>}
+            <h3 className="flex items-center gap-2 text-sm font-semibold"><Clock className="size-4 text-primary" aria-hidden />{tx("투표 일정")}</h3>
+            <section className="space-y-3" aria-label={tx("시작 설정")}>
+              <PollToggle id="poll-scheduled" name="scheduled" label={tx("시작 예약")} description={tx("지정한 시각부터 투표에 참여할 수 있습니다.")} controls="poll-start-settings" checked={scheduled} onChange={(value) => { setScheduled(value); clearError("poll-start"); }} />
+              {scheduled && <div id="poll-start-settings" className="ml-3 space-y-2 border-l-2 border-primary/25 pl-3"><Label htmlFor="poll-start">{tx("시작 일시")}</Label><Input id="poll-start" type="datetime-local" value={startsAt} onChange={(event) => { setStartsAt(event.target.value); clearError("poll-start"); clearDeadlineError(); }} {...inputErrorProps("poll-start")} /><FieldError id="poll-start" errors={errors} /></div>}
             </section>
 
-            <section className="space-y-3 border-t pt-5" aria-label="마감 설정">
+            <section className="space-y-3 border-t pt-5" aria-label={tx("마감 설정")}>
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">마감 일시</h3>
-                <span className="text-[11px] text-muted-foreground">기기 시간 기준</span>
+                <h3 className="text-sm font-semibold">{tx("마감 일시")}</h3>
+                <span className="text-[11px] text-muted-foreground">{tx("기기 시간 기준")}</span>
               </div>
               <div className="grid gap-3 min-[500px]:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="poll-deadline-date" className="gap-1.5 text-xs text-muted-foreground"><CalendarDays className="size-3.5" aria-hidden />마감 날짜</Label>
+                  <Label htmlFor="poll-deadline-date" className="gap-1.5 text-xs text-muted-foreground"><CalendarDays className="size-3.5" aria-hidden />{tx("마감 날짜")}</Label>
                   <Input
                     id="poll-deadline-date"
                     type="date"
@@ -237,7 +239,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
                   <FieldError id="poll-deadline-date" errors={errors} />
                 </div>
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="poll-deadline-time" className="gap-1.5 text-xs text-muted-foreground"><Clock className="size-3.5" aria-hidden />마감 시간</Label>
+                  <Label htmlFor="poll-deadline-time" className="gap-1.5 text-xs text-muted-foreground"><Clock className="size-3.5" aria-hidden />{tx("마감 시간")}</Label>
                   <Input
                     id="poll-deadline-time"
                     type="time"
@@ -252,24 +254,24 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
             </section>
 
             </div>
-            <section className="space-y-3 rounded-xl border bg-card p-4" aria-label="참여 알림 설정">
-              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알립니다." controls="poll-notify-settings" checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
+            <section className="space-y-3 rounded-xl border bg-card p-4" aria-label={tx("참여 알림 설정")}>
+              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label={tx("참여 알림 보내기")} description={tx("클랜 멤버에게 사이트 알림으로 참여를 알립니다.")} controls="poll-notify-settings" checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
               {notifyEnabled ? (
                 <div id="poll-notify-settings" className="ml-3 space-y-3 border-l-2 border-primary/25 pl-3">
-                  <div className="flex items-center gap-2 text-xs font-medium"><Bell className="size-3.5 text-muted-foreground" aria-hidden />사이트 알림</div>
+                  <div className="flex items-center gap-2 text-xs font-medium"><Bell className="size-3.5 text-muted-foreground" aria-hidden />{tx("사이트 알림")}</div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="poll-notify-repeat" className="text-xs">알림 빈도</Label>
+                      <Label htmlFor="poll-notify-repeat" className="text-xs">{tx("알림 빈도")}</Label>
                       <select id="poll-notify-repeat" value={notifyRepeat} onChange={(event) => { setNotifyRepeat(event.target.value as Exclude<PollNotifyRepeat, "none">); clearDeadlineError(); }} className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs">
-                        <option value="once">기본 (시작 · 마감 1시간 전)</option>
-                        <option value="daily">매일</option>
-                        <option value="weekly">매주</option>
-                        <option value="until_deadline_daily">마감 전 24시간 동안</option>
+                        <option value="once">{tx("기본 (시작 · 마감 1시간 전)")}</option>
+                        <option value="daily">{tx("매일")}</option>
+                        <option value="weekly">{tx("매주")}</option>
+                        <option value="until_deadline_daily">{tx("마감 전 24시간 동안")}</option>
                       </select>
                     </div>
                     {notifyRepeat !== "once" ? (
                       <div className="space-y-2">
-                        <Label htmlFor="poll-notify-hour" className="text-xs">알림 시각 (한국 시간)</Label>
+                        <Label htmlFor="poll-notify-hour" className="text-xs">{tx("알림 시각 (한국 시간)")}</Label>
                         <select id="poll-notify-hour" value={notifyHour} onChange={(event) => setNotifyHour(event.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs">
                           {Array.from({ length: 24 }, (_, hour) => <option key={hour} value={hour}>{String(hour).padStart(2, "0")}:00</option>)}
                         </select>
@@ -279,15 +281,15 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
                   <p className="text-xs leading-relaxed text-muted-foreground">{reminderHints[notifyRepeat]}</p>
                 </div>
               ) : null}
-              <p className="text-[11px] leading-relaxed text-muted-foreground">Discord 시작·종료 알림은 <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} className="underline underline-offset-2">클랜 알림 설정</Link>을 따릅니다.</p>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">{tx("Discord 시작·종료 알림은")} <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} className="underline underline-offset-2">{tx("클랜 알림 설정")}</Link>{tx("을 따릅니다.")}</p>
             </section>
           </fieldset>
           </div>
           <div className="shrink-0 space-y-3 border-t bg-background px-5 py-4 sm:px-6">
-            {submitError ? <p role="alert" className="text-xs text-destructive">{submitError}</p> : null}
+            {submitError ? <p role="alert" className="text-xs text-destructive">{tx(submitError)}</p> : null}
             <div className="flex items-center justify-end gap-2">
-              <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>취소</Button>
-              <Button type="submit" disabled={pending}>{pending ? "투표 만드는 중…" : scheduled ? "투표 예약하기" : "투표 시작하기"}</Button>
+              <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>{tx("취소")}</Button>
+              <Button type="submit" disabled={pending}>{pending ? tx("투표 만드는 중…") : scheduled ? tx("투표 예약하기") : tx("투표 시작하기")}</Button>
             </div>
           </div>
         </form>
@@ -303,10 +305,11 @@ function FieldError({ id, errors, className }: { id: string; errors: Record<stri
 function PollToggle({ id, name, label, description, controls, checked, onChange }: {
   id: string; name: string; label: string; description: string; controls?: string; checked: boolean; onChange: (checked: boolean) => void;
 }) {
+  const tx = useTranslator();
   return (
     <div className="flex items-center justify-between gap-4 py-1">
-      <HelpText label={label} help={description} className="text-sm font-medium" />
-      <Switch id={id} name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} aria-controls={controls} />
+      <HelpText label={tx(label)} help={description} className="text-sm font-medium" />
+      <Switch id={id} name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={tx(label)} aria-controls={controls} />
     </div>
   );
 }

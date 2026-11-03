@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Plus, Pencil, Trash2, Swords } from "lucide-react";
@@ -25,6 +26,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
   participantSearch?: string;
   loading?: boolean;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [selection, setSelectedDay] = useState<string>();
   const [saved, setSaved] = useState<{ base: typeof archive; data: typeof archive }>();
@@ -35,7 +37,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
   const fetchDay = clanId && current.deferredDays && current.datesKst.includes(selectedDay) && !current.sampleByDate[selectedDay];
   const onSaved = (data: typeof archive, day: string) => { setSaved({ base: archive, data }); setSelectedDay(day); router.refresh(); };
   return <div className="space-y-4">
-    <div className="sticky top-[60px] z-30 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80" role="region" aria-label="경기 기록 날짜 및 필터">
+    <div className="sticky top-[60px] z-30 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80" role="region" aria-label={tx("경기 기록 날짜 및 필터")}>
       <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={current.datesKst} periodKey={periodKey} />
       {filters}
     </div>
@@ -48,15 +50,17 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
 type EditorContext = { canCreate: boolean; canUpdate: boolean; canDelete: boolean; clanId: string; day: string; members: { userId: string; nickname: string }[]; onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void; onReload: () => void };
 
 function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string; pending: boolean; editor?: EditorContext }) {
+  const tx = useTranslator();
   const term = participantSearch.trim().toLocaleLowerCase("ko");
   const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
   return <div className="grid items-stretch gap-3 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <ArchiveRecords records={records} dayRecords={dayRecords} editor={editor} pending={pending} emptyText={dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."} />
+      <ArchiveRecords records={records} dayRecords={dayRecords} editor={editor} pending={pending} emptyText={dayRecords.length ? tx("선택한 조건에 맞는 경기가 없습니다.") : tx("이 날짜에는 기록된 경기가 없습니다.")} />
       <ArchiveDayTable records={dayRecords} pending={pending} />
   </div>;
 }
 
 function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { records: ClanArchiveMatch[]; dayRecords: ClanArchiveMatch[]; editor?: EditorContext; pending: boolean; emptyText: string }) {
+  const tx = useTranslator();
   const [activeId, setActiveId] = useState(records[0]?.id);
   const [editing, setEditing] = useState<{ mode: "create" | "update" | "delete"; match?: ClanArchiveMatch }>();
   const activeIndex = Math.max(
@@ -79,25 +83,25 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
   return (
       <section
         className="flex h-[560px] min-w-0 flex-col gap-3"
-        aria-label="경기 상세"
+        aria-label={tx("경기 상세")}
       >
-        <dl className="grid shrink-0 grid-cols-3 gap-2" aria-label="내전 요약">
+        <dl className="grid shrink-0 grid-cols-3 gap-2" aria-label={tx("내전 요약")}>
           {[
             { label: "내전 회차", value: summary.number === null ? "—" : `${summary.number.toLocaleString()}회`, title: "클랜에서 열린 전체 내전의 누적 회차" },
             { label: "참여 인원", value: `${summary.participants}명`, title: "이 내전의 기록에 출전한 고유 인원" },
             { label: "활성 시간", value: sessionDurationLabel(summary.activeMinutes), title: "내전 시작부터 마지막 경기 기록까지" },
-          ].map((item) => <div key={item.label} title={item.title} className="flex min-h-18 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border bg-background/40 px-2 py-2 text-center"><dt className="text-[10px] text-muted-foreground">{item.label}</dt><dd className="text-sm font-bold tabular-nums sm:text-lg">{pending ? "—" : item.value}</dd></div>)}
+          ].map((item) => <div key={item.label} title={item.title} className="flex min-h-18 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border bg-background/40 px-2 py-2 text-center"><dt className="text-[10px] text-muted-foreground">{tx(item.label)}</dt><dd className="text-sm font-bold tabular-nums sm:text-lg">{pending ? "—" : item.value}</dd></div>)}
         </dl>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 border-b bg-muted/20 px-2 py-2 sm:px-3">
-          <h5 className="truncate text-xs font-semibold">경기 기록</h5>
-          <div className="flex items-center gap-1" aria-label="경기 기록 이동">
+          <h5 className="truncate text-xs font-semibold">{tx("경기 기록")}</h5>
+          <div className="flex items-center gap-1" aria-label={tx("경기 기록 이동")}>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
               className="size-6 sm:size-8"
-              aria-label="이전 경기"
+              aria-label={tx("이전 경기")}
               disabled={pending || activeIndex === 0}
               onClick={() => setActiveId(records[activeIndex - 1].id)}
             >
@@ -111,7 +115,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
               variant="ghost"
               size="icon-sm"
               className="size-6 sm:size-8"
-              aria-label="다음 경기"
+              aria-label={tx("다음 경기")}
               disabled={pending || activeIndex >= records.length - 1}
               onClick={() => setActiveId(records[activeIndex + 1].id)}
             >
@@ -120,13 +124,13 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
           </div>
           <div className="flex items-center justify-end sm:gap-0.5">
             {editor && <>
-              {editor.canCreate && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 추가" title="기록 추가" disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" /></Button>}
-              {editor.canUpdate && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 수정" title="기록 수정" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}><Pencil className="size-3.5" aria-hidden="true" /></Button>}
-              {editor.canDelete && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 제거" title="기록 제거" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}><Trash2 className="size-3.5" aria-hidden="true" /></Button>}
+              {editor.canCreate && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label={tx("기록 추가")} title={tx("기록 추가")} disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" /></Button>}
+              {editor.canUpdate && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label={tx("기록 수정")} title={tx("기록 수정")} disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}><Pencil className="size-3.5" aria-hidden="true" /></Button>}
+              {editor.canDelete && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label={tx("기록 제거")} title={tx("기록 제거")} disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}><Trash2 className="size-3.5" aria-hidden="true" /></Button>}
             </>}
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring" tabIndex={0} aria-label="경기 상세 내용">
+        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring" tabIndex={0} aria-label={tx("경기 상세 내용")}>
         {match ? <div className="space-y-4 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -135,7 +139,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
               </span>}
               <h5 className="flex items-center gap-1.5 text-sm font-semibold">
                 <MapPin className="size-4 text-primary" aria-hidden="true" />
-                {match.mapLabel ?? "맵 미기록"}
+                {match.mapLabel ?? tx("맵 미기록")}
               </h5>
             </div>
             <span
@@ -165,10 +169,10 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                       : "text-team-red",
                   )}
                 >
-                  <Crown className={cn("size-3.5", match.winnerTeam !== team && "invisible")} aria-label={match.winnerTeam === team ? "승리 팀" : undefined} />
-                  <span>{team === 1 ? "블루 팀" : "레드 팀"}</span>
+                  <Crown className={cn("size-3.5", match.winnerTeam !== team && "invisible")} aria-label={match.winnerTeam === team ? tx("승리 팀") : undefined} />
+                  <span>{team === 1 ? tx("블루 팀") : tx("레드 팀")}</span>
                 </div>
-                <ul aria-label={team === 1 ? "블루 팀 명단" : "레드 팀 명단"} className="grid grid-cols-1 gap-2">
+                <ul aria-label={team === 1 ? tx("블루 팀 명단") : tx("레드 팀 명단")} className="grid grid-cols-1 gap-2">
                   {match.players
                     .filter((player) => player.team === team)
                     .map((player) => {
@@ -196,10 +200,10 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                               className="inline-flex shrink-0 text-muted-foreground"
                               aria-label={
                                 player.role === "tank"
-                                  ? "탱커"
+                                  ? tx("탱커")
                                   : player.role === "dmg"
-                                    ? "딜러"
-                                    : "힐러"
+                                    ? tx("딜러")
+                                    : tx("힐러")
                               }
                             ><OverwatchRoleIcon role={role} className="size-4" /></span>
                           ) : null}
@@ -214,7 +218,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                     })}
                   {!match.players.some((player) => player.team === team) ? (
                     <li className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-                      출전자 기록 없음
+                      {tx("출전자 기록 없음")}
                     </li>
                   ) : null}
                 </ul>
@@ -223,16 +227,16 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
           </div>
           <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 border-t pt-3 text-[10px] text-muted-foreground">
             <Clock className="size-3" aria-hidden="true" />
-            {match.source === "balance" ? "결과 확정" : "경기 시간"} ·{" "}
-            {new Date(match.occurredAt).toLocaleString("ko-KR", {
+            {match.source === "balance" ? tx("결과 확정") : tx("경기 시간")} ·{" "}
+            {new Date(match.occurredAt).toLocaleString(tx.locale, {
               timeZone: "Asia/Seoul",
               dateStyle: "medium",
               timeStyle: "short",
               hourCycle: "h23",
             })}
-            <span className="min-w-0 break-all">· 운영 {match.operatorName || "운영자 정보 없음"}</span>
+            <span className="min-w-0 break-all">{tx("· 운영")} {match.operatorName || tx("운영자 정보 없음")}</span>
           </p>
-        </div> : <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center"><Swords className="size-7 text-muted-foreground/30" aria-hidden="true" /><p role="status" className="text-sm text-muted-foreground">{pending ? "경기 기록을 불러오는 중…" : emptyText}</p></div>}
+        </div> : <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center"><Swords className="size-7 text-muted-foreground/30" aria-hidden="true" /><p role="status" className="text-sm text-muted-foreground">{pending ? tx("경기 기록을 불러오는 중…") : tx(emptyText)}</p></div>}
         </div>
         </div>
         {editing && editor && <MatchRecordEditor key={`${editing.mode}:${editing.match?.id ?? "new"}`} {...editor} mode={editing.mode} match={editing.match} onClose={() => setEditing(undefined)} onReload={() => { setEditing(undefined); editor.onReload(); }} onSaved={(archive, day) => { setEditing(undefined); editor.onSaved(archive, day); }} />}

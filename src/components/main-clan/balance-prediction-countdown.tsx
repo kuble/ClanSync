@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { Timer } from "lucide-react";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,7 @@ export function BalancePredictionCountdown({ deadlineIso, serverNow }: {
   deadlineIso: string | null;
   serverNow: number;
 }) {
+  const tx = useTranslator();
   const deadline = deadlineIso ? Date.parse(deadlineIso) : 0;
   const valid = deadline > 0 && Number.isFinite(deadline);
   const now = useServerClock(serverNow, valid ? deadline : 0, 1000);
@@ -19,7 +21,7 @@ export function BalancePredictionCountdown({ deadlineIso, serverNow }: {
       remaining > 0 ? "border-emerald-400/25 text-primary" : "border-border text-muted-foreground",
     )}>
       <Timer className="size-3.5" aria-hidden="true" />
-      <span className="text-[11px] font-medium">{remaining > 0 ? "승부예측 마감까지" : "승부예측 마감"}</span>
+      <span className="text-[11px] font-medium">{remaining > 0 ? tx("승부예측 마감까지") : tx("승부예측 마감")}</span>
       {remaining > 0 ? <span className="font-mono text-base font-semibold tracking-wide tabular-nums">{Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, "0")}</span> : null}
     </span>
   );

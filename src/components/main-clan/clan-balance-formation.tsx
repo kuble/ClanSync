@@ -1,4 +1,5 @@
 "use client";
+import { useTranslator } from "#use-translator";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Crown, Pause, Play } from "lucide-react";
@@ -29,6 +30,7 @@ export function ClanBalanceFormation({
   beforeStart?: () => Promise<{ ok: true; revision: number; roster: BalanceRoster } | { ok: false }>;
   onPendingChange?: (pending: boolean) => void;
 }) {
+  const tx = useTranslator();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [progressError, setProgressError] = useState<string | null>(null);
@@ -90,13 +92,13 @@ export function ClanBalanceFormation({
   if (!state) return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
     {endSessionControl ?? <span />}
     {manager ? <Button disabled={pending || preferencePending} onClick={() => run({ type: "start", setup: settings, expectedDrawHistoryLength: drawHistoryLength })}>
-      {pending ? "처리 중…" : settings.roles === "lottery" || settings.teams === "random" ? "추첨 시작" : settings.teams === "draft" || settings.teams === "auction" ? "편성 진행" : "다음 단계"}
-    </Button> : <p className="text-xs text-muted-foreground">운영진이 편성을 준비하고 있습니다.</p>}
+      {pending ? tx("처리 중…") : settings.roles === "lottery" || settings.teams === "random" ? tx("추첨 시작") : settings.teams === "draft" || settings.teams === "auction" ? tx("편성 진행") : tx("다음 단계")}
+    </Button> : <p className="text-xs text-muted-foreground">{tx("운영진이 편성을 준비하고 있습니다.")}</p>}
   </section>;
 
   if (state.stage === "complete") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex min-h-8 flex-wrap items-center justify-between gap-3">
     {endSessionControl ?? <span />}
-    {revealing ? <p role="status" className="text-xs text-muted-foreground">현재 화면에서 추첨 결과를 공개하고 있습니다.</p> : null}
+    {revealing ? <p role="status" className="text-xs text-muted-foreground">{tx("현재 화면에서 추첨 결과를 공개하고 있습니다.")}</p> : null}
     {!revealing && state.pausedAt === null && state.appliedAt === undefined ? <BalancePreparationOverlay
       error={progressError}
       onRetry={() => setRetry((value) => value + 1)}
@@ -105,25 +107,25 @@ export function ClanBalanceFormation({
 
   if (state.stage === "review") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
     {endSessionControl ?? <span />}
-    {revealing ? <p role="status" className="text-xs text-muted-foreground">현재 화면에서 추첨 결과를 공개하고 있습니다.</p>
-      : manager ? <Button disabled={pending} onClick={() => run({ type: "apply" })}>다음 단계</Button>
-        : <p role="status" className="text-xs text-muted-foreground">운영진이 팀 밸런스를 조정하고 있습니다.</p>}
+    {revealing ? <p role="status" className="text-xs text-muted-foreground">{tx("현재 화면에서 추첨 결과를 공개하고 있습니다.")}</p>
+      : manager ? <Button disabled={pending} onClick={() => run({ type: "apply" })}>{tx("다음 단계")}</Button>
+        : <p role="status" className="text-xs text-muted-foreground">{tx("운영진이 팀 밸런스를 조정하고 있습니다.")}</p>}
   </section>;
 
   const turn = state.stage === "draft" ? draftTurn(state) : null;
-  return <section data-testid="balance-formation" data-balance-guide="primary" aria-label={turn ? "주장 지명" : "팀원 경매"} className="order-1 mt-3 space-y-4 rounded-2xl border border-primary/20 bg-muted/10 p-4 sm:p-5">
+  return <section data-testid="balance-formation" data-balance-guide="primary" aria-label={turn ? tx("주장 지명") : tx("팀원 경매")} className="order-1 mt-3 space-y-4 rounded-2xl border border-primary/20 bg-muted/10 p-4 sm:p-5">
     <div className="flex items-center justify-between gap-3">
-      <h3 className="flex items-center gap-2 text-sm font-bold"><Crown className="size-4 text-primary" aria-hidden="true" />{state.pausedAt !== null ? "편성 일시정지" : turn ? "주장 지명" : "팀원 경매"}</h3>
-      {manager ? <Button size="icon" variant="ghost" disabled={pending || revealing} title={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"} aria-label={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"} onClick={() => run({ type: state.pausedAt !== null ? "resume" : "pause" })}>{state.pausedAt !== null ? <Play className="size-4" /> : <Pause className="size-4" />}</Button> : null}
+      <h3 className="flex items-center gap-2 text-sm font-bold"><Crown className="size-4 text-primary" aria-hidden="true" />{state.pausedAt !== null ? tx("편성 일시정지") : turn ? tx("주장 지명") : tx("팀원 경매")}</h3>
+      {manager ? <Button size="icon" variant="ghost" disabled={pending || revealing} title={state.pausedAt !== null ? tx("편성 재개") : tx("편성 일시정지")} aria-label={state.pausedAt !== null ? tx("편성 재개") : tx("편성 일시정지")} onClick={() => run({ type: state.pausedAt !== null ? "resume" : "pause" })}>{state.pausedAt !== null ? <Play className="size-4" /> : <Pause className="size-4" />}</Button> : null}
     </div>
     {turn ? <>
       <div className={cn("rounded-xl border p-5 text-center", turn === "team1" ? "border-sky-500/30 bg-sky-500/5" : "border-rose-500/30 bg-rose-500/5")} aria-live="polite">
-        <p className="text-xs text-muted-foreground">{state.picks + 1}번째 지명 / 8</p>
-        <h4 className={cn("mt-2 text-xl font-bold", turn === "team1" ? "text-team-blue" : "text-team-red")}>{TEAM_LABEL[turn]} · {state.captains ? name(state.captains[turn === "team1" ? 0 : 1]) : "주장"}</h4>
-        <p className="mt-2 text-xs text-muted-foreground">{canTeam(turn) ? "함께할 팀원을 선택하십시오." : "현재 차례의 주장이 팀원을 선택하고 있습니다."}</p>
+        <p className="text-xs text-muted-foreground">{state.picks + 1}{tx("번째 지명 / 8")}</p>
+        <h4 className={cn("mt-2 text-xl font-bold", turn === "team1" ? "text-team-blue" : "text-team-red")}>{tx(TEAM_LABEL[turn])} · {state.captains ? name(state.captains[turn === "team1" ? 0 : 1]) : tx("주장")}</h4>
+        <p className="mt-2 text-xs text-muted-foreground">{canTeam(turn) ? tx("함께할 팀원을 선택하십시오.") : tx("현재 차례의 주장이 팀원을 선택하고 있습니다.")}</p>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2" aria-label="지명 가능한 선수">{state.remaining.map((id) => <Button variant="outline" className="h-auto min-h-12 justify-between gap-2 px-3 py-3" key={id} disabled={pending || revealing || state.pausedAt !== null || !canTeam(turn) || !canFit(state, turn, id)} onClick={() => run({ type: "pick", player: id })}><span className="truncate">{name(id)}</span><span className="shrink-0 text-xs text-muted-foreground">{ROLE_LABEL[state.players.find((player) => player.id === id)!.role]}</span></Button>)}</div>
+      <div className="grid gap-2 sm:grid-cols-2" aria-label={tx("지명 가능한 선수")}>{state.remaining.map((id) => <Button variant="outline" className="h-auto min-h-12 justify-between gap-2 px-3 py-3" key={id} disabled={pending || revealing || state.pausedAt !== null || !canTeam(turn) || !canFit(state, turn, id)} onClick={() => run({ type: "pick", player: id })}><span className="truncate">{name(id)}</span><span className="shrink-0 text-xs text-muted-foreground">{tx(ROLE_LABEL[state.players.find((player) => player.id === id)!.role])}</span></Button>)}</div>
     </> : <BalanceAuctionStage state={state} now={now} pending={pending} revealing={revealing} name={name} canTeam={canTeam} canBid={(team) => !readOnly && canBidForTeam(state, userId, team)} run={run} />}
-    {progressError ? <p role="status" className="text-xs text-warning">{progressError}</p> : null}
+    {progressError ? <p role="status" className="text-xs text-warning">{tx(progressError)}</p> : null}
   </section>;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { LoaderCircle } from "lucide-react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ export function BalancePreparationOverlay({ error, onRetry }: {
   error?: string | null;
   onRetry?: () => void;
 }) {
+  const tx = useTranslator();
   return <Dialog open disablePointerDismissal onOpenChange={(_, details) => details.cancel()}>
     <DialogPortal>
       <DialogOverlay
@@ -23,12 +25,12 @@ export function BalancePreparationOverlay({ error, onRetry }: {
       >
         <DialogTitle className="flex items-center gap-2" role="status">
           {!error ? <LoaderCircle className="size-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : null}
-          경기 준비 중…
+          {tx("경기 준비 중…")}
         </DialogTitle>
         <DialogDescription className={error ? "text-foreground" : "sr-only"}>
-          {error ?? "준비가 끝나면 자동으로 이어집니다."}
+          {error ?? tx("준비가 끝나면 자동으로 이어집니다.")}
         </DialogDescription>
-        {error && onRetry ? <Button variant="outline" onClick={onRetry}>다시 시도</Button> : null}
+        {error && onRetry ? <Button variant="outline" onClick={onRetry}>{tx("다시 시도")}</Button> : null}
       </DialogPrimitive.Popup>
     </DialogPortal>
   </Dialog>;

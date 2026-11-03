@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useTransition } from "react";
@@ -36,6 +37,7 @@ export type ClanStoreItemVM = {
 export function StorePanels({ ctx, items, clanCoins, canManageClanPool }: {
   ctx: MainClanContext; items: ClanStoreItemVM[]; clanCoins: number; canManageClanPool: boolean;
 }) {
+  const tx = useTranslator();
   const { gameSlug, clanId, clanName, iconUrl, bannerUrl, role: actorRole } = ctx;
   const planIsPremium = ctx.plan === "premium";
   const router = useRouter();
@@ -61,12 +63,12 @@ export function StorePanels({ ctx, items, clanCoins, canManageClanPool }: {
   const previewKind = preview ? clanProductKind(preview.slug) : null;
   const photoPack = previewKind === "frames" || previewKind === "stickers";
   const previewUrl = preview ? previewUrlFor(preview) : null;
-  const search = query.trim().toLocaleLowerCase("ko-KR");
+  const search = query.trim().toLocaleLowerCase(tx.locale);
   const shown = items.filter(item => {
     const kind = clanProductKind(item.slug);
     const inCategory = filter === "owned" ? item.purchased
       : filter === "photos" ? kind === "frames" || kind === "stickers" : kind === filter;
-    return item.pool_source === "clan" && inCategory && item.name_ko.toLocaleLowerCase("ko-KR").includes(search);
+    return item.pool_source === "clan" && inCategory && item.name_ko.toLocaleLowerCase(tx.locale).includes(search);
   });
   const settingsPath = (slug: string) => `/games/${gameSlug}/clan/${clanId}/` + (clanProductKind(slug) === "banner" ? "manage?tab=appearance" : clanProductKind(slug) === "emojis" ? "manage?tab=appearance#clan-emojis" : "board/memories");
 
@@ -84,42 +86,42 @@ export function StorePanels({ ctx, items, clanCoins, canManageClanPool }: {
 
   return <div className={cn(styles.shop, clanStyles.shop)}>
     <header className={clanStyles.header}>
-      <h1><Store className="size-5 text-primary" aria-hidden />클랜 스토어</h1>
-      <div className={clanStyles.balance} aria-label="보유 코인"><Coins size={16} aria-hidden /><span>클랜 코인</span><strong>{clanCoins.toLocaleString("ko-KR")}</strong></div>
+      <h1><Store className="size-5 text-primary" aria-hidden />{tx("클랜 스토어")}</h1>
+      <div className={clanStyles.balance} aria-label={tx("보유 코인")}><Coins size={16} aria-hidden /><span>{tx("클랜 코인")}</span><strong>{clanCoins.toLocaleString(tx.locale)}</strong></div>
     </header>
-    <section className={styles.catalog} aria-label="클랜 꾸미기">
+    <section className={styles.catalog} aria-label={tx("클랜 꾸미기")}>
       <div className={cn(styles.filters, clanStyles.filters)}>
-        <div className={clanStyles.filterTabs}><RubberSegment label="클랜 꾸미기 분류" labelPosition="hidden" options={[{ id:"banner",label:"배너" }, {id:"emojis",label:"반응"},{id:"photos",label:"사진"},{ id: "owned", label: "보유" }]} value={filter} onChange={setFilter} /><span role="status">{shown.length}개 상품</span></div>
-        <div className={cn(styles.tools, clanStyles.tools)}><label className={styles.search}><Search size={16} aria-hidden /><input aria-label="디자인 검색" placeholder="디자인 검색" value={query} onChange={event => setQuery(event.target.value)} /></label></div>
+        <div className={clanStyles.filterTabs}><RubberSegment label={tx("클랜 꾸미기 분류")} labelPosition="hidden" options={[{ id:"banner",label:"배너" }, {id:"emojis",label:"반응"},{id:"photos",label:"사진"},{ id: "owned", label: "보유" }]} value={filter} onChange={setFilter} /><span role="status">{shown.length}{tx("개 상품")}</span></div>
+        <div className={cn(styles.tools, clanStyles.tools)}><label className={styles.search}><Search size={16} aria-hidden /><input aria-label={tx("디자인 검색")} placeholder={tx("디자인 검색")} value={query} onChange={event => setQuery(event.target.value)} /></label></div>
       </div>
-      <div className={cn(styles.grid, clanStyles.grid)} aria-label="클랜 꾸미기 상품" aria-busy={pending}>
+      <div className={cn(styles.grid, clanStyles.grid)} aria-label={tx("클랜 꾸미기 상품")} aria-busy={pending}>
         {shown.map(item => <article key={item.slug} className={cn(styles.product, clanStyles.product)} data-previewed={preview?.slug === item.slug || undefined} aria-label={item.name_ko}>
-          <div className={styles.productHeading}><h3>{item.name_ko}</h3>{item.rarity && <span className={clanStyles.rarity}>{BANNER_RARITIES[item.rarity].label}</span>}{item.is_premium_only && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{sameClanBannerPattern(item.asset_url, bannerUrl) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
-          <button type="button" className={cn(styles.preview, clanProductKind(item.slug)==="banner"?clanStyles.preview:clanStyles.packPreview)} aria-label={`${item.name_ko} 미리보기`} aria-pressed={preview?.slug === item.slug} onClick={() => {setPreview(item);setBannerView("applied");}}>
-            {clanProductKind(item.slug)==="banner" ? <>{item.asset_url && <ClanBannerImage url={previewUrlFor(item) ?? item.asset_url} alt={`${item.name_ko} 배너 미리보기`} sizes="(max-width: 640px) 100vw, 600px" />}<span className={clanStyles.identity}><span className={clanStyles.icon}>{iconUrl ? <Image src={iconUrl} alt="" fill sizes="36px" unoptimized className="object-cover" /> : <Shield size={20} aria-hidden />}</span><span>{clanName}</span></span></> : <ClanProductPreview slug={item.slug}/>}
+          <div className={styles.productHeading}><h3>{item.name_ko}</h3>{item.rarity && <span className={clanStyles.rarity}>{BANNER_RARITIES[item.rarity].label}</span>}{item.is_premium_only && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{sameClanBannerPattern(item.asset_url, bannerUrl) && <span className={styles.applied}><Check size={12} aria-hidden />{tx("적용 중")}</span>}</div>
+          <button type="button" className={cn(styles.preview, clanProductKind(item.slug)==="banner"?clanStyles.preview:clanStyles.packPreview)} aria-label={tx("{0} 미리보기", item.name_ko)} aria-pressed={preview?.slug === item.slug} onClick={() => {setPreview(item);setBannerView("applied");}}>
+            {clanProductKind(item.slug)==="banner" ? <>{item.asset_url && <ClanBannerImage url={previewUrlFor(item) ?? item.asset_url} alt={tx("{0} 배너 미리보기", item.name_ko)} sizes="(max-width: 640px) 100vw, 600px" />}<span className={clanStyles.identity}><span className={clanStyles.icon}>{iconUrl ? <Image src={iconUrl} alt="" fill sizes="36px" unoptimized className="object-cover" /> : <Shield size={20} aria-hidden />}</span><span>{clanName}</span></span></> : <ClanProductPreview slug={item.slug}/>}
           </button>
-          {readClanBannerUrl(item.asset_url) && <CosmeticColorPicker compact label={`${item.name_ko} 색상`} value={paletteFor(item)} onChange={paletteId => setPalette(item, paletteId)} />}
+          {readClanBannerUrl(item.asset_url) && <CosmeticColorPicker compact label={tx("{0} 색상", item.name_ko)} value={paletteFor(item)} onChange={paletteId => setPalette(item, paletteId)} />}
           <div className={styles.productFooter}>
-            <strong>{item.purchased && !isRepeatableClanProduct(item.slug) ? "보유 중" : <><Coins size={14} aria-hidden />{item.price_coins.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
-            {isRepeatableClanProduct(item.slug) ? <div className="flex items-center gap-2">{item.purchased && canManageClanPool && <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })}>등록하기</Link>}<Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? item.purchased ? "추가 구매" : "구매" : canManageClanPool ? "코인 부족" : "권한 필요"}</Button></div>
-              : item.purchased ? canManageClanPool || ["frames","stickers"].includes(clanProductKind(item.slug)) ? <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })} aria-label={clanProductKind(item.slug)==="banner"?"구매 완료 · 설정하기":item.name_ko+" 사용하기"}>{clanProductKind(item.slug)==="banner"?"설정하기":clanProductKind(item.slug)==="emojis"?"등록하기":"사용하기"}</Link> : <Button size="sm" variant="secondary" disabled>구매 완료</Button>
-              : item.is_premium_only && !planIsPremium ? <Button size="sm" variant="outline" onClick={() => setPremiumOpen(true)}>플랜 비교 보기</Button>
-              : <Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? "구매" : canManageClanPool ? "코인 부족" : "권한 필요"}</Button>}
+            <strong>{item.purchased && !isRepeatableClanProduct(item.slug) ? tx("보유 중") : <><Coins size={14} aria-hidden />{item.price_coins.toLocaleString(tx.locale)}<small>{tx("코인")}</small></>}</strong>
+            {isRepeatableClanProduct(item.slug) ? <div className="flex items-center gap-2">{item.purchased && canManageClanPool && <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })}>{tx("등록하기")}</Link>}<Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? item.purchased ? tx("추가 구매") : tx("구매") : canManageClanPool ? tx("코인 부족") : tx("권한 필요")}</Button></div>
+              : item.purchased ? canManageClanPool || ["frames","stickers"].includes(clanProductKind(item.slug)) ? <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })} aria-label={clanProductKind(item.slug)==="banner"?tx("구매 완료 · 설정하기"):item.name_ko+" 사용하기"}>{clanProductKind(item.slug)==="banner"?tx("설정하기"):clanProductKind(item.slug)==="emojis"?tx("등록하기"):tx("사용하기")}</Link> : <Button size="sm" variant="secondary" disabled>{tx("구매 완료")}</Button>
+              : item.is_premium_only && !planIsPremium ? <Button size="sm" variant="outline" onClick={() => setPremiumOpen(true)}>{tx("플랜 비교 보기")}</Button>
+              : <Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? tx("구매") : canManageClanPool ? tx("코인 부족") : tx("권한 필요")}</Button>}
           </div>
         </article>)}
-        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : filter === "owned" ? "보유한 상품이 없습니다." : "표시할 디자인이 없습니다."}</h3><p>다른 분류나 검색어를 확인해 보십시오.</p>{query.trim() && <Button variant="outline" onClick={() => setQuery("")}>검색 지우기</Button>}</div>}
+        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? tx("검색 결과가 없습니다.") : filter === "owned" ? tx("보유한 상품이 없습니다.") : tx("표시할 디자인이 없습니다.")}</h3><p>{tx("다른 분류나 검색어를 확인해 보십시오.")}</p>{query.trim() && <Button variant="outline" onClick={() => setQuery("")}>{tx("검색 지우기")}</Button>}</div>}
       </div>
     </section>
     <StorePremiumPlanDialog open={premiumOpen} onOpenChange={setPremiumOpen} actorRole={actorRole} gameSlug={gameSlug} clanId={clanId} />
-    <Dialog open={!!preview} onOpenChange={open => { if (!open) setPreview(null); }}><DialogContent className={cn("w-[calc(100vw-2rem)] min-w-0 overflow-x-hidden",photoPack?"flex flex-col gap-0 overflow-y-hidden p-0 sm:max-w-[860px]":"sm:max-w-5xl")}><DialogHeader className={photoPack?clanStyles.packHeader:"pr-10"}><DialogTitle>{preview?.name_ko} 미리보기</DialogTitle><DialogDescription>{preview&&clanProductKind(preview.slug)==="banner"?"실제 대시보드 표시와 원본 이미지 전체를 비교하십시오.":preview&&clanProductKind(preview.slug)==="emojis"?"구매할 때마다 3슬롯이 추가됩니다. 클랜 이미지를 직접 업로드합니다. 정적 PNG·WebP·JPG · 256KB · 128×128px.":previewKind==="stickers"?"스티커를 옮기고 회전·반전하며 나만의 배치를 만들어 보십시오.":"사진의 꾸미기 요소입니다."}</DialogDescription></DialogHeader>
-      {preview&&clanProductKind(preview.slug)==="banner"?<><RubberSegment label="배너 미리보기 방식" labelPosition="hidden" options={[{id:"applied",label:"실제 적용"},{id:"original",label:"이미지 전체"}]} value={bannerView} onChange={setBannerView}/><div className={clanStyles.bannerStage}>{bannerView==="applied"?<ClanHero ctx={{...ctx,bannerUrl:previewUrl??null}} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false}/>:<div className={clanStyles.bannerOriginal}>{previewUrl&&<ClanBannerImage url={previewUrl} alt="배너 원본 전체" sizes="1000px"/>}</div>}</div>{previewSelection && <><CosmeticColorPicker value={paletteFor(preview)} onChange={paletteId => setPalette(preview, paletteId)}/><p className="text-xs text-muted-foreground">패턴을 한 번 구매하면 모든 제공 색상을 사용할 수 있습니다.</p></>}</>:photoPack?<ClanPhotoPackPreview key={preview!.slug} kind={previewKind}/>:preview?<ClanProductPreview slug={preview.slug}/>:null}
-      <div className={photoPack?clanStyles.packFooter:undefined}>{photoPack&&preview?<><div className={clanStyles.packPrice}>{preview.purchased?"클랜 보유 상품":<><Coins className="size-4" aria-hidden/>{preview.price_coins.toLocaleString("ko-KR")}<span>클랜 코인</span></>}<small>모든 클랜원이 함께 사용합니다.</small></div>{preview.purchased?<Link href={settingsPath(preview.slug)} className={buttonVariants({size:"sm"})}>사진 꾸미기</Link>:<Button disabled={pending||!preview.canAttemptPurchase} title={preview.disabledReason??undefined} onClick={()=>{setSelected(preview);setPreview(null);}}>{preview.canAttemptPurchase?"구매하기":canManageClanPool?"코인 부족":"권한 필요"}</Button>}</>:<DialogFooter><Button variant="outline" onClick={() => setPreview(null)}>닫기</Button></DialogFooter>}</div>
+    <Dialog open={!!preview} onOpenChange={open => { if (!open) setPreview(null); }}><DialogContent className={cn("w-[calc(100vw-2rem)] min-w-0 overflow-x-hidden",photoPack?"flex flex-col gap-0 overflow-y-hidden p-0 sm:max-w-[860px]":"sm:max-w-5xl")}><DialogHeader className={photoPack?clanStyles.packHeader:"pr-10"}><DialogTitle>{preview?.name_ko} {tx("미리보기")}</DialogTitle><DialogDescription>{preview&&clanProductKind(preview.slug)==="banner"?tx("실제 대시보드 표시와 원본 이미지 전체를 비교하십시오."):preview&&clanProductKind(preview.slug)==="emojis"?tx("구매할 때마다 3슬롯이 추가됩니다. 클랜 이미지를 직접 업로드합니다. 정적 PNG·WebP·JPG · 256KB · 128×128px."):previewKind==="stickers"?tx("스티커를 옮기고 회전·반전하며 나만의 배치를 만들어 보십시오."):tx("사진의 꾸미기 요소입니다.")}</DialogDescription></DialogHeader>
+      {preview&&clanProductKind(preview.slug)==="banner"?<><RubberSegment label={tx("배너 미리보기 방식")} labelPosition="hidden" options={[{id:"applied",label:"실제 적용"},{id:"original",label:"이미지 전체"}]} value={bannerView} onChange={setBannerView}/><div className={clanStyles.bannerStage}>{bannerView==="applied"?<ClanHero ctx={{...ctx,bannerUrl:previewUrl??null}} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false}/>:<div className={clanStyles.bannerOriginal}>{previewUrl&&<ClanBannerImage url={previewUrl} alt={tx("배너 원본 전체")} sizes="1000px"/>}</div>}</div>{previewSelection && <><CosmeticColorPicker value={paletteFor(preview)} onChange={paletteId => setPalette(preview, paletteId)}/><p className="text-xs text-muted-foreground">{tx("패턴을 한 번 구매하면 모든 제공 색상을 사용할 수 있습니다.")}</p></>}</>:photoPack?<ClanPhotoPackPreview key={preview!.slug} kind={previewKind}/>:preview?<ClanProductPreview slug={preview.slug}/>:null}
+      <div className={photoPack?clanStyles.packFooter:undefined}>{photoPack&&preview?<><div className={clanStyles.packPrice}>{preview.purchased?tx("클랜 보유 상품"):<><Coins className="size-4" aria-hidden/>{preview.price_coins.toLocaleString(tx.locale)}<span>{tx("클랜 코인")}</span></>}<small>{tx("모든 클랜원이 함께 사용합니다.")}</small></div>{preview.purchased?<Link href={settingsPath(preview.slug)} className={buttonVariants({size:"sm"})}>{tx("사진 꾸미기")}</Link>:<Button disabled={pending||!preview.canAttemptPurchase} title={preview.disabledReason??undefined} onClick={()=>{setSelected(preview);setPreview(null);}}>{preview.canAttemptPurchase?tx("구매하기"):canManageClanPool?tx("코인 부족"):tx("권한 필요")}</Button>}</>:<DialogFooter><Button variant="outline" onClick={() => setPreview(null)}>{tx("닫기")}</Button></DialogFooter>}</div>
     </DialogContent></Dialog>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !pending) setSelected(null); }}><DialogContent showCloseButton={!pending}>
-      <DialogHeader><DialogTitle>꾸미기 구매</DialogTitle><DialogDescription>{selected&&clanProductKind(selected.slug)==="stickers"?"사진에 붙일 수 있는 스티커 팩입니다.":selected&&clanProductKind(selected.slug)==="frames"?"사진의 꾸미기 요소입니다.":<>선택한 꾸미기를 클랜 코인으로 구매합니다. {readClanBannerUrl(selected?.asset_url)?"패턴 구매에 모든 제공 색상이 포함되며, 구매 후 설정에서 적용할 수 있습니다.":"구매 후 적용할 수 있습니다."}{selected&&isRepeatableClanProduct(selected.slug)&&<> 구매 후 공용 이모티콘 {CLAN_EMOJI_PACK_SIZE}슬롯이 추가됩니다.</>}</>}</DialogDescription></DialogHeader>
-      <dl className={styles.checkout}><div><dt>클랜 코인 사용</dt><dd>{selected?.price_coins.toLocaleString("ko-KR")} 코인</dd></div><div><dt>구매 후 잔액</dt><dd>{(clanCoins - (selected?.price_coins ?? 0)).toLocaleString("ko-KR")} 코인</dd></div></dl>
-      <p className="text-xs text-muted-foreground">구매 후 일반 환불은 지원되지 않습니다.</p>
-      <DialogFooter><Button variant="ghost" disabled={pending} onClick={() => setSelected(null)}>취소</Button><Button disabled={pending} onClick={buy}>{pending ? "구매 중…" : "구매 확정"}</Button></DialogFooter>
+      <DialogHeader><DialogTitle>{tx("꾸미기 구매")}</DialogTitle><DialogDescription>{selected&&clanProductKind(selected.slug)==="stickers"?tx("사진에 붙일 수 있는 스티커 팩입니다."):selected&&clanProductKind(selected.slug)==="frames"?tx("사진의 꾸미기 요소입니다."):<>{tx("선택한 꾸미기를 클랜 코인으로 구매합니다.")} {readClanBannerUrl(selected?.asset_url)?tx("패턴 구매에 모든 제공 색상이 포함되며, 구매 후 설정에서 적용할 수 있습니다."):tx("구매 후 적용할 수 있습니다.")}{selected&&isRepeatableClanProduct(selected.slug)&&<> {tx("구매 후 공용 이모티콘")} {CLAN_EMOJI_PACK_SIZE}{tx("슬롯이 추가됩니다.")}</>}</>}</DialogDescription></DialogHeader>
+      <dl className={styles.checkout}><div><dt>{tx("클랜 코인 사용")}</dt><dd>{selected?.price_coins.toLocaleString(tx.locale)} {tx("코인")}</dd></div><div><dt>{tx("구매 후 잔액")}</dt><dd>{(clanCoins - (selected?.price_coins ?? 0)).toLocaleString(tx.locale)} {tx("코인")}</dd></div></dl>
+      <p className="text-xs text-muted-foreground">{tx("구매 후 일반 환불은 지원되지 않습니다.")}</p>
+      <DialogFooter><Button variant="ghost" disabled={pending} onClick={() => setSelected(null)}>{tx("취소")}</Button><Button disabled={pending} onClick={buy}>{pending ? tx("구매 중…") : tx("구매 확정")}</Button></DialogFooter>
     </DialogContent></Dialog>
   </div>;
 }

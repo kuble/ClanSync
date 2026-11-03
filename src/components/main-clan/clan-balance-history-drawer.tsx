@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, History, LoaderCircle, RefreshCw } from "lucide-react";
@@ -66,6 +67,7 @@ function HistoryMatches({ rounds, pool }: {
   rounds: BalanceHistoryRound[];
   pool: Props["pool"];
 }) {
+  const tx = useTranslator();
   const rail = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
   const [index, setIndex] = useState(0);
@@ -76,14 +78,14 @@ function HistoryMatches({ rounds, pool }: {
   }
   return <section aria-labelledby="balance-history-rounds-heading" className="min-w-0 space-y-3">
     <div className="flex items-center justify-between gap-2">
-      <h3 id="balance-history-rounds-heading" className="font-semibold">경기 기록 <span className="ml-1 text-sm font-normal text-muted-foreground">{count}</span></h3>
+      <h3 id="balance-history-rounds-heading" className="font-semibold">{tx("경기 기록")} <span className="ml-1 text-sm font-normal text-muted-foreground">{count}</span></h3>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon-sm" aria-label="이전 경기 보기" disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft className="size-4" /></Button>
+        <Button variant="ghost" size="icon-sm" aria-label={tx("이전 경기 보기")} disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft className="size-4" /></Button>
         <span className="min-w-9 text-center text-xs tabular-nums text-muted-foreground" aria-live="polite">{index + 1}/{count}</span>
-        <Button variant="ghost" size="icon-sm" aria-label="다음 경기 보기" disabled={index === count - 1} onClick={() => go(index + 1)}><ChevronRight className="size-4" /></Button>
+        <Button variant="ghost" size="icon-sm" aria-label={tx("다음 경기 보기")} disabled={index === count - 1} onClick={() => go(index + 1)}><ChevronRight className="size-4" /></Button>
       </div>
     </div>
-    <div ref={rail} role="region" aria-label="경기 기록 넘기기" aria-roledescription="캐러셀" tabIndex={0}
+    <div ref={rail} role="region" aria-label={tx("경기 기록 넘기기")} aria-roledescription="캐러셀" tabIndex={0}
       data-testid="balance-history-carousel"
       className="relative flex snap-x snap-mandatory gap-3 overflow-x-auto rounded-xl [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-scrollbar]:hidden"
       onScroll={(event) => setIndex(Math.round(event.currentTarget.scrollLeft / (event.currentTarget.clientWidth + 12)))}
@@ -119,11 +121,11 @@ function HistoryMatches({ rounds, pool }: {
         go(startIndex + (Math.abs(distance) >= 50 ? (distance < 0 ? 1 : -1) : 0));
       }}
       onPointerCancel={(event) => { drag.current = null; event.currentTarget.style.removeProperty("scroll-snap-type"); }}>
-      {rounds.map((round, page) => <article key={round.id} inert={page !== index} className="min-w-0 flex-[0_0_100%] snap-start select-none rounded-xl border" data-testid="balance-history-round" aria-label={`${round.round_number}경기`} aria-roledescription="슬라이드">
+      {rounds.map((round, page) => <article key={round.id} inert={page !== index} className="min-w-0 flex-[0_0_100%] snap-start select-none rounded-xl border" data-testid="balance-history-round" aria-label={tx("{0}경기", round.round_number)} aria-roledescription="슬라이드">
         <div className="flex items-center gap-3 border-b px-4 py-3">
-          <span className="shrink-0 font-bold">{round.round_number}경기<span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{timeLabel(round.opened_at)}</span></span>
-          <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{round.resolved_map_label ?? "맵 미지정"}</span>
-          <span className={cn("shrink-0 text-xs font-semibold", round.match_outcome === "team1" && "text-team-blue", round.match_outcome === "team2" && "text-team-red")}>{outcomeLabel(round)}</span>
+          <span className="shrink-0 font-bold">{round.round_number}{tx("경기")}<span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{timeLabel(round.opened_at)}</span></span>
+          <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{round.resolved_map_label ?? tx("맵 미지정")}</span>
+          <span className={cn("shrink-0 text-xs font-semibold", round.match_outcome === "team1" && "text-team-blue", round.match_outcome === "team2" && "text-team-red")}>{tx(outcomeLabel(round))}</span>
         </div>
         <div className="space-y-3 p-3 [&_[data-board-slot]]:min-h-12 [&_[data-board-slot]]:py-2 sm:p-4">
           <ClanBalanceRosterBoard roster={round.roster} pool={pool} outcome={round.match_outcome} showPlayerSessionSummary={false} />
@@ -140,6 +142,7 @@ function HistoryContent({
   scope = "clan",
   pool,
 }: Omit<Props, "open" | "onOpenChange">) {
+  const tx = useTranslator();
   const [refresh, setRefresh] = useState(0);
   const [sort, setSort] = useState<BalanceStatsSort>("winRate");
   const [sortDirection, setSortDirection] = useState<BalanceStatsSortDirection>("desc");
@@ -221,12 +224,12 @@ function HistoryContent({
       <div className="flex shrink-0 items-center justify-between gap-2 border-b px-4 pb-3 sm:px-6">
         <p className="text-sm font-medium">
           {selected?.session_date.replaceAll("-", ".")}
-          <span className="ml-2 text-xs text-muted-foreground">현재 내전</span>
+          <span className="ml-2 text-xs text-muted-foreground">{tx("현재 내전")}</span>
         </p>
         <Button
           variant="outline"
           size="icon-sm"
-          aria-label="내전 기록 새로고침"
+          aria-label={tx("내전 기록 새로고침")}
           disabled={loading}
           onClick={() => setRefresh((value) => value + 1)}
         >
@@ -246,28 +249,28 @@ function HistoryContent({
             role="status"
           >
             <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-            내전 기록을 불러오고 있습니다.
+            {tx("내전 기록을 불러오고 있습니다.")}
           </div>
         ) : response?.error ? (
           <div
             className="space-y-3 rounded-xl border p-5 text-center"
             role="alert"
           >
-            <p>{response.error}</p>
+            <p>{tx(response.error)}</p>
             <Button
               variant="outline"
               onClick={() => setRefresh((value) => value + 1)}
             >
-              다시 불러오기
+              {tx("다시 불러오기")}
             </Button>
           </div>
         ) : !data?.rounds.length ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            아직 기록된 내전 경기가 없습니다.
+            {tx("아직 기록된 내전 경기가 없습니다.")}
           </p>
         ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" data-testid="balance-history-columns">
-              <section aria-label="내전 정보" className="grid grid-cols-3 gap-2 lg:col-start-1 lg:row-start-1">
+              <section aria-label={tx("내전 정보")} className="grid grid-cols-3 gap-2 lg:col-start-1 lg:row-start-1">
                 {[
                   ["완료 경기", `${completed}판`],
                   [
@@ -281,7 +284,7 @@ function HistoryContent({
                     className="rounded-xl border bg-muted/25 px-2 py-3 text-center"
                   >
                     <p className="text-[10px] text-muted-foreground sm:text-xs">
-                      {label}
+                      {tx(label)}
                     </p>
                     <p className="mt-1 text-base font-bold sm:text-lg">{value}</p>
                   </div>
@@ -296,12 +299,11 @@ function HistoryContent({
                   id="balance-history-stats-heading"
                   className="font-semibold"
                 >
-                  참여자 통계
+                  {tx("참여자 통계")}
                 </h3>
               </div>
               <p className="text-xs text-muted-foreground">
-                승·무·패가 확정된 경기만 집계합니다. 무승부는 연승·연패를
-                끊으며, 대기·무효 경기와 쉬어 간 경기는 집계하지 않습니다.
+                {tx("승·무·패가 확정된 경기만 집계합니다. 무승부는 연승·연패를 끊으며, 대기·무효 경기와 쉬어 간 경기는 집계하지 않습니다.")}
               </p>
               {stats.length ? (
                 <div className="overflow-x-auto rounded-xl border [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin]">
@@ -309,7 +311,7 @@ function HistoryContent({
                     <colgroup><col className="w-[28%]" /><col className="w-[12%]" /><col className="w-[24%]" /><col className="w-[18%]" /><col className="w-[18%]" /></colgroup>
                     <thead className="bg-muted/45 text-muted-foreground">
                       <tr>
-                        <th scope="col" className="px-2 py-3 text-left font-medium">참여자</th>
+                        <th scope="col" className="px-2 py-3 text-left font-medium">{tx("참여자")}</th>
                         {STAT_COLUMNS.map((column) => {
                           const active = sort === column.key;
                           const Icon = active ? (sortDirection === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
@@ -322,10 +324,10 @@ function HistoryContent({
                             <button
                               type="button"
                               className={cn("inline-flex min-h-9 w-full items-center justify-end gap-0.5 rounded-md px-0.5 py-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring", active && "text-foreground")}
-                              aria-label={`${column.key === "wins" ? "승수" : column.label} ${active ? (sortDirection === "desc" ? "오름차순" : "내림차순") : "내림차순"}으로 정렬`}
+                              aria-label={tx("{0} {1}으로 정렬", column.key === "wins" ? "승수" : column.label, active ? (sortDirection === "desc" ? "오름차순" : "내림차순") : "내림차순")}
                               onClick={() => changeSort(column.key)}
                             >
-                              <span className="min-w-0 wrap-anywhere">{column.label}</span>
+                              <span className="min-w-0 wrap-anywhere">{tx(column.label)}</span>
                               <Icon className={cn("size-3 shrink-0", !active && "hidden opacity-45 sm:block")} aria-hidden="true" />
                             </button>
                           </th>;
@@ -346,7 +348,7 @@ function HistoryContent({
                             {member.appearances}
                           </td>
                           <td className="wrap-anywhere px-1 py-3 text-right">
-                            <span aria-label={`${member.wins}승 ${member.draws}무 ${member.losses}패`}>{member.wins}/{member.draws}/{member.losses}</span>
+                            <span aria-label={tx("{0}승 {1}무 {2}패", member.wins, member.draws, member.losses)}>{member.wins}/{member.draws}/{member.losses}</span>
                           </td>
                           <td className="wrap-anywhere px-1 py-3 text-right">
                             {member.winRate === null
@@ -364,7 +366,7 @@ function HistoryContent({
                           >
                             {member.currentStreak === 0
                               ? "—"
-                              : `${Math.abs(member.currentStreak)}연${member.currentStreak > 0 ? "승" : "패"}`}
+                              : tx("{0}연{1}", Math.abs(member.currentStreak), member.currentStreak > 0 ? "승" : "패")}
                           </td>
                         </tr>
                       ))}
@@ -373,7 +375,7 @@ function HistoryContent({
                 </div>
               ) : (
                 <p className="rounded-xl border px-4 py-6 text-center text-sm text-muted-foreground">
-                  아직 등록된 참여자가 없습니다.
+                  {tx("아직 등록된 참여자가 없습니다.")}
                 </p>
               )}
             </section>
@@ -391,6 +393,7 @@ export function ClanBalanceHistoryDrawer({
   docked = false,
   ...props
 }: Props) {
+  const tx = useTranslator();
   const tab = useRef<HTMLButtonElement>(null);
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const suppressHover = useRef(false);
@@ -403,12 +406,12 @@ export function ClanBalanceHistoryDrawer({
   }
   return (
     <>
-      {props.currentSeriesId ? <button ref={tab} type="button" data-balance-guide="history" aria-hidden={open || undefined} tabIndex={open ? -1 : 0} aria-label="내전 기록 열기" title="내전 기록" onMouseMove={(event) => {
+      {props.currentSeriesId ? <button ref={tab} type="button" data-balance-guide="history" aria-hidden={open || undefined} tabIndex={open ? -1 : 0} aria-label={tx("내전 기록 열기")} title={tx("내전 기록")} onMouseMove={(event) => {
         pointer.current = { x: event.clientX, y: event.clientY };
         if (!suppressHover.current && window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) onOpenChange(true);
       }} onMouseLeave={() => { suppressHover.current = false; }} onClick={() => { suppressHover.current = false; onOpenChange(true); }}
         className={cn("flex flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", !docked && "fixed right-3 top-1/2 z-40 -translate-y-1/2", open && "invisible pointer-events-none")}>
-        <History className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">내전 기록</span>
+        <History className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">{tx("내전 기록")}</span>
       </button> : null}
     <Sheet open={open} onOpenChange={changeOpen}>
       <SheetContent onPointerMove={(event) => { pointer.current = { x: event.clientX, y: event.clientY }; }} onPointerLeave={(event) => {
@@ -418,10 +421,10 @@ export function ClanBalanceHistoryDrawer({
         <SheetHeader className="shrink-0 px-4 pr-14 pb-0 sm:px-6 sm:pr-14">
           <SheetTitle className="flex items-center gap-2">
             <History className="size-5" aria-hidden="true" />
-            내전 기록
+            {tx("내전 기록")}
           </SheetTitle>
           <SheetDescription>
-            {props.scope === "session" ? "이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다." : "현재 내전의 경기 정보와 참여자 통계"}
+            {props.scope === "session" ? tx("이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다.") : tx("현재 내전의 경기 정보와 참여자 통계")}
           </SheetDescription>
         </SheetHeader>
         {open ? (

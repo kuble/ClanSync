@@ -1,3 +1,5 @@
+import { useTranslator } from "#use-translator";
+import { getTranslator } from "@/lib/i18n/server";
 import "server-only";
 import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
@@ -83,6 +85,7 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
 }
 
 async function Overview({ ctx }: Pick<Props, "ctx">) {
+  const tx = await getTranslator();
   const svc = createServiceRoleClient();
   const [profile, history, badges] = await Promise.all([
     svc.from("clans").select("created_at,coin_balance").eq("id", ctx.clanId).single(),
@@ -90,36 +93,36 @@ async function Overview({ ctx }: Pick<Props, "ctx">) {
     loadClanBadges(ctx.clanId).catch(() => null),
   ]);
   if (profile.error) throw new Error("클랜 정보를 불러오지 못했습니다.");
-  const dateLabel = (value: string) => new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
+  const dateLabel = (value: string) => new Intl.DateTimeFormat(tx.locale, { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
   const facts = [
-    { label: "구성원", value: ctx.memberCount == null ? "—" : `${ctx.memberCount}명`, icon: Users },
-    { label: "총 내전", value: history.total == null ? "—" : `${history.total.toLocaleString()}회`, icon: Swords },
+    { label: "구성원", value: ctx.memberCount == null ? "—" : tx("{0}명", ctx.memberCount), icon: Users },
+    { label: "총 내전", value: history.total == null ? "—" : tx("{0}회", history.total.toLocaleString(tx.locale)), icon: Swords },
     { label: "클랜 코인", value: Number(profile.data.coin_balance).toLocaleString(), icon: Coins },
   ];
   return <div className={operation.overview}>
-    <div role="group" aria-label="클랜 운영 요약" className={operation.metrics}>
+    <div role="group" aria-label={tx("클랜 운영 요약")} className={operation.metrics}>
       {facts.map(({ label, value, icon: Icon }) => (
         <section key={label} aria-label={`${label} ${value}`} className={operation.metric}>
-          <h4><span><Icon size={18} aria-hidden /></span>{label}</h4>
+          <h4><span><Icon size={18} aria-hidden /></span>{tx(label)}</h4>
           {label === "총 내전" ? <>
             <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <div><dt className="text-[11px] text-muted-foreground">정규 내전</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? "확인 필요" : history.regular.toLocaleString()+"회"}</dd></div>
-              <div><dt className="text-[11px] text-muted-foreground">깜짝 내전</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? "확인 필요" : history.flash.toLocaleString()+"회"}</dd></div>
+              <div><dt className="text-[11px] text-muted-foreground">{tx("정규 내전")}</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? tx("확인 필요") : tx("{0}회", history.regular.toLocaleString(tx.locale))}</dd></div>
+              <div><dt className="text-[11px] text-muted-foreground">{tx("깜짝 내전")}</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? tx("확인 필요") : tx("{0}회", history.flash.toLocaleString(tx.locale))}</dd></div>
             </dl>
-            {history.regular != null && history.flash != null && history.total != null && history.regular + history.flash !== history.total && <p role="status" className="mt-2 text-[11px] text-muted-foreground">분류 확인 필요</p>}
+            {history.regular != null && history.flash != null && history.total != null && history.regular + history.flash !== history.total && <p role="status" className="mt-2 text-[11px] text-muted-foreground">{tx("분류 확인 필요")}</p>}
           </> : <p className={operation.metricValue}>{value}</p>}
         </section>
       ))}
     </div>
-    <section className={operation.record} aria-label="클랜 기록">
+    <section className={operation.record} aria-label={tx("클랜 기록")}>
       <dl className="grid gap-5 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-border">
-        <div className="flex items-start gap-3 sm:pr-5"><CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">클랜 설립일</dt><dd className="mt-2 text-sm font-medium">{dateLabel(profile.data.created_at)}</dd></div></div>
-        <div className="flex items-start gap-3 sm:pl-5"><Clock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">최근 내전</dt><dd className="mt-2 text-sm font-medium">{history.total == null ? "기록 확인 필요" : history.latestAt ? dateLabel(history.latestAt) : "아직 개설된 내전이 없습니다."}</dd></div></div>
+        <div className="flex items-start gap-3 sm:pr-5"><CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">{tx("클랜 설립일")}</dt><dd className="mt-2 text-sm font-medium">{dateLabel(profile.data.created_at)}</dd></div></div>
+        <div className="flex items-start gap-3 sm:pl-5"><Clock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">{tx("최근 내전")}</dt><dd className="mt-2 text-sm font-medium">{history.total == null ? tx("기록 확인 필요") : history.latestAt ? dateLabel(history.latestAt) : tx("아직 개설된 내전이 없습니다.")}</dd></div></div>
       </dl>
     </section>
-    <section className={`${operation.badges} space-y-4`} aria-label="클랜 배지">
-      <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden /><h4 className="text-sm font-semibold">클랜 배지</h4></div>
-      {badges ? <ClanBadges collection={badges} gameSlug={ctx.gameSlug} clanId={ctx.clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주십시오.</p>}
+    <section className={`${operation.badges} space-y-4`} aria-label={tx("클랜 배지")}>
+      <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden /><h4 className="text-sm font-semibold">{tx("클랜 배지")}</h4></div>
+      {badges ? <ClanBadges collection={badges} gameSlug={ctx.gameSlug} clanId={ctx.clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">{tx("배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주십시오.")}</p>}
     </section>
   </div>;
 }
@@ -154,10 +157,11 @@ async function Appearance({ ctx }: Pick<Props, "ctx">) {
 }
 
 function Requests({ ctx }: Pick<Props, "ctx">) {
+  const tx = useTranslator();
   return (
     <section className="rounded-xl border bg-card">
       <header className="flex items-center justify-between gap-4 border-b px-4 py-3 sm:px-5">
-        <h2 className="text-sm font-semibold">대기 중인 가입 요청</h2>
+        <h2 className="text-sm font-semibold">{tx("대기 중인 가입 요청")}</h2>
         <InquiryButton clanId={ctx.clanId} management />
       </header>
       <PendingRequests ctx={ctx} />
@@ -166,7 +170,8 @@ function Requests({ ctx }: Pick<Props, "ctx">) {
 }
 
 async function PendingRequests({ ctx }: Pick<Props, "ctx">) {
-  if (!await hasRequestClanPermission(ctx.clanId, "approve_join_requests")) return <p className="p-5 text-sm text-muted-foreground">가입 승인 권한이 필요합니다.</p>;
+  const tx = await getTranslator();
+  if (!await hasRequestClanPermission(ctx.clanId, "approve_join_requests")) return <p className="p-5 text-sm text-muted-foreground">{tx("가입 승인 권한이 필요합니다.")}</p>;
   const svc = createServiceRoleClient();
   const requests = await svc.from("clan_join_requests").select("id,user_id,applied_at").eq("clan_id", ctx.clanId).eq("status", "pending").order("applied_at");
   if (requests.error) throw new Error("가입 요청을 불러오지 못했습니다.");
@@ -221,17 +226,19 @@ async function Insights({ ctx }: Pick<Props, "ctx">) {
 }
 
 async function Subscription({ ctx }: Pick<Props, "ctx">) {
+  const tx = await getTranslator();
   const svc = createServiceRoleClient();
   const [canManage, user, profile] = await Promise.all([hasRequestClanPermission(ctx.clanId, "manage_clan_pool"), getRequestUser(), svc.from("clans").select("coin_balance").eq("id", ctx.clanId).single()]);
   if (profile.error) throw new Error("클랜 코인을 불러오지 못했습니다.");
   return <div className="space-y-4">
-    <section className={`${panel} flex flex-wrap items-center justify-between gap-3`}><div><p className="text-xs text-muted-foreground">클랜 코인 잔액</p><p className="mt-1 text-2xl font-bold tabular-nums">{Number(profile.data.coin_balance).toLocaleString()}<span className="ml-2 text-xs font-normal text-muted-foreground">코인</span></p></div><Link href={`/games/${ctx.gameSlug}/clan/${ctx.clanId}/store`} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted">클랜 스토어</Link></section>
+    <section className={`${panel} flex flex-wrap items-center justify-between gap-3`}><div><p className="text-xs text-muted-foreground">{tx("클랜 코인 잔액")}</p><p className="mt-1 text-2xl font-bold tabular-nums">{Number(profile.data.coin_balance).toLocaleString()}<span className="ml-2 text-xs font-normal text-muted-foreground">{tx("코인")}</span></p></div><Link href={`/games/${ctx.gameSlug}/clan/${ctx.clanId}/store`} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted">{tx("클랜 스토어")}</Link></section>
     <ClanManageSubscriptionPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} tierLabel={ctx.plan === "premium" ? "Premium" : "Free"} showDevPlanToggle={process.env.NODE_ENV === "development" || process.env.DEV_CLAN_PLAN_TOGGLE === "1"} isLeader={ctx.role === "leader"} />
     {canManage && user && <PurchaseCorrections ctx={ctx} userId={user.id} />}
   </div>;
 }
 
 async function PurchaseCorrections({ ctx, userId }: Pick<Props, "ctx"> & { userId: string }) {
+  const tx = await getTranslator();
   const svc = createServiceRoleClient();
   const [members, clanPurchases] = await Promise.all([
     svc.from("clan_members").select("user_id").eq("clan_id", ctx.clanId).eq("status", "active"),
@@ -249,5 +256,5 @@ async function PurchaseCorrections({ ctx, userId }: Pick<Props, "ctx"> & { userI
   function rows(pool: "clan" | "personal", purchases: NonNullable<typeof clanPurchases.data>): ManageStoreVoidRowVM[] {
     return purchases.map((purchase) => ({ pool, purchaseId: purchase.id, itemNameKo: (Array.isArray(purchase.store_items) ? purchase.store_items[0] : purchase.store_items)?.name_ko ?? "상품", buyerNickname: names.get(purchase.user_id) ?? "—", priceCoins: purchase.price_coins, purchasedAtLabel: new Date(purchase.purchased_at).toLocaleString("ko-KR"), isBuyerSelf: purchase.user_id === userId }));
   }
-  return <section className={panel}><h4 className="mb-3 text-sm font-semibold">구매 정정</h4>{clanPurchases.data.length || personal.data?.length ? <ClanManageStoreVoidPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} clanRows={rows("clan", clanPurchases.data)} personalRows={rows("personal", personal.data ?? [])} /> : <p className="text-xs text-muted-foreground">정정할 구매 내역이 없습니다.</p>}</section>;
+  return <section className={panel}><h4 className="mb-3 text-sm font-semibold">{tx("구매 정정")}</h4>{clanPurchases.data.length || personal.data?.length ? <ClanManageStoreVoidPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} clanRows={rows("clan", clanPurchases.data)} personalRows={rows("personal", personal.data ?? [])} /> : <p className="text-xs text-muted-foreground">{tx("정정할 구매 내역이 없습니다.")}</p>}</section>;
 }

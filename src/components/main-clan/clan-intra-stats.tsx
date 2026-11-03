@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { Ban, Compass, Map as MapIcon, TrendingUp } from "lucide-react";
@@ -22,6 +23,7 @@ const MAP_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES.map((type) => 
 const DONUT_IMAGE_PREVIEW = true;
 
 export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel; settings?: ReactNode }) {
+  const tx = useTranslator();
   const now = currentKstYearMonth();
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const [metric, setMetric] = useState<(typeof METRICS)[number]["id"]>("sessions");
@@ -36,31 +38,31 @@ export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel;
   const maps = stats.maps.filter((row) => mapType === "all" || mapDetailsForLabel(row.name)?.type === mapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
   const bans = stats.bans.filter((row) => banRole === "all" || row.role === banRole).map((row) => ({ ...row, image: OW_HERO_PORTRAITS[row.id] }));
   const preferredMaps = stats.mapVotes.filter((row) => preferredMapType === "all" || mapDetailsForLabel(row.name)?.type === preferredMapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
-  return <div className="space-y-5" aria-label="내전 통계 내용" aria-busy={loaded.pending}>
-    <section aria-label="내전 통계 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} />{settings}</div></section>
+  return <div className="space-y-5" aria-label={tx("내전 통계 내용")} aria-busy={loaded.pending}>
+    <section aria-label={tx("내전 통계 기간")} className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} />{settings}</div></section>
     <div className="relative">
     {loaded.feedback}
-    <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />참여 추이</CardTitle></CardHeader>
+    <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("참여 추이")}</CardTitle></CardHeader>
       <CardContent className="grid min-w-0 gap-5 min-[900px]:grid-cols-[minmax(0,1fr)_220px]">
         <StatsTrend points={intraTrendPoints(model.periodDirectory ?? model.intraPeriods, period, metric)} label={activeMetric.label} unit={activeMetric.unit} />
-        <div className="grid grid-cols-1 gap-2 sm:max-[899px]:grid-cols-3" aria-label="선택 기간 요약">
-          {METRICS.map((item) => <button key={item.id} type="button" onClick={() => setMetric(item.id)} aria-pressed={metric === item.id} className={`rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-primary ${metric === item.id ? "border-primary/50 bg-primary/5" : "hover:bg-muted/50"}`}><span className="text-sm font-medium text-foreground">{item.label}</span><strong className="mt-1 block text-2xl tabular-nums">{loaded.pending ? "—" : stats[item.id].toLocaleString()}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></strong><span className="mt-1 block text-xs text-muted-foreground">{loaded.pending ? "집계 중…" : item.id === "sessions" ? `내전당 평균 ${stats.averageMatchesPerSession ?? "—"}경기` : item.id === "completed" ? `무승부 ${stats.draws}경기 · ${formatPercent(stats.completed ? stats.draws / stats.completed * 100 : 0)}` : `내전당 평균 ${stats.averageParticipantsPerSession ?? "—"}명`}</span></button>)}
+        <div className="grid grid-cols-1 gap-2 sm:max-[899px]:grid-cols-3" aria-label={tx("선택 기간 요약")}>
+          {METRICS.map((item) => <button key={item.id} type="button" onClick={() => setMetric(item.id)} aria-pressed={metric === item.id} className={`rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-primary ${metric === item.id ? "border-primary/50 bg-primary/5" : "hover:bg-muted/50"}`}><span className="text-sm font-medium text-foreground">{tx(item.label)}</span><strong className="mt-1 block text-2xl tabular-nums">{loaded.pending ? "—" : stats[item.id].toLocaleString()}<span className="ml-1 text-xs font-normal text-muted-foreground">{tx(item.unit)}</span></strong><span className="mt-1 block text-xs text-muted-foreground">{loaded.pending ? tx("집계 중…") : item.id === "sessions" ? tx("내전당 평균 {0}경기", stats.averageMatchesPerSession ?? "—") : item.id === "completed" ? tx("무승부 {0}경기 · {1}", stats.draws, formatPercent(stats.completed ? stats.draws / stats.completed * 100 : 0)) : tx("내전당 평균 {0}명", stats.averageParticipantsPerSession ?? "—")}</span></button>)}
         </div>
       </CardContent>
     </Card>
     </div>
     <div className="grid items-stretch gap-4 min-[800px]:grid-cols-2 min-[1200px]:grid-cols-3">
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><MapIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />맵별 경기</CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-16"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /></div>
-        <StatsDonut rows={maps} label="맵별 경기" unit="경기" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><MapIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("맵별 경기")}</CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="min-h-16"><RubberSegment label={tx("맵 유형")} labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /></div>
+        <StatsDonut rows={maps} label={tx("맵별 경기")} unit="경기" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><Ban className="size-4 shrink-0 text-primary" aria-hidden="true" />영웅 밴</CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-16"><RubberSegment label="영웅 역할" labelPosition="top" options={[{ id: "all", label: "전체" }, { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> }, { id: "dps", label: "공격", icon: <OverwatchRoleIcon role="damage" /> }, { id: "support", label: "지원", icon: <OverwatchRoleIcon role="support" /> }]} value={banRole} onChange={setBanRole} /></div>
-        <StatsDonut rows={bans} label="영웅 밴" unit="건" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><Ban className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("영웅 밴")}</CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="min-h-16"><RubberSegment label={tx("영웅 역할")} labelPosition="top" options={[{ id: "all", label: "전체" }, { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> }, { id: "dps", label: "공격", icon: <OverwatchRoleIcon role="damage" /> }, { id: "support", label: "지원", icon: <OverwatchRoleIcon role="support" /> }]} value={banRole} onChange={setBanRole} /></div>
+        <StatsDonut rows={bans} label={tx("영웅 밴")} unit="건" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><Compass className="size-4 shrink-0 text-primary" aria-hidden="true" />선호 맵</CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-16"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={preferredMapType} onChange={setPreferredMapType} /></div>
-        <StatsDonut rows={preferredMaps} label="선호 맵" unit="표" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><Compass className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("선호 맵")}</CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="min-h-16"><RubberSegment label={tx("맵 유형")} labelPosition="top" options={MAP_OPTIONS} value={preferredMapType} onChange={setPreferredMapType} /></div>
+        <StatsDonut rows={preferredMaps} label={tx("선호 맵")} unit="표" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
     </div>
   </div>;

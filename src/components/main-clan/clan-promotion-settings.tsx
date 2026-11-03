@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Megaphone, Eye, Check, Save } from "lucide-react";
@@ -27,6 +28,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   gameSlug: string; clanId: string | null; initial: ClanRecruitment & ClanListRow & { promotion_public: boolean; style: string | null; recruitment_positions: string[] };
   post: PromotionPost | null;
 }) {
+  const tx = useTranslator();
   const RECRUITMENT_TIERS = recruitmentTiers(gameSlug);
   const creating = clanId === null;
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -145,41 +147,41 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
       <section className={styles.panel} aria-labelledby="promotion-heading">
         <header className={styles.panelHeader}>
           <span className={styles.sectionIcon}><Megaphone size={20} aria-hidden /></span>
-          <h4 id="promotion-heading">{creating ? "클랜 만들기" : "홍보글 작성"}</h4>
+          <h4 id="promotion-heading">{creating ? tx("클랜 만들기") : tx("홍보글 작성")}</h4>
           <div className={styles.publishControl}>
-            <StatHelp title="홍보글 게시">켜고 저장하면 클랜 찾기에 공개됩니다. 끄고 저장하면 목록에서 숨겨지고 기존 홍보글 링크도 열리지 않습니다.</StatHelp>
+            <StatHelp title={tx("홍보글 게시")}>{tx("켜고 저장하면 클랜 찾기에 공개됩니다. 끄고 저장하면 목록에서 숨겨지고 기존 홍보글 링크도 열리지 않습니다.")}</StatHelp>
             <label className={styles.visibility}>
-              <input type="checkbox" role="switch" aria-label="홍보글 게시" name="promotion_public" defaultChecked={initial.promotion_public} disabled={saving} />
+              <input type="checkbox" role="switch" aria-label={tx("홍보글 게시")} name="promotion_public" defaultChecked={initial.promotion_public} disabled={saving} />
               <span aria-hidden="true" />
             </label>
           </div>
         </header>
           <fieldset disabled={saving} className={styles.editorFields}>
-            {creating && <div className="space-y-2"><Label htmlFor="name">클랜명 *</Label><Input id="name" name="name" maxLength={24} required readOnly={!!createdId} placeholder="클랜 이름을 입력해 주세요" /></div>}
-            <div className={`space-y-2 ${styles.titleField}`}><Label htmlFor="promotion-title">제목</Label><Input id="promotion-title" name="title" value={title} onChange={event => setTitle(event.target.value)} required={!creating} maxLength={200} placeholder="함께할 클랜원을 찾습니다" /></div>
+            {creating && <div className="space-y-2"><Label htmlFor="name">{tx("클랜명 *")}</Label><Input id="name" name="name" maxLength={24} required readOnly={!!createdId} placeholder={tx("클랜 이름을 입력해 주세요")} /></div>}
+            <div className={`space-y-2 ${styles.titleField}`}><Label htmlFor="promotion-title">{tx("제목")}</Label><Input id="promotion-title" name="title" value={title} onChange={event => setTitle(event.target.value)} required={!creating} maxLength={200} placeholder={tx("함께할 클랜원을 찾습니다")} /></div>
             <div className={styles.settingsBody}>
-              <section aria-label="가입 조건">
+              <section aria-label={tx("가입 조건")}>
                 <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} layout="grouped" />
               </section>
-              <section className={styles.audienceSection} aria-label="모집 대상">
+              <section className={styles.audienceSection} aria-label={tx("모집 대상")}>
                 <PromotionAudienceFields gameSlug={gameSlug} initialStyle={initial.style} initialPositions={initial.recruitment_positions} disabled={saving} />
                 {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className={styles.tierSection} aria-describedby="recruitment-tier-hint">
                   <div className={styles.tierHeading}>
-                    <Slider.Label className={styles.audienceLabel}>모집 티어</Slider.Label>
-                    <output className={styles.tierValue}>{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</output>
+                    <Slider.Label className={styles.audienceLabel}>{tx("모집 티어")}</Slider.Label>
+                    <output className={styles.tierValue}>{allTiers ? tx("티어 무관") : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</output>
                   </div>
-                  <p id="recruitment-tier-hint" className="sr-only">이 범위 밖의 티어도 가입을 신청할 수 있습니다.</p>
-                  <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
+                  <p id="recruitment-tier-hint" className="sr-only">{tx("이 범위 밖의 티어도 가입을 신청할 수 있습니다.")}</p>
+                  <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? tx("최소 모집 티어") : tx("최대 모집 티어")} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
                   <div className="flex justify-between text-[11px] text-muted-foreground" aria-hidden><span>{RECRUITMENT_TIERS[0][1]}</span><span>{RECRUITMENT_TIERS[RECRUITMENT_TIERS.length-1][1]}</span></div>
                   {selectedTiers.map(([tier])=><input key={tier} type="hidden" name="tier_range" value={tier} />)}
                 </Slider.Root>}
               </section>
             </div>
-            <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId ?? createdId ?? ""} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
+            <div className="space-y-2"><Label htmlFor="promotion-content">{tx("내용")}</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId ?? createdId ?? ""} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
             <div className={styles.previewActions}>
-              <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
-              <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button>
-              <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? "저장 중…" : creating && !createdId ? "클랜 만들기" : "변경사항 저장"}</Button>
+              <div>{error && <p role="alert" className="text-xs text-destructive">{tx(error)}</p>}{saved && <p role="status" className="text-xs text-primary">{tx("홍보글과 가입 조건을 저장했습니다.")}</p>}</div>
+              <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />{tx("미리보기")}</Button>
+              <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? tx("저장 중…") : creating && !createdId ? tx("클랜 만들기") : tx("변경사항 저장")}</Button>
             </div>
           </fieldset>
       </section>

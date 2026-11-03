@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import {
@@ -73,6 +74,7 @@ function NoticeRow({
   notice: DashboardNotice;
   href: string;
 }) {
+  const tx = useTranslator();
   const contents = (
     <>
       <span className="min-w-0 flex-1">
@@ -80,11 +82,11 @@ function NoticeRow({
           {notice.title}
         </span>
         <span className={styles.noticeMeta}>
-          {notice.kind === "poll" ? "참여 중인 투표" : "클랜 공지"}
+          {notice.kind === "poll" ? tx("참여 중인 투표") : tx("클랜 공지")}
           <span className="mx-1.5" aria-hidden="true">
             ·
           </span>
-          {new Intl.DateTimeFormat("ko-KR", {
+          {new Intl.DateTimeFormat(tx.locale, {
             timeZone: "Asia/Seoul",
             month: "long",
             day: "numeric",
@@ -109,7 +111,8 @@ function NoticeRow({
 }
 
 function UpcomingEvents(props: { model: ClanDashboardModel; base: string }) {
-  return <div role="region" className="min-h-52 min-w-0 flex-1" aria-label="다가오는 일정 목록"><UpcomingEventsContent {...props} /></div>;
+  const tx = useTranslator();
+  return <div role="region" className="min-h-52 min-w-0 flex-1" aria-label={tx("다가오는 일정 목록")}><UpcomingEventsContent {...props} /></div>;
 }
 
 function UpcomingEventsContent({
@@ -119,6 +122,7 @@ function UpcomingEventsContent({
   model: ClanDashboardModel;
   base: string;
 }) {
+  const tx = useTranslator();
   const ready = useSyncExternalStore(subscribe, clientReady, serverReady);
   const now = new Date(model.now);
   // Repeating events use the member's local timezone, as in the calendar.
@@ -137,8 +141,8 @@ function UpcomingEventsContent({
     return (
       <EmptyCard
         icon={CalendarDays}
-        title="일정을 불러오지 못했습니다"
-        description="잠시 후 새로고침해 주십시오."
+        title={tx("일정을 불러오지 못했습니다")}
+        description={tx("잠시 후 새로고침해 주십시오.")}
       />
     );
   if (!ready)
@@ -147,15 +151,15 @@ function UpcomingEventsContent({
         className="flex min-h-44 items-center justify-center text-xs text-muted-foreground"
         role="status"
       >
-        일정을 불러오는 중입니다.
+        {tx("일정을 불러오는 중입니다.")}
       </div>
     );
   if (upcoming.length === 0)
     return (
       <EmptyCard
         icon={CalendarDays}
-        title="다가오는 일정이 없습니다"
-        description="함께할 내전과 모임이 등록되면 여기에 표시됩니다."
+        title={tx("다가오는 일정이 없습니다")}
+        description={tx("함께할 내전과 모임이 등록되면 여기에 표시됩니다.")}
       />
     );
   return (
@@ -170,9 +174,9 @@ function UpcomingEventsContent({
             className={cn("group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary", today ? styles.accentEdge : styles.neutralEdge)}
           >
             <span className={styles.eventDate}>
-              {today && <span className="sr-only">오늘 </span>}
+              {today && <span className="sr-only">{tx("오늘")} </span>}
               <span className={styles.eventMonth}>
-                {String(date.getMonth() + 1).padStart(2, "0")}월
+                {String(date.getMonth() + 1).padStart(2, "0")}{tx("월")}
               </span>
               <span className={styles.eventDay}>
                 {date.getDate()}
@@ -183,7 +187,7 @@ function UpcomingEventsContent({
                 {event.title}
               </span>
               <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                <time dateTime={date.toISOString()} className={styles.eventTime}>{new Intl.DateTimeFormat("ko-KR", {
+                <time dateTime={date.toISOString()} className={styles.eventTime}>{new Intl.DateTimeFormat(tx.locale, {
                   weekday: "long",
                   hour: "2-digit",
                   minute: "2-digit",
@@ -201,12 +205,12 @@ function UpcomingEventsContent({
               )}
             >
               {event.source === "scrim_auto"
-                  ? "확정"
+                  ? tx("확정")
                   : event.kind === "intra"
-                    ? "내전"
+                    ? tx("내전")
                     : event.kind === "scrim"
-                      ? "스크림"
-                      : "이벤트"}
+                      ? tx("스크림")
+                      : tx("이벤트")}
             </span>
           </Link>
         );
@@ -216,11 +220,12 @@ function UpcomingEventsContent({
 }
 
 function MvpPlace({ value, position }: { value: DashboardMvp | undefined; position: number }) {
+  const tx = useTranslator();
   const rank = value?.rank ?? position;
   const displayName = value?.nickname;
   const percentage = formatPercent(value?.percentage);
   return (
-    <li className={cn(styles.mvpPlace, !value && styles.mvpMissing)} data-rank={rank} aria-label={value ? `${rank}위 ${displayName}` : `${position}위 기록 없음`}>
+    <li className={cn(styles.mvpPlace, !value && styles.mvpMissing)} data-rank={rank} aria-label={value ? tx("{0}위 {1}", rank, displayName) : tx("{0}위 기록 없음", position)}>
       <span className={styles.mvpRank} data-mvp-rank aria-hidden="true">{rank}</span>
       <p className={styles.mvpName} data-mvp-name>{displayName ?? "—"}</p>
       <p className={styles.mvpValue} data-mvp-value>
@@ -247,6 +252,7 @@ function MvpCard({
   onUpgrade?: () => void;
   href: string;
 }) {
+  const tx = useTranslator();
   return (
     <section
       className={cn(card, styles.mvpCard)}
@@ -257,21 +263,21 @@ function MvpCard({
         <div className={cn(styles.mvpStatus, "flex flex-wrap content-center items-center gap-x-2 gap-y-1.5")}>
           <Crown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <p className="text-xs font-medium text-muted-foreground">
-            Premium 전용
+            {tx("Premium 전용")}
           </p>
           <p className="order-last w-full text-xs text-muted-foreground">
-            우리 클랜의 예측왕을 만나보십시오.
+            {tx("우리 클랜의 예측왕을 만나보십시오.")}
           </p>
           <button
             type="button"
             onClick={onUpgrade}
             className={styles.mvpPremiumButton}
           >
-            Premium 알아보기
+            {tx("Premium 알아보기")}
           </button>
         </div>
       ) : values.length ? (
-        <ol className={styles.mvpPlaces} aria-label={`${title} 순위`}>{[0, 1, 2].map(index => <MvpPlace key={index} value={values[index]} position={index + 1} />)}</ol>
+        <ol className={styles.mvpPlaces} aria-label={tx("{0} 순위", title)}>{[0, 1, 2].map(index => <MvpPlace key={index} value={values[index]} position={index + 1} />)}</ol>
       ) : (
         <div className={cn(styles.mvpStatus, "flex items-center gap-3.5")}>
           <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground/50">
@@ -280,13 +286,13 @@ function MvpCard({
           <div>
             <p className="text-xs font-medium text-muted-foreground">
               {model.errors.rankings
-                ? "순위를 불러오지 못했습니다"
-                : "아직 선정된 MVP가 없습니다"}
+                ? tx("순위를 불러오지 못했습니다")
+                : tx("아직 선정된 MVP가 없습니다")}
             </p>
             <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
               {model.errors.rankings
-                ? "잠시 후 다시 확인해 주십시오."
-                : `${model.previousMonth}의 기록에서 선정 기준을 충족한 멤버가 없습니다.`}
+                ? tx("잠시 후 다시 확인해 주십시오.")
+                : tx("{0}의 기록에서 선정 기준을 충족한 멤버가 없습니다.", new Intl.DateTimeFormat(tx.locale, { year: "numeric", month: "long" }).format(new Date(model.previousMonth.year, model.previousMonth.month - 1, 1)))}
             </p>
           </div>
         </div>
@@ -310,6 +316,7 @@ export function ClanDashboard({
   actorRole: ClanMemberRole;
   initialNotice?: { title: string; content: string };
 }) {
+  const tx = useTranslator();
   const base = `/games/${gameSlug}/clan/${clanId}`;
   const [reading, setReading] = useState<{
     title: string;
@@ -319,22 +326,22 @@ export function ClanDashboard({
   const [premiumOpen, setPremiumOpen] = useState(false);
   return (
     <>
-      <h2 className="sr-only">클랜 대시보드</h2>
+      <h2 className="sr-only">{tx("클랜 대시보드")}</h2>
       <ClanRulesTicker rules={model.rules} failed={model.errors.rules} href={`${base}/board/notices#rules`} />
       <div className={styles.bento} data-testid="clan-dashboard-grid">
         <section
           className={cn(card, styles.notices)}
           aria-labelledby="dashboard-notices-heading"
         >
-          <DashboardHeading id="dashboard-notices-heading" href={`${base}/board/notices`} title="클랜 공지사항" icon={Megaphone} />
+          <DashboardHeading id="dashboard-notices-heading" href={`${base}/board/notices`} title={tx("클랜 공지사항")} icon={Megaphone} />
           {model.errors.notices ? (
             <EmptyCard
               icon={Megaphone}
-              title="공지사항을 불러오지 못했습니다"
-              description="잠시 후 새로고침해 주십시오."
+              title={tx("공지사항을 불러오지 못했습니다")}
+              description={tx("잠시 후 새로고침해 주십시오.")}
             />
           ) : model.notices.length ? (
-            <ul aria-label="최근 클랜 공지" className="space-y-2">
+            <ul aria-label={tx("최근 클랜 공지")} className="space-y-2">
               {model.notices.map((notice) => (
                 <li key={`${notice.kind}:${notice.id}`}>
                 <NoticeRow
@@ -347,8 +354,8 @@ export function ClanDashboard({
           ) : (
             <EmptyCard
               icon={Megaphone}
-              title="새로운 공지사항이 없습니다"
-              description="클랜의 중요한 소식과 함께 참여할 투표를 이곳에서 확인하십시오."
+              title={tx("새로운 공지사항이 없습니다")}
+              description={tx("클랜의 중요한 소식과 함께 참여할 투표를 이곳에서 확인하십시오.")}
             />
           )}
         </section>
@@ -356,28 +363,28 @@ export function ClanDashboard({
           className={cn(card, styles.events, "flex flex-col")}
           aria-labelledby="dashboard-events-heading"
         >
-          <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title="다가오는 일정" icon={CalendarDays} />
+          <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title={tx("다가오는 일정")} icon={CalendarDays} />
           <UpcomingEvents model={model} base={base} />
         </section>
-        <section className={styles.mvps} aria-label="지난달 MVP">
+        <section className={styles.mvps} aria-label={tx("지난달 MVP")}>
           <div className={styles.mvpGrid}>
             <MvpCard
               href={`${base}/stats`}
-              title="지난달 승률 MVP"
+              title={tx("지난달 승률 MVP")}
               icon={Target}
               values={model.mvp.winRate}
               model={model}
             />
             <MvpCard
               href={`${base}/stats`}
-              title="지난달 참여율 MVP"
+              title={tx("지난달 참여율 MVP")}
               icon={Users}
               values={model.mvp.participation}
               model={model}
             />
             <MvpCard
               href={`${base}/stats`}
-              title="지난달 승부예측 MVP"
+              title={tx("지난달 승부예측 MVP")}
               icon={Trophy}
               values={model.mvp.prediction}
               model={model}

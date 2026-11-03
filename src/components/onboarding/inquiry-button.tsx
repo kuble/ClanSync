@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
@@ -13,6 +14,7 @@ type InquiryMessage = Omit<ClanComment, "id" | "content" | "reactions" | "emojiR
 type Room = { messages: InquiryMessage[] };
 
 export function InquiryButton({ clanId, management = false }: { clanId: string; management?: boolean }) {
+  const tx = useTranslator();
   const searchParams = useSearchParams();
   const linked = management ? searchParams.get("inquiry") === "1" : searchParams.get("inquiry") === clanId;
   const [manualOpen, setManualOpen] = useState(false);
@@ -57,10 +59,10 @@ export function InquiryButton({ clanId, management = false }: { clanId: string; 
 
   const label = unread ? "클랜 문의방 · 새 댓글" : "클랜 문의방";
   return <Dialog open={open} onOpenChange={changeOpen}>
-    <DialogTrigger aria-label={label} title={label}
+    <DialogTrigger aria-label={tx(label)} title={tx(label)}
       render={<Button type="button" variant="outline" size="sm" className="relative" />}>
       <MessageSquare aria-hidden />
-      클랜 문의방
+      {tx("클랜 문의방")}
       {unread && <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-destructive ring-2 ring-card" />}
     </DialogTrigger>
     {open && <DialogContent className="flex h-[min(36rem,calc(100dvh-2rem))] min-w-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
@@ -70,6 +72,7 @@ export function InquiryButton({ clanId, management = false }: { clanId: string; 
 }
 
 function InquiryConversation({ clanId }: { clanId: string }) {
+  const tx = useTranslator();
   const [room, setRoom] = useState<Room | null>(null);
   const [draft, setDraft] = useState("");
   const [readError, setReadError] = useState("");
@@ -144,19 +147,19 @@ function InquiryConversation({ clanId }: { clanId: string }) {
   return <>
     <DialogHeader className="flex-row items-center gap-3 border-b px-5 py-4 pr-12">
       <MessageSquare className="size-4 shrink-0 text-primary" aria-hidden />
-      <DialogTitle>클랜 문의방</DialogTitle>
-      <span className="ml-auto text-xs text-muted-foreground">신청 대기자 · 운영진</span>
+      <DialogTitle>{tx("클랜 문의방")}</DialogTitle>
+      <span className="ml-auto text-xs text-muted-foreground">{tx("신청 대기자 · 운영진")}</span>
     </DialogHeader>
-    <StatsScrollArea viewportRef={viewport} label="문의 대화" className="min-h-0 flex-1 overscroll-contain px-3 py-2 sm:px-5">
+    <StatsScrollArea viewportRef={viewport} label={tx("문의 대화")} className="min-h-0 flex-1 overscroll-contain px-3 py-2 sm:px-5">
       {room?.messages.length ? <ClanComments textOnly
         comments={room.messages.map(message => ({ ...message, id: String(message.id), content: message.body }))}
       /> : <p role="status" className="py-10 text-center text-sm text-muted-foreground">
-        {room ? "첫 메시지를 남겨 보세요." : !readError && "대화를 불러오는 중입니다."}
+        {room ? tx("첫 메시지를 남겨 보세요.") : !readError && "대화를 불러오는 중입니다."}
       </p>}
     </StatsScrollArea>
     {(readError || writeError) && <p role="alert" className="px-5 py-2 text-xs text-destructive">{writeError || readError}</p>}
     {room && <div className="shrink-0 border-t bg-card px-4 py-3">
-      <ClanCommentComposer textOnly label="문의 메시지" submitLabel="보내기" placeholder="메시지를 입력하세요."
+      <ClanCommentComposer textOnly label={tx("문의 메시지")} submitLabel="보내기" placeholder={tx("메시지를 입력하세요.")}
         value={draft} onChange={setDraft} onSubmit={send} disabled={busy} maxLength={1000} />
     </div>}
   </>;

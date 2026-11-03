@@ -1,3 +1,4 @@
+import { getTranslator } from "@/lib/i18n/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -17,6 +18,7 @@ export default async function ClanStorePage({
 }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
 }) {
+  const tx = await getTranslator();
   const { gameSlug, clanId } = await params;
   const supabase = await getRequestClient();
   const user = await getRequestUser();
@@ -113,22 +115,21 @@ export default async function ClanStorePage({
 
       <details className="rounded-2xl border bg-card p-5 text-xs text-muted-foreground">
         <summary className="cursor-pointer font-semibold text-foreground">
-          구매·코인 이용 안내
+          {tx("구매·코인 이용 안내")}
         </summary>
         <div className="mt-3 space-y-2 leading-relaxed">
           <p>
-            클랜 코인과 개인 코인은 각각 적립·사용되며 서로 이전할 수 없습니다.
-            구매 후 일반 환불은 지원되지 않습니다.
+            {tx("클랜 코인과 개인 코인은 각각 적립·사용되며 서로 이전할 수 없습니다. 구매 후 일반 환불은 지원되지 않습니다.")}
           </p>
           <p>
-            구매한 클랜 배너는{" "}
+            {tx("구매한 클랜 배너는")}{" "}
             <Link
               className="text-primary underline-offset-4 hover:underline"
               href={`/games/${gameSlug}/clan/${clanId}/manage?tab=appearance`}
             >
-              클랜 관리
+              {tx("클랜 관리")}
             </Link>
-            에서 설정할 수 있습니다.
+            {tx("에서 설정할 수 있습니다.")}
           </p>
         </div>
       </details>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useState } from "react";
 import Image from "next/image";
@@ -21,6 +22,7 @@ function DonutImage({ src, size, className = "object-cover" }: { src: string; si
 
 /** Keep all categories in the chart and scrollable legend. */
 export function StatsDonut({ rows, label, unit, showImages = false, preserveOrder = false, horizontal = false, mapResults = false, fixedLegend = false, busy = false }: { rows: DonutRow[]; label: string; unit: string; showImages?: boolean; preserveOrder?: boolean; horizontal?: boolean; mapResults?: boolean; fixedLegend?: boolean; busy?: boolean }) {
+  const tx = useTranslator();
   const [active, setActive] = useState<number | null>(null);
   const ordered = [...rows].filter((row) => row.value > 0);
   if (!preserveOrder) ordered.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "ko"));
@@ -31,7 +33,7 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
   const highlighted = active ?? (showImages ? 0 : null);
   const color = (index: number) => COLORS[index % COLORS.length];
   const centerValue = (row: DonutRow) => mapResults ? (row.rate === null || row.rate === undefined ? "기록 없음" : formatPercent(row.rate)) : row.value.toLocaleString();
-  const legend = <ul className="space-y-1" aria-label={`${label} 비중`}>
+  const legend = <ul className="space-y-1" aria-label={tx("{0} 비중", label)}>
     {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-sm hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-primary ${highlighted === i ? "bg-muted/40" : ""}`}>
       {showImages ? <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
         <span className="size-1.5 shrink-0 rounded-full" style={{ background: color(i) }} />
@@ -39,12 +41,12 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
           {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: color(i) }} />)}</span>}
         </span>
       </span> : <span className="size-2 shrink-0 rounded-sm" style={{ background: color(i) }} />}
-      {mapResults ? <><span className="min-w-0 flex-1"><span className="block truncate font-medium text-foreground/90">{slice.name}</span><span className="mt-1 block text-xs text-muted-foreground">{share(slice.value, total)} ({slice.value}{unit})</span></span><span className="shrink-0 text-right tabular-nums"><span className="block text-lg font-semibold tracking-tight"><span className="sr-only">승률 </span>{centerValue(slice)}</span><span className="mt-1 block text-xs text-muted-foreground">{slice.wins}/{slice.draws}/{slice.losses}</span></span></> : <><span className="min-w-0 flex-1 truncate">{slice.name}{slice.detail && <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{slice.detail}</span>}</span><span className="text-xs tabular-nums text-muted-foreground">{formatPercent(slice.value / total * 100)}</span><strong className="min-w-12 text-right font-semibold tabular-nums">{slice.value}{unit}</strong></>}</button></li>)}
+      {mapResults ? <><span className="min-w-0 flex-1"><span className="block truncate font-medium text-foreground/90">{tx(slice.name)}</span><span className="mt-1 block text-xs text-muted-foreground">{share(slice.value, total)} ({slice.value}{tx(unit)})</span></span><span className="shrink-0 text-right tabular-nums"><span className="block text-lg font-semibold tracking-tight"><span className="sr-only">{tx("승률")} </span>{centerValue(slice)}</span><span className="mt-1 block text-xs text-muted-foreground">{slice.wins}/{slice.draws}/{slice.losses}</span></span></> : <><span className="min-w-0 flex-1 truncate">{tx(slice.name)}{slice.detail && <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{slice.detail}</span>}</span><span className="text-xs tabular-nums text-muted-foreground">{formatPercent(slice.value / total * 100)}</span><strong className="min-w-12 text-right font-semibold tabular-nums">{slice.value}{tx(unit)}</strong></>}</button></li>)}
   </ul>;
   return <div className={horizontal ? "grid items-start gap-5 sm:grid-cols-[240px_minmax(0,1fr)]" : "space-y-4"}>
     <div className={horizontal ? "space-y-4 sm:sticky sm:top-20" : "space-y-4"}>
     <div className="relative mx-auto size-44">
-      <svg viewBox="0 0 180 180" className="size-full -rotate-90" role="img" aria-label={mapResults ? `${label}, 선택 맵 ${featured?.name ?? "없음"} 승률 ${featured ? centerValue(featured) : "기록 없음"}. 도넛 구간은 출전 경기 비중입니다.` : `${label}, 총 ${total}${unit}. 아래 범례에서 항목별 수치를 확인할 수 있습니다.`}>
+      <svg viewBox="0 0 180 180" className="size-full -rotate-90" role="img" aria-label={mapResults ? tx("{0}, 선택 맵 {1} 승률 {2}. 도넛 구간은 출전 경기 비중입니다.", label, featured?.name ?? "없음", featured ? centerValue(featured) : "기록 없음") : tx("{0}, 총 {1}{2}. 아래 범례에서 항목별 수치를 확인할 수 있습니다.", label, total, unit)}>
         {!total && <circle cx="90" cy="90" r="70" fill="none" stroke="var(--muted)" strokeWidth="19" />}
         {slices.map((slice, i) => {
           const start = slices.slice(0, i).reduce((sum, row) => sum + row.value, 0) / total * 100;
@@ -55,17 +57,17 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
         <DonutImage key={featured.image} src={featured.image} size={112} className="object-cover animate-in fade-in duration-200 motion-reduce:animate-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/20 to-black/90" />
         <div className="absolute inset-x-2 bottom-3 text-center [text-shadow:0_1px_4px_rgb(0_0_0/0.8)]">
-          <span className="block truncate text-xs font-semibold">{featured.name}</span>
-          <strong className="mt-0.5 block text-xl leading-none tabular-nums">{centerValue(featured)}{!mapResults && <span className="ml-0.5 text-[10px] font-medium text-white/80">{unit}</span>}</strong>
+          <span className="block truncate text-xs font-semibold">{tx(featured.name)}</span>
+          <strong className="mt-0.5 block text-xl leading-none tabular-nums">{centerValue(featured)}{!mapResults && <span className="ml-0.5 text-[10px] font-medium text-white/80">{tx(unit)}</span>}</strong>
         </div>
-      </div> : <div aria-hidden="true" className="pointer-events-none absolute inset-8 flex flex-col items-center justify-center text-center"><span className="max-w-full truncate text-xs text-muted-foreground">{featured?.name ?? (busy ? "집계 중" : total ? "합계" : "기록 없음")}</span><strong className="mt-1 text-2xl tabular-nums">{busy ? "—" : featured ? centerValue(featured) : total.toLocaleString()}{!mapResults && <span className="ml-1 text-xs font-normal">{unit}</span>}</strong></div>}
+      </div> : <div aria-hidden="true" className="pointer-events-none absolute inset-8 flex flex-col items-center justify-center text-center"><span className="max-w-full truncate text-xs text-muted-foreground">{tx(featured?.name) ?? (busy ? tx("집계 중") : total ? tx("합계") : tx("기록 없음"))}</span><strong className="mt-1 text-2xl tabular-nums">{busy ? "—" : featured ? centerValue(featured) : total.toLocaleString()}{!mapResults && <span className="ml-1 text-xs font-normal">{tx(unit)}</span>}</strong></div>}
     </div>
-    {showImages && <p className="-mt-2 text-center text-[11px] text-muted-foreground">전체 <strong className="ml-1 font-medium tabular-nums text-foreground">{busy ? "—" : total.toLocaleString()}{unit}</strong></p>}
+    {showImages && <p className="-mt-2 text-center text-[11px] text-muted-foreground">{tx("전체")} <strong className="ml-1 font-medium tabular-nums text-foreground">{busy ? "—" : total.toLocaleString()}{tx(unit)}</strong></p>}
     </div>
     <div className="min-w-0">
-      <StatsScrollArea label={`${label} 전체 목록`} className={mapResults || fixedLegend ? "h-[224px]" : "max-h-80"}>
+      <StatsScrollArea label={tx("{0} 전체 목록", label)} className={mapResults || fixedLegend ? "h-[224px]" : "max-h-80"}>
       <div className="space-y-4">
-    {total ? legend : <p className="flex h-full min-h-32 items-center justify-center text-sm text-muted-foreground">{busy ? "집계 중…" : "선택한 조건의 기록이 없습니다."}</p>}
+    {total ? legend : <p className="flex h-full min-h-32 items-center justify-center text-sm text-muted-foreground">{busy ? tx("집계 중…") : tx("선택한 조건의 기록이 없습니다.")}</p>}
       </div></StatsScrollArea>
     </div>
   </div>;

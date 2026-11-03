@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
@@ -40,6 +41,7 @@ export function RolePreferencePicker({
   showPriority?: boolean;
   onChange: (ranking: Role[] | null) => void;
 }) {
+  const tx = useTranslator();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [draggedRole, setDraggedRole] = useState<Role | null>(null);
   const ranking = value ?? profileRanking ?? [];
@@ -75,12 +77,12 @@ export function RolePreferencePicker({
         {compact ? (
           <DropdownMenu>
             <DropdownMenuTrigger
-              aria-label="선호 옵션"
-              title="이번 경기 내 선호"
+              aria-label={tx("선호 옵션")}
+              title={tx("이번 경기 내 선호")}
               disabled={disabled}
               className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
-              내 선호 <ChevronDown className="size-3.5" aria-hidden="true" />
+              {tx("내 선호")} <ChevronDown className="size-3.5" aria-hidden="true" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-52">
               <DropdownMenuRadioGroup
@@ -100,7 +102,7 @@ export function RolePreferencePicker({
                     closeOnClick
                     disabled={disabled}
                   >
-                    프로필 기본값
+                    {tx("프로필 기본값")}
                   </DropdownMenuRadioItem>
                 ) : null}
                 <DropdownMenuRadioItem
@@ -109,7 +111,7 @@ export function RolePreferencePicker({
                   closeOnClick
                   disabled={disabled}
                 >
-                  선호 없음
+                  {tx("선호 없음")}
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
@@ -117,12 +119,12 @@ export function RolePreferencePicker({
                 render={<Link href="/profile" />}
                 className="min-h-11"
               >
-                프로필에서 기본값 설정
+                {tx("프로필에서 기본값 설정")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
-        <ol aria-label="역할 선호 순위" className="flex gap-2">
+        <ol aria-label={tx("역할 선호 순위")} className="flex gap-2">
           {roles.map((role, index) => {
             const label = hasRanking
               ? `${index + 1}순위 ${ROLE_LABEL[role]}`
@@ -132,8 +134,8 @@ export function RolePreferencePicker({
                 {showPriority && index > 0 && <span aria-hidden="true" data-priority-separator className={cn("w-3 text-center text-sm text-muted-foreground", !hasRanking && "invisible")}>{">"}</span>}
                 <button
                   type="button"
-                  aria-label={label}
-                  title={label}
+                  aria-label={tx(label)}
+                  title={tx(label)}
                   aria-pressed={selectedRole === role}
                   aria-describedby={`${id}-help`}
                   disabled={disabled}
@@ -215,7 +217,7 @@ export function RolePreferencePicker({
                   if (value !== null) change(null);
                 }}
               >
-                프로필 기본값
+                {tx("프로필 기본값")}
               </button>
             ) : null}
             <button
@@ -233,7 +235,7 @@ export function RolePreferencePicker({
                 if (value === null || value.length) change([]);
               }}
             >
-              선호 없음
+              {tx("선호 없음")}
             </button>
           </div>
         ) : null}
@@ -243,11 +245,11 @@ export function RolePreferencePicker({
         className={compact || hideHelp ? "sr-only" : "mt-2 text-xs text-muted-foreground"}
       >
         {selectedRole
-          ? "교환할 아이콘을 누르십시오. 다시 누르면 취소됩니다."
-          : "끌어서 순위 변경 · 두 아이콘을 눌러 교환"}
+          ? tx("교환할 아이콘을 누르십시오. 다시 누르면 취소됩니다.")
+          : tx("끌어서 순위 변경 · 두 아이콘을 눌러 교환")}
         <span className="sr-only">
           {" "}
-          좌우 방향키로도 순위를 바꿀 수 있습니다.
+          {tx("좌우 방향키로도 순위를 바꿀 수 있습니다.")}
         </span>
       </p>
     </div>

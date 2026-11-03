@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import type { FormationSettings, Role } from "@/lib/balance/formation";
@@ -165,6 +166,7 @@ function focusedStep(sequence: PreviewStep[], field: PreviewSettingField) {
 }
 
 export function BalanceFormationPreview({ settings, regularRoom, focus = null }: { settings: FormationSettings; regularRoom: boolean; focus?: PreviewSettingFocus | null }) {
+  const tx = useTranslator();
   const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot, () => false);
   const sequence = useMemo(() => buildSteps(settings, regularRoom), [settings, regularRoom]);
   const [playback, setPlayback] = useState({ step: 0, playing: true, elapsed: 0, selected: false, focusRequest: null as PreviewSettingFocus | null, highlighted: false });
@@ -200,18 +202,18 @@ export function BalanceFormationPreview({ settings, regularRoom, focus = null }:
     return () => window.clearInterval(timer);
   }, [playing, reducedMotion, last, duration]);
   return (
-    <section className={cn("mt-3 overflow-hidden rounded-xl border bg-background", styles.previewContainer)} aria-label="편성 방식 미리보기">
+    <section className={cn("mt-3 overflow-hidden rounded-xl border bg-background", styles.previewContainer)} aria-label={tx("편성 방식 미리보기")}>
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5">
         <div>
-          <p className="text-xs font-semibold min-[1100px]:text-base">{labels[settings.teams]} 미리보기</p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground min-[1100px]:text-xs">예시 명단 · {settings.roles === "lottery" ? "자동 배정" : "수동 배정"} · {reducedMotion ? "정적 미리보기" : "4초씩 반복 재생"}</p>
+          <p className="text-xs font-semibold min-[1100px]:text-base">{tx(labels[settings.teams])} {tx("미리보기")}</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground min-[1100px]:text-xs">{tx("예시 명단 ·")} {settings.roles === "lottery" ? tx("자동 배정") : tx("수동 배정")} · {reducedMotion ? tx("정적 미리보기") : tx("4초씩 반복 재생")}</p>
         </div>
         {!reducedMotion && <div className="flex gap-1">
-          <button type="button" className={styles.control} aria-label={playing ? "미리보기 일시정지" : "미리보기 재생"}
+          <button type="button" className={styles.control} aria-label={playing ? tx("미리보기 일시정지") : tx("미리보기 재생")}
             onClick={() => setPlayback({ ...playback, step: current, elapsed, playing: !playing, selected: false, highlighted: false })}>
             {playing ? <Pause size={13} /> : <Play size={13} />}
           </button>
-          <button type="button" className={styles.control} aria-label="미리보기 다시 보기"
+          <button type="button" className={styles.control} aria-label={tx("미리보기 다시 보기")}
             onClick={() => setPlayback({ ...playback, step: 0, elapsed: 0, playing: true, selected: false, highlighted: false })}><RotateCcw size={13} /></button>
         </div>}
       </div>
@@ -223,14 +225,14 @@ export function BalanceFormationPreview({ settings, regularRoom, focus = null }:
         </div>
         <p className="text-xs leading-relaxed min-[1100px]:text-sm" data-testid="formation-preview-caption">{frame.text}</p>
         <input type="range" className={styles.timeline} min={0} max={last} step={1} value={current}
-          aria-label="미리보기 타임라인" aria-valuetext={`${current + 1}단계 · ${frame.title}`}
+          aria-label={tx("미리보기 타임라인")} aria-valuetext={`${current + 1}단계 · ${frame.title}`}
           onChange={(event) => seek(Number(event.target.value))} />
-        <nav className={styles.chapters} aria-label="미리보기 구간">
+        <nav className={styles.chapters} aria-label={tx("미리보기 구간")}>
           {chapters.map((item, index) => <button type="button" key={item.index} className={cn(styles.chapter, item.index === chapter.index && styles.chapterSelected)}
-            aria-label={`${index + 1}. ${item.label} 구간 보기`} aria-current={item.index === chapter.index ? "step" : undefined}
-            onClick={() => seek(item.index)}>{item.label}</button>)}
+            aria-label={tx("{0}. {1} 구간 보기", index + 1, item.label)} aria-current={item.index === chapter.index ? "step" : undefined}
+            onClick={() => seek(item.index)}>{tx(item.label)}</button>)}
         </nav>
-        <p className="text-[10px] text-muted-foreground">{highlighted ? "편집 중인 값의 위치를 강조했습니다. 재생하거나 구간을 선택하면 시연을 이어 볼 수 있습니다." : "수치 입력을 선택하면 적용 위치를 강조합니다. 타임라인이나 구간을 선택하면 해당 장면에서 일시정지합니다."}</p>
+        <p className="text-[10px] text-muted-foreground">{highlighted ? tx("편집 중인 값의 위치를 강조했습니다. 재생하거나 구간을 선택하면 시연을 이어 볼 수 있습니다.") : tx("수치 입력을 선택하면 적용 위치를 강조합니다. 타임라인이나 구간을 선택하면 해당 장면에서 일시정지합니다.")}</p>
       </div>
     </section>
   );

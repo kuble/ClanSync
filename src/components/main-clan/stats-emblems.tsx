@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useEffect, useState } from "react";
 import { ProfileIdentity } from "@/components/profile/profile-identity";
 import type { PlayerIdentity } from "@/lib/profile/visibility";
@@ -16,6 +17,7 @@ type Hof = ClanStatsPageModel["hof"];
 export function StatsPlayerBanner({ gameSlug, clanId, hof, userId, nickname, profile, awards, showEmblems = true }: {
   gameSlug: string; clanId: string; showEmblems?: boolean; hof: Hof; userId: string; nickname: string; profile?: PlayerProfile; awards?: HofEmblem[];
 }) {
+  const tx = useTranslator();
   const target = `${clanId}:${userId}`;
   const [result, setResult] = useState<{ target: string; identity?: PlayerIdentity; error?: string }>();
   const [attempt, setAttempt] = useState(0);
@@ -44,18 +46,18 @@ export function StatsPlayerBanner({ gameSlug, clanId, hof, userId, nickname, pro
   const loading = !current?.identity && !current?.error;
   const introPlaceholder = current?.error ? <>
     {current.identity?.intro && <p>{current.identity.intro}</p>}
-    <span role="alert">{current.error}<button type="button" className="ml-3 underline" onClick={() => { setResult(previous => previous && { target: previous.target, identity: previous.identity }); setAttempt(value => value + 1); }}>다시 불러오기</button></span>
+    <span role="alert">{tx(current.error)}<button type="button" className="ml-3 underline" onClick={() => { setResult(previous => previous && { target: previous.target, identity: previous.identity }); setAttempt(value => value + 1); }}>{tx("다시 불러오기")}</button></span>
   </> : loading ? <span role="status" className="block">
-    <span className="sr-only">플레이어 소개를 불러오는 중…</span>
+    <span className="sr-only">{tx("플레이어 소개를 불러오는 중…")}</span>
     <span aria-hidden="true" className="grid gap-2 pt-1.5 motion-safe:animate-pulse"><span className="h-3 w-4/5 rounded bg-muted" /><span className="h-3 w-3/5 rounded bg-muted" /></span>
   </span> : undefined;
-  return <section aria-label="플레이어 배너" aria-busy={loading} className={`min-h-48 min-w-0 overflow-hidden rounded-xl border bg-card ${styles.banner}`}>
+  return <section aria-label={tx("플레이어 배너")} aria-busy={loading} className={`min-h-48 min-w-0 overflow-hidden rounded-xl border bg-card ${styles.banner}`}>
     <ProfileIdentity readOnly userId={userId} intro={current?.identity?.intro ?? ""} introPlaceholder={introPlaceholder} memberships={[]} onAltAccountsChanged={() => setAttempt(value => value + 1)}
       games={[game]} publicAppearance={current?.identity?.appearance ?? card} emblemCase={emblemCase}>
-      <section className={profileStyles.identityFacts} aria-label="기본 정보" aria-busy={loading && !facts}><dl>
-        <div><dt>성별</dt><dd>{facts ? facts.gender === "male" ? "남성" : facts.gender === "female" ? "여성" : "비공개" : "—"}</dd></div>
-        <div><dt>출생 연도</dt><dd>{facts ? facts.birthYear ?? "미등록" : "—"}</dd></div>
-        <div><dt>클랜 가입일</dt><dd>{facts ? facts.clanJoinedAt ? new Date(facts.clanJoinedAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "미등록" : "—"}</dd></div>
+      <section className={profileStyles.identityFacts} aria-label={tx("기본 정보")} aria-busy={loading && !facts}><dl>
+        <div><dt>{tx("성별")}</dt><dd>{facts ? facts.gender === "male" ? tx("남성") : facts.gender === "female" ? tx("여성") : tx("비공개") : "—"}</dd></div>
+        <div><dt>{tx("출생 연도")}</dt><dd>{facts ? facts.birthYear ?? tx("미등록") : "—"}</dd></div>
+        <div><dt>{tx("클랜 가입일")}</dt><dd>{facts ? facts.clanJoinedAt ? new Date(facts.clanJoinedAt).toLocaleDateString(tx.locale, { timeZone: "Asia/Seoul" }) : tx("미등록") : "—"}</dd></div>
       </dl></section>
     </ProfileIdentity>
   </section>;

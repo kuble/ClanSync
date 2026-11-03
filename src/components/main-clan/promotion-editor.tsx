@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, useEditorState, type Editor, type EditorOptions } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -19,6 +20,7 @@ export { draftPromotionBlocks, type PromotionDraftBlock } from "@/lib/clan/promo
 export function PromotionEditor({ gameSlug, clanId, blocks, onChange, disabled }: {
   gameSlug: string; clanId: string; blocks: PromotionDraftBlock[]; onChange: (value: PromotionDraftBlock[]) => void; disabled: boolean;
 }) {
+  const tx = useTranslator();
   const picker = useRef<HTMLInputElement>(null);
   const insertion = useRef<{ from: number; to: number } | null>(null);
   const assets = useRef(new Map(blocks.flatMap(block => block.type === "image" ? [[block.key, block] as const] : [])));
@@ -42,7 +44,7 @@ export function PromotionEditor({ gameSlug, clanId, blocks, onChange, disabled }
         if (!transaction.docChanged) return true;
         let images = 0; transaction.doc.descendants(node => { if (node.type.name === "image") images++; });
         if (images <= PROMOTION_IMAGE_COUNT) return true;
-        toast.error("사진은 6장까지 넣을 수 있습니다."); return false;
+        toast.error(tx("사진은 6장까지 넣을 수 있습니다.")); return false;
       } })];
     },
   }).configure({ inline: true, HTMLAttributes: { draggable: "true" } }));
@@ -116,18 +118,18 @@ export function PromotionEditor({ gameSlug, clanId, blocks, onChange, disabled }
           <TooltipTrigger render={<Button type="button" variant="ghost" size="sm" />}
             disabled={disabled || !editor} aria-disabled={disabled || !editor || photos >= PROMOTION_IMAGE_COUNT}
             onMouseDown={event => event.preventDefault()} onClick={() => { if (photos < PROMOTION_IMAGE_COUNT) choosePhoto(); }}>
-            <ImagePlus size={16} aria-hidden />사진 넣기
+            <ImagePlus size={16} aria-hidden />{tx("사진 넣기")}
           </TooltipTrigger>
-          <TooltipContent>사진은 최대 {PROMOTION_IMAGE_COUNT}장까지 넣을 수 있습니다.</TooltipContent>
+          <TooltipContent>{tx("사진은 최대")} {PROMOTION_IMAGE_COUNT}{tx("장까지 넣을 수 있습니다.")}</TooltipContent>
         </Tooltip>
         <span className={styles.divider} />
-        <Button type="button" size="icon" variant="ghost" aria-label="실행 취소" disabled={disabled || !selection?.undo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().undo().run()}><Undo2 size={15} /></Button>
-        <Button type="button" size="icon" variant="ghost" aria-label="다시 실행" disabled={disabled || !selection?.redo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().redo().run()}><Redo2 size={15} /></Button>
+        <Button type="button" size="icon" variant="ghost" aria-label={tx("실행 취소")} disabled={disabled || !selection?.undo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().undo().run()}><Undo2 size={15} /></Button>
+        <Button type="button" size="icon" variant="ghost" aria-label={tx("다시 실행")} disabled={disabled || !selection?.redo} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().redo().run()}><Redo2 size={15} /></Button>
       </div>
     </div>
-    <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden aria-label="홍보 사진 선택" disabled={disabled} onChange={event => { insertPhotos(Array.from(event.target.files ?? []),insertion.current); insertion.current=null; event.target.value = ""; }} />
-    {selection?.image && <div className={styles.imageTools}><input aria-label="사진 설명" placeholder="사진 설명 (선택)" maxLength={160} value={selection.alt} disabled={disabled} onChange={event => editor?.commands.updateAttributes("image", { alt: event.target.value })} /><Button type="button" size="sm" variant="ghost" disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().command(({tr})=>{closeHistory(tr);return true;}).deleteSelection().run()}><Trash2 size={14} aria-hidden />선택한 사진 삭제</Button></div>}
-    <div className={styles.canvas} data-empty={empty} data-ready={!!editor}><EditorContent editor={editor} />{empty && <span className={styles.placeholder}>클랜 소개와 함께하고 싶은 활동을 적어보세요.</span>}</div>
-    <p id="promotion-content-hint" className={styles.hint} aria-live="polite"><span className={length > 8000 ? "text-destructive" : ""}>{length.toLocaleString()} / 8,000자</span></p>
+    <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden aria-label={tx("홍보 사진 선택")} disabled={disabled} onChange={event => { insertPhotos(Array.from(event.target.files ?? []),insertion.current); insertion.current=null; event.target.value = ""; }} />
+    {selection?.image && <div className={styles.imageTools}><input aria-label={tx("사진 설명")} placeholder={tx("사진 설명 (선택)")} maxLength={160} value={selection.alt} disabled={disabled} onChange={event => editor?.commands.updateAttributes("image", { alt: event.target.value })} /><Button type="button" size="sm" variant="ghost" disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().command(({tr})=>{closeHistory(tr);return true;}).deleteSelection().run()}><Trash2 size={14} aria-hidden />{tx("선택한 사진 삭제")}</Button></div>}
+    <div className={styles.canvas} data-empty={empty} data-ready={!!editor}><EditorContent editor={editor} />{empty && <span className={styles.placeholder}>{tx("클랜 소개와 함께하고 싶은 활동을 적어보세요.")}</span>}</div>
+    <p id="promotion-content-hint" className={styles.hint} aria-live="polite"><span className={length > 8000 ? "text-destructive" : ""}>{length.toLocaleString()} {tx("/ 8,000자")}</span></p>
   </div>;
 }

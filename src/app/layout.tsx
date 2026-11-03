@@ -5,6 +5,8 @@ import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { getTranslator, loadMessages, readLanguage } from "@/lib/i18n/server";
+import { LanguageProvider } from "@/components/ui/language-provider";
 
 const pretendard = localFont({
   src: "../../public/fonts/PretendardVariable.woff2",
@@ -18,26 +20,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const tx = await getTranslator();
+  return {
   title: "ClanSync",
-  description: "게임 클랜/길드 커뮤니티 플랫폼",
+  description: tx("게임 클랜/길드 커뮤니티 플랫폼"),
 };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const language = await readLanguage();
   return (
     <html
-      lang="ko"
+      lang={language}
       data-scroll-behavior="smooth"
       className={`${pretendard.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="clansync-theme" disableTransitionOnChange>
-          <TooltipProvider>{children}</TooltipProvider>
+          <LanguageProvider language={language} messages={await loadMessages(language)}><TooltipProvider>{children}</TooltipProvider></LanguageProvider>
           {/* Tooltip 트리와 분리 + 클라이언트에서 document.body 포털 (sonner.tsx) */}
           <Toaster />
         </ThemeProvider>

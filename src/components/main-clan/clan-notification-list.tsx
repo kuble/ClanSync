@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SheetClose } from "@/components/ui/sheet";
@@ -99,9 +100,10 @@ function notificationTitle(
 export function ClanNotificationList({ items, eventsBase, canOpenInquiry = false, inSheet = false, now }: {
   items: ClanInAppNotificationVM[]; eventsBase: string; canOpenInquiry?: boolean; inSheet?: boolean; now?: number;
 }) {
+  const tx = useTranslator();
   return <>{items.length === 0 ? (
             <p className="text-muted-foreground px-4 py-8 text-center text-sm">
-              알림이 없습니다.
+              {tx("알림이 없습니다.")}
             </p>
           ) : (
             <ul
@@ -150,10 +152,10 @@ export function ClanNotificationList({ items, eventsBase, canOpenInquiry = false
                       </p>
                       <p className="text-muted-foreground mt-1 text-xs">
                         {formatRelativeKo(row.created_at, now)}
-                        {unread ? " · 미읽음" : ""}
+                        {unread ? tx(" · 미읽음") : ""}
                       </p>
                       {href && <span className="text-primary mt-1 inline-block text-xs font-medium">
-                        {row.kind === "clan_inquiry_comment" ? "문의방 열기" : "원본 보기 →"}
+                        {row.kind === "clan_inquiry_comment" ? tx("문의방 열기") : tx("원본 보기 →")}
                       </span>}
                     </NotificationLink>
                   </li>
