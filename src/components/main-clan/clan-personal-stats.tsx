@@ -3,7 +3,7 @@
 import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
-import { StatTitle } from "./stat-help";
+import { StatTitle, StatTooltip } from "./stat-help";
 import { StatsPlayerBanner } from "./stats-emblems";
 import { StatsDonut } from "./stats-donut";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
@@ -141,7 +141,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
     .reduce<{ at: string; value: number }[]>((trend, { date, change }) => [...trend, { at: date + "T12:00:00+09:00", value: (trend.at(-1)?.value ?? 0) + change }], []);
   return (
     <div className="space-y-5" aria-busy={pending}>
-      <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2"><Button type="button" variant="outline" size="sm" className="size-8 px-0 sm:h-7 sm:w-auto sm:px-2.5" aria-label="멤버 선택" title="멤버 선택" onClick={onBack}><UserRound className="size-3.5 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">멤버 선택</span></Button>{settings}</div></div></section>
+      <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2"><StatTooltip label="멤버 선택" description="멤버 목록으로 돌아갑니다." render={<Button type="button" variant="ghost" size="icon" className="size-8" aria-label="멤버 선택" onClick={onBack} />}><Users className="size-4" aria-hidden="true" /></StatTooltip>{settings}</div></div></section>
       {banner !== undefined ? banner : <StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} awards={person.emblems} showEmblems={visible("emblems")} hof={model.hof} userId={person.userId} nickname={person.nickname} profile={person.profile} />}
       {visible("records") && <><Card size="sm" role="region" aria-label="플레이어 요약">
         <CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><UserRound className="size-4 shrink-0 text-primary" aria-hidden="true" />플레이어 요약</CardTitle></CardHeader>
