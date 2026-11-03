@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { ArrowUpRight, Medal } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Medal } from "lucide-react";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import { Badge } from "@/components/ui/badge";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { coachRoleLabel, coachTierLabel, type ClanCoach } from "@/lib/clan/coaching";
 
 function subscribeMotion(notify: () => void) {
@@ -40,7 +40,12 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
   const track = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = coaches.find(coach => coach.userId === selectedId);
+  const selectedIndex = coaches.findIndex(coach => coach.userId === selectedId);
+  const selected = coaches[selectedIndex];
+  function navigateCoach(step: number) {
+    const index = (selectedIndex + step + coaches.length) % coaches.length;
+    setSelectedId(coaches[index].userId);
+  }
   const [hovered, setHovered] = useState(false);
   const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot, () => false);
   const autoEnabled = !reducedMotion;
@@ -87,19 +92,19 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
       </div>
 
     </>}
-    <Sheet open={!!selected} onOpenChange={open => { if (!open) setSelectedId(null); }}>
-      <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
+    <Dialog open={!!selected} onOpenChange={open => { if (!open) setSelectedId(null); }}>
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
         {selected && <>
-          <div className="board-scroll min-h-0 flex-1 overflow-y-auto">
-            <SheetHeader className="relative isolate gap-5 overflow-hidden border-b bg-primary/10 px-6 pt-9 pb-6">
+          <div key={selected.userId} className="board-scroll min-h-0 overflow-y-auto">
+            <DialogHeader className="relative isolate gap-5 overflow-hidden border-b bg-primary/10 px-6 pt-9 pb-6">
               <span aria-hidden className="pointer-events-none absolute -right-12 -bottom-10 -z-10 -rotate-12 text-primary/10">
                 <OverwatchRoleIcon role={coachIconRole(selected.role)} className="size-48" />
               </span>
-              <SheetDescription className="font-semibold text-foreground">코칭 선생님 소개</SheetDescription>
+              <DialogDescription className="font-semibold text-foreground">코칭 선생님 소개</DialogDescription>
               <div className="flex items-center gap-4">
                 <ClanPlayerAvatar userId={selected.userId} label={selected.name} size={64} />
                 <div className="min-w-0 space-y-1">
-                  <SheetTitle className="text-xl font-bold tracking-tight [overflow-wrap:anywhere]">{selected.name}</SheetTitle>
+                  <DialogTitle className="text-xl font-bold tracking-tight [overflow-wrap:anywhere]">{selected.name}</DialogTitle>
                   <p className="flex items-center gap-2 text-xs">
                     <span aria-hidden className={"size-2 rounded-full " + (selected.accepting ? "bg-primary" : "bg-muted-foreground")} />
                     {selected.accepting ? "신청 가능" : "신청 잠시 중단"}
@@ -107,28 +112,34 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
                 </div>
               </div>
               <CoachTags coach={selected} />
-            </SheetHeader>
+            </DialogHeader>
             <div className="space-y-7 p-6">
-              <section className="space-y-3 border-l-2 border-primary pl-4">
-                <h3 className="text-xs font-semibold text-muted-foreground">코칭 내용</h3>
-                <p className="whitespace-pre-wrap text-xl font-bold leading-snug tracking-tight [overflow-wrap:anywhere]">{selected.expertise}</p>
-              </section>
-              <section className="space-y-3 border-t pt-5">
-                <h3 className="font-semibold">선생님 소개</h3>
+              <section className="space-y-2">
+                <h3 className="text-base font-semibold">선생님 소개</h3>
                 <p className="whitespace-pre-wrap text-sm leading-7 [overflow-wrap:anywhere]">{selected.bio || "등록된 소개가 없습니다."}</p>
+              </section>
+              <section className="space-y-2 rounded-lg bg-muted/40 p-4">
+                <h3 className="text-base font-semibold">코칭 내용</h3>
+                <p className="whitespace-pre-wrap text-sm leading-7 [overflow-wrap:anywhere]">{selected.expertise}</p>
               </section>
             </div>
           </div>
           <div className="shrink-0 space-y-2 border-t bg-card px-6 py-4">
             {selected.userId === userId && <p className="text-xs text-muted-foreground">내 코칭 프로필입니다.</p>}
-            <Button type="button" className="h-11 w-full" disabled={selected.userId === userId || !selected.accepting}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" className="size-11" aria-label="이전 선생님"
+                disabled={coaches.length < 2} onClick={() => navigateCoach(-1)}><ChevronLeft /></Button>
+              <Button type="button" className="h-11 min-w-0 flex-1" disabled={selected.userId === userId || !selected.accepting}
               aria-label={selected.name + " 선생님께 신청"}
               onClick={() => { setSelectedId(null); onRequest(selected.userId); }}>
               피드백 신청 <ArrowUpRight aria-hidden className="size-4" />
-            </Button>
+              </Button>
+              <Button type="button" variant="outline" className="size-11" aria-label="다음 선생님"
+                disabled={coaches.length < 2} onClick={() => navigateCoach(1)}><ChevronRight /></Button>
+            </div>
           </div>
         </>}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   </section>;
 }

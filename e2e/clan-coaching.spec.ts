@@ -57,6 +57,9 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
     const ownCard=page.getByRole('button',{name:f.users[0].nickname+' 선생님 소개 보기',exact:true});
     await ownCard.click();
     const detail=page.getByRole('dialog');
+    await detail.getByRole('button',{name:'다음 선생님'}).click();
+    await expect(detail.getByRole('heading',{name:f.users[0].nickname,exact:true})).toHaveCount(0);
+    await detail.getByRole('button',{name:'이전 선생님'}).click();
     await expect(detail.getByText(bio,{exact:true})).toBeVisible();
     await expect(detail.getByRole('button',{name:f.users[0].nickname+' 선생님께 신청',exact:true})).toBeDisabled();
     await page.keyboard.press('Escape');await expect(detail).toBeHidden();
@@ -65,6 +68,7 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
 });
 test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글 알림과 신청 중단',async({page})=>{
   test.setTimeout(240_000);
+  const expertise='아나 위치 선정과 스킬 활용\n'.repeat(80).slice(0,999)+'끝';
   const f=await createIsolatedBalanceFixture(3),base=f.path.replace(/\/balance$/,''),coach=f.users[2],student=f.users[1],peer=f.users[0];
   try{
     await loginIsolatedBalanceUser(page,coach);await page.goto(base+'/board/feedback');
@@ -78,7 +82,7 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     const minimum=dialog.getByRole('slider',{name:'최소 코칭 티어',exact:true}),maximum=dialog.getByRole('slider',{name:'최대 코칭 티어',exact:true});
     await minimum.press('Home');await minimum.press('ArrowRight');await minimum.press('ArrowRight');
     await maximum.press('End');await maximum.press('ArrowLeft');await maximum.press('ArrowLeft');await maximum.press('ArrowLeft');await maximum.press('ArrowLeft');
-    await dialog.getByLabel('코칭 내용',{exact:true}).fill('아나 · 위치 선정');
+    await dialog.getByLabel('코칭 내용',{exact:true}).fill(expertise);
     await dialog.getByLabel('선생님 소개',{exact:true}).fill('리플레이를 같이 보며 다음 한타를 준비합니다.');
     await dialog.getByRole('button',{name:'프로필 저장',exact:true}).click();
     const savedCard=page.getByRole('button',{name:coach.nickname+' 선생님 소개 보기',exact:true});
@@ -92,12 +96,12 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await expect(dialog.getByRole('radiogroup',{name:'역할',exact:true}).getByRole('radio',{name:'지원',exact:true})).toBeChecked();
     await expect(minimum).toHaveAttribute('aria-valuetext','골드');
     await expect(maximum).toHaveAttribute('aria-valuetext','에메랄드');
-    await expect(dialog.getByLabel('코칭 내용',{exact:true})).toHaveValue('아나 · 위치 선정');
+    await expect(dialog.getByLabel('코칭 내용',{exact:true})).toHaveValue(expertise);
     await dialog.getByRole('button',{name:'취소',exact:true}).click();
     await page.keyboard.press('Escape');
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,student);await page.goto(base+'/board/feedback');
     await page.getByRole('button',{name:coach.nickname+' 선생님 소개 보기',exact:true}).click();
-    await expect(dialog.getByText('아나 · 위치 선정',{exact:true})).toBeVisible();
+    await expect(dialog.getByText(expertise,{exact:true})).toBeVisible();
     await expect(dialog.getByText('지원',{exact:true})).toBeVisible();
     await expect(dialog.getByLabel('티어: 골드 ~ 에메랄드',{exact:true})).toBeVisible();
     await expect(dialog.getByText('리플레이를 같이 보며 다음 한타를 준비합니다.',{exact:true})).toBeVisible();
