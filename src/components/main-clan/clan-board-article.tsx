@@ -53,13 +53,13 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
   function mutate(action:()=>Promise<{ok:true;warning?:string}|{ok:false;error:string}>,done?:()=>void){
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
-  return <div className={cn("board-article grid items-start gap-4", commentsOpen && "md:grid-cols-[minmax(0,1fr)_minmax(18rem,38%)]")}>
-    <button ref={opener} type="button" aria-expanded={commentsOpen} aria-controls="comments" onClick={()=>changeComments(true)} disabled={pending} aria-label={"댓글 "+post.commentCount} title="댓글 열기"
+  return <div className="board-article isolate grid grid-cols-[minmax(0,1fr)] items-start">
+    <button ref={opener} type="button" aria-expanded={commentsOpen} aria-controls="comments" onPointerEnter={event=>{if(event.pointerType==="mouse" && !pending) changeComments(true);}} onClick={()=>changeComments(true)} disabled={pending} aria-label={"댓글 "+post.commentCount} title="댓글 열기"
       className={cn("fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", commentsOpen && "invisible pointer-events-none")}>
       <MessageSquare className="size-4" aria-hidden />
       <span className="[writing-mode:vertical-rl]">댓글</span>
     </button>
-    <article className={cn("min-w-0 overflow-hidden rounded-xl border border-border bg-card", commentsOpen && "max-md:hidden")}>
+    <article className="col-start-1 row-start-1 min-w-0 overflow-hidden rounded-xl border border-border bg-card">
       <header className="border-b border-border px-5 py-6 sm:px-7">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><ClanPlayerAvatar userId={post.author_id} label={post.author} size={28}/><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
         {kind!=="memories"&&<h3 className="mt-4 min-w-0 break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl"><ClanEmojiText text={post.title} large={false}/></h3>}
@@ -92,8 +92,8 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         {post.canManage&&<div className={articleStyles.actions} role="group" aria-label="게시글 관리"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(true)}><Trash2 className="size-4" aria-hidden/></Button></div>}
       </footer>
     </article>
-    {commentsOpen && <aside id="comments" aria-label="게시글 댓글" className="sticky top-[72px] min-w-0 rounded-xl border bg-card">
-      <header className="sticky top-[64px] z-10 flex items-center justify-between rounded-t-xl border-b bg-card px-4 py-2">
+    {commentsOpen && <aside id="comments" aria-label="게시글 댓글" className="sticky top-[64px] z-30 col-start-1 row-start-1 min-h-[calc(100dvh-64px)] w-full max-w-[440px] justify-self-end border-l bg-card shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-right-8">
+      <header className="sticky top-[64px] z-10 flex items-center justify-between border-b bg-card px-4 py-2">
         <h4 className="text-sm font-semibold">댓글 {post.commentCount}</h4>
         <Button size="sm" variant="ghost" onClick={closeComments}>닫기</Button>
       </header>

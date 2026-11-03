@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test("board comments follow the main scroll and allow replies", async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(120_000); page.setDefaultTimeout(12_000);
   const f = await createIsolatedBalanceFixture(1), postId = randomUUID();
   const base = f.path.replace(/\/balance$/, "");
   const comments = Array.from({ length: 20 }, (_, index) => ({
@@ -21,11 +21,15 @@ test("board comments follow the main scroll and allow replies", async ({ page })
     expect(bounds).not.toBeNull();
     expect(bounds!.y + bounds!.height / 2).toBeCloseTo(884 / 2, 0);
     expect(1015 - bounds!.x - bounds!.width).toBeCloseTo(12, 0);
-    await tab.click();
+    const article = page.locator(".board-article > article");
+    const before = await article.boundingBox();
+    await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
     const section = page.getByRole("complementary", { name: "게시글 댓글" });
     const viewport = section.getByRole("region", { name: "게시글 댓글 목록", exact: true });
     const input = section.getByRole("textbox", { name: "댓글 내용", exact: true });
     await expect(viewport.getByRole("listitem")).toHaveCount(2);
+    expect((await article.boundingBox())!.width).toBe(before!.width);
+    expect((await section.boundingBox())!.x).toBeLessThan(before!.x + before!.width);
     const short = await viewport.evaluate(el => ({ height: el.clientHeight, content: el.scrollHeight }));
     expect(short.content - short.height).toBeLessThanOrEqual(1);
 
