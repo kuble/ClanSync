@@ -1,14 +1,8 @@
 import { useTranslator } from "#use-translator";
 import Link from "next/link";
+import { SITE_LINKS } from "@/lib/site-links";
 import { EntryBrand } from "./entry-brand";
 import styles from "./site-footer.module.css";
-
-export const SITE_LINKS = [
-  { href: "/notices", label: "공지사항" },
-  { href: "/terms", label: "이용약관" },
-  { href: "/privacy", label: "개인정보처리방침" },
-  { href: "/contact", label: "문의하기" },
-] as const;
 
 export function SiteFooter() {
   const tx = useTranslator();

@@ -1,4 +1,20 @@
 import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+
+test("signed-in members can open each service page from the profile menu", async ({ page }) => {
+  const fixture = await createIsolatedBalanceFixture(1);
+  try {
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    for (const label of ["공지사항", "이용약관", "개인정보처리방침", "문의하기"]) {
+      await page.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
+      await page.getByRole("menuitem", { name: label, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: label, exact: true })).toBeVisible();
+      await page.goBack();
+    }
+  } finally {
+    await fixture.cleanup();
+  }
+});
 
 test("footer menus open public service pages with draft status and a working return home", async ({ page }) => {
   await page.goto("/");

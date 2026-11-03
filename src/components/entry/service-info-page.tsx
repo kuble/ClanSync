@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { EntryBrand } from "./entry-brand";
-import { SITE_LINKS, SiteFooter } from "./site-footer";
+import { SITE_LINKS } from "@/lib/site-links";
+import { SiteFooter } from "./site-footer";
 import styles from "./service-info.module.css";
 
 export function ServiceInfoPage({ current, title, description, draft = false, children }: {
