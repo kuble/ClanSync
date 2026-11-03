@@ -79,7 +79,7 @@ function buildCalendarCells(
   month: number,
 ): { date: Date; inMonth: boolean }[] {
   const first = new Date(year, month, 1);
-  const pad = (first.getDay() + 6) % 7;
+  const pad = first.getDay();
   const dim = new Date(year, month + 1, 0).getDate();
   const cells: { date: Date; inMonth: boolean }[] = [];
   for (let i = 0; i < pad; i++) {
@@ -297,14 +297,8 @@ export function ClanEventsView({
     const ny = d.getFullYear();
     const nm = d.getMonth();
     setCursor({ y: ny, m: nm });
-    const parts = selectedKey.split("-").map(Number);
-    const yy = parts[0] ?? ny;
-    const mm = parts[1] ?? nm + 1;
-    const dd = parts[2] ?? 1;
-    const sel = new Date(yy, mm - 1, dd);
-    if (sel.getFullYear() !== ny || sel.getMonth() !== nm) {
-      setSelectedKey(dateKeyLocalFromDate(new Date(ny, nm, 1)));
-    }
+    const firstKey = dateKeyLocalFromDate(d);
+    setSelectedKey(firstKey.slice(0, 7) === todayKey.slice(0, 7) ? todayKey : firstKey);
   }
 
   useEffect(() => {
@@ -713,7 +707,8 @@ export function ClanEventsView({
         {canManageEvents && <BoardCreateButton label="일정 등록" onClick={() => setCreateOpen(true)} />}
         <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
           <section aria-label="캘린더" className="min-w-0 overflow-hidden rounded-2xl border bg-card">
-          <div className="flex items-center justify-center gap-2 border-b py-3">
+          <div className="grid grid-cols-[auto_1fr] items-center gap-1 border-b px-2 py-3 sm:grid-cols-[1fr_auto_1fr] sm:px-4">
+            <div className="flex items-center justify-center sm:col-start-2 sm:gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -723,7 +718,7 @@ export function ClanEventsView({
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </Button>
-            <h3 className="min-w-32 text-center text-lg font-semibold tracking-tight">
+            <h3 className="whitespace-nowrap text-center text-sm sm:min-w-32 sm:text-lg font-semibold tracking-tight">
               {monthLabel}
             </h3>
             <Button
@@ -735,6 +730,15 @@ export function ClanEventsView({
             >
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
+            </div>
+          <div className="flex justify-self-end gap-1.5 text-[10px] text-muted-foreground sm:gap-3">
+            {["intra", "scrim", "event"].map((kind) => (
+              <span key={kind} className="flex items-center gap-1">
+                <span className={cn("size-1.5 rounded-full", kindDotClass(kind))} />
+                {kindLabel(kind)}
+              </span>
+            ))}
+          </div>
           </div>
             <div
               ref={calendarRef}
@@ -743,15 +747,15 @@ export function ClanEventsView({
 
             >
               <div role="row" className="grid grid-cols-7 border-b bg-muted/30">
-                {["월", "화", "수", "목", "금", "토", "일"].map(
+                {["일", "월", "화", "수", "목", "금", "토"].map(
                   (weekday, index) => (
                     <div
                       key={weekday}
                       role="columnheader"
                       className={cn(
                         "py-3 text-center text-[11px] font-semibold text-muted-foreground",
-                        index === 5 && "text-team-blue",
-                        index === 6 && "text-team-red",
+                        index === 6 && "text-team-blue",
+                        index === 0 && "text-team-red",
                       )}
                     >
                       {weekday}
@@ -814,7 +818,7 @@ export function ClanEventsView({
                             ) {
                               event.preventDefault();
                               const target = new Date(date);
-                              const position = (date.getDay() + 6) % 7;
+                              const position = date.getDay();
                               target.setDate(
                                 date.getDate() +
                                   (event.key === "Home" ? -position : 6 - position),
@@ -824,26 +828,27 @@ export function ClanEventsView({
                           }}
                           className={cn(
                             "flex h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:h-28 sm:items-start sm:gap-1 sm:px-2.5 sm:py-1.5",
-                            !inMonth && "bg-muted/20 text-muted-foreground/50",
+                            !inMonth && "bg-muted/10 text-muted-foreground/40",
+                            today && "bg-primary/10 shadow-[inset_3px_0_0_var(--primary)]",
                             selected &&
-                              "bg-primary/[0.08] ring-1 ring-inset ring-primary/40",
+                              "bg-primary/15 ring-2 ring-inset ring-primary/65",
                           )}
                         >
                           <span
                             className={cn(
                               "flex size-7 items-center justify-center rounded-full text-[13px] font-medium tabular-nums sm:size-6 sm:shrink-0",
                               today &&
-                                "bg-primary font-bold text-primary-foreground",
-                              selected && !today && "bg-primary/15 font-semibold text-primary",
+                                "font-bold text-primary",
+                              selected && !today && "font-semibold text-primary",
                               !today &&
                                 !selected &&
-                                date.getDay() === 0 &&
+                                inMonth && date.getDay() === 0 &&
                                 "text-team-red",
                             )}
                           >
                             {date.getDate()}
                           </span>
-                          <span className="flex gap-1 sm:hidden">
+                          <span className={cn("flex gap-1 sm:hidden", !inMonth && "opacity-40")}>
                             {kinds.map((kind) => (
                               <span
                                 key={kind}
@@ -854,7 +859,7 @@ export function ClanEventsView({
                               />
                             ))}
                           </span>
-                          <span className="hidden w-full space-y-0.5 text-left sm:block">
+                          <span className={cn("hidden w-full space-y-0.5 text-left sm:block", !inMonth && "opacity-40")}>
                             {dayOccurrences.slice(0, 2).map((o) => (
                               <span
                                 key={o.key}
@@ -957,14 +962,7 @@ export function ClanEventsView({
             </div>
           </section>
           </div>
-          <div className="flex justify-end gap-4 text-[11px] text-muted-foreground lg:col-start-1">
-            {["intra", "scrim", "event"].map((kind) => (
-              <span key={kind} className="flex items-center gap-1.5">
-                <span className={cn("size-1.5 rounded-full", kindDotClass(kind))} />
-                {kindLabel(kind)}
-              </span>
-            ))}
-          </div>
+
         </div>
 
         <Sheet open={dayDrawerOpen} onOpenChange={setDayDrawerOpen}>

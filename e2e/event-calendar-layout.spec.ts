@@ -31,6 +31,12 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(f.path.replace(/balance$/, "events"));
     const calendar = page.getByRole("grid", { name: "월간 캘린더" });
+    await expect(calendar.getByRole("columnheader")).toHaveText(["일","월","화","수","목","금","토"]);
+    const selectedDay = calendar.getByRole("gridcell", { selected: true }).getByRole("button");
+    await expect(selectedDay).toHaveAttribute("aria-current", "date");
+    await page.getByRole("button", { name: "다음 달", exact: true }).click();
+    await page.getByRole("button", { name: "이전 달", exact: true }).click();
+    await expect(selectedDay).toHaveAttribute("aria-current", "date");
     const panel = page.getByRole("region", { name: "선택한 날짜 일정" });
     const scheduleList = panel.getByRole("list", { name: "날짜별 일정 목록" });
     const inlineDetail = panel.getByRole("region", { name: "일정 상세", exact: true });
