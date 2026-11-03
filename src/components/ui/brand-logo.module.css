@@ -6,7 +6,5 @@
 .symbolImage { width: 100%; height: 100%; object-fit: contain; }
 .wordmarkImage { width: 108.7955%; left: -4.6499%; top: -57.1072%; }
 .darkImage { display: none; }
-.darkWordmarkImage { width: 142.4262%; left: -36.8525%; top: -68.546%; }
 :global(.dark) .lightImage { display: none; }
 :global(.dark) .darkImage { display: block; }
-:global(.dark) .wordmark { width: 4.5252em; }
