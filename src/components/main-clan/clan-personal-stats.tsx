@@ -122,6 +122,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
   }
   const maps = [...mapGroups].map(([name, rows]) => ({ name, ...recordTotals(rows) })).sort((a, b) => mapSort === "matches" ? b.matches - a.matches : (b.rate ?? -1) - (a.rate ?? -1));
   const selectedPeer = relations.find((row) => row.id === peerId) ?? relations[0];
+  const currentScore = (person.scores ?? person.matches).find((score) => score[activeScoreKind] !== null)?.[activeScoreKind];
   const scorePoints = [...(person.scores ?? person.matches)].filter((score) => inPeriod(score.date)).reverse().map((score) => ({ at: score.occurredAt, value: score[activeScoreKind] }));
   const predictionDays = person.predictionPoints.filter((item) => inPeriod(item.date));
   const earned = predictionDays.reduce((sum, day) => sum + day.earned, 0);
@@ -195,6 +196,10 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
       </CardContent></Card>}
       <div className={`grid min-w-0 gap-4 ${(visible("evaluation") || visible("analysis")) && (visible("predictions") || canViewPredictionPoints) ? "lg:grid-cols-2" : ""}`} aria-label="개인 기록 그래프">
       {(visible("evaluation") || visible("analysis")) && <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />점수 변동 이력</CardTitle></CardHeader><CardContent className="space-y-3">
+        <div aria-label={`현재 ${activeScoreKind === "evaluation" ? "평가" : "분석"} 점수`} className="space-y-1 rounded-xl bg-background/30 p-4">
+          <p className="text-xs text-muted-foreground">현재 {activeScoreKind === "evaluation" ? "평가" : "분석"} 점수 · 최근 기록 기준</p>
+          <p className="flex h-10 items-baseline gap-1 text-primary"><strong className="text-4xl font-bold tracking-tight tabular-nums">{pending ? "—" : currentScore == null ? "기록 없음" : currentScore.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}</strong>{!pending && currentScore != null && <span className="text-sm">점</span>}</p>
+        </div>
         <div className="flex flex-wrap items-end justify-between gap-2"><FilterButtons label="점수 종류" options={([{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }] as const).filter(({ id }) => visible(id))} value={activeScoreKind} onChange={setScoreKind} />{activeScoreKind === "evaluation" && model.permissions.editMscore && <StatsScoreEditor key={periodKey + person.userId} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={matches} />}</div>
         <StatsTimeChart busy={pending} label="점수 변동 이력 그래프" unit="점" lines={[{ label: activeScoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 변동 이력이 없습니다." />
       </CardContent></Card>}
