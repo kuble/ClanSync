@@ -41,6 +41,16 @@ test("개인 기록은 열람 역할 선택 없이 멤버 공개 항목을 저�
     for (const label of ["승부예측 적중", "승부예측 포인트"]) await expect(dialog.getByRole("switch", { name: label, exact: true })).toBeChecked();
     await expect(dialog.getByRole("switch")).toHaveCount(5);
     await expect(dialog.getByRole("switch", { name: /엠블럼/ })).toHaveCount(0);
+    const recordsHelp = dialog.getByRole("button", { name: "경기 전적 도움말", exact: true });
+    const recordsTooltip = page.getByRole("tooltip", { name: "역할별·맵별 승률, 최근 흐름과 연승·연패", exact: true });
+    await recordsHelp.hover();
+    await expect(recordsTooltip).toBeVisible();
+    await page.mouse.move(0, 0);
+    await recordsHelp.focus();
+    await expect(recordsTooltip).toBeVisible();
+    await recordsHelp.press("Escape");
+    await expect(recordsTooltip).toBeHidden();
+    await expect(dialog).toBeVisible();
     await page.screenshot({ path: info.outputPath("personal-settings-defaults.png") });
     await dialog.getByRole("switch", { name: "평가 점수", exact: true }).check();
     await expect(dialog.getByRole("radio")).toHaveCount(0);
