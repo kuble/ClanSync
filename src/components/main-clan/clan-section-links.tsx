@@ -7,13 +7,14 @@ import lineStyles from "@/components/ui/line-tabs.module.css";
 import { StatTooltip } from "./stat-help";
 
 /** Route links retain direct URLs, browser history and the server's section permissions. */
-export function ClanSectionLinks({ label, items, compact = false }: {
+export function ClanSectionLinks({ label, items, compact = false, wrap = false }: {
   label: string;
   items: { href: string; label: string; selected: boolean; icon?: ReactNode; badge?: ReactNode; description?: string }[];
   compact?: boolean;
+  wrap?: boolean;
 }) {
-  return <nav aria-label={label} className={cn("relative min-w-0 max-w-full overflow-x-auto [scrollbar-width:thin]", !compact && "border-b border-border")}>
-    <div className={cn("flex w-max gap-2", !compact && ["min-w-full", lineStyles.list])}>
+  return <nav aria-label={label} className={cn("relative min-w-0 max-w-full", !wrap && "overflow-x-auto [scrollbar-width:thin]", !compact && "border-b border-border")}>
+    <div className={cn("flex gap-2", wrap ? "w-full flex-wrap" : "w-max", !compact && ["min-w-full", lineStyles.list])}>
       {items.map((item) => {
         const content = <>{item.icon}{item.label}{item.badge}</>;
         const link = <Link key={item.href} href={item.href} scroll={false} prefetch={false}

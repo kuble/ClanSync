@@ -19,12 +19,12 @@ test("mobile board picker shows every section without horizontal scrolling and r
       await trigger.tap(); await expect(menu.getByRole("menuitem")).toHaveCount(5);
       for (const section of BOARD_SECTIONS) {
         const row = menu.getByRole("menuitem", { name: section.label, exact: true });
-        await expect(row).toBeVisible(); expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        await expect(row).toBeVisible(); await expect.poll(async () => (await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
       }
       await menu.getByRole("menuitem", { name: label, exact: true }).tap();
       await expect(page).toHaveURL(base + "/board/" + key); await expect(menu).toBeHidden(); await expect(trigger).toHaveText(label);
     }
-    for (const width of [533, 390, 320]) {
+    for (const width of [785, 533, 390, 320]) {
       await page.setViewportSize({ width, height: 1004 }); await trigger.tap();
       const rect = (await menu.boundingBox())!;
       expect(rect.x).toBeGreaterThanOrEqual(0); expect(rect.x + rect.width).toBeLessThanOrEqual(width);
@@ -45,6 +45,7 @@ test("mobile board picker shows every section without horizontal scrolling and r
     await expect(page.getByRole("button", { name: "게시판 선택: 추억 열람방", exact: true, includeHidden: true })).toHaveAttribute("aria-expanded", "false");
     await expect(menu).toBeHidden(); await expect(trigger).toHaveCount(0);
     await expect(nav.getByRole("link")).toHaveCount(5);
+    expect(await nav.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await expect(nav.getByRole("link", { name: "추억 열람방", exact: true })).toHaveAttribute("aria-current", "page");
     await page.screenshot({ path: test.info().outputPath("board-links-desktop.png"), animations: "disabled" });
     await page.setViewportSize({ width: 533, height: 1004 }); await expect(trigger).toHaveText("추억 열람방"); await expect(trigger).toHaveAttribute("aria-expanded", "false");
