@@ -53,6 +53,15 @@ test("개인 기록은 열람 역할 선택 없이 멤버 공개 항목을 저�
     await expect(dialog.getByRole("switch")).toHaveCount(5);
     await expect(dialog.getByRole("switch", { name: "평가 점수", exact: true })).toBeChecked();
     await expect(dialog.getByRole("switch", { name: "경기 전적", exact: true })).not.toBeChecked();
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    const memberButton = page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true });
+    await memberButton.click();
+    await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await expect(memberButton).toBeVisible();
+    await memberButton.click();
+    await page.getByRole("tab", { name: "개인 기록", exact: true }).press("Enter");
+    await expect(memberButton).toBeVisible();
   } finally { await f.cleanup(); }
 });
 
