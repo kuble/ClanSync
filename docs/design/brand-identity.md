@@ -5,7 +5,7 @@
 - 라이트 테마는 `public/brand/clansync-symbol.png`와 `public/brand/clansync-wordmark.png`를 사용한다.
 - 공통 표시: `src/components/ui/brand-logo.tsx`와 CSS Module. PNG의 투명 여백만 프레임에서 제외하며 이미지 최적화는 Next Image를 사용한다.
 - 다크 테마는 비취와 백자 배색의 `clansync-symbol-jade.png`와 `clansync-wordmark-porcelain.png`를 사용한다.
-- 이벤트용 다섯 배색은 `public/brand/events/`에 심볼과 글자가 결합된 투명 PNG로 보관한다. `/dev/logo-colors`에서 기본 다크 로고와 비교할 수 있다.
+- 이벤트용 다섯 배색은 `public/brand/events/`에 각각 `{배색}-symbol.png`와 `{배색}-wordmark.png`로 보관한다. 탭 아이콘에는 심볼을 사용하고, `/dev/logo-colors`에서는 두 파일을 조합해 보여준다.
 - 전체 조합은 랜딩·로그인·회원가입·게임 선택·계정 온보딩에 적용한다. 클랜/게임 커뮤니티 헤더와 Discord 활용 예시의 프로필은 심볼을 사용한다. 기존 링크 목적지와 이동 중 피드백을 유지한다.
 - 클랜·게임 커뮤니티 헤더는 22px 심볼과 40×40px 클릭 영역을 사용한다. 데스크톱의 왼쪽 12px 여백으로 64px 사이드바 중심에 맞추며 모바일은 기존 16px 헤더 여백을 따른다. 경로의 게임명·클랜명·페이지명은 같은 700 굵기로 표시한다.
 - 랜딩·게임 선택·로그인/회원가입·프로필·계정 연동 헤더도 22px 로고·60px 높이를 따른다. 헤더 메뉴는 데스크톱 13px/700·16px 간격이며 768px 이하에서는 8px 간격과 16px 좌우 여백을 사용한다. 좁은 계정 메뉴는 접근 가능한 이름을 유지한 아이콘 버튼으로 표시한다.

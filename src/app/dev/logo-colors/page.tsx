@@ -12,11 +12,10 @@ const palettes = [
 
 function Lockup({ index, small = false }: { index: number; small?: boolean }) {
   const p = palettes[index];
+  const eventBase = `/brand/events/${p.file}`;
   return <svg className={small ? styles.small : styles.large} viewBox="0 0 134 24" role="img" aria-label={`${p.name} ClanSync 로고`}>
-    {p.file ? <image href={`/brand/events/${p.file}.png`} width="134" height="24" /> : <>
-      <image href="/brand/clansync-symbol-jade.png" width="27.5" height="24" />
-      <image href="/brand/clansync-wordmark-porcelain.png" x="35" y="1" width="98" height="22" />
-    </>}
+    <image href={p.file ? `${eventBase}-symbol.png` : "/brand/clansync-symbol-jade.png"} width="27.5" height="24" />
+    <image href={p.file ? `${eventBase}-wordmark.png` : "/brand/clansync-wordmark-porcelain.png"} x="35" y="1" width="98" height="22" />
   </svg>;
 }
 
