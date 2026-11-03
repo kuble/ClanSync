@@ -32,7 +32,7 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
   const color = (index: number) => COLORS[index % COLORS.length];
   const centerValue = (row: DonutRow) => mapResults ? (row.rate === null || row.rate === undefined ? "기록 없음" : formatPercent(row.rate)) : row.value.toLocaleString();
   const legend = <ul className="space-y-1" aria-label={`${label} 비중`}>
-    {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-sm hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${showImages && highlighted === i ? "bg-muted/40" : ""}`}>
+    {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-sm hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-primary ${highlighted === i ? "bg-muted/40" : ""}`}>
       {showImages ? <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
         <span className="size-1.5 shrink-0 rounded-full" style={{ background: color(i) }} />
         <span className="relative grid size-7 place-items-center overflow-hidden rounded-md bg-muted ring-1 ring-foreground/10">
