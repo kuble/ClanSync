@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ArrowUpRight, ChevronLeft, ChevronRight, GraduationCap, Pause, Play } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ArrowUpRight, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { StatTooltip } from "./stat-help";
 import type { ClanCoach } from "@/lib/clan/coaching";
 
 function subscribeMotion(notify: () => void) {
@@ -17,24 +16,29 @@ const motionSnapshot = () => window.matchMedia("(prefers-reduced-motion: reduce)
 export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: ClanCoach[]; userId: string; onRequest: (id: string) => void }) {
   const track = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLElement>(null);
-  const [edges, setEdges] = useState({ start: true, end: true });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = coaches.find(coach => coach.userId === selectedId);
   const [hovered, setHovered] = useState(false);
-  const [playing, setPlaying] = useState<boolean | null>(null);
   const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot, () => false);
-  const autoEnabled = playing ?? !reducedMotion;
+  const autoEnabled = !reducedMotion;
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const el = track.current;
     if (!el) return;
-    const update = () => setEdges({ start: el.scrollLeft < 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 });
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => { el.removeEventListener("scroll", update); observer.disconnect(); };
-  }, [coaches]);
+    let lastWheel = -Infinity;
+    function wheel(event: WheelEvent) {
+      if (!el || event.ctrlKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+      const direction = Math.sign(event.deltaY);
+      const canMove = direction > 0 ? el.scrollLeft + el.clientWidth < el.scrollWidth - 2 : el.scrollLeft > 2;
+      if (!canMove) return;
+      event.preventDefault();
+      if (event.timeStamp - lastWheel < 300) return;
+      lastWheel = event.timeStamp;
+      el.scrollBy({ left: direction * ((el.firstElementChild?.getBoundingClientRect().width ?? 280) + 12), behavior: reducedMotion ? "instant" : "smooth" });
+    }
+    el.addEventListener("wheel", wheel, { passive: false });
+    return () => el.removeEventListener("wheel", wheel);
+  }, [coaches, reducedMotion]);
 
   useEffect(() => {
     if (!autoEnabled || hovered || selected || coaches.length < 2) return;
@@ -46,11 +50,6 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
     }, 5000);
     return () => window.clearInterval(timer);
   }, [autoEnabled, hovered, selected, coaches.length, reducedMotion]);
-
-  function move(direction: number) {
-    const el = track.current;
-    if (el) el.scrollBy({ left: direction * ((el.firstElementChild?.getBoundingClientRect().width ?? 280) + 12), behavior: reducedMotion ? "instant" : "smooth" });
-  }
 
   return <section ref={root} className="min-w-0 space-y-1.5" aria-label="코칭 선생님" aria-roledescription="캐러셀"
     onPointerEnter={event => { if (event.pointerType === "mouse") setHovered(true); }} onPointerLeave={() => setHovered(false)}
@@ -64,11 +63,7 @@ export function ClanCoachDirectory({ coaches, userId, onRequest }: { coaches: Cl
           <span className="line-clamp-1 min-h-4 break-words text-xs text-muted-foreground">{coach.bio || "등록된 소개가 없습니다."}</span>
         </button>)}
       </div>
-      <div className="flex items-center justify-end gap-1">
-        <StatTooltip label={autoEnabled ? "자동 넘김 일시정지" : "자동 넘김 재생"} description="5초마다 다음 선생님을 표시합니다. 조작 중에는 잠시 멈춥니다." render={<Button type="button" variant="ghost" size="icon" className="size-8 rounded-full" aria-label={autoEnabled ? "자동 넘김 일시정지" : "자동 넘김 재생"} onClick={() => setPlaying(!autoEnabled)} />}>{autoEnabled ? <Pause className="size-3.5" aria-hidden /> : <Play className="size-3.5" aria-hidden />}</StatTooltip>
-        <Button type="button" variant="ghost" size="icon" className="size-8 rounded-full" aria-label="이전 선생님" disabled={edges.start} onClick={() => move(-1)}><ChevronLeft className="size-4" aria-hidden /></Button>
-        <Button type="button" variant="ghost" size="icon" className="size-8 rounded-full" aria-label="다음 선생님" disabled={edges.end} onClick={() => move(1)}><ChevronRight className="size-4" aria-hidden /></Button>
-      </div>
+
     </>}
     <Sheet open={!!selected} onOpenChange={open => { if (!open) setSelectedId(null); }}>
       <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">

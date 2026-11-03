@@ -16,10 +16,10 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
     for(const width of [900,390]){
       await page.setViewportSize({width,height:844});
       await expect.poll(()=>directory.evaluate(el=>el.getBoundingClientRect().height)).toBeLessThan(200);
-      await expect(page.getByRole('button',{name:'다음 선생님',exact:true})).toBeEnabled();
-      await page.getByRole('button',{name:'다음 선생님',exact:true}).click();
+      await expect(directory.getByRole('button',{name:/^(이전 선생님|다음 선생님|자동 넘김)/})).toHaveCount(0);
+      await track.hover();await page.mouse.wheel(0,240);
       await expect.poll(()=>track.evaluate(el=>el.scrollLeft)).toBeGreaterThan(20);
-      await page.getByRole('button',{name:'이전 선생님',exact:true}).click();
+      await page.waitForTimeout(350);await page.mouse.wheel(0,-240);
       await expect.poll(()=>track.evaluate(el=>el.scrollLeft)).toBeLessThan(2);
       const button=(await trigger.boundingBox())!;
       expect(button.width).toBe(56);expect(button.height).toBe(56);
@@ -36,17 +36,18 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
     }
     await page.mouse.move(0,0);await trigger.focus();
     await expect.poll(()=>track.evaluate(el=>el.scrollLeft),{timeout:9000}).toBeGreaterThan(20);
-    await page.getByRole('button',{name:'자동 넘김 일시정지',exact:true}).click();
-    await trigger.focus();
+    await track.hover();
+    await page.waitForTimeout(500);
     const pausedAt=await track.evaluate(el=>el.scrollLeft);
     await page.waitForTimeout(5500);
     expect(await track.evaluate(el=>el.scrollLeft)).toBe(pausedAt);
-    await page.getByRole('button',{name:'자동 넘김 재생',exact:true}).click();
     await page.mouse.move(0,0);await trigger.focus();
     await expect.poll(()=>track.evaluate(el=>el.scrollLeft),{timeout:9000}).not.toBe(pausedAt);
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.reload();
-    await expect(page.getByRole('button',{name:'자동 넘김 재생',exact:true})).toBeVisible();
+    await expect(track).toBeVisible();await page.mouse.move(0,0);await trigger.focus();
+    await page.waitForTimeout(5500);
+    expect(await track.evaluate(el=>el.scrollLeft)).toBe(0);
     const ownCard=page.getByRole('button',{name:f.users[0].nickname+' 선생님 소개 보기',exact:true});
     await ownCard.click();
     const detail=page.getByRole('dialog');
