@@ -6,6 +6,7 @@ import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
 import { StatsPlayerBanner } from "./stats-emblems";
 import { StatsDonut } from "./stats-donut";
+import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import { MAP_TYPES, mapDetailsForLabel, type MapType } from "@/lib/balance/map-pools";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsScoreEditor } from "./stats-score-editor";
@@ -68,7 +69,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
         <circle cx="90" cy="90" r="68" fill="none" stroke="currentColor" strokeWidth="15" pathLength="100" strokeDasharray={`${percentage} 100`} transform="rotate(-90 90 90)" className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
       </svg>
       <div className="pointer-events-none absolute inset-9 isolate overflow-hidden rounded-full border border-primary/25 bg-primary/15 text-primary">
-        <span aria-label="기본 프로필 이미지" className="absolute inset-0 grid place-items-center"><UserRound className="size-16" aria-hidden="true" /></span>
+        <span className="absolute inset-0 grid place-items-center"><ClanPlayerAvatar userId={peer.id} label={peer.nickname} size={104} /></span>
       </div>
     </div>
     <strong className="-mt-1 text-3xl font-bold tracking-tight tabular-nums">{formatPercent(percentage)}</strong>
@@ -168,7 +169,8 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
         {model.personal.canSeePeers ? <>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FilterButtons label="내 역할" options={ROLE_OPTIONS} value={role} onChange={(value) => { setRole(value); setPeerId(null); }} /><FilterButtons label="팀 관계" options={[{ id: "ally", label: "같은 팀" }, { id: "enemy", label: "상대 팀" }]} value={relation} onChange={(value) => { setRelation(value); setPeerId(null); }} />
           <div><FilterButtons label="상대 역할" options={ROLE_OPTIONS} value={peerRole} onChange={(value) => { setPeerRole(value); setPeerId(null); }} /></div></div>
-          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <SynergyRing peer={selectedPeer} relation={relation} />
           <StatsScrollArea label="시너지 기록 목록" className="h-80">
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <table className="w-full min-w-[500px] text-sm">
@@ -188,7 +190,6 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
               {relations.length === 0 && <p role={pending ? "status" : undefined} className="py-5 text-center text-sm text-muted-foreground">{pending ? "기록을 불러오는 중…" : "해당 역할 조합의 기록이 없습니다."}</p>}
             </div>
           </StatsScrollArea>
-          <SynergyRing peer={selectedPeer} relation={relation} />
           </div>
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>}
