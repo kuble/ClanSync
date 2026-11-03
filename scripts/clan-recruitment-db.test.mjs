@@ -247,6 +247,8 @@ test("each game's tier catalog is accepted in rank order and foreign tiers are r
   const f=await createIsolatedBalanceFixture(1), owner=await f.memberClient(0), others=[];
   t.after(async()=>{await owner.auth.signOut(); for(const id of others) await ok(f.service.from("clans").delete().eq("id",id)); await f.cleanup();});
   assert.equal(recruitmentTierLabel("overwatch","challenger"),"챔피언");
+  assert.deepEqual(recruitmentTiers("overwatch").slice(3,6).map(([tier])=>tier),["plat","emerald","diamond"]);
+  assert.equal(recruitmentTierLabel("overwatch","emerald"),"에메랄드");
   assert.equal(recruitmentTierLabel("lol","challenger"),"챌린저");
   assert.equal(normalizeRecruitmentTier("lol","challenger"),"challenger");
   assert.deepEqual(recruitmentTiers("constructor"),[]);
