@@ -92,7 +92,7 @@ export function ClanManageNotices({
   }
   return (
     <section
-      className={panel + (floatingCreate ? " pb-20" : "")}
+      className={panel}
       id="notices"
       aria-labelledby="manage-notices-title"
     >

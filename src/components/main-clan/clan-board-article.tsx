@@ -67,7 +67,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         {emojis.length>0&&<div className={articleStyles.custom}><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/></div>}
       </footer>
     </article>
-    <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
+    <section id="comments" className="rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
       <StatsScrollArea label="게시글 댓글 목록" className="mt-3 max-h-[min(30rem,50dvh)] overscroll-y-contain">
       <ClanComments comments={commentRows} clanId={clanId} targetKind="board_comment" disabled={pending}

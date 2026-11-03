@@ -31,7 +31,7 @@ test("board content fills the available viewport and scrolls the final notice fu
       await body.evaluate(el => { el.scrollTop = 0; }); await body.focus(); await page.keyboard.press("Control+End");
       await expect(panel.getByRole("link", { name: "공지 9", exact: true })).toBeInViewport();
       await expect.poll(async () => { const b = (await body.boundingBox())!, p = (await panel.boundingBox())!; return b.y + b.height - p.y - p.height; }).toBeGreaterThanOrEqual(11);
-      expect(await body.evaluate(el => Math.abs(el.scrollHeight - el.clientHeight - el.scrollTop))).toBeLessThan(2);
+      await expect.poll(() => body.evaluate(el => Math.abs(el.scrollHeight - el.clientHeight - el.scrollTop))).toBeLessThan(2);
       await page.screenshot({ path: test.info().outputPath(`notice-bottom-${width}-${height}.png`), animations: "disabled" });
     }
     await page.setViewportSize({ width: 1142, height: 1004 });

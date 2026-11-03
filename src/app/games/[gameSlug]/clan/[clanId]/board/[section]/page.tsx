@@ -26,12 +26,12 @@ export default async function BoardSectionPage({params,searchParams}:{params:Pro
       client.rpc("clan_peer_nicknames",{p_clan_id:clanId}),
     ]);
     const nicknames=new Map((names.data??[]).map(n=>[n.user_id,n.nickname]));
-    return <div className="space-y-5"><ClanManageRules gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} initialRules={profile.data?.rules??null} loadFailed={!!profile.error||!profile.data}/><ClanManageNotices floatingCreate gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} loadFailed={!!notices.error||!!names.error} notices={(notices.data??[]).map(n=>({id:n.id,title:n.title,content:n.content,isPinned:n.is_pinned,createdAt:n.created_at,author:nicknames.get(n.created_by??"")??"운영진"}))}/></div>;
+    return <div className="space-y-5 pb-20"><ClanManageRules gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} initialRules={profile.data?.rules??null} loadFailed={!!profile.error||!profile.data}/><ClanManageNotices floatingCreate gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} loadFailed={!!notices.error||!!names.error} notices={(notices.data??[]).map(n=>({id:n.id,title:n.title,content:n.content,isPinned:n.is_pinned,createdAt:n.created_at,author:nicknames.get(n.created_by??"")??"운영진"}))}/></div>;
   }
   if(!isBoardKind(section))notFound();
   const page=/^[1-9]\d{0,4}$/.test(query.page??"")?Number(query.page):1;
   const [data,coaches,cosmeticAccess]=await Promise.all([loadClanBoard(clanId,section,page),section==="feedback"?loadClanCoaches(clanId):Promise.resolve([]),section==="memories"?loadClanCosmeticAccess(clanId):Promise.resolve(NO_CLAN_COSMETICS)]);
   if(!data)throw new Error("게시글을 불러오지 못했습니다.");
   const pages=Math.max(1,Math.ceil(data.total/BOARD_PAGE_SIZE));
-  return <div className="space-y-5"><ClanBoardPosts key={data.userId+section} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} cosmeticAccess={cosmeticAccess} title={room.label} posts={data.posts} total={data.total} page={page} coaches={coaches} userId={data.userId}/>{pages>1&&<nav className="flex items-center justify-center gap-4 text-sm" aria-label="게시글 페이지">{page>1&&<Link href={base+"/board/"+section+"?page="+(page-1)}>이전</Link>}<span>{page} / {pages}</span>{page<pages&&<Link href={base+"/board/"+section+"?page="+(page+1)}>다음</Link>}</nav>}</div>;
+  return <div className="space-y-5 pb-20"><ClanBoardPosts key={data.userId+section} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} cosmeticAccess={cosmeticAccess} title={room.label} posts={data.posts} total={data.total} page={page} coaches={coaches} userId={data.userId}/>{pages>1&&<nav className="flex items-center justify-center gap-4 text-sm" aria-label="게시글 페이지">{page>1&&<Link href={base+"/board/"+section+"?page="+(page-1)}>이전</Link>}<span>{page} / {pages}</span>{page<pages&&<Link href={base+"/board/"+section+"?page="+(page+1)}>다음</Link>}</nav>}</div>;
 }
