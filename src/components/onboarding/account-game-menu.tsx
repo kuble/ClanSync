@@ -34,8 +34,8 @@ export function AccountGameMenu() {
     <DropdownMenuTrigger openOnHover delay={120} closeDelay={160} className={headerActionClassName} aria-label="게임 선택" title="게임 선택">
       <Gamepad2 aria-hidden="true" />
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" sideOffset={4} className="w-72 max-w-[calc(100vw-24px)] rounded-xl p-0 shadow-lg ring-border" aria-label="게임 선택지">
-      <p className="relative border-b border-border bg-muted/40 px-4 py-2.5 text-xs font-semibold after:absolute after:right-1.5 after:top-0 after:h-0.5 after:w-6 after:rounded-full after:bg-primary">게임 선택</p>
+    <DropdownMenuContent showArrow align="end" sideOffset={8} className="w-72 max-w-[calc(100vw-24px)] rounded-xl p-0 shadow-lg ring-border" aria-label="게임 선택지">
+      <p className="border-b border-border px-4 py-2.5 text-xs font-semibold">게임 선택</p>
       <div className="min-h-44 p-1" aria-busy={games === null && !error}>
         {error ? <><p role="alert" className="px-3 py-4 text-xs text-muted-foreground">게임 목록을 불러오지 못했습니다.</p><DropdownMenuItem closeOnClick={false} onClick={() => { setError(false); setAttempt(value => value + 1); }}>다시 불러오기</DropdownMenuItem></> : games === null ? <p role="status" className="px-3 py-4 text-xs text-muted-foreground">게임을 불러오는 중…</p> : games.length ? games.map(game => <DropdownMenuItem key={game.slug} aria-label={game.name_ko} title={game.name_ko} disabled={!game.is_active} className="h-11 gap-3 px-3" render={game.is_active ? <Link href={`/games/${encodeURIComponent(game.slug)}/clan`} prefetch={false} /> : undefined}>
           <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted"><GameLogo slug={game.slug} name={game.name_ko} className="size-4" /></span>
