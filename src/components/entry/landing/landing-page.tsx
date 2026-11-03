@@ -47,31 +47,33 @@ export function LandingPage() {
         </nav>
       </header>
       <main>
-        <section className={styles.hero} aria-labelledby="landing-title">
-          <p className={styles.eyebrow}>{tx("우리 클랜을 위한 내전 운영")}</p>
-          <h1 id="landing-title">{tx("팀 편성이 한결 편해지는")}<br /><span>{tx("우리 클랜의 내전 도구.")}</span></h1>
-          <p className={styles.description}>{tx("참가자 모집부터 팀 편성까지, 한곳에서.")}<br className={styles.desktopBreak} /> {tx("ClanSync가 편성을 돕고, 운영진이 마무리합니다.")}</p>
-          <div className={styles.actions}>
-            <Link href="/sign-up" className={styles.primary}>{tx("무료로 시작하기")} <ArrowRight size={17} aria-hidden="true" /></Link>
-            <a href="#formation-preview" className={styles.secondary}>{tx("편성 화면 살펴보기")} <ArrowDown size={15} aria-hidden="true" /></a>
+        <section id="intro" className={styles.introSection} aria-labelledby="landing-title">
+          <div className={styles.hero}>
+            <p className={styles.eyebrow}>{tx("우리 클랜을 위한 내전 운영")}</p>
+            <h1 id="landing-title">{tx("팀 편성이 한결 편해지는")}<br /><span>{tx("우리 클랜의 내전 도구.")}</span></h1>
+            <p className={styles.description}>{tx("참가자 모집부터 팀 편성까지, 한곳에서.")}<br className={styles.desktopBreak} /> {tx("ClanSync가 편성을 돕고, 운영진이 마무리합니다.")}</p>
+            <div className={styles.actions}>
+              <Link href="/sign-up" className={styles.primary}>{tx("무료로 시작하기")} <ArrowRight size={17} aria-hidden="true" /></Link>
+              <a href="#formation-preview" className={styles.secondary}>{tx("편성 화면 살펴보기")} <ArrowDown size={15} aria-hidden="true" /></a>
+            </div>
           </div>
+          <figure id="formation-preview" className={styles.preview} tabIndex={-1}>
+            <div className={styles.product}>
+              <div className={styles.productHeader}>
+                <div><span className={styles.context}>{tx("오버워치 / 내전")}</span><h2>{tx("우리 클랜의 금요일 내전")}</h2></div>
+                <span className={styles.status}>{tx("팀 편성")}</span>
+              </div>
+              <div className={styles.board}>
+                <ClanBalanceRosterEditor
+                  gameSlug="overwatch" clanId="landing-example" sessionId="landing-example"
+                  revision={0} initialRoster={roster} pool={pool} canEdit={false}
+                  scores={scores} showPlayerCardInfo={false} showPlayerSessionSummary={false}
+                />
+              </div>
+            </div>
+            <figcaption><span>{tx("내전 편성 화면")}</span><span>{tx("실제 서비스 UI · 예시 명단 · 읽기 전용")}</span></figcaption>
+          </figure>
         </section>
-        <figure id="formation-preview" className={styles.preview} tabIndex={-1}>
-          <div className={styles.product}>
-            <div className={styles.productHeader}>
-              <div><span className={styles.context}>{tx("오버워치 / 내전")}</span><h2>{tx("우리 클랜의 금요일 내전")}</h2></div>
-              <span className={styles.status}>{tx("팀 편성")}</span>
-            </div>
-            <div className={styles.board}>
-              <ClanBalanceRosterEditor
-                gameSlug="overwatch" clanId="landing-example" sessionId="landing-example"
-                revision={0} initialRoster={roster} pool={pool} canEdit={false}
-                scores={scores} showPlayerCardInfo={false} showPlayerSessionSummary={false}
-              />
-            </div>
-          </div>
-          <figcaption><span>{tx("내전 편성 화면")}</span><span>{tx("실제 서비스 UI · 예시 명단 · 읽기 전용")}</span></figcaption>
-        </figure>
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
             <h2 id="workflow-title">{tx("팀을 나누고, 규칙을 정하고,")}<br /><span>{tx("함께 즐기는 내전.")}</span></h2>

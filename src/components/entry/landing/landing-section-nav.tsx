@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./preview.module.css";
 
 const sections = [
-  { id: "features", label: "내전 기능" },
-  { id: "records", label: "기록과 통계" },
+  { id: "intro", label: "서비스 소개" },
+  { id: "features", label: "내전 준비" },
+  { id: "records", label: "경기 돌아보기" },
   { id: "clan-activity", label: "클랜 활동" },
+  { id: "games", label: "이용 안내" },
 ];
 
 export function LandingSectionNav() {
