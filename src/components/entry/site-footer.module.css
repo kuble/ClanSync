@@ -8,7 +8,13 @@
 .links .privacy { color: var(--foreground); font-weight: 600; }
 .footer a:focus-visible { outline: 2px solid var(--primary); outline-offset: 5px; }
 .bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin-top: 28px; padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); font-size: 11px; line-height: 1.8; word-break: keep-all; }
+.footer.compact { margin-top: auto; background: var(--background); }
+.compactRow { max-width: 1152px; margin-inline: auto; padding: 4px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 24px; }
+.compactRow small { font-size: 11px; }
+.compact .links { display: flex; width: auto; gap: 0 18px; }
+.compact .links a { font-size: 12px; }
 @media (max-width: 640px) {
+  .compactRow { padding: 12px 20px; }
   .footer { margin-top: 48px; }
   .inner { padding: 30px 20px 24px; }
   .top { flex-direction: column; gap: 20px; }

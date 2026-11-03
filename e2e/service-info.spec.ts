@@ -5,6 +5,9 @@ test("signed-in members can use the footer outside the clan workspace", async ({
   const fixture = await createIsolatedBalanceFixture(1);
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
+    const footer = page.getByRole("contentinfo");
+    await expect(footer.getByText("© ClanSync", { exact: true })).toBeVisible();
+    await expect(footer.getByRole("link")).toHaveCount(4);
     for (const label of ["공지사항", "이용약관", "개인정보처리방침", "문의하기"]) {
       await page.getByRole("contentinfo").getByRole("link", { name: label, exact: true }).click();
       await expect(page.getByRole("heading", { level: 1, name: label, exact: true })).toBeVisible();
@@ -21,6 +24,7 @@ test("signed-in members can use the footer outside the clan workspace", async ({
 
 test("footer menus open public service pages with draft status and a working return home", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "ClanSync 홈" })).toBeVisible();
   for (const [label, path] of [["공지사항", "/notices"], ["이용약관", "/terms"], ["개인정보처리방침", "/privacy"], ["문의하기", "/contact"]]) {
     const link = page.getByRole("contentinfo").getByRole("link", { name: label, exact: true });
     await expect(link).toHaveAttribute("href", path);
