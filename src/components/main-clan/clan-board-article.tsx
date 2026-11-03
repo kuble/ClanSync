@@ -48,6 +48,11 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
   return <Sheet open={commentsOpen} onOpenChange={changeComments}><div className="space-y-5">
+    <SheetTrigger disabled={pending} aria-label={"댓글 "+post.commentCount} title="댓글 열기"
+      className={cn("fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", commentsOpen && "invisible pointer-events-none")}>
+      <MessageSquare className="size-4" aria-hidden />
+      <span className="[writing-mode:vertical-rl]">댓글</span>
+    </SheetTrigger>
     <article className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="border-b border-border px-5 py-6 sm:px-7">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><ClanPlayerAvatar userId={post.author_id} label={post.author} size={28}/><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
@@ -74,7 +79,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         {kind!=="channels"&&kind!=="memories"&&<div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8"><ClanEmojiText text={post.content}/></div>}
       </div>
       <footer className={articleStyles.footer}>
-        <div className={articleStyles.feedback}><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button> <SheetTrigger disabled={pending} render={<Button variant="outline" size="sm" />}><MessageSquare aria-hidden />댓글 {post.commentCount}</SheetTrigger></div>
+        <div className={articleStyles.feedback}><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button></div>
         <nav className={articleStyles.navigation} aria-label="게시글 이동">{previousPostId?<Link prefetch={false} href={base+"/board/"+kind+"/"+previousPostId} aria-label="이전 글"><ChevronLeft className="size-3.5" aria-hidden/>이전</Link>:<span aria-disabled="true" aria-label="이전 글"><ChevronLeft className="size-3.5" aria-hidden/>이전</span>}<Link prefetch={false} href={base+"/board/"+kind}>목록으로</Link>{nextPostId?<Link prefetch={false} href={base+"/board/"+kind+"/"+nextPostId} aria-label="다음 글">다음<ChevronRight className="size-3.5" aria-hidden/></Link>:<span aria-disabled="true" aria-label="다음 글">다음<ChevronRight className="size-3.5" aria-hidden/></span>}</nav>
         {post.canManage&&<div className={articleStyles.actions} role="group" aria-label="게시글 관리"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(true)}><Trash2 className="size-4" aria-hidden/></Button></div>}
         {emojis.length>0&&<div className={articleStyles.custom}><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/></div>}

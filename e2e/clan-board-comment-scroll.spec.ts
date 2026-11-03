@@ -28,7 +28,12 @@ test("board comments grow to a hidden-scrollbar viewport and new replies keep th
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.setViewportSize({ width: 1015, height: 884 });
     await page.goto(`${base}/board/free/${postId}`);
-    await page.getByRole("button", {name:"댓글 2",exact:true}).click();
+    const tab = page.getByRole("button", {name:"댓글 2",exact:true});
+    const bounds = await tab.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.y + bounds!.height / 2).toBeCloseTo(884 / 2, 0);
+    expect(1015 - bounds!.x - bounds!.width).toBeCloseTo(12, 0);
+    await tab.click();
     const section = page.getByRole("dialog", { name: /^댓글 \d+$/ });
     const viewport = section.getByRole("region", { name: "게시글 댓글 목록", exact: true });
     const input = section.getByRole("textbox", { name: "댓글 내용", exact: true });
