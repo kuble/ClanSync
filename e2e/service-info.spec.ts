@@ -1,16 +1,19 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("signed-in members can open each service page from the profile menu", async ({ page }) => {
+test("signed-in members can use the footer outside the clan workspace", async ({ page }) => {
   const fixture = await createIsolatedBalanceFixture(1);
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     for (const label of ["공지사항", "이용약관", "개인정보처리방침", "문의하기"]) {
-      await page.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
-      await page.getByRole("menuitem", { name: label, exact: true }).click();
+      await page.getByRole("contentinfo").getByRole("link", { name: label, exact: true }).click();
       await expect(page.getByRole("heading", { level: 1, name: label, exact: true })).toBeVisible();
       await page.goBack();
     }
+    await page.goto(fixture.path);
+    await expect(page.locator("#site-footer")).toHaveCount(0);
+    await page.goto("/profile");
+    await expect(page.getByRole("contentinfo")).toHaveCount(1);
   } finally {
     await fixture.cleanup();
   }

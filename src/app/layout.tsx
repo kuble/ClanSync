@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { getTranslator, loadMessages, readLanguage } from "@/lib/i18n/server";
 import { LanguageProvider } from "@/components/ui/language-provider";
+import { SiteFooter } from "@/components/entry/site-footer";
 
 const pretendard = localFont({
   src: "../../public/fonts/PretendardVariable.woff2",
@@ -43,7 +44,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="clansync-theme" disableTransitionOnChange>
-          <LanguageProvider language={language} messages={await loadMessages(language)}><TooltipProvider>{children}</TooltipProvider></LanguageProvider>
+          <LanguageProvider language={language} messages={await loadMessages(language)}>
+            <TooltipProvider>{children}<SiteFooter /></TooltipProvider>
+          </LanguageProvider>
           {/* Tooltip 트리와 분리 + 클라이언트에서 document.body 포털 (sonner.tsx) */}
           <Toaster />
         </ThemeProvider>

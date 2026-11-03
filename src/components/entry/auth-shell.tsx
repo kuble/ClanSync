@@ -24,6 +24,5 @@ export function AuthShell({ children, mode }: { children: ReactNode; mode: "sign
         </figure>
       </aside>
     </main>
-    <footer className={styles.footer}>© {new Date().getFullYear()} ClanSync</footer>
   </div>;
 }

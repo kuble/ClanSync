@@ -1,4 +1,7 @@
+"use client";
+
 import { useTranslator } from "#use-translator";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { SITE_LINKS } from "@/lib/site-links";
 import { EntryBrand } from "./entry-brand";
@@ -6,6 +9,8 @@ import styles from "./site-footer.module.css";
 
 export function SiteFooter() {
   const tx = useTranslator();
+  const params = useParams();
+  if (params.clanId) return null;
   return <footer id="site-footer" className={styles.footer}>
     <div className={styles.inner}>
       <div className={styles.top}>

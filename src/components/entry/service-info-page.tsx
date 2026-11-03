@@ -5,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { EntryBrand } from "./entry-brand";
 import { SITE_LINKS } from "@/lib/site-links";
-import { SiteFooter } from "./site-footer";
 import styles from "./service-info.module.css";
 
 export function ServiceInfoPage({ current, title, description, draft = false, children }: {
@@ -29,6 +28,5 @@ export function ServiceInfoPage({ current, title, description, draft = false, ch
       {draft && <aside className={styles.draft} aria-label={tx("문서 상태")}><strong>{tx("검토용 초안")}</strong><p>{tx("정식 시행 전 검토 중인 문서입니다. 운영자 정보와 세부 기준을 확정한 뒤 시행일과 함께 안내합니다.")}</p></aside>}
       <article className={styles.body} aria-label={title}>{children}</article>
     </main>
-    <SiteFooter />
   </div>;
 }

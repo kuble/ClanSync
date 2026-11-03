@@ -61,7 +61,6 @@
 .photos > :first-child { transform: rotate(-4deg); }
 .photos > :last-child { transform: rotate(4deg) translateY(12px); }
 .album figcaption { margin-top: 14px; color: var(--muted-foreground); font-size: 10px; line-height: 1.7; text-align: center; }
-.footer { max-width: 1104px; width: calc(100% - 48px); margin-inline: auto; padding: 20px 0 24px; font-size: 11px; color: var(--muted-foreground); }
 @media (prefers-reduced-motion: no-preference) {
   .submit { transition: filter 180ms ease; }
   .spinner { animation: spin 800ms linear infinite; }
@@ -83,7 +82,6 @@
   .authSubtitle { font-size: 13px; margin-bottom: 24px; }
   .form { gap: 18px; }
   .authFooter { font-size: 12px; }
-  .footer { width: calc(100% - 40px); padding-top: 12px; }
 }
 @media (max-width: 480px) {
   .fieldRow { grid-template-columns: minmax(0,1fr); }

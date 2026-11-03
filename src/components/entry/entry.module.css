@@ -122,7 +122,8 @@
 .genderOptions input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .terms { display: flex; gap: 10px; align-items: flex-start; color: var(--entry-muted); font-size: 12px; line-height: 1.65; cursor: pointer; }
 .terms input { accent-color: var(--primary); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
-.gamesPage { --entry-bg: var(--background); --entry-surface: var(--card); --entry-border: color-mix(in srgb, var(--foreground) 11%, transparent); width: 100%; min-height: 100dvh; }
+.gamesPage { --entry-bg: var(--background); --entry-surface: var(--card); --entry-border: color-mix(in srgb, var(--foreground) 11%, transparent); width: 100%; min-height: auto; flex: 1; }
+.gamesPage + footer { margin-top: 0; }
 .gamesPage .navbar { background: var(--entry-bg); height: 80px; border-bottom: 0; }
 .gamesPage .navbarInner { max-width: 1152px; border-bottom: 1px solid var(--entry-border); }
 .gamesPage a:focus-visible, .gamesPage .profileSummary:focus-visible { outline-color: var(--primary); }
