@@ -99,7 +99,7 @@ function NoticeRow({
   );
   const className = cn(
     "relative z-20 flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 min-h-16 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-    notice.isPinned && styles.pinnedNotice,
+    notice.isPinned && styles.accentEdge,
   );
   return (
     <Link href={href} className={className}>
@@ -167,9 +167,10 @@ function UpcomingEventsContent({
           <Link
             key={`${event.id}:${at}`}
             href={`${base}/events`}
-            className="group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className={cn("group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary", today && styles.accentEdge)}
           >
-            <span className={cn(styles.eventDate, today && "bg-primary/10")}>
+            <span className={styles.eventDate}>
+              {today && <span className="sr-only">오늘 </span>}
               <span className={styles.eventMonth}>
                 {String(date.getMonth() + 1).padStart(2, "0")}월
               </span>
@@ -194,16 +195,12 @@ function UpcomingEventsContent({
             <span
               className={cn(
                 "shrink-0 rounded-md px-2 py-1 text-[10px] font-normal",
-                today
-                  ? "bg-primary/12 text-primary"
-                  : event.kind === "scrim"
+                event.kind === "scrim"
                     ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                     : "bg-muted text-muted-foreground",
               )}
             >
-              {today
-                ? "오늘"
-                : event.source === "scrim_auto"
+              {event.source === "scrim_auto"
                   ? "확정"
                   : event.kind === "intra"
                     ? "내전"

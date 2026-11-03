@@ -10,7 +10,7 @@
 .notices > h3,.events > h3 { color:color-mix(in srgb,var(--foreground) 85%,var(--muted-foreground)); font-size:16px; font-weight:600; }
 .noticeTitle,.eventTitle { display:block; overflow-wrap:anywhere; color:var(--foreground); font-size:15px; font-weight:600; line-height:1.55; letter-spacing:-.02em; }
 .noticeMeta { display:block; margin-top:6px; color:var(--muted-foreground); font-size:11px; font-weight:400; }
-.pinnedNotice { border-inline-start:2px solid var(--primary); background:color-mix(in srgb,var(--primary) 4%,var(--card)); }
+.accentEdge { border-inline-start:2px solid var(--primary); }
 .eventDate { display:flex; width:44px; flex-shrink:0; flex-direction:column; align-items:center; padding-block:4px; border-radius:8px; }
 .eventMonth { color:var(--muted-foreground); font-size:10px; line-height:14px; }
 .eventDay { margin-top:2px; color:var(--primary); font-size:25px; font-weight:650; line-height:28px; font-variant-numeric:tabular-nums; }
