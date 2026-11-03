@@ -110,7 +110,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                           <span className="block text-xs leading-relaxed text-muted-foreground">{row.detail}</span>
                           {unqualified && <span className="block text-xs text-muted-foreground">규정 미달 · {row.shortfall}{active.id === "attendance" ? "회" : "경기"} 부족</span>}
                         </span>
-                        <strong className={`shrink-0 text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : rank === 1 ? "text-pro-gold" : "text-foreground"}`}>{row.value}</strong>
+                        <strong className={`shrink-0 text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : rank === 1 ? "text-pro-gold" : "text-foreground/85"}`}>{row.value}</strong>
                       </>;
                       const className = `relative flex min-h-[80px] w-full items-center gap-2.5 rounded-lg border p-3 text-left sm:gap-3 ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "border-border/60 bg-background/20"}`;
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
