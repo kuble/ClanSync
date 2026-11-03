@@ -140,7 +140,7 @@ export async function setBoardReactionAction(gameSlug: string, clanId: string, p
 }
 
 export async function saveCoachProfileAction(gameSlug:string,clanId:string,input:{role:string;tier:string[];expertise:string;bio:string;accepting:boolean}):Promise<Result>{
-  if(!input||!COACH_ROLES.some(option=>option.value===input.role)||!isCoachTierRange(gameSlug,input.tier)||typeof input.expertise!=="string"||!input.expertise.trim()||input.expertise.trim().length>100||typeof input.bio!=="string"||input.bio.length>1000||typeof input.accepting!=="boolean")return {ok:false,error:"역할, 티어대, 코칭 내용과 소개를 확인해 주십시오."};
+  if(!input||!COACH_ROLES.some(option=>option.value===input.role)||!isCoachTierRange(gameSlug,input.tier)||typeof input.expertise!=="string"||!input.expertise.trim()||input.expertise.trim().length>1000||typeof input.bio!=="string"||input.bio.length>1000||typeof input.accepting!=="boolean")return {ok:false,error:"역할, 티어대, 코칭 내용과 소개를 확인해 주십시오."};
   const ctx=await actor(gameSlug,clanId);
   if(!ctx)return {ok:false,error:"활성 클랜원만 코칭 선생님으로 등록할 수 있습니다."};
   const values={role:input.role,tier:input.tier,expertise:input.expertise.trim(),bio:input.bio.trim(),accepting:input.accepting};

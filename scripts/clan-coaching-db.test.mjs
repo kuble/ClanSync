@@ -26,6 +26,8 @@ test('coaching enrollment, assignment, limited coach authority and participant n
     await ok(coach.client.from('clan_board_coaches').update({role:'tank',tier:['gold','plat']}).eq('clan_id',clan));
     assert.deepEqual(await ok(requester.client.from('clan_board_coaches').select('role,tier').eq('clan_id',clan).single()),{role:'tank',tier:['gold','plat']});
     for(const patch of [{role:'invalid'},{tier:['invalid']},{tier:['gold',null]}]) assert.ok((await coach.client.from('clan_board_coaches').update(patch).eq('clan_id',clan)).error);
+    const tooLong = await coach.client.from('clan_board_coaches').update({expertise:'가'.repeat(1001)}).eq('clan_id',clan);
+    assert.equal(tooLong.error?.code,'23514');
     assert.deepEqual(await ok(requester.client.from('clan_board_coaches').update({role:'sup',tier:['master']}).eq('clan_id',clan).select()),[]);
     assert.ok((await requester.client.from('clan_board_coaches').insert({clan_id:clan,user_id:peer.id,expertise:'위조'})).error);
     assert.ok((await outsider.client.from('clan_board_coaches').insert({clan_id:clan,expertise:'외부'})).error);
