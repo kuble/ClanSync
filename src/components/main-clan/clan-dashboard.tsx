@@ -220,8 +220,8 @@ function MvpPlace({ value, position }: { value: DashboardMvp | undefined; positi
   const displayName = value?.nickname;
   const percentage = formatPercent(value?.percentage);
   return (
-    <li className={cn(styles.mvpPlace, !value && styles.mvpMissing)} data-rank={rank} aria-label={value ? `${value.tiedCount > 1 ? "공동 " : ""}${rank}위 ${displayName}` : `${position}위 기록 없음`}>
-      <span className={styles.mvpRank} data-mvp-rank aria-hidden="true">{value && value.tiedCount > 1 ? `공동 ${rank}` : rank}</span>
+    <li className={cn(styles.mvpPlace, !value && styles.mvpMissing)} data-rank={rank} aria-label={value ? `${rank}위 ${displayName}` : `${position}위 기록 없음`}>
+      <span className={styles.mvpRank} data-mvp-rank aria-hidden="true">{rank}</span>
       <p className={styles.mvpName} data-mvp-name>{displayName ?? "—"}</p>
       <p className={styles.mvpValue} data-mvp-value>
         {percentage.endsWith("%") ? <>{percentage.slice(0, -1)}<span>%</span></> : percentage}

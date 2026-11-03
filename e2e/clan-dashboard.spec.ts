@@ -367,7 +367,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     expect((await svc.from("match_players").update({ team: 1 }).eq("match_id", matchId).eq("user_id", fixture.users[1].id)).error).toBeNull();
     await page.goto(base);
     const tied = page.getByRole("region", { name: "지난달 승률 MVP", exact: true });
-    await expect(tied.getByRole("listitem", { name: /^공동 1위/ })).toHaveCount(2);
+    await expect(tied.getByRole("listitem", { name: /^1위 / }).locator("[data-mvp-rank]")).toHaveText(["1", "1"]);
     await expect(tied.getByRole("listitem").nth(2)).toHaveAttribute("data-rank", "3");
     for (const index of [0, 1, 2]) {
       const centers = await page.getByRole("region", { name: "지난달 MVP", exact: true })
