@@ -13,6 +13,7 @@ import {
   Swords,
   UserRound,
 } from "lucide-react";
+import { ClanSectionPicker } from "@/components/main-clan/clan-section-picker";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
@@ -88,7 +89,7 @@ export function CommunityFrame({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 769px)");
+    const desktop = window.matchMedia("(min-width: 960px)");
     const close = () => {
       if (desktop.matches) setMobileOpen(false);
     };
@@ -120,17 +121,6 @@ export function CommunityFrame({
               <SheetTitle>{gameName} 커뮤니티</SheetTitle>
             </SheetHeader>
             <nav aria-label="모바일 커뮤니티 메뉴" className={styles.drawerNav}>
-              {navigation.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-current={value === tab ? "page" : undefined}
-                  onClick={() => navigate(value)}
-                >
-                  <Icon aria-hidden />
-                  {label}
-                </button>
-              ))}
               <Link href={clanHubHref}>
                 <NavigationIcon icon={Shield} label={clanLabel} />
                 {clanLabel}
@@ -157,38 +147,42 @@ export function CommunityFrame({
         </Link>
         <ThemeToggle />
       </header>
-      <aside className={styles.rail} aria-label="커뮤니티 탐색">
-        <TabsList
-          variant="line"
-          className={styles.nav}
-          aria-label="커뮤니티 메뉴"
-        >
-          {navigation.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger
-              key={value}
-              value={value}
-              aria-label={label}
-              title={label}
-              className={styles.navItem}
-            >
-              <Icon aria-hidden />
-              <span>{label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <nav className={styles.bottom} aria-label="계정 및 클랜">
-          <Link href={clanHubHref} aria-label={clanLabel} title={clanLabel}>
-            <NavigationIcon icon={Shield} label={clanLabel} />
-            <span>{clanLabel}</span>
-          </Link>
-          <Link href="/profile" aria-label="프로필" title="프로필">
-            <NavigationIcon icon={UserRound} label="프로필" />
-            <span>프로필</span>
-          </Link>
-        </nav>
-      </aside>
       <main id="community-content" className={styles.content}>
         <div className={styles.inner}>
+          <ClanSectionPicker label="커뮤니티 메뉴" selectionLabel="커뮤니티 선택" items={navigation.map(({ value, label, icon: Icon }) => ({
+            label, icon: <Icon className="size-4" aria-hidden />, selected: value === tab, onSelect: () => navigate(value),
+          }))}>
+            <aside className={styles.rail} aria-label="커뮤니티 탐색">
+              <TabsList
+                variant="line"
+                className={styles.nav}
+                aria-label="커뮤니티 메뉴"
+              >
+                {navigation.map(({ value, label, icon: Icon }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    aria-label={label}
+                    title={label}
+                    className={styles.navItem}
+                  >
+                    <Icon aria-hidden />
+                    <span>{label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <nav className={styles.bottom} aria-label="계정 및 클랜">
+                <Link href={clanHubHref} aria-label={clanLabel} title={clanLabel}>
+                  <NavigationIcon icon={Shield} label={clanLabel} />
+                  <span>{clanLabel}</span>
+                </Link>
+                <Link href="/profile" aria-label="프로필" title="프로필">
+                  <NavigationIcon icon={UserRound} label="프로필" />
+                  <span>프로필</span>
+                </Link>
+              </nav>
+            </aside>
+          </ClanSectionPicker>
           <div className={styles.pageHead}>
             <span className={styles.pageIcon}>
               <Gamepad2 aria-hidden />

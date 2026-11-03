@@ -390,17 +390,16 @@
     grid-template-columns: 1fr;
   }
 }
+@media (width < 960px) {
+  .mobileTrigger { display: inline-flex; }
+  .content { padding-left: 28px; }
+  .pageHead { margin-top: 16px; }
+}
 @media (max-width: 768px) {
-  .rail {
-    display: none;
-  }
   .header {
     padding: 0 16px;
     gap: 8px;
     font-size: 12px;
-  }
-  .mobileTrigger {
-    display: inline-flex;
   }
   .headerAction span {
     display: none;
