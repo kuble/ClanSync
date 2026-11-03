@@ -9,9 +9,10 @@
   scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;
   scrollbar-gutter: stable;
 }
-/* Fieldset's anonymous content box can overflow a reserved scrollbar gutter. */
+/* Reserve no empty track inside dialogs, including their nested lists and editors. */
 fieldset.board-scroll,
-[data-slot="dialog-content"].board-scroll { scrollbar-gutter: auto; }
+:is([role="dialog"], [role="alertdialog"]).board-scroll,
+:is([role="dialog"], [role="alertdialog"]) .board-scroll { scrollbar-gutter: auto; }
 .board-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .board-scroll::-webkit-scrollbar-track { background: transparent; }
 .board-scroll::-webkit-scrollbar-thumb {

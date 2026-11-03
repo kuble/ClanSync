@@ -29,6 +29,7 @@ test("부계정은 소개·본인 개인 기록에서 편집하고 다른 사람
     const loadRequest = await load;
     const manager = page.getByRole("dialog", { name: "부계정 편집", exact: true });
     await expect(manager.getByRole("button", { name: "부계정 추가", exact: true })).toBeVisible();
+    await expect(manager.locator(".board-scroll").first()).toHaveCSS("scrollbar-gutter", "auto");
     await page.screenshot({ path: info.outputPath("inline-alt-editor.png") });
     await manager.getByRole("button", { name: "부계정 추가", exact: true }).click();
     const add = page.getByRole("dialog", { name: "부계정 추가", exact: true });
