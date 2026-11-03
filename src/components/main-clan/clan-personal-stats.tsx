@@ -121,7 +121,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
     mapGroups.get(match.map)!.push(match);
   }
   const maps = [...mapGroups].map(([name, rows]) => ({ name, ...recordTotals(rows) })).sort((a, b) => mapSort === "matches" ? b.matches - a.matches : (b.rate ?? -1) - (a.rate ?? -1));
-  const selectedPeer = relations.find((row) => row.id === peerId);
+  const selectedPeer = relations.find((row) => row.id === peerId) ?? relations[0];
   const scorePoints = [...(person.scores ?? person.matches)].filter((score) => inPeriod(score.date)).reverse().map((score) => ({ at: score.occurredAt, value: score[activeScoreKind] }));
   const predictionDays = person.predictionPoints.filter((item) => inPeriod(item.date));
   const earned = predictionDays.reduce((sum, day) => sum + day.earned, 0);
