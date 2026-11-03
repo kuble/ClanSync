@@ -43,7 +43,7 @@ export function GameCardGrid({ cards, basePath = "" }: {
   return (
     <>
       <header className={styles.gameHeader}>
-        <div><h1 className={styles.gameHeading}>{tx("게임 선택")}</h1><p className={styles.gameDescription}>{tx("게임별 클랜과 가입 상태를 한눈에 확인할 수 있습니다.")}</p></div>
+        <h1 className={styles.gameHeading}>{tx("게임 선택")}</h1>
         <div className={styles.search}>
           <Search size={16} aria-hidden="true" />
           <input className={styles.input} type="search" aria-label={tx("게임 검색")} placeholder={tx("게임 검색")} value={query} onChange={(event) => setQuery(event.target.value)} />
