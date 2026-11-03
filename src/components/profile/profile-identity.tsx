@@ -29,7 +29,10 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
     if (card) track.current?.scrollTo({ left: card.offsetLeft, behavior: "instant" });
   }
   const gameProfiles = (appearance = publicAppearance, tools?: ReactNode) => profiles.length ? <div className={styles.clanProfiles} role="region" aria-label="클랜 프로필" aria-roledescription="캐러셀">
-      {!namecard && <h2 className={styles.identityHeading}>게임 프로필</h2>}
+      {!namecard && <div className={styles.identityHeader}><h2 className={styles.identityHeading}>게임 프로필</h2>{readOnly && <div className={styles.gameVerification} aria-label={`${profiles[current].gameName} 계정 인증 상태`}>
+        {profiles[current].accountId && profiles[current].isVerified ? <BadgeCheck size={14} aria-hidden="true" /> : <ShieldX size={14} aria-hidden="true" />}
+        <span>{!profiles[current].accountId ? "미등록" : profiles[current].isVerified === undefined ? "인증 확인 중" : profiles[current].isVerified ? "인증됨" : "미인증"}</span>
+      </div>}</div>}
       {profiles.length > 1 && <nav className={styles.clanNavigation} aria-label="게임별 클랜">
         {profiles.map((membership, index) => <button key={membership.clanId ?? membership.gameSlug} type="button"
           aria-label={membership.gameName + (membership.clanName ? " · " + membership.clanName : "")} aria-controls={trackId}
@@ -55,11 +58,11 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           {index === current && tools}
         </div>}
         <div className={styles.clanAccountId}><Namecard displayName={membership.accountId || "Player"} {...appearance} /></div>
-        <div className={styles.gameVerification} aria-label={`${membership.gameName} 계정 인증 상태`}>
+        {(!readOnly || namecard) && <div className={styles.gameVerification} aria-label={`${membership.gameName} 계정 인증 상태`}>
           {membership.accountId && membership.isVerified ? <BadgeCheck size={14} aria-hidden="true" /> : <ShieldX size={14} aria-hidden="true" />}
           <span>{!membership.accountId ? "미등록" : membership.isVerified === undefined ? "인증 확인 중" : membership.isVerified ? "인증됨" : "미인증"}</span>
           {!readOnly && <Link href={`/games/${membership.gameSlug}/auth?reauth=1&next=/profile`}>{membership.accountId ? "게임 ID 수정" : membership.gameSlug === "overwatch" ? "배틀태그 입력" : "게임 ID 입력"}</Link>}
-        </div>
+        </div>}
         <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0} data-empty={!membership.altAccounts?.length || undefined} data-editable={membership.canManageAlts || undefined}><span><UsersRound size={14} aria-hidden="true" />부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정 없음" : "등록된 부계정 없음"}</span>}</div>{membership.canManageAlts && <ProfileAltAccountsEditor key={userId + membership.gameSlug} gameSlug={membership.gameSlug} onChanged={onAltAccountsChanged} />}</div>
       </article>)}
       </div>
