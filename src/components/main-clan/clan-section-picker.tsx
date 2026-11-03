@@ -23,7 +23,7 @@ export function ClanSectionPicker({label, selectionLabel = label, items, childre
         <DropdownMenuTrigger render={<Button variant="outline" className="min-h-11 w-full justify-start gap-3 rounded-lg px-3 text-sm"/>} aria-label={`${selectionLabel}: ${current.label}`}>
           {current.icon}<span>{current.label}</span><ChevronDown className="ml-auto size-4 text-muted-foreground" aria-hidden/>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" sideOffset={6} aria-label={selectionLabel} className="min-[960px]:hidden">
+        <DropdownMenuContent align="start" sideOffset={6} aria-label={selectionLabel} className="max-w-[calc(100vw-1rem)] min-[960px]:hidden">
           {items.map(item => <DropdownMenuItem key={item.label} onClick={item.onSelect} render={item.href ? <Link href={item.href} scroll={false} prefetch={false}/> : undefined} aria-current={item.selected ? "page" : undefined} className={`min-h-11 gap-3 px-3 text-[13px] ${item.selected ? "bg-primary/10 font-semibold text-primary" : ""}`}>
             {item.icon}<span>{item.label}</span>{item.badge}{item.selected && <Check className="ml-auto size-4" aria-hidden/>}
           </DropdownMenuItem>)}

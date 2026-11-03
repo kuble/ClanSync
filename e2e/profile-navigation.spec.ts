@@ -26,26 +26,32 @@ test("프로필은 소개·계정 정보와 네임카드 상점·편집 및 엠�
     await cardShop.focus(); await page.keyboard.press("Tab"); await expect(editCard).toBeFocused(); await expect(page.locator('[role="tooltip"][data-open]')).toHaveText("네임카드 꾸미기");
     await editCard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
-    await expect(dialog.getByRole("combobox", { name: "네임카드 엠블럼", exact: true })).toBeFocused();
+    await expect(dialog.getByRole("button", { name: "테마", exact: true })).toBeFocused();
     await page.keyboard.press("Escape"); await expect(dialog).toBeHidden();
     // Viewport snapshots preserve Chromium touch emulation between interactions.
-    for (const width of [1136, 390, 320]) {
+    for (const width of [960, 959, 704, 320]) {
       await page.setViewportSize({ width, height: 982 });
       await page.mouse.move(0, 0); await editCard.blur();
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       for (const icon of [editCard, cardShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
       const [rowBounds, toolBounds] = await Promise.all([clanRow.boundingBox(), cardTools.boundingBox()]);
       expect(Math.abs(rowBounds!.x + rowBounds!.width - toolBounds!.x - toolBounds!.width)).toBeLessThan(2);
-      await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+      async function selectProfile(label: string) {
+        if (width < 960) {
+          await page.getByRole("button", { name: /^프로필 화면 선택:/ }).click();
+          await page.getByRole("menuitem", { name: label, exact: true }).click();
+        } else await page.getByRole("tab", { name: label, exact: true }).click();
+      }
+      await selectProfile("계정 정보");
       await expect(page.getByRole("region", { name: "내 계정", exact: true })).toBeVisible();
       await page.screenshot({ path: info.outputPath("profile-account-" + width + ".png") });
-      await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
+      await selectProfile("플레이어 소개");
       await expect(page.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath("profile-overview-" + width + ".png") });
     }
     await cardShop.click(); await expect(page).toHaveURL(/\/store$/);
-    await expect(page.getByRole("heading", { name: "나를 꾸미는 상점", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "개인 상점", level: 1, exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "취향 진열장 굿즈", exact: true })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "취향 진열장", exact: true })).toHaveCount(0);
     await page.goto(`/profile/${f.users[0].id}/emblems`);
