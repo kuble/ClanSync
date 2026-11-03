@@ -2,17 +2,52 @@ import {expect,test} from '@playwright/test';
 import {createIsolatedBalanceFixture,loginIsolatedBalanceUser} from './isolated-balance-fixture';
 test.use({actionTimeout:20_000});
 async function ok<T>(query:PromiseLike<{data:T;error:unknown}>){const {data,error}=await query;expect(error,JSON.stringify(error)).toBeNull();return data as NonNullable<T>;}
+
+test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서도 유지된다',async({page})=>{
+  const f=await createIsolatedBalanceFixture(3),base=f.path.replace(/\/balance$/,'');
+  try{
+    await ok(f.service.from('clan_board_coaches').insert(f.users.map(user=>({clan_id:f.clanId,user_id:user.id,expertise:'지원 · 아나',bio:'함께 리플레이를 확인합니다.',accepting:true}))));
+    await loginIsolatedBalanceUser(page,f.users[0]);await page.goto(base+'/board/feedback');
+    const directory=page.getByRole('region',{name:'코칭 선생님',exact:true});
+    const track=page.getByLabel('코칭 선생님 목록',{exact:true});
+    const trigger=page.getByRole('button',{name:'게시판 작성 메뉴',exact:true});
+    for(const width of [900,390]){
+      await page.setViewportSize({width,height:844});
+      await expect.poll(()=>directory.evaluate(el=>el.getBoundingClientRect().height)).toBeLessThan(200);
+      await expect(page.getByRole('button',{name:'다음 선생님',exact:true})).toBeEnabled();
+      await page.getByRole('button',{name:'다음 선생님',exact:true}).click();
+      await expect.poll(()=>track.evaluate(el=>el.scrollLeft)).toBeGreaterThan(100);
+      await page.getByRole('button',{name:'이전 선생님',exact:true}).click();
+      await expect.poll(()=>track.evaluate(el=>el.scrollLeft)).toBeLessThan(2);
+      const button=(await trigger.boundingBox())!;
+      expect(button.width).toBe(56);expect(button.height).toBe(56);
+      expect(button.x+button.width).toBeLessThanOrEqual(width);
+      await trigger.click();
+      const menu=page.getByRole('menu');
+      await expect(menu).toBeVisible();
+      expect((await menu.boundingBox())!.y+(await menu.boundingBox())!.height).toBeLessThan(button.y);
+      await expect(menu.getByRole('menuitem',{name:'피드백 신청',exact:true})).toBeEnabled();
+      await page.keyboard.press('Escape');await expect(menu).toBeHidden();
+      await expect(trigger).toBeFocused();
+      await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      await page.screenshot({path:test.info().outputPath(`coach-carousel-${width}.png`)});
+    }
+  }finally{await f.cleanup();}
+});
 test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글 알림과 신청 중단',async({page})=>{
   test.setTimeout(240_000);
   const f=await createIsolatedBalanceFixture(3),base=f.path.replace(/\/balance$/,''),coach=f.users[2],student=f.users[1],peer=f.users[0];
   try{
     await loginIsolatedBalanceUser(page,coach);await page.goto(base+'/board/feedback');
-    await page.getByRole('button',{name:'코칭 선생님 등록',exact:true}).click();
+    await page.getByRole('button',{name:'게시판 작성 메뉴',exact:true}).click();
+    await page.getByRole('menuitem',{name:'코칭 선생님 등록',exact:true}).click();
     const dialog=page.getByRole('dialog');
     await dialog.getByLabel('코칭 분야·역할·영웅',{exact:true}).fill('지원 · 아나 · 위치 선정');
     await dialog.getByLabel('선생님 소개',{exact:true}).fill('리플레이를 같이 보며 다음 한타를 준비합니다.');
     await dialog.getByRole('button',{name:'프로필 저장',exact:true}).click();
-    await expect(page.getByRole('button',{name:'내 코칭 프로필',exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'게시판 작성 메뉴',exact:true}).click();
+    await expect(page.getByRole('menuitem',{name:'내 코칭 프로필',exact:true})).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,student);await page.goto(base+'/board/feedback');
     await page.getByRole('button',{name:coach.nickname+' 선생님께 신청',exact:true}).click();
     await expect(dialog.getByLabel('코칭 선생님',{exact:true})).toHaveValue(coach.id);
@@ -51,7 +86,8 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     const participants=await ok(f.service.from('notifications').select('recipient_user_id').eq('source_id',reply.id));
     expect(new Set(participants.map(p=>p.recipient_user_id))).toEqual(new Set([peer.id,coach.id]));
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,coach);await page.goto(base+'/board/feedback');
-    await page.getByRole('button',{name:'내 코칭 프로필',exact:true}).click();
+    await page.getByRole('button',{name:'게시판 작성 메뉴',exact:true}).click();
+    await page.getByRole('menuitem',{name:'내 코칭 프로필',exact:true}).click();
     await dialog.getByLabel('피드백 신청 받기',{exact:true}).uncheck();
     await dialog.getByRole('button',{name:'프로필 저장',exact:true}).click();
     await expect(page.getByText('신청 잠시 중단',{exact:true})).toBeVisible();

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Megaphone, Pin, PinOff, Plus, Pencil, ScrollText, Trash2 } from "lucide-react";
+import { BoardCreateButton } from "./board-create-button";
 import {
   saveClanNoticeAction,
   deleteClanNoticeAction,
@@ -46,12 +47,14 @@ export function ClanManageNotices({
   notices,
   loadFailed,
   canManage = true,
+  floatingCreate = false,
 }: {
   gameSlug: string;
   clanId: string;
   notices: ManagedClanNotice[];
   loadFailed: boolean;
   canManage?: boolean;
+  floatingCreate?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -89,7 +92,7 @@ export function ClanManageNotices({
   }
   return (
     <section
-      className={panel}
+      className={panel + (floatingCreate ? " pb-20" : "")}
       id="notices"
       aria-labelledby="manage-notices-title"
     >
@@ -100,14 +103,14 @@ export function ClanManageNotices({
             <HelpText label="클랜 공지" help="중요한 소식을 클랜원에게 전하십시오. 고정한 공지가 먼저 표시됩니다." />
           </h3>
         </div>
-        {canManage && <Button
+        {canManage && (floatingCreate ? <BoardCreateButton label="공지 작성" onClick={(event)=>edit("new",event.currentTarget)}/> : <Button
           type="button"
           size="sm"
           onClick={(event) => edit("new", event.currentTarget)}
         >
           <Plus className="size-3.5" />
           공지 작성
-        </Button>}
+        </Button>)}
       </div>
       {loadFailed ? (
         <p

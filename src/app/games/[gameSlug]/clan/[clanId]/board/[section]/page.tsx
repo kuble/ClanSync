@@ -26,7 +26,7 @@ export default async function BoardSectionPage({params,searchParams}:{params:Pro
       client.rpc("clan_peer_nicknames",{p_clan_id:clanId}),
     ]);
     const nicknames=new Map((names.data??[]).map(n=>[n.user_id,n.nickname]));
-    return <div className="space-y-5"><ClanManageRules gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} initialRules={profile.data?.rules??null} loadFailed={!!profile.error||!profile.data}/><ClanManageNotices gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} loadFailed={!!notices.error||!!names.error} notices={(notices.data??[]).map(n=>({id:n.id,title:n.title,content:n.content,isPinned:n.is_pinned,createdAt:n.created_at,author:nicknames.get(n.created_by??"")??"운영진"}))}/></div>;
+    return <div className="space-y-5"><ClanManageRules gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} initialRules={profile.data?.rules??null} loadFailed={!!profile.error||!profile.data}/><ClanManageNotices floatingCreate gameSlug={gameSlug} clanId={clanId} canManage={ctx.role!=="member"} loadFailed={!!notices.error||!!names.error} notices={(notices.data??[]).map(n=>({id:n.id,title:n.title,content:n.content,isPinned:n.is_pinned,createdAt:n.created_at,author:nicknames.get(n.created_by??"")??"운영진"}))}/></div>;
   }
   if(!isBoardKind(section))notFound();
   const page=/^[1-9]\d{0,4}$/.test(query.page??"")?Number(query.page):1;
