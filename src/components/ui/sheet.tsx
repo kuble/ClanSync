@@ -42,15 +42,17 @@ function SheetContent({
   side = "right",
   showCloseButton = true,
   keepMounted = false,
+  onBackdropPointerMove,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
   keepMounted?: boolean
+  onBackdropPointerMove?: SheetPrimitive.Backdrop.Props["onPointerMove"]
 }) {
   return (
     <SheetPortal keepMounted={keepMounted}>
-      <SheetOverlay />
+      <SheetOverlay onPointerMove={onBackdropPointerMove} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         role="dialog"

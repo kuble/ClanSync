@@ -35,8 +35,14 @@ test("board comments open in the hall-of-fame drawer and allow replies", async (
     await expect(section).toHaveCSS("width", "440px");
     const short = await viewport.evaluate(el => ({ height: el.clientHeight, content: el.scrollHeight }));
     expect(short.content - short.height).toBeLessThanOrEqual(1);
-
-
+    const refresh = await section.getByRole("button", {name:"댓글 새로고침"}).boundingBox();
+    const close = await section.getByRole("button", {name:"닫기"}).boundingBox();
+    expect(close!.y + close!.height / 2).toBeCloseTo(refresh!.y + refresh!.height / 2, 0);
+    await viewport.hover();
+    await page.mouse.move(10, 400);
+    await expect(section).toBeHidden();
+    await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
+    await expect(section).toBeVisible();
     expect((await f.service.from("clan_board_comments").insert(comments.slice(2))).error).toBeNull();
     await page.reload();
     await expect(viewport.getByRole("listitem")).toHaveCount(20);
