@@ -21,7 +21,12 @@ test('coaching enrollment, assignment, limited coach authority and participant n
   const clan=clans[0];
   await ok(service.from('clan_members').insert(users.map((u,i)=>({clan_id:i===4?clans[1]:clan,user_id:u.id,role:i===0||i===4?'leader':'member',status:'active'}))));
   await t.test('members enroll only themselves; outsiders and immutable identity changes are denied',async()=>{
-    await ok(coach.client.from('clan_board_coaches').insert({clan_id:clan,expertise:'지원 · 아나',bio:'위치 선정 함께 봐요.'}));
+    await ok(coach.client.from('clan_board_coaches').insert({clan_id:clan,role:'sup',tier:'diamond',expertise:'아나',bio:'위치 선정 함께 봐요.'}));
+    assert.deepEqual(await ok(requester.client.from('clan_board_coaches').select('role,tier').eq('clan_id',clan).single()),{role:'sup',tier:'diamond'});
+    await ok(coach.client.from('clan_board_coaches').update({role:'tank',tier:'gold'}).eq('clan_id',clan));
+    assert.deepEqual(await ok(requester.client.from('clan_board_coaches').select('role,tier').eq('clan_id',clan).single()),{role:'tank',tier:'gold'});
+    for(const patch of [{role:'invalid'},{tier:'invalid'}]) assert.ok((await coach.client.from('clan_board_coaches').update(patch).eq('clan_id',clan)).error);
+    assert.deepEqual(await ok(requester.client.from('clan_board_coaches').update({role:'sup',tier:'master'}).eq('clan_id',clan).select()),[]);
     assert.ok((await requester.client.from('clan_board_coaches').insert({clan_id:clan,user_id:peer.id,expertise:'위조'})).error);
     assert.ok((await outsider.client.from('clan_board_coaches').insert({clan_id:clan,expertise:'외부'})).error);
     assert.deepEqual(await ok(outsider.client.from('clan_board_coaches').select('*').eq('clan_id',clan)),[]);

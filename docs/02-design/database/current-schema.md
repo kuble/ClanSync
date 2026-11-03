@@ -31,7 +31,7 @@
 | `clan_badge_awards` | 4 | 1 |
 | `clan_badge_featured` | 2 | 1 |
 | `clan_badge_seen` | 3 | 2 |
-| `clan_board_coaches` | 6 | 2 |
+| `clan_board_coaches` | 8 | 2 |
 | `clan_board_comment_reactions` | 3 | 2 |
 | `clan_board_comments` | 5 | 2 |
 | `clan_board_posts` | 12 | 3 |
