@@ -22,6 +22,9 @@ test("개인 기록은 열람 역할 선택 없이 멤버 공개 항목을 저�
   expect(resolveHofConfig({}).memberPersonalSections).toEqual(["predictions", "prediction_points", "emblems"]);
   expect(resolvePersonalSections([])).toEqual(["emblems"]);
   expect(resolvePersonalSections(null)).toEqual(["emblems"]);
+  for (const minimum of ["leader", "officer", "member"]) {
+    expect(resolveHofConfig({ personal_record_min_role: minimum, member_personal_records: false, member_personal_audience: "own" })).toMatchObject({ personalRecordMinRole: "member", memberPersonalRecords: true, memberPersonalAudience: "clan" });
+  }
   expect(resolvePersonalSections(["records", "unknown"])).toEqual(["records", "emblems"]);
   expect(restrictPersonalStats({ matches: [], predictions: ["hidden"], predictionPoints: ["private"], emblems: ["public"] }, [])).toMatchObject({
     visibleSections: ["emblems"], predictions: [], predictionPoints: [], emblems: ["public"],
@@ -65,6 +68,7 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
       p_actor_id: actor, p_clan_id: f.clanId, p_scope: scope, p_patch: patch,
     });
     const env = loadTestEnv(), anon = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    expect(await loadClanStatsDetail(anon, f.users[0].id, f.clanId, f.users[0].id)).toBeNull();
     for (const client of [anon, leader, member]) {
       expect((await client.rpc("save_clan_stats_settings", { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_scope: "personal", p_patch: { member_personal_records: true } })).error).not.toBeNull();
     }
@@ -103,7 +107,7 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
       scores: [{ evaluation: -0.5, analysis: null }], visibleSections: ["evaluation", "emblems"],
     });
     expect(detail?.kind === "personal" && detail.person.emblems?.length).toBeGreaterThan(0);
-    expect(await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[0].id)).toBeNull();
+    expect((await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[0].id))?.kind).toBe("personal");
     const full = await loadClanStatsPage(member, f.users[1].id, f.clanId);
     expect(full?.personal.people[0]).toEqual(detail?.kind === "personal" ? detail.person : null);
     await ok(save(f.users[0].id, "personal", { member_personal_audience: "clan", member_personal_sections: ["records", "prediction_points"] }));
@@ -184,10 +188,10 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     const officerPage = await officerContext.newPage();
     await loginIsolatedBalanceUser(officerPage, f.users[2]);
     await officerPage.goto(path);
-    // The saved minimum applies to staff too; higher roles are included automatically.
+    // Legacy role restrictions cannot override the new member-section policy.
     for (const [, minimum, allowed] of [
-      ["서버장", "leader", [true, false, false]],
-      ["운영진", "officer", [true, true, false]],
+      ["서버장", "leader", [true, true, true]],
+      ["운영진", "officer", [true, true, true]],
       ["멤버", "member", [true, true, true]],
     ] as const) {
       await ok(f.service.from("clan_settings").update({ hof_config: { ...(stored.hof_config as Record<string, Json>), personal_record_min_role: minimum } }).eq("clan_id", f.clanId));
@@ -203,10 +207,17 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
         const viewerId = f.users[index === 1 ? 2 : index === 2 ? 1 : 0].id;
         const personal = await loadClanStatsDetail(client, viewerId, f.clanId, f.users[0].id);
         expect(personal !== null, `${minimum}: viewer ${index}`).toBe(allowed[index]);
-        if (index === 0 && personal?.kind === "personal") {
+        if (index < 2 && personal?.kind === "personal") {
           expect(personal.person.matches).toHaveLength(1);
           expect(personal.person.matches[0].evaluation).toBe(1.25);
           expect(personal.person.visibleSections).toBeUndefined();
+        }
+        if (index === 2 && personal?.kind === "personal") {
+          expect(personal.person.matches).toEqual([]);
+          expect(personal.person.predictions).toEqual([]);
+          expect(personal.person.predictionPoints).toEqual([]);
+          expect(personal.person.scores).toMatchObject([{ evaluation: 1.25 }]);
+          expect(personal.person.visibleSections).toEqual(["evaluation", "analysis", "emblems"]);
         }
         const overview = await loadClanStatsPage(client, viewerId, f.clanId, { deferDetails: true });
         expect(overview?.permissions.viewPersonalRecords).toBe(allowed[index]);
@@ -218,20 +229,12 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
       await memberPage.reload();
       await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toBeVisible();
       const response = await memberPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`);
-      expect(response.status()).toBe(minimum === "member" ? 200 : 403);
+      expect(response.status()).toBe(200);
       await officerPage.reload();
       await officerPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
-      expect((await officerPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(minimum === "leader" ? 403 : 200);
-      if (minimum === "leader") {
-        await officerPage.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
-        await expect(officerPage.getByRole("tabpanel", { name: "개인 기록", exact: true }).getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
-        await officerPage.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
-        const officerDialog = officerPage.getByRole("dialog", { name: "개인 기록 설정", exact: true });
-        await expect(officerDialog.getByRole("radio")).toHaveCount(0);
-        await officerDialog.getByRole("button", { name: "취소", exact: true }).click();
-      }
+      expect((await officerPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(200);
       stored = await ok(f.service.from("clan_settings").select("hof_config,expose_hof").eq("clan_id", f.clanId).single());
-      expect(stored.hof_config).toMatchObject({ personal_record_min_role: minimum, member_personal_sections: ["evaluation", "analysis"], win_rate_visible_top: 3 });
+      expect(stored.hof_config).toMatchObject({ personal_record_min_role: "member", member_personal_sections: ["evaluation", "analysis"], win_rate_visible_top: 3 });
       await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
       dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
       await expect(dialog.getByRole("radio")).toHaveCount(0);

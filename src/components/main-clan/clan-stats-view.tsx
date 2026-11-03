@@ -102,7 +102,6 @@ export function HofSettingsForm({
   scope?: "all" | "hof" | "personal";
 }) {
   const [pending, start] = useTransition();
-  const personalMinimum = cfg.personalRecordMinRole ?? (cfg.memberPersonalRecords ? "member" : "officer");
   const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
   const draft = useHofEligibilityDraft(cfg);
   return (
@@ -125,7 +124,6 @@ export function HofSettingsForm({
       <input type="hidden" name="settings_scope" value={scope} />
       <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col px-5">
       {scope === "personal" ? <div className="board-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pb-2">
-        <input type="hidden" name="personal_record_min_role" value={personalMinimum} />
         {PERSONAL_STATS_SECTIONS.filter(({ id }) => personalSections.includes(id)).map(({ id }) => <input key={id} type="hidden" name="member_personal_sections" value={id} />)}
       <section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계">
         <h4 className="text-sm font-semibold">공개할 통계</h4>
@@ -144,10 +142,6 @@ export function HofSettingsForm({
       {scope === "all" && <TabsContent value="access" keepMounted>
       <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-access-title" className="text-sm font-semibold">열람·공개</h4>
-      <label className="flex cursor-pointer items-start justify-between gap-3 text-sm">
-        <span>멤버의 본인 개인 기록 열람 허용<span className="mt-1 block text-xs text-muted-foreground">기본은 운영진만 열람합니다. 켜면 멤버가 자신의 기록을 볼 수 있습니다.</span></span>
-        <Switch name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1" />
-      </label>
       {isLeader && <label className="flex cursor-pointer items-start justify-between gap-3 border-t pt-3 text-sm">
         <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
         <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
