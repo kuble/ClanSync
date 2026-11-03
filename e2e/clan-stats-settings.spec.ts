@@ -17,7 +17,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   return data as NonNullable<T>;
 }
 
-test("개인 기록 기본값과 항상 공개 엠블럼·멤버 전용 설정·역할 전환 초안을 유지한다", async ({ page }, info) => {
+test("개인 기록은 열람 역할 선택 없이 멤버 공개 항목을 저장한다", async ({ page }, info) => {
   test.setTimeout(120_000);
   expect(resolveHofConfig({}).memberPersonalSections).toEqual(["predictions", "prediction_points", "emblems"]);
   expect(resolvePersonalSections([])).toEqual(["emblems"]);
@@ -40,25 +40,14 @@ test("개인 기록 기본값과 항상 공개 엠블럼·멤버 전용 설정·
     await expect(dialog.getByRole("switch", { name: /엠블럼/ })).toHaveCount(0);
     await page.screenshot({ path: info.outputPath("personal-settings-defaults.png") });
     await dialog.getByRole("switch", { name: "평가 점수", exact: true }).check();
-    await dialog.getByRole("radio", { name: "서버장", exact: true }).click();
-    await expect(dialog.getByRole("switch")).toHaveCount(0);
-    await expect(dialog.getByRole("region", { name: "공개할 통계", exact: true })).toHaveCount(0);
-    await expect(dialog.getByText("선택한 역할과 그 상위 역할이 열람할 수 있습니다.", { exact: false })).toHaveCount(0);
-    await page.screenshot({ path: info.outputPath("personal-settings-leader-on.png") });
-    await dialog.getByRole("radio", { name: "운영진", exact: true }).click();
-    await expect(dialog.getByRole("region", { name: "공개할 통계", exact: true })).toHaveCount(0);
-    await expect(dialog.getByRole("switch")).toHaveCount(0);
-    await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
-    await expect(dialog.getByRole("switch", { name: "평가 점수", exact: true })).toBeChecked();
-    await expect(dialog.getByRole("switch", { name: "경기 전적", exact: true })).not.toBeChecked();
-    await dialog.getByRole("radio", { name: "서버장", exact: true }).click();
+    await expect(dialog.getByRole("radio")).toHaveCount(0);
+    await expect(dialog.getByRole("region", { name: "개인 기록 열람 범위", exact: true })).toHaveCount(0);
     await dialog.getByRole("button", { name: "저장", exact: true }).click();
     await expect(dialog).toBeHidden();
     const stored = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
-    expect(stored.hof_config).toMatchObject({ personal_record_min_role: "leader", member_personal_sections: ["evaluation", "predictions", "prediction_points"] });
+    expect(stored.hof_config).toMatchObject({ personal_record_min_role: "member", member_personal_sections: ["evaluation", "predictions", "prediction_points"] });
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
-    await expect(dialog.getByRole("switch")).toHaveCount(0);
-    await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
+    await expect(dialog.getByRole("switch")).toHaveCount(5);
     await expect(dialog.getByRole("switch", { name: "평가 점수", exact: true })).toBeChecked();
     await expect(dialog.getByRole("switch", { name: "경기 전적", exact: true })).not.toBeChecked();
   } finally { await f.cleanup(); }
@@ -186,7 +175,6 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
     dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
-    await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
     await dialog.getByRole("switch", { name: "분석 점수", exact: false }).check();
     await dialog.getByRole("button", { name: "저장", exact: true }).click();
     await expect(dialog).toBeHidden();
@@ -197,18 +185,18 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     await loginIsolatedBalanceUser(officerPage, f.users[2]);
     await officerPage.goto(path);
     // The saved minimum applies to staff too; higher roles are included automatically.
-    for (const [label, minimum, allowed] of [
+    for (const [, minimum, allowed] of [
       ["서버장", "leader", [true, false, false]],
       ["운영진", "officer", [true, true, false]],
       ["멤버", "member", [true, true, true]],
     ] as const) {
+      await ok(f.service.from("clan_settings").update({ hof_config: { ...(stored.hof_config as Record<string, Json>), personal_record_min_role: minimum } }).eq("clan_id", f.clanId));
+      await page.reload();
+      await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
       await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
       dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
-      await dialog.getByRole("radio", { name: label, exact: true }).click();
-      if (minimum === "leader") {
-        await expect(dialog.getByRole("switch")).toHaveCount(0);
-        await expect(dialog.getByRole("region", { name: "공개할 통계", exact: true })).toHaveCount(0);
-      }
+      await expect(dialog.getByRole("radio")).toHaveCount(0);
+      await expect(dialog.getByRole("switch")).toHaveCount(5);
       await dialog.getByRole("button", { name: "저장", exact: true }).click();
       await expect(dialog).toBeHidden();
       for (const [index, client] of [leader, officer, member].entries()) {
@@ -239,14 +227,14 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
         await expect(officerPage.getByRole("tabpanel", { name: "개인 기록", exact: true }).getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
         await officerPage.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
         const officerDialog = officerPage.getByRole("dialog", { name: "개인 기록 설정", exact: true });
-        await expect(officerDialog.getByRole("radio", { name: "서버장", exact: true })).toBeChecked();
+        await expect(officerDialog.getByRole("radio")).toHaveCount(0);
         await officerDialog.getByRole("button", { name: "취소", exact: true }).click();
       }
       stored = await ok(f.service.from("clan_settings").select("hof_config,expose_hof").eq("clan_id", f.clanId).single());
       expect(stored.hof_config).toMatchObject({ personal_record_min_role: minimum, member_personal_sections: ["evaluation", "analysis"], win_rate_visible_top: 3 });
       await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
       dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
-      await expect(dialog.getByRole("radio", { name: label, exact: true })).toBeChecked();
+      await expect(dialog.getByRole("radio")).toHaveCount(0);
       await dialog.getByRole("button", { name: "취소", exact: true }).click();
     }
     await page.getByRole("tab", { name: "내전 통계", exact: true }).click();

@@ -8,7 +8,6 @@ import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { RubberSegment } from "@/components/ui/rubber-segment";
 import { PeriodSelect } from "@/components/ui/period-select";
 import {
   Card,
@@ -33,7 +32,7 @@ import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { cn } from "@/lib/utils";
 import { HofEligibilitySettings, HofEligibilityPreview, useHofEligibilityDraft } from "./hof-eligibility-settings";
 import settingsStyles from "./hof-settings.module.css";
-import { PERSONAL_RECORD_ACCESS_OPTIONS, PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
+import { PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
 import {
   Activity,
   BarChart3,
@@ -103,7 +102,7 @@ export function HofSettingsForm({
   scope?: "all" | "hof" | "personal";
 }) {
   const [pending, start] = useTransition();
-  const [personalMinimum, setPersonalMinimum] = useState(cfg.personalRecordMinRole ?? (cfg.memberPersonalRecords ? "member" : "officer"));
+  const personalMinimum = cfg.personalRecordMinRole ?? (cfg.memberPersonalRecords ? "member" : "officer");
   const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
   const draft = useHofEligibilityDraft(cfg);
   return (
@@ -125,19 +124,17 @@ export function HofSettingsForm({
     >
       <input type="hidden" name="settings_scope" value={scope} />
       <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col px-5">
-      {scope === "personal" ? <div className="board-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pb-2"><section className="space-y-3 rounded-xl border p-4" aria-label="개인 기록 열람 범위">
-        <h4 className="text-sm font-semibold">기록 공개</h4>
+      {scope === "personal" ? <div className="board-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pb-2">
         <input type="hidden" name="personal_record_min_role" value={personalMinimum} />
-        <RubberSegment label="기록 공개" labelPosition="hidden" options={PERSONAL_RECORD_ACCESS_OPTIONS} value={personalMinimum} onChange={setPersonalMinimum} />
         {PERSONAL_STATS_SECTIONS.filter(({ id }) => personalSections.includes(id)).map(({ id }) => <input key={id} type="hidden" name="member_personal_sections" value={id} />)}
-      </section>{personalMinimum === "member" && <section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계">
+      <section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계">
         <h4 className="text-sm font-semibold">공개할 통계</h4>
         {PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <div key={id} className="flex items-start justify-between gap-3 text-sm">
           <span>{label}<span className="mt-1 block text-xs text-muted-foreground">{description}</span></span>
           <Switch aria-label={label} checked={personalSections.includes(id)} onChange={event => { const checked = event.currentTarget.checked; setPersonalSections(current => checked ? [...current, id] : current.filter(section => section !== id)); }} className="mt-1" />
         </div>)}
         <p className="text-xs text-muted-foreground">엠블럼은 항상 기본으로 표시됩니다.</p>
-      </section>}</div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
+      </section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
         <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label="명예의 전당 설정 영역">
           {scope === "all" && <TabsTrigger value="access">열람·공개</TabsTrigger>}
           <TabsTrigger value="ranking">순위 공개</TabsTrigger>
