@@ -99,7 +99,7 @@ function NoticeRow({
   );
   const className = cn(
     "relative z-20 flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 min-h-16 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-    notice.isPinned && styles.accentEdge,
+    notice.isPinned ? styles.accentEdge : styles.neutralEdge,
   );
   return (
     <Link href={href} className={className}>
@@ -167,7 +167,7 @@ function UpcomingEventsContent({
           <Link
             key={`${event.id}:${at}`}
             href={`${base}/events`}
-            className={cn("group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary", today && styles.accentEdge)}
+            className={cn("group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary", today ? styles.accentEdge : styles.neutralEdge)}
           >
             <span className={styles.eventDate}>
               {today && <span className="sr-only">오늘 </span>}
