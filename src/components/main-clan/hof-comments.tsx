@@ -31,7 +31,7 @@ export function HofCommentsCard({ label, disabled, onRefresh, children, drawerOp
   const narrow = useSyncExternalStore(subscribeNarrow, isNarrow, serverNarrow);
   const refreshButton = <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={onRefresh}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>;
   if (narrow) return <ClanCommentsDrawer open={drawerOpen} onOpenChange={onDrawerOpenChange} title="반응" label={label} action={refreshButton}>{children}</ClanCommentsDrawer>;
-  return <Card size="sm" className="hidden h-[36rem] min-w-0 overflow-hidden min-[1000px]:flex" aria-label={label + " 반응"}>
+  return <Card size="sm" className="hidden min-h-0 min-w-0 overflow-hidden min-[1000px]:flex" aria-label={label + " 반응"}>
     <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
       <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응</h4></CardTitle>
       {refreshButton}

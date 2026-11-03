@@ -21,7 +21,7 @@ export function ArchiveDayTable({ records, pending = false }: { records: ClanArc
   const totals = useMemo(() => buildArchiveDayStats(records), [records]);
   const rows = sortArchiveDayStats(totals, sort.key, sort.direction);
   const SortIcon = sort.direction === "asc" ? ArrowUp : ArrowDown;
-  return <aside className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-muted/15" aria-label="선택한 날짜 내전 기록">
+  return <aside className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-muted/15 min-[1100px]:h-auto min-[1100px]:max-h-[max(560px,calc(100dvh-15rem))] min-[1100px]:min-h-[560px]" aria-label="선택한 날짜 내전 기록">
     <div className="flex flex-wrap items-center justify-between gap-1 border-b px-4 py-3">
       <h5 className="flex items-center gap-2 text-xs font-semibold"><Trophy className="size-4 text-amber-500" aria-hidden="true" />이날의 내전 기록</h5>
       <span className="text-[10px] text-muted-foreground">당일 전체 내전 기준</span>
