@@ -9,7 +9,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<N
 }
 
 test("stats: period-wide filters, popup selectors, tooltip, record tab and staff qualification boundary", async ({ page }) => {
-  test.setTimeout(150_000);
+  test.setTimeout(150_000); page.setDefaultTimeout(12_000);
   const f = await createIsolatedBalanceFixture(3);
   async function selectMobileMode(region: Locator, mode: string) {
     await region.getByRole("combobox", { name: "기간", exact: true }).click();
@@ -95,23 +95,20 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     expect(Math.abs(periodBox.y - monthBox.y)).toBeLessThan(2);
     await month.click();
     const monthList = page.getByRole("listbox", { name: "월", exact: true });
-    await expect(monthList).toHaveCSS("overflow-y", "auto");
-    expect(await monthList.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true);
+    expect(await monthList.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true);
+    await expect(monthList.getByRole("option",{name:"12월",exact:true})).toBeInViewport();
     await page.getByRole("option", { name: "7월", exact: true }).click();
     await expect(month).toHaveText("7월");
     await expect(completed).toContainText("1경기");
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("부산");
     await month.click();
-    await monthList.hover();
-    const initialScroll = await monthList.evaluate((node) => node.scrollTop);
-    await page.mouse.wheel(0, 800);
-    await expect.poll(() => monthList.evaluate((node) => node.scrollTop)).toBeGreaterThan(initialScroll);
+    await expect(monthList.getByRole("option",{name:"1월",exact:true})).toBeInViewport();
     await expect(month).toHaveText("7월");
     await expect(completed).toContainText("1경기");
     await page.keyboard.press("Escape");
     await expect(monthList).toBeHidden();
     await expect(month).toBeFocused();
-    // Do not let the preceding wheel/hover target change keyboard highlighting.
+    // Keep the pointer away during keyboard selection.
     await page.mouse.move(0, 0);
     await month.press("Enter");
     await expect(monthList).toBeVisible();
@@ -231,7 +228,8 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(calendar).toBeVisible();
     await calendar.getByRole("button", { name: "2025년 7월 1일 경기 기록 있음", exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await page.getByRole("tab", { name: "내전 통계" }).click();
+    await page.getByRole("button", { name: /^통계 선택:/ }).click();
+    await page.getByRole("menuitem", { name: "내전 통계", exact:true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     const intraPeriod = page.getByRole("region", { name: "내전 통계 기간", exact: true });
     await selectMobileMode(intraPeriod, "월별");
@@ -240,7 +238,8 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(page.getByRole("dialog", { name: "내전 통계 설정", exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog", { name: "내전 통계 설정", exact: true })).toBeHidden();
-    await page.getByRole("tab", { name: "개인 기록" }).click();
+    await page.getByRole("button", { name: /^통계 선택:/ }).click();
+    await page.getByRole("menuitem", { name: "개인 기록", exact:true }).click();
     await page.route(`**/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`, (route) => route.fulfill({ status: 503, body: "unavailable" }), { times: 1 });
     await page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true }).click();
     await expect(page.getByRole("alert").filter({ hasText: "통계 기록을 불러오지 못했습니다." })).toBeVisible();
@@ -273,7 +272,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(synergyChart.getByRole("img", { name: new RegExp(`${f.users[1].nickname} 상대 팀 승률 100.0%`) })).toBeVisible();
     await expect(synergyChart.locator('svg[role="img"] > circle')).toHaveCount(2);
     const ring = (await synergyChart.locator('svg[role="img"]').boundingBox())!;
-    const avatar = (await synergyChart.getByLabel("기본 프로필 이미지").boundingBox())!;
+    const avatar = (await synergyChart.getByRole("img", { name: f.users[1].nickname + " 프로필 심볼" }).boundingBox())!;
     const name = (await synergyChart.getByRole("heading", { name: f.users[1].nickname }).boundingBox())!;
     expect(name.y + name.height).toBeLessThan(ring.y);
     expect(avatar.x).toBeGreaterThan(ring.x + 30);
@@ -281,7 +280,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(synergyChart).toContainText("완벽한 천적");
     await expect(synergy).not.toContainText("근거 경기");
     const synergyBox = await synergy.boundingBox(), chartBox = await synergyChart.boundingBox();
-    expect(chartBox!.x).toBeGreaterThan(synergyBox!.x + synergyBox!.width);
+    expect(chartBox!.x + chartBox!.width).toBeLessThan(synergyBox!.x);
     await page.getByRole("radiogroup", { name: "팀 관계" }).getByRole("radio", { name: "같은 팀" }).click();
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
     const emblems = banner.getByRole("link", { name: f.users[0].nickname + " 엠블럼 케이스 열기", exact: true });
@@ -381,7 +380,8 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await personalPeriod.getByRole("button", { name: "멤버 선택" }).click();
     await expect(page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true })).toBeVisible();
-    await page.getByRole("tab", { name: "명예의 전당" }).click();
+    await page.getByRole("button", { name: /^통계 선택:/ }).click();
+    await page.getByRole("menuitem", { name: "명예의 전당", exact:true }).click();
     const hofFilter = page.getByRole("region", { name: "명예의 전당 필터", exact: true });
     await selectMobileMode(hofFilter, "월별");
     await expectCompactPeriod(hofFilter);
