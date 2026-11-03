@@ -8,6 +8,8 @@ import type { PersonalMatch } from "@/lib/clan/stats/clan-stats-analytics";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
+import { StatTooltip } from "./stat-help";
 
 const matchLabel = (match: PersonalMatch) => `${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" }).format(new Date(match.occurredAt))} · ${match.map ?? "맵 미기록"}`;
 
@@ -39,7 +41,7 @@ export function StatsScoreEditor({ gameSlug, clanId, playerId, matches }: {
     });
   };
   return <Dialog open={open} onOpenChange={(next) => { setOpen(next); setError(""); if (next) setScore(String(selected?.evaluation ?? 0)); }}>
-    <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}>평가 점수 수정</DialogTrigger>
+    <StatTooltip label="평가 점수 수정" description="선택한 역할의 경기별 평가 점수를 수정합니다." render={<DialogTrigger render={<Button type="button" size="icon" variant="ghost" className="size-7" aria-label="평가 점수 수정" />} />}><Pencil className="size-3.5" aria-hidden="true" /></StatTooltip>
     <DialogContent>
       <DialogHeader><DialogTitle>평가 점수 수정</DialogTitle><DialogDescription>선택한 내전의 평가 점수만 변경합니다.</DialogDescription></DialogHeader>
       <div className="space-y-4">

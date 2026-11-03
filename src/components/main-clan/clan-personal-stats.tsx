@@ -203,11 +203,11 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
           <FilterButtons label="점수 역할" options={ROLE_OPTIONS.filter((option) => option.id !== "all")} value={scoreRole} onChange={setScoreRole} />
           <FilterButtons label="점수 종류" options={([{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }] as const).filter(({ id }) => visible(id))} value={activeScoreKind} onChange={setScoreKind} />
         </div>
-        <div aria-label={`현재 ${activeScoreKind === "evaluation" ? "평가" : "분석"} 점수`} className="space-y-1 rounded-xl bg-background/30 p-4">
+        <div aria-label={`현재 ${activeScoreKind === "evaluation" ? "평가" : "분석"} 점수`} className="relative space-y-1 rounded-xl bg-background/30 p-4 pr-12">
+          {activeScoreKind === "evaluation" && model.permissions.editMscore && <div className="absolute right-3 top-3"><StatsScoreEditor key={periodKey + person.userId + scoreRole} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={scoreMatches} /></div>}
           <p className="text-xs text-muted-foreground">현재 {activeScoreKind === "evaluation" ? "평가" : "분석"} 점수 · 최근 기록 기준</p>
           <p className="flex h-10 items-baseline gap-1 text-primary"><strong className="text-4xl font-bold tracking-tight tabular-nums">{pending ? "—" : currentScore == null ? "기록 없음" : currentScore.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}</strong>{!pending && currentScore != null && <span className="text-sm">점</span>}</p>
         </div>
-        {activeScoreKind === "evaluation" && model.permissions.editMscore && <div className="flex justify-end"><StatsScoreEditor key={periodKey + person.userId + scoreRole} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={scoreMatches} /></div>}
         <StatsTimeChart busy={pending} label="점수 변동 이력 그래프" unit="점" lines={[{ label: activeScoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 변동 이력이 없습니다." />
       </CardContent></Card>}
       {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight"><Target className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
@@ -221,7 +221,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
           <p className="border-t pt-3 text-xs text-muted-foreground">무승부 적중 {value(picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length)}회 · 무효 {value(picks.filter((pick) => pick.result === "void").length)}회</p>
         </div>}
         {canViewPredictionPoints && <div className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3 py-1 tabular-nums"><div className="flex gap-4 text-xs text-muted-foreground"><span>수익 <span className="text-primary">{value(`+${earned.toLocaleString()}`)}pt</span></span><span>손실 <span className="text-team-red">{value(`−${lost.toLocaleString()}`)}pt</span></span></div><span className="text-xs text-muted-foreground">순수익 <strong className="ml-1 text-xl font-semibold tracking-tight text-foreground">{value(`${earned - lost > 0 ? "+" : ""}${(earned - lost).toLocaleString()}`)}<span className="ml-0.5 text-xs font-normal text-muted-foreground">pt</span></strong></span></div>}
-        {canViewPredictionPoints ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart busy={pending} label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">{ownPrediction ? "클랜의 공개 설정에 따라 포인트 통계가 제공되지 않습니다." : "포인트 수익·손실은 본인과 운영진만 볼 수 있습니다."}</p>}
+        {canViewPredictionPoints ? <><StatsSignedTrendChart busy={pending} label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">{ownPrediction ? "클랜의 공개 설정에 따라 포인트 통계가 제공되지 않습니다." : "포인트 수익·손실은 본인과 운영진만 볼 수 있습니다."}</p>}
       </CardContent></Card>}
       </div>
     </div>
