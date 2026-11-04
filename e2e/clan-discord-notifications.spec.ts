@@ -242,31 +242,41 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await expect(officer.getByRole("switch", { name: "정규 내전 알림", exact: true })).toBeDisabled();
     await expect(officer.getByRole("button", { name: "설정 저장", exact: true })).toHaveCount(0);
     const examplesButton = page.getByRole("button", { name: "Discord 활용 예시", exact: true });
-    await expect(page.getByRole("region", { name: "Discord 활용 갤러리", exact: true })).toHaveCount(0);
+    await notificationCard.getByRole("button", { name: "Discord 봇 연동", exact: true }).focus();
+    await expect(page.getByRole("tooltip")).toContainText("클랜 일정과 소식");
     await examplesButton.click();
     const examplesDialog = page.getByRole("dialog", { name: "Discord 활용 예시", exact: true });
     await expect(examplesDialog).toBeVisible();
-    await page.getByRole("button", { name: "새 공지가 채팅에 묻히지 않게", exact: true }).click();
+    await examplesDialog.getByRole("tab", { name: "공지", exact: true }).click();
     await expect(page.getByText("토요일 21시에 정규 내전이 열립니다.", { exact: false }).filter({ visible: true })).toBeVisible();
     const captureDir = process.env.DISCORD_MESSAGE_CAPTURE_DIR;
     if (captureDir) {
       await mkdir(captureDir, { recursive: true });
       await page.getByText("알림 설정을 저장했습니다.", { exact: true }).waitFor({ state: "hidden" });
-      await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-notice-preview.png` });
+      await examplesDialog.screenshot({ path: `${captureDir}/discord-notice-preview.png` });
     }
-    await page.getByRole("button", { name: "투표 시작부터 결과까지", exact: true }).click();
+    await examplesDialog.getByRole("tab", { name: "투표", exact: true }).click();
     await page.getByRole("button", { name: "시작 알림", exact: true }).filter({ visible: true }).click();
     await expect(page.getByText("다음 내전 시간 투표가 시작 되었습니다", { exact: true }).filter({ visible: true })).toBeVisible();
     await page.getByRole("button", { name: "종료 알림", exact: true }).filter({ visible: true }).click();
     await expect(page.getByText("다음 내전 시간 투표가 종료 되었습니다", { exact: true }).filter({ visible: true })).toBeVisible();
     if (captureDir) {
-      await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-poll-preview.png` });
+      await examplesDialog.screenshot({ path: `${captureDir}/discord-poll-preview.png` });
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("button", { name: "함께할 일정을 놓치지 않도록", exact: true }).click();
+    await examplesDialog.getByRole("tab", { name: "일정", exact: true }).click();
     await expect(examplesDialog.getByRole("button", { name: /크게 보기/ })).toHaveCount(0);
     await expect(examplesDialog).toBeVisible();
     await expect.poll(() => examplesDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    const panel = examplesDialog.getByRole("tabpanel");
+    await expect.poll(() => panel.evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+    await page.setViewportSize({ width: 320, height: 300 });
+    await expect.poll(() => panel.evaluate(el => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+    await panel.focus();
+    await expect(panel).toBeFocused();
+    await page.keyboard.press("End");
+    await expect.poll(() => panel.evaluate(el => el.scrollTop > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 1)).toBe(true);
+    await expect.poll(() => examplesDialog.evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
     await page.keyboard.press("Escape");
     await expect(examplesDialog).toBeHidden();
     await expect(examplesButton).toBeFocused();

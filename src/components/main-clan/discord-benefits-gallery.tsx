@@ -4,14 +4,15 @@ import { useTranslator } from "#use-translator";
 import { useId, useState } from "react";
 import { ArrowUpRight, CalendarDays, ChevronDown, Megaphone, Swords, Vote } from "lucide-react";
 import { BrandSymbol } from "@/components/ui/brand-logo";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { buildDiscordNotificationCard, type DiscordNotificationRow } from "@/lib/notifications/discord-message";
 
 const benefits = [
-  { id: "room", icon: Swords, title: "내전 링크, 매번 공유하지 않아도", description: "정규·깜짝 내전을 구분해 예약은 시작 10분 전, 바로 열면 시작 알림을 보냅니다. 링크를 누르면 해당 내전으로 연결됩니다.", channel: "내전-알림" },
-  { id: "calendar", icon: CalendarDays, title: "함께할 일정을 놓치지 않도록", description: "등록한 일정마다 원하는 알림 시점을 선택하십시오. 반복 일정도 같은 시간에 알려줍니다.", channel: "일정-알림" },
-  { id: "notice", icon: Megaphone, title: "새 공지가 채팅에 묻히지 않게", description: "새 공지의 제목과 본문을 Discord에도 전달합니다. 링크를 누르면 해당 공지를 열 수 있습니다.", channel: "클랜-공지" },
-  { id: "poll", icon: Vote, title: "투표 시작부터 결과까지", description: "참여할 때와 결과를 확인할 때, 각각 한 번씩. 시작·종료 알림은 따로 켜고 끌 수 있습니다.", channel: "일정-알림" },
+  { id: "room", label: "내전", icon: Swords, title: "내전 링크, 매번 공유하지 않아도", description: "정규·깜짝 내전을 구분해 예약은 시작 10분 전, 바로 열면 시작 알림을 보냅니다. 링크를 누르면 해당 내전으로 연결됩니다.", channel: "내전-알림" },
+  { id: "calendar", label: "일정", icon: CalendarDays, title: "함께할 일정을 놓치지 않도록", description: "등록한 일정마다 원하는 알림 시점을 선택하십시오. 반복 일정도 같은 시간에 알려줍니다.", channel: "일정-알림" },
+  { id: "notice", label: "공지", icon: Megaphone, title: "새 공지가 채팅에 묻히지 않게", description: "새 공지의 제목과 본문을 Discord에도 전달합니다. 링크를 누르면 해당 공지를 열 수 있습니다.", channel: "클랜-공지" },
+  { id: "poll", label: "투표", icon: Vote, title: "투표 시작부터 결과까지", description: "참여할 때와 결과를 확인할 때, 각각 한 번씩. 시작·종료 알림은 따로 켜고 끌 수 있습니다.", channel: "일정-알림" },
 ] as const;
 
 const example: DiscordNotificationRow = { log_id: "example", event_id: null, poll_id: null, title: "", slot_kind: "", start_at: null, deadline_at: null, game_slug: "overwatch", clan_id: "example", channel_id: "example" };
@@ -54,4 +55,29 @@ export function DiscordBenefitsGallery() {
       <div className="hidden xl:block"><Preview index={selected} /></div>
     </div>
   </section>;
+}
+
+export function DiscordExampleTabs() {
+  const tx = useTranslator();
+  return (
+    <Tabs defaultValue="room" className="min-h-0 gap-0">
+      <TabsList variant="line" aria-label={tx("알림 종류")} className="h-11 w-full shrink-0 border-b border-border px-3">
+        {benefits.map(({ id, icon: Icon, label }) => (
+          <TabsTrigger key={id} value={id} className="text-xs">
+            <Icon aria-hidden className="size-3.5" />{tx(label)}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {benefits.map((item, index) => (
+        <TabsContent key={item.id} value={item.id} tabIndex={0}
+          className="min-h-0 space-y-4 overflow-y-auto overscroll-contain p-4 [scrollbar-width:none] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-5">
+          <div>
+            <h3 className="font-semibold">{tx(item.title)}</h3>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{tx(item.description)}</p>
+          </div>
+          <Preview index={index} />
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
 }

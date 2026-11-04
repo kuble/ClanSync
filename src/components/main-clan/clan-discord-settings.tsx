@@ -9,7 +9,7 @@ import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/li
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DiscordBenefitsGallery } from "./discord-benefits-gallery";
+import { DiscordExampleTabs } from "./discord-benefits-gallery";
 import { HelpText } from "./help-text";
 import { useAutosave, AutosaveStatus } from "@/components/ui/use-autosave";
 
@@ -75,11 +75,17 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
       <div className="p-5">
       <div className="flex items-start gap-4 sm:items-center">
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold"><HelpText label={tx("Discord 봇 연동")} help={tx("자동 알림은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection ? `${connection.guild_name}${connection.channel_name ? ` · #${connection.channel_name}` : ""}` : tx("일정과 소식을 우리 서버에 자동으로 전달하십시오.")}</p></div>
+        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold"><HelpText label={tx("Discord 봇 연동")} help={tx("클랜 일정과 소식을 연결한 Discord 서버에 자동으로 보냅니다. 이 설정은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
+          {connection && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection.guild_name}{connection.channel_name && ` · #${connection.channel_name}`}</p>}</div>
         <div className="flex flex-wrap items-center gap-2">
         <Dialog><DialogTrigger render={<Button size="sm" variant="outline" aria-label={tx("Discord 활용 예시")} />}>{tx("활용 예시")}</DialogTrigger>
-          <DialogContent className="board-scroll max-h-[85dvh] overflow-y-auto sm:max-w-5xl"><DialogHeader className="pr-8"><DialogTitle>{tx("Discord 활용 예시")}</DialogTitle><DialogDescription>{tx("알림 종류별 메시지와 연결되는 화면을 확인하십시오.")}</DialogDescription></DialogHeader><DiscordBenefitsGallery /></DialogContent>
+          <DialogContent className="flex min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
+            <DialogHeader className="shrink-0 border-b border-border px-5 py-4 pr-12">
+              <DialogTitle>{tx("Discord 활용 예시")}</DialogTitle>
+              <DialogDescription>{tx("알림 종류를 선택하면 Discord에 표시될 메시지를 미리 볼 수 있습니다.")}</DialogDescription>
+            </DialogHeader>
+            <DiscordExampleTabs />
+          </DialogContent>
         </Dialog>
         {canEdit && premium && <Button size="sm" nativeButton={!botConfigured} variant={connection ? "outline" : "default"} disabled={!botConfigured} render={botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined}>
           <ExternalLink className="size-3.5" />{connection ? tx("서버 다시 연결") : tx("Discord 연결하기")}
