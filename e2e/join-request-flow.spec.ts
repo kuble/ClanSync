@@ -1,119 +1,33 @@
 import { test, expect } from "@playwright/test";
-import { credentialsForFixture } from "./qa-fixture-credentials";
-import { gotoOverwatchLeaderClanBase } from "./fixture-login-helper";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-/**
- * QA_01_Clan(시드) 기준: 멤버가 해당 카드로 신청 → 리더가 관리 화면에서 거절 확정까지.
- * 거절 후 다음 실행에서도 멤버가 다시 신청 가능해 회귀에 유리함.
- */
-test.describe("가입 신청 · 리더 거절 토스트", () => {
-  test("QA_01_Clan 신청 후 거절 확정 시 안내 문구 표시", async ({
-    browser,
-  }, testInfo) => {
-    test.setTimeout(120_000);
+test("별도 클랜에 가입 신청 후 리더가 거절하면 안내 문구를 표시한다", async ({ page, browser }) => {
+  test.setTimeout(120_000);
+  const f = await createIsolatedBalanceFixture(2);
+  const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+  try {
+    const removed = await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[1].id);
+    expect(removed.error).toBeNull();
+    const clan = await f.service.from("clans").select("name").eq("id", f.clanId).single();
+    expect(clan.error).toBeNull();
 
-    const memberCtx = await browser.newContext();
-    const leaderCtx = await browser.newContext();
-    const memberPage = await memberCtx.newPage();
-    const leaderPage = await leaderCtx.newPage();
+    const memberPage = await memberContext.newPage();
+    await loginIsolatedBalanceUser(memberPage, f.users[1]);
+    await memberPage.goto("/games/overwatch/clan?q=" + encodeURIComponent(clan.data!.name));
+    await memberPage.getByTestId(`clan-details-${f.clanId}`).click();
+    await memberPage.getByTestId(`clan-join-open-${f.clanId}`).click();
+    await memberPage.getByTestId(`clan-join-send-${f.clanId}`).click();
+    await expect(memberPage.getByText("가입 신청을 보냈습니다.", { exact: true })).toBeVisible();
 
-    try {
-      const memberCred = credentialsForFixture("Member");
-      await memberPage.goto("/sign-in");
-      await memberPage.getByLabel("이메일").fill(memberCred.email);
-      await memberPage.getByLabel("비밀번호", { exact: true }).fill(memberCred.password);
-      await memberPage.getByRole("button", { name: "로그인" }).click();
-      await memberPage.waitForURL(/\/games\/?$/, { timeout: 45_000 });
-
-      await memberPage.getByRole("link", { name: /오버워치/i }).first().click();
-      await memberPage.waitForURL(/\/games\/overwatch\/(auth|clan)/, {
-        timeout: 30_000,
-      });
-
-      if (memberPage.url().includes("/auth")) {
-        await memberPage
-          .getByRole("button", { name: /Battle\.net으로 계속/ })
-          .click();
-        await memberPage.waitForURL(/\/games\/overwatch\/clan/, {
-          timeout: 30_000,
-        });
-      }
-
-      if (
-        /\/games\/overwatch\/clan\/[0-9a-f-]{36}/i.test(memberPage.url())
-      ) {
-        testInfo.attach("skip-member-in-clan", {
-          body: "멤버가 이미 클랜 소속이라 온보딩 검증을 건너뜁니다.",
-          contentType: "text/plain",
-        });
-        return;
-      }
-
-      await expect(
-        memberPage.getByRole("heading", { name: /가입 또는 생성/ }),
-      ).toBeVisible({ timeout: 15_000 });
-
-      await memberPage.waitForTimeout(600);
-
-      const clanRow = memberPage.locator("li").filter({ hasText: "QA_01_Clan" });
-      if ((await clanRow.count()) === 0) {
-        testInfo.attach("note", {
-          body: "목록에 QA_01_Clan 카드가 없습니다. 시드·검색 조건을 확인하십시오.",
-          contentType: "text/plain",
-        });
-        return;
-      }
-
-      if (await clanRow.getByText("신청 대기 중", {exact:true}).count()) {
-        await memberPage.getByRole("button", {name:"신청 취소"}).click();
-      }
-      await clanRow.getByRole("button", {name:"QA_01_Clan 클랜 상세 보기"}).click();
-      await memberPage.getByRole("dialog").getByRole("button", {name:"가입 신청", exact:true}).click();
-      await memberPage.getByRole("dialog").locator('[data-testid^="clan-join-send-"]').click();
-
-      await expect(
-        memberPage
-          .getByText("가입 신청을 보냈습니다.")
-          .or(memberPage.getByText("이미 이 클랜에 신청 중입니다."))
-          .or(memberPage.getByText("이미 진행 중인 신청이 있습니다.")),
-      ).toBeVisible({ timeout: 25_000 });
-
-      const base = await gotoOverwatchLeaderClanBase(leaderPage);
-      await leaderPage.goto(`${base}/manage?tab=requests`);
-
-      await expect(
-        leaderPage.getByRole("heading", { name: "클랜 관리" }),
-      ).toBeVisible({ timeout: 30_000 });
-
-      const pendingSection = leaderPage.locator("section").filter({
-        has: leaderPage.getByRole("heading", { name: "가입 신청" }),
-      });
-
-      const applicantRow = pendingSection.locator("li").filter({
-        hasText: memberCred.email,
-      });
-
-      if ((await applicantRow.count()) === 0) {
-        testInfo.attach("note", {
-          body:
-            "관리 화면에 해당 멤버 대기 신청이 없습니다. 동일 DB·시드 여부를 확인하십시오.",
-          contentType: "text/plain",
-        });
-        return;
-      }
-
-      await applicantRow.first().getByRole("button", { name: "거절" }).click();
-      await applicantRow
-        .first()
-        .getByRole("button", { name: "거절 확정" })
-        .click();
-
-      await expect(
-        leaderPage.getByText("신청을 거절했습니다."),
-      ).toBeVisible({ timeout: 25_000 });
-    } finally {
-      await memberCtx.close();
-      await leaderCtx.close();
-    }
-  });
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=requests`);
+    const row = page.getByRole("listitem").filter({ hasText: f.users[1].nickname });
+    await row.getByRole("button", { name: "거절", exact: true }).click();
+    await row.getByRole("button", { name: "거절 확정", exact: true }).click();
+    await expect(page.getByText("신청을 거절했습니다.", { exact: true })).toBeVisible();
+    await expect(row).toHaveCount(0);
+  } finally {
+    await memberContext.close();
+    await f.cleanup();
+  }
 });
