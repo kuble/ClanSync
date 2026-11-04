@@ -38,7 +38,7 @@ export function AccountGameMenu() {
     </DropdownMenuTrigger>
     <DropdownMenuContent showArrow align="end" sideOffset={8} className="w-72 max-w-[calc(100vw-24px)] rounded-xl p-0 shadow-lg ring-border" aria-label={tx("게임 선택지")}>
       <p className="border-b border-border px-4 py-2.5 text-xs font-semibold">{tx("게임 선택")}</p>
-      <div className="min-h-44 p-1" aria-busy={games === null && !error}>
+      <div className="min-h-46 p-1" aria-busy={games === null && !error}>
         {error ? <><p role="alert" className="px-3 py-4 text-xs text-muted-foreground">{tx("게임 목록을 불러오지 못했습니다.")}</p><DropdownMenuItem closeOnClick={false} onClick={() => { setError(false); setAttempt(value => value + 1); }}>{tx("다시 불러오기")}</DropdownMenuItem></> : games === null ? <p role="status" className="px-3 py-4 text-xs text-muted-foreground">{tx("게임을 불러오는 중…")}</p> : games.length ? games.map(game => <DropdownMenuItem key={game.slug} aria-label={tx(game.name_ko)} title={tx(game.name_ko)} disabled={!game.is_active} className="h-11 gap-3 px-3" render={game.is_active ? <Link href={`/games/${encodeURIComponent(game.slug)}/clan`} prefetch={false} /> : undefined}>
           <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted"><GameLogo slug={game.slug} name={game.name_ko} className="size-4" /></span>
           <span className="min-w-0 flex-1 text-sm leading-tight">{tx(game.name_ko)}</span>

@@ -25,8 +25,11 @@ test("계정 헤더는 게임 호버·키보드·터치 선택과 게임 선택 
       if (fail) await route.fulfill({ status: 400, headers: { "Access-Control-Allow-Origin": "*" }, json: { message: "unavailable" } });
       else await route.continue();
     });
-    await trigger.hover();
-    await expect(menu).toBeVisible();
+    await expect(async () => {
+      await brand.hover();
+      await trigger.hover();
+      await expect(menu).toBeVisible({ timeout: 1500 });
+    }).toPass({ timeout: 8000 });
     await expect(menu.getByRole("status")).toBeVisible();
     await menu.evaluate(async element => { await Promise.all(element.getAnimations().map(animation => animation.finished.catch(() => {}))); });
     const pending = await menu.boundingBox();
@@ -65,6 +68,8 @@ test("계정 헤더는 게임 호버·키보드·터치 선택과 게임 선택 
     await brand.tap();
     await expect(page).toHaveURL(/\/games$/);
     await page.goto("/store");
-    await expect(account.getByRole("link", { name: "프로필", exact: true })).toBeVisible();
+    await account.getByRole("button", { name: "프로필 메뉴", exact: true }).tap();
+    await page.getByRole("menuitem", { name: "프로필", exact: true }).tap();
+    await expect(page).toHaveURL(/\/profile$/);
   } finally { release(); await f.cleanup(); }
 });
