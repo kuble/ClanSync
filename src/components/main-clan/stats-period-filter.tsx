@@ -14,10 +14,10 @@ export function StatsPeriodFilter({ value, onChange, years, withDay = false, max
   const selectMode = (mode: StatsPeriod["mode"]) => onChange({ ...value, mode, day: "all" });
   return <div className="flex min-w-0 max-w-full flex-1 items-center gap-1.5 sm:flex-wrap sm:gap-2">
     <div className="shrink-0">
-      <div className="@min-[24rem]/stats:hidden @min-[43rem]/hof:hidden"><PeriodSelect label={tx("기간")} value={value.mode} options={modes} onChange={(mode) => selectMode(mode as StatsPeriod["mode"])} /></div>
-      <div className="hidden @min-[24rem]/stats:block @min-[43rem]/hof:block max-sm:[&_[role=radio]]:min-h-6"><RubberSegment label={tx("기간")} labelPosition="hidden" value={value.mode} options={modes} onChange={selectMode} /></div>
+      <div className="@min-[24rem]/stats:hidden @min-[41rem]/hof:hidden"><PeriodSelect label={tx("기간")} value={value.mode} options={modes} onChange={(mode) => selectMode(mode as StatsPeriod["mode"])} /></div>
+      <div className="hidden @min-[24rem]/stats:block @min-[41rem]/hof:block max-sm:[&_[role=radio]]:min-h-6"><RubberSegment label={tx("기간")} labelPosition="hidden" value={value.mode} options={modes} onChange={selectMode} /></div>
     </div>
-    {value.mode !== "all" && <div className="flex shrink-0 items-center gap-1.5 sm:max-w-full sm:flex-wrap sm:gap-2">
+    {value.mode !== "all" && <div className="flex shrink-0 items-center gap-1.5 sm:max-w-full sm:flex-wrap sm:gap-2 @max-[43rem]/hof:[&_[role=combobox]]:min-w-0 @max-[43rem]/hof:[&_[role=combobox]]:gap-1 @max-[43rem]/hof:[&_[role=combobox]]:px-2">
       <PeriodSelect label={tx("연도")} value={value.year} options={years.map((id) => ({ id, label: `${id}년` }))} onChange={(year) => onChange({ ...value, year, day: "all" })} />
       {value.mode === "month" && <>
         <PeriodSelect label={tx("월")} value={value.month} options={Array.from({ length: maxMonth }, (_, i) => ({ id: String(i + 1).padStart(2, "0"), label: `${i + 1}월` }))} onChange={(month) => onChange({ ...value, month, day: "all" })} />

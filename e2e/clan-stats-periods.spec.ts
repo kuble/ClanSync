@@ -390,11 +390,21 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await page.getByRole("button", { name: /^통계 선택:/ }).click();
     await page.getByRole("menuitem", { name: "명예의 전당", exact:true }).click();
     const hofFilter = page.getByRole("region", { name: "명예의 전당 필터", exact: true });
-    await page.setViewportSize({ width: 525, height: 884 });
+    await page.setViewportSize({ width: 733, height: 884 });
     for (const mode of ["전체", "연도별", "월별"]) {
-      await expect(hofFilter.getByRole("combobox", { name: "부문", exact: true })).toBeVisible();
-      await expect(hofFilter.getByRole("combobox", { name: "기간", exact: true })).toBeVisible();
-      await selectMobileMode(hofFilter, mode);
+      await hofFilter.getByRole("radiogroup", { name: "기간", exact: true }).getByRole("radio", { name: mode, exact: true }).click();
+      await expect(hofFilter.getByRole("radiogroup", { name: "부문", exact: true })).toBeVisible();
+      await expect(hofFilter.getByRole("radiogroup", { name: "기간", exact: true })).toBeVisible();
+      expect((await hofFilter.boundingBox())!.height).toBeLessThan(70);
+    }
+    for (const width of [689, 525]) {
+      await page.setViewportSize({ width, height: 884 });
+      for (const mode of ["전체", "연도별", "월별"]) {
+        await expect(hofFilter.getByRole("combobox", { name: "부문", exact: true })).toBeVisible();
+        await expect(hofFilter.getByRole("combobox", { name: "기간", exact: true })).toBeVisible();
+        await selectMobileMode(hofFilter, mode);
+        expect((await hofFilter.boundingBox())!.height).toBeLessThan(70);
+      }
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await expectCompactPeriod(hofFilter);
