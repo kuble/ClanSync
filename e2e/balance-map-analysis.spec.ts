@@ -52,6 +52,7 @@ test("미리 선택한 맵은 주장 지명과 추첨 완료 후 다시 선택�
 
 test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽기 전용", async ({ page }) => {
   test.setTimeout(150_000);
+  await page.setViewportSize({ width: 979, height: 884 });
   const fixture = await createIsolatedBalanceFixture(11);
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
@@ -94,6 +95,11 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     const picker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
     await picker.getByRole("button", { name: "쟁탈", exact: true }).click();
     await picker.getByRole("button", { name: "리장 타워 선택", exact: true }).click();
+    const changeMap = panel.getByRole("button", { name: "경기 맵 변경 · 리장 타워", exact: true });
+    await expect(changeMap).toContainText("변경");
+    await changeMap.click();
+    await expect(picker).toBeVisible();
+    await page.keyboard.press("Escape");
     await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("리장 타워");
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     const card = panel.locator('[data-roster-slot="team1:tank"]');
