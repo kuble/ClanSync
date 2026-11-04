@@ -85,7 +85,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
 
   const hasChannel = Object.values(routes).some((route) => route.channel_id);
   const expanded = enabled || choosingChannel;
-  const selectClass = "h-9 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-xs focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 sm:max-w-64";
+  const selectClass = "h-9 w-full min-w-0 truncate rounded-lg border border-input bg-background px-2 text-xs focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 sm:px-3";
   const status = !connection ? "연결 안 됨" : !hasChannel ? "채널 선택 필요" : !botConfigured ? "연결 확인 필요" : enabled ? "알림 사용 중" : "알림 꺼짐";
   const channelDisabled = !canEdit || !premium || !connection || !botConfigured || loading || !!loadError;
   const connectLink = botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined;
@@ -95,8 +95,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
       <div className="p-5">
       <div className="flex items-start gap-4 sm:items-center">
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="flex items-center gap-2 text-sm font-semibold"><ChatServiceIcon service="discord" className="text-primary" /><HelpText label={tx("Discord 봇 연동")} help={tx("클랜 일정과 소식을 연결한 Discord 서버에 자동으로 보냅니다. 이 설정은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
-          {connection && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection.guild_name}</p>}</div>
+        <div className="flex min-w-0 flex-wrap items-center gap-2"><h4 className="flex items-center gap-2 text-sm font-semibold"><ChatServiceIcon service="discord" className="text-primary" /><HelpText label={tx("Discord 봇 연동")} help={tx("클랜 일정과 소식을 연결한 Discord 서버에 자동으로 보냅니다. 이 설정은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
         <div className="flex flex-wrap items-center gap-2">
         <Dialog>
           <StatTooltip label={tx("Discord 활용 예시")} description={tx("Discord 알림 예시 보기")}
@@ -153,23 +152,30 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           <div className="overflow-hidden rounded-lg border border-border/70 bg-background/30">
             {loadError && <p role="alert" className="p-4 text-xs text-destructive">{tx(loadError)} <button type="button" className="underline" onClick={() => { setLoading(true); setLoadError(""); setRefresh((value) => value + 1); }}>{tx("다시 불러오기")}</button></p>}
           <section aria-label={tx("종류별 알림")}>
-          {DISCORD_NOTIFICATION_TYPES.map(({ id, label, description }) => <div key={id} className="space-y-3 border-b border-border/70 p-4 last:border-b-0">
-            <div className="flex items-center justify-between gap-4">
-              <div className="text-sm font-medium"><HelpText label={id === "announcements" ? tx("공지 채널") : tx("{0} 채널", label)} help={description} /></div>
-              <Toggle name={`discord_${id}_enabled`} label={tx("{0} 알림", label)} controls={`discord-${id}-details`} checked={routes[id].enabled} disabled={!canEdit || !premium || !routes[id].channel_id} onChange={(value) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: value } } }))} />
-            </div>
-            <div id={`discord-${id}-details`} hidden={!routes[id].enabled && !!routes[id].channel_id} className="space-y-3">
-            <select aria-label={tx("{0} 알림 채널", label)} name={`discord_${id}_channel`} value={routes[id].channel_id} onChange={(event) => {
+          {DISCORD_NOTIFICATION_TYPES.map(({ id, label, description }) => <div key={id} className="grid min-h-14 grid-cols-[minmax(0,1fr)_minmax(0,40%)_auto] items-center gap-x-2 border-b border-border/70 px-3 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)_auto] sm:gap-x-4 sm:px-4">
+            <div className="break-keep text-sm font-medium"><HelpText label={id === "announcements" ? tx("공지 채널") : tx("{0} 채널", label)} help={description} /></div>
+            <select id={`discord-${id}-details`} hidden={!routes[id].enabled && !!routes[id].channel_id} aria-label={tx("{0} 알림 채널", label)} name={`discord_${id}_channel`} value={routes[id].channel_id} onChange={(event) => {
               const channel_id = event.target.value;
               setChoosingChannel(false);
               autosave.update((current) => ({ ...current, enabled: true, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: true, channel_id } } }));
-            }} disabled={channelDisabled} className={`${selectClass} w-full`}>
+            }} disabled={channelDisabled} className={selectClass}>
               <option value="" disabled>{loading ? tx("채널 불러오는 중…") : tx("채널 선택")}</option>
               {routes[id].channel_id && !channels.some((channel) => channel.id === routes[id].channel_id) && <option value={routes[id].channel_id}>{connection?.channel_id === routes[id].channel_id && connection.channel_name ? `#${connection.channel_name}` : tx("기존 채널")}</option>}
               {channels.map((channel) => <option key={channel.id} value={channel.id}>#{channel.name}</option>)}
             </select>
-            {id === "polls" && routes.polls.enabled && <div className="space-y-3">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center justify-between gap-3 text-xs">{text}<Switch name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} /></label>)}</div>}
+            <div className="col-start-3 flex items-center">
+              <Toggle name={`discord_${id}_enabled`} label={tx("{0} 알림", label)} controls={`discord-${id}-details`} checked={routes[id].enabled} disabled={!canEdit || !premium || !routes[id].channel_id} onChange={(value) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: value } } }))} />
             </div>
+            {id === "polls" && routes.polls.enabled && (
+              <div role="group" aria-label="투표 알림 시점" className="col-span-full mt-1 flex flex-wrap items-center gap-x-4 text-xs sm:col-start-2 sm:col-end-4">
+                {([["created", "시작 알림"], ["ended", "종료·결과 알림"]] as const).map(([key, text]) => (
+                  <label key={key} className="inline-flex min-h-8 items-center gap-1.5">
+                    <input type="checkbox" name={`discord_polls_${key}`} className="size-3.5 accent-primary" disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} />
+                    {text}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>)}
           </section>
           </div>
