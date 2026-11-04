@@ -243,7 +243,14 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await expect(page.getByRole("checkbox", { name: "종료·결과 알림", exact: true })).not.toBeChecked();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect.poll(() => notificationCard.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    const notificationsPane = page.getByRole("region", { name: "알림·연동", exact: true });
+    await expect(notificationsPane).toHaveCSS("overflow-y", "visible");
+    const lastSetting = page.getByRole("checkbox", { name: "종료·결과 알림", exact: true });
+    await lastSetting.scrollIntoViewIfNeeded();
+    await expect(lastSetting).toBeInViewport();
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     await page.setViewportSize({ width: 1280, height: 720 });
+    await expect(notificationsPane).toHaveCSS("overflow-y", "visible");
     await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     const officer = await officerContext.newPage(); await loginIsolatedBalanceUser(officer, f.users[1]); await officer.goto(path);
     await expect(officer.getByRole("switch", { name: "정규 내전 알림", exact: true })).toBeDisabled();
