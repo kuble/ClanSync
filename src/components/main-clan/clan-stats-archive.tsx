@@ -16,9 +16,10 @@ import { ArchiveDayTable } from "./archive-day-table";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 import { MatchRecordEditor } from "./match-record-editor";
 
-export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, settings, mapFilter = "all", participantSearch = "", loading = false, inlinePreview = false }: {
+export function ClanStatsArchive({ archive, gameSlug, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, settings, mapFilter = "all", participantSearch = "", loading = false, inlinePreview = false }: {
   archive: ClanStatsPageModel["archive"];
   clanId?: string;
+  gameSlug?: string;
   canEdit?: boolean;
   canCreate?: boolean; canUpdate?: boolean; canDelete?: boolean;
   periodKey?: string;
@@ -46,12 +47,12 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
       {filters}
     </div>
     <StatsDetailLoader cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
-      {(detail, pending) => detail.kind === "archive" && <ArchiveDay inlinePreview={inlinePreview} dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={loading || pending} editor={clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
+      {(detail, pending) => detail.kind === "archive" && <ArchiveDay inlinePreview={inlinePreview} dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={loading || pending} editor={gameSlug && clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, gameSlug, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
     </StatsDetailLoader>
   </div>;
 }
 
-type EditorContext = { canCreate: boolean; canUpdate: boolean; canDelete: boolean; clanId: string; day: string; members: { userId: string; nickname: string }[]; onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void; onReload: () => void };
+type EditorContext = { gameSlug: string; canCreate: boolean; canUpdate: boolean; canDelete: boolean; clanId: string; day: string; members: { userId: string; nickname: string }[]; onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void; onReload: () => void };
 
 function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor, inlinePreview }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string; pending: boolean; editor?: EditorContext; inlinePreview: boolean }) {
   const tx = useTranslator();

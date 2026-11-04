@@ -7,15 +7,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { ClanArchiveMatch, ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { editClanMatchRecord, type MatchRecordInput } from "@/app/actions/clan-match-records";
-import { mapPoolForGameSlug } from "@/lib/balance/map-pools";
+import { MatchRecordMapPicker } from "./match-record-map-picker";
 
 type Role = MatchRecordInput["players"][number]["role"];
 const roles: Role[] = ["tank", "dmg", "dmg", "sup", "sup"];
 const kstTime = (iso: string) => new Date(Date.parse(iso) + 9 * 60 * 60 * 1000).toISOString().slice(0, 19);
 const field = "h-9 w-full min-w-0 rounded-lg border bg-background px-2 text-sm text-foreground";
 
-export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, onReload, onSaved }: {
-  clanId: string; match?: ClanArchiveMatch; day: string; members: { userId: string; nickname: string }[];
+export function MatchRecordEditor({ gameSlug, clanId, match, day, members, mode, onClose, onReload, onSaved }: {
+  gameSlug: string; clanId: string; match?: ClanArchiveMatch; day: string; members: { userId: string; nickname: string }[];
   mode: "create" | "update" | "delete"; onClose: () => void; onReload: () => void;
   onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void;
 }) {
@@ -31,7 +31,7 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
   const [error, setError] = useState("");
   const [creationId] = useState(() => crypto.randomUUID());
   const [pending, startTransition] = useTransition();
-  const mapOptions = useId();
+  const mapInputId = useId();
   const people = [...new Map([...members, ...(match?.players ?? [])].map((p) => [p.userId, { userId: p.userId, nickname: p.nickname }])).values()].sort((a, b) => a.nickname.localeCompare(b.nickname, "ko"));
   const title = mode === "create" ? "경기 기록 추가" : mode === "update" ? "경기 기록 수정" : "경기 기록 제거";
   const EditorRoot = mode === "delete" ? Dialog : Sheet;
@@ -62,7 +62,10 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-xs">{tx("내전 날짜")}<input className={field} type="date" min="2000-01-01" max="2100-12-31" required value={date} onChange={(e) => { const next = e.target.value; if (time.startsWith(date)) setTime(next + time.slice(10)); setDate(next); }} /></label>
             <label className="space-y-1 text-xs">{tx("경기 시간 (한국 시간)")}<input className={field} type="datetime-local" step="1" min="2000-01-01T00:00" max="2100-12-31T23:59:59" required value={time} onChange={(e) => setTime(e.target.value)} /></label>
-            <label className="space-y-1 text-xs">{tx("경기 맵")}<input className={field} list={mapOptions} maxLength={64} value={map} onChange={(e) => setMap(e.target.value)} placeholder={tx("맵 이름")} /><datalist id={mapOptions}>{mapPoolForGameSlug("overwatch").map((name) => <option key={name} value={name} />)}</datalist></label>
+            <div className="space-y-1 text-xs"><label htmlFor={mapInputId}>{tx("경기 맵")}</label>
+              <div className="flex items-center gap-1.5"><input id={mapInputId} className={field} maxLength={64} value={map} onChange={(event) => setMap(event.target.value)} placeholder={tx("맵 이름")} />
+                <MatchRecordMapPicker gameSlug={gameSlug} value={map} onChange={setMap} /></div>
+            </div>
             <label className="space-y-1 text-xs">{tx("경기 결과")}<select aria-label={tx("경기 결과")} className={field} value={outcome} onChange={(e) => setOutcome(e.target.value as typeof outcome)}><option value="team1">{tx("블루 팀 승리")}</option><option value="team2">{tx("레드 팀 승리")}</option><option value="draw">{tx("무승부")}</option><option value="void">{tx("무효 · 재경기")}</option><option value="unrecorded">{tx("결과 미기록")}</option></select></label>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{([1, 2] as const).map((team) => <fieldset key={team} className="space-y-2 rounded-xl border p-3">

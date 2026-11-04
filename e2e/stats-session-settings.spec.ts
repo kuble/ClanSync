@@ -55,7 +55,8 @@ test("stats: session summary, eligibility rules and settings tabs preserve saved
     await expect(summary).toContainText("2시간 30분");
     await expect(page.getByRole("button", { name: "경기 기록 도움말", exact: true })).toHaveCount(0);
     await expect(page.getByText(/^무승부는 승률에서 제외하며/)).toHaveCount(0);
-    await page.getByLabel("기록 맵", { exact: true }).selectOption("네팔");
+    await page.getByRole("button", { name: "기록 맵", exact: true }).click();
+    await page.getByRole("dialog", { name: "기록 맵 선택" }).getByRole("button", { name: "네팔 선택", exact: true }).click();
     await expect(page.getByLabel("경기 기록 이동")).toContainText("1 / 1");
     await expect(summary).toContainText("2시간 30분");
     const outer = await page.getByRole("region", { name: "경기 상세", exact: true }).boundingBox();

@@ -129,7 +129,9 @@ test("match record corrections: atomic summaries, permissions, conflicts, origin
     let dialog = page.getByRole("dialog", { name: "경기 기록 추가", exact: true });
     await dialog.getByLabel("내전 날짜", { exact: true }).fill("2025-08-02");
     await dialog.getByLabel("경기 시간 (한국 시간)", { exact: true }).fill("2025-08-02T20:30");
-    await dialog.getByLabel("경기 맵", { exact: true }).fill("부산");
+    await dialog.getByRole("button", { name: "경기 맵 선택" }).click();
+    await page.getByRole("dialog", { name: "경기 맵 선택" }).getByRole("button", { name: "부산 선택" }).click();
+    await expect(dialog.getByLabel("경기 맵", { exact: true })).toHaveValue("부산");
     await dialog.getByLabel("1팀 1번 출전자", { exact: true }).selectOption(f.users[0].id);
     await dialog.getByLabel("2팀 1번 출전자", { exact: true }).selectOption(f.users[1].id);
     const memberWidth = (await dialog.getByLabel("1팀 1번 출전자", { exact: true }).boundingBox())!.width;

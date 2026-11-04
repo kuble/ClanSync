@@ -72,41 +72,51 @@ export function BalanceManualMapPicker({
   onChange,
   disabled = false,
   canManage = true,
+  availableMaps,
 }: {
   gameSlug: string;
   value: string | null;
   onChange: (label: string) => void;
   disabled?: boolean;
   canManage?: boolean;
+  availableMaps?: readonly string[];
 }) {
   const tx = useTranslator();
-  const [type, setType] = useState<MapType | null>(() => mapDetailsForLabel(value ?? "")?.type ?? (gameSlug === "overwatch" ? "control" : null));
+  const maps = availableMaps ?? mapPoolForGameSlug(gameSlug);
+  const types = gameSlug === "overwatch"
+    ? MAP_TYPES.filter(({ id }) => maps.some((label) => mapDetailsForLabel(label)?.type === id))
+    : [];
+  const hasOther = gameSlug === "overwatch" && maps.some((label) => !mapDetailsForLabel(label));
+  const initialType = value && maps.includes(value) ? mapDetailsForLabel(value)?.type ?? null : types[0]?.id ?? null;
+  const [type, setType] = useState<MapType | null>(initialType);
   const [preview, setPreview] = useState<string | null>(null);
   const [savedValue, setSavedValue] = useState(value);
   if (savedValue !== value) {
     setSavedValue(value);
-    setType(mapDetailsForLabel(value ?? "")?.type ?? (gameSlug === "overwatch" ? "control" : null));
+    setType(initialType);
     setPreview(null);
   }
-  const pool = gameSlug === "overwatch" && !type ? [] : mapPoolForGameSlug(gameSlug, type ? [type] : []);
+  const pool = gameSlug === "overwatch" ? maps.filter((label) => (mapDetailsForLabel(label)?.type ?? null) === type) : maps;
   const active = preview && pool.includes(preview) ? preview : value && pool.includes(value) ? value : pool[0];
   const locked = disabled || !canManage;
   return (
     <section className="space-y-4" aria-label={tx("경기 맵")} data-balance-guide="map-picker">
-      {gameSlug === "overwatch" ? (
+      {gameSlug === "overwatch" && maps.length > 0 ? (
         <fieldset className="space-y-3" data-balance-guide="map-types">
           <legend className="text-sm font-semibold">{tx("맵 유형")}</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            {MAP_TYPES.map(({ id, label }) => (
+            {types.map(({ id, label }) => (
               <MapTypeCard key={id} id={id} label={tx(label)} selected={type === id} disabled={disabled}
                 onClick={() => { setType(id); setPreview(null); }} />
             ))}
+            {hasOther && <MapTypeCard id="all" label="기타" selected={type === null} disabled={disabled}
+              onClick={() => { setType(null); setPreview(null); }} />}
           </div>
         </fieldset>
       ) : null}
       {pool.length > 0 ? <>
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-muted-foreground">{MAP_TYPES.find((entry) => entry.id === type)?.label} · {pool.length}{tx("개 맵")}</span>
+        <span className="text-muted-foreground">{pool.length}{tx("개 맵")}</span>
         <span role="status" className="font-semibold text-primary">{value ? tx("{0} 선택됨", value) : tx("맵을 선택하십시오")}</span>
       </div>
       <div className="flex flex-col gap-2 sm:h-80 sm:flex-row lg:h-96" onMouseLeave={() => setPreview(null)}>
@@ -119,7 +129,7 @@ export function BalanceManualMapPicker({
               onBlur={() => setPreview(null)} onClick={() => onChange(label)}
               data-map-card={label} data-expanded={expanded}
               className={cn("group relative min-w-0 overflow-hidden rounded-xl border text-left text-white transition-[flex-grow,height,border-color] duration-500 ease-out focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-default motion-reduce:transition-none sm:h-full sm:basis-0", expanded ? "h-52 sm:grow-[4]" : "h-16 sm:grow", selected ? "border-primary ring-2 ring-primary/50" : "border-white/10 hover:border-white/50")}>
-              <BalanceMapImage label={tx(label)} className={cn("transition-transform duration-700 motion-reduce:transition-none", expanded ? "scale-100" : "scale-110")} />
+              <BalanceMapImage label={label} className={cn("transition-transform duration-700 motion-reduce:transition-none", expanded ? "scale-100" : "scale-110")} />
               <span className="absolute inset-0 bg-linear-to-t from-black/85 via-black/10 to-black/10" aria-hidden="true" />
               {selected ? <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-xs font-bold text-primary-foreground"><Check className="size-3.5" aria-hidden="true" /><span className={expanded ? "" : "sm:hidden"}>{tx("선택됨")}</span></span> : null}
               <span className={cn("absolute bottom-4 left-4 whitespace-nowrap font-bold drop-shadow", expanded ? "text-lg sm:text-xl" : "text-sm sm:[writing-mode:vertical-rl]")}>{tx(label)}</span>
