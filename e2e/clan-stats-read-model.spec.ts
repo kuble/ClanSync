@@ -67,15 +67,25 @@ test("stats read model stays exact across results, corrections, predictions, cas
     const filters = page.getByRole("region", { name: "명예의 전당 필터" });
     await filters.getByRole("radiogroup", { name: "출전 역할" }).getByRole("radio", { name: "돌격" }).click();
     await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("1승 / 1무 / 0패");
-    await page.setViewportSize({ width: 390, height: 844 });
-    const roleSelect = filters.getByRole("combobox", { name: "출전 역할" });
-    await roleSelect.click();
-    await page.getByRole("option", { name: "지원", exact: true }).click();
+    const roles = filters.getByRole("radiogroup", { name: "출전 역할" });
+    for (const width of [493, 319]) {
+      await page.setViewportSize({ width, height: 884 });
+      const category = filters.getByRole(width === 319 ? "combobox" : "radiogroup", { name: "부문" });
+      const categoryBox = (await category.boundingBox())!;
+      const roleBox = (await roles.boundingBox())!;
+      expect(Math.abs(categoryBox.y + categoryBox.height / 2 - roleBox.y - roleBox.height / 2)).toBeLessThan(2);
+      expect(categoryBox.x + categoryBox.width).toBeLessThan(roleBox.x);
+      await expect(roles.getByRole("radio").locator('[style*="/images/overwatch/icons/"]')).toHaveCount(4);
+    }
+    await roles.getByRole("radio", { name: "지원" }).click();
     await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("0승 / 0무 / 1패");
-    await filters.getByRole("radio", { name: "예측 적중" }).click();
-    await expect(roleSelect).toBeHidden();
-    await filters.getByRole("radio", { name: "승률" }).click();
-    await expect(roleSelect).toHaveText("지원");
+    const category = filters.getByRole("combobox", { name: "부문" });
+    await category.click();
+    await page.getByRole("option", { name: "예측 적중", exact: true }).click();
+    await expect(roles).toBeHidden();
+    await category.click();
+    await page.getByRole("option", { name: "승률", exact: true }).click();
+    await expect(roles.getByRole("radio", { name: "지원" })).toBeChecked();
     await Promise.all([
       ok(f.service.from("match_results").update({ winner_team: 2 }).eq("match_id", explicitId)),
       ok(f.service.from("balance_session_predictions").update({ pool_settlement: "refund" }).eq("session_id", roundIds[1])),

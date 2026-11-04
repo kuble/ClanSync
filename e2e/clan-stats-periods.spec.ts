@@ -75,9 +75,9 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("3경기 부족");
     const hofControls = page.getByRole("region", { name: "명예의 전당 필터", exact: true });
     const rankingBox = (await hofControls.getByRole("radiogroup", { name: "부문", exact: true }).boundingBox())!;
-    const periodBoxAtHof = (await hofControls.getByRole("radiogroup", { name: "기간", exact: true }).boundingBox())!;
-    expect(periodBoxAtHof.x - rankingBox.x - rankingBox.width).toBeGreaterThanOrEqual(8);
-    expect(periodBoxAtHof.x - rankingBox.x - rankingBox.width).toBeLessThanOrEqual(16);
+    const roleBoxAtHof = (await hofControls.getByRole("radiogroup", { name: "출전 역할", exact: true }).boundingBox())!;
+    expect(roleBoxAtHof.x - rankingBox.x - rankingBox.width).toBeGreaterThanOrEqual(8);
+    expect(roleBoxAtHof.x - rankingBox.x - rankingBox.width).toBeLessThanOrEqual(16);
     await page.getByRole("tab", { name: "내전 통계" }).click();
     const summary = page.getByLabel("선택 기간 요약");
     const completed = summary.getByRole("button", { name: /완료 경기/ });
@@ -413,7 +413,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
       await hofFilter.getByRole("radiogroup", { name: "기간", exact: true }).getByRole("radio", { name: mode, exact: true }).click();
       await expect(hofFilter.getByRole("radiogroup", { name: "부문", exact: true })).toBeVisible();
       await expect(hofFilter.getByRole("radiogroup", { name: "기간", exact: true })).toBeVisible();
-      expect((await hofFilter.boundingBox())!.height).toBeLessThan(70);
+      expect((await hofFilter.boundingBox())!.height).toBeLessThanOrEqual(120);
     }
     for (const width of [689, 525]) {
       await page.setViewportSize({ width, height: 884 });
@@ -421,7 +421,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
         await expect(hofFilter.getByRole("radiogroup", { name: "부문", exact: true })).toBeVisible();
         await expect(hofFilter.getByRole("combobox", { name: "기간", exact: true })).toBeVisible();
         await selectMobileMode(hofFilter, mode);
-        expect((await hofFilter.boundingBox())!.height).toBeLessThan(70);
+        expect((await hofFilter.boundingBox())!.height).toBeLessThanOrEqual(120);
       }
     }
     await page.setViewportSize({ width: 390, height: 844 });
@@ -429,9 +429,10 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     expect((await hofFilter.boundingBox())!.height).toBeLessThanOrEqual(100);
     await page.setViewportSize({ width: 320, height: 740 });
     await expectCompactPeriod(hofFilter);
-    const ranking = hofFilter.getByRole("radiogroup", { name: "부문", exact: true });
-    await ranking.getByRole("radio", { name: "최다 참여", exact: true }).click();
-    await expect(ranking.getByRole("radio", { name: "최다 참여" })).toBeChecked();
+    const ranking = hofFilter.getByRole("combobox", { name: "부문", exact: true });
+    await ranking.click();
+    await page.getByRole("option", { name: "최다 참여", exact: true }).click();
+    await expect(ranking).toHaveText("최다 참여");
     const firstRow = (await ranking.boundingBox())!;
     for (const mode of ["전체", "연도별", "월별"]) {
       await selectMobileMode(hofFilter, mode);
