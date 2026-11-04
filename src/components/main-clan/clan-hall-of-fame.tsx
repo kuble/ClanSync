@@ -78,11 +78,11 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
     prediction: "예측 적중 횟수",
   };
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
-    <section aria-label={tx("명예의 전당 필터")} className="sticky top-[60px] z-30 flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur sm:gap-3 supports-[backdrop-filter]:bg-background/80">
+    <section aria-label={tx("명예의 전당 필터")} className="sticky top-[60px] z-30 flex flex-wrap items-center gap-x-1.5 gap-y-2 rounded-xl border bg-background/95 px-2 py-2 shadow-sm backdrop-blur sm:gap-3 sm:px-3 supports-[backdrop-filter]:bg-background/80">
       {active && <RubberSegment label={tx("부문")} labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
-      <div className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto sm:flex-1 sm:gap-3">
+      <div className="flex max-w-full min-w-0 grow basis-max items-center gap-1.5 sm:gap-3">
         <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
-        <div className="ml-auto shrink-0">{settings}</div>
+        <div className="ml-auto shrink-0 empty:hidden">{settings}</div>
       </div>
     </section>
     {loaded.feedback}
