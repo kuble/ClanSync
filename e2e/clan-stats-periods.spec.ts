@@ -394,6 +394,14 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(recordMaps).not.toContainText("부산");
     await expect(recordMaps.getByRole("img", { name: /맵별 승률, 선택 맵 네팔 승률 100.0%/ })).toBeVisible();
     await expect(playerSummary).toContainText("10연승");
+    await page.setViewportSize({ width: 319, height: 884 });
+    const recentResults = playerSummary.locator("span[title]").filter({ hasText: /^승$/ });
+    await expect(recentResults).toHaveCount(10);
+    const rowTops = await recentResults.evaluateAll((badges) => badges.map((badge) => badge.getBoundingClientRect().top));
+    expect(new Set(rowTops.slice(0, 5)).size).toBe(1);
+    expect(new Set(rowTops.slice(5)).size).toBe(1);
+    expect(rowTops[5]).toBeGreaterThan(rowTops[0]);
+    await page.setViewportSize({ width: 390, height: 844 });
     const role = page.getByRole("radiogroup", { name: "내 역할", exact: true });
     await role.getByRole("radio", { name: "돌격", exact: true }).click();
     await expect(role.getByRole("radio", { name: "돌격", exact: true })).toHaveAttribute("title", "돌격");
