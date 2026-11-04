@@ -1,4 +1,5 @@
 "use client";
+import { useMovableDrawerTab } from "./use-movable-drawer-tab";
 import { useTranslator } from "#use-translator";
 import Image from "next/image";
 import Link from "next/link";
@@ -42,6 +43,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
   const tx = useTranslator();
   const router=useRouter();
   const commentsOpen=useSyncExternalStore(subscribeComments,()=>window.location.hash==="#comments",()=>false);
+  const dock = useMovableDrawerTab();
   const opener = useRef<HTMLButtonElement>(null);
   const [editing,setEditing]=useState(false),[remove,setRemove]=useState(false),[comment,setComment]=useState("");
   const [pending,start]=useTransition();
@@ -52,8 +54,8 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
   return <div className="board-article isolate grid grid-cols-[minmax(0,1fr)] items-start">
-    <button ref={opener} type="button" aria-expanded={commentsOpen} aria-controls="comments" onPointerEnter={event=>{if(event.pointerType==="mouse" && !pending) changeComments(true);}} onClick={()=>changeComments(true)} disabled={pending} aria-label={"댓글 "+post.commentCount} title={tx("댓글 열기")}
-      className={cn("fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", commentsOpen && "invisible pointer-events-none")}>
+    <button {...dock.handlers} ref={opener} type="button" aria-expanded={commentsOpen} aria-controls="comments" onPointerEnter={event=>{if(event.pointerType==="mouse" && window.matchMedia("(min-width: 1000px)").matches && !pending) changeComments(true);}} onClick={()=>changeComments(true)} disabled={pending} aria-label={"댓글 "+post.commentCount} title={tx("댓글 열기")}
+      className={cn(dock.className, "fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", commentsOpen && "invisible pointer-events-none")}>
       <MessageSquare className="size-4" aria-hidden />
       <span className="[writing-mode:vertical-rl]">{tx("댓글")}</span>
     </button>

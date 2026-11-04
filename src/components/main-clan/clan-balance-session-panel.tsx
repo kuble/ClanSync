@@ -1,4 +1,5 @@
 "use client";
+import { useMovableDrawerTab } from "./use-movable-drawer-tab";
 import { useTranslator } from "#use-translator";
 import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
@@ -153,6 +154,7 @@ export function ClanBalanceSessionPanel({
   playerSessionInfo?: PlayerSessionInfoMap;
 }) {
   const tx = useTranslator();
+  const dock = useMovableDrawerTab();
   const router = useRouter();
   const [pending, start] = useTransition();
   const rosterRef = useRef<ClanBalanceRosterEditorHandle>(null);
@@ -351,7 +353,7 @@ export function ClanBalanceSessionPanel({
           canEditMscore={canEditMscore}
         />
       ) : null}
-      <div className="fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-stretch gap-2" data-testid="balance-drawer-shortcuts">
+      <div {...dock.handlers} className={`${dock.className} fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-stretch gap-2`} data-testid="balance-drawer-shortcuts">
         {canViewHistory ? <ClanBalanceHistoryDrawer
           docked
           scope={historyScope}
