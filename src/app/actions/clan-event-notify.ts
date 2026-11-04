@@ -47,7 +47,6 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
   const actor = await discordConnectionLeader(clanId);
   if (!actor || actor.gameSlug !== gameSlug) return { ok: false as const, error: "알림 설정은 Premium 클랜의 클랜장만 변경할 수 있습니다." };
   const enabled = formData.get("discord_enabled") === "on";
-  const channelId = String(formData.get("discord_channel_id") ?? "").trim();
   const routes = Object.fromEntries(DISCORD_NOTIFICATION_TYPES.map(({ id }) => [id, {
     enabled: formData.get(`discord_${id}_enabled`) === "on",
     channel_id: String(formData.get(`discord_${id}_channel`) ?? "").trim(),
@@ -57,14 +56,21 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
   const { data: connection } = await actor.svc.from("clan_discord_connections").select("guild_id,channel_id,channel_name").eq("clan_id", clanId).maybeSingle();
   // The browser supplies an ID, never a destination URL or trusted channel name.
   if (!connection || connection.guild_id !== formData.get("discord_guild_id")) return { ok: false as const, error: "서버 연결이 변경되었습니다. 새로고침 후 다시 시도해 주세요." };
+  let channelId = connection.channel_id ?? "";
   let channelName = connection.channel_name ?? "";
   if (enabled) {
     if (!discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주십시오." };
     try {
       const result = await listDiscordBotChannels(connection.guild_id);
-      const channel = result.channels.find((entry) => entry.id === channelId);
+      const available = new Map(result.channels.map((entry) => [entry.id, entry]));
+      const destinations = Object.values(routes);
+      if (destinations.some((route) => route.enabled && !available.has(route.channel_id))) {
+        return { ok: false as const, error: "알림을 켠 항목마다 봇이 메시지를 보낼 수 있는 채널을 선택해 주세요." };
+      }
+      // Keep the stored invite destination where possible. Notifications use the explicit routes.
+      const channel = available.get(channelId) ?? destinations.map((route) => available.get(route.channel_id)).find(Boolean);
       if (!channel) return { ok: false as const, error: "봇이 메시지를 보낼 수 있는 채널을 선택해 주십시오." };
-      if (Object.values(routes).some((route) => route.channel_id && !result.channels.some((entry) => entry.id === route.channel_id))) return { ok: false as const, error: "종류별 채널 권한을 확인해 주십시오. 기본 채널 사용으로 변경할 수 있습니다." };
+      channelId = channel.id;
       channelName = channel.name;
     } catch {
       return { ok: false as const, error: "채널 권한을 확인하지 못했습니다. 잠시 후 다시 저장해 주십시오." };

@@ -193,7 +193,9 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await ok(f.service.rpc("set_clan_discord_notification_preferences", prefs));
     await loginIsolatedBalanceUser(page, f.users[0]);
     const path = f.path.replace(/balance$/, "manage?tab=notifications");
-    await page.goto(path);
+    await page.goto(`${path}&discord=connected`);
+    await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Discord 서버를 연결했습니다." })).toBeVisible();
+    await expect(page).not.toHaveURL(/discord=connected/);
     const notificationCard = page.getByRole("region", { name: "Discord 알림 설정", exact: true });
     await expect(page.getByRole("navigation", { name: "클랜 관리 항목", exact: true }).getByRole("link")).toHaveText(["알림·연동", "내전", "코인·플랜"]);
     await expect(notificationCard.getByRole("heading", { name: "Discord 봇 연동", exact: true })).toBeVisible();
@@ -212,7 +214,7 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await page.getByRole("switch", { name: "종료·결과 알림", exact: true }).uncheck();
     const pollToggle = page.getByRole("switch", { name: "투표 알림", exact: true });
     const pollDetails = notificationCard.locator("#discord-polls-details");
-    expect((await pollDetails.boundingBox())!.x).toBeGreaterThan((await pollDetails.locator("..").boundingBox())!.x);
+    expect((await pollDetails.boundingBox())!.x).toBe((await pollDetails.locator("..").locator(":scope > div").first().boundingBox())!.x);
     await pollToggle.uncheck();
     await expect(pollDetails).toBeHidden();
     await pollToggle.check();
@@ -220,10 +222,10 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await masterToggle.uncheck();
     await expect(details).toBeHidden();
     await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveCount(0);
-    await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
+    await expect(page.locator("[data-sonner-toast]").getByText("자동 저장됨", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "설정 저장", exact: true })).toHaveCount(0);
     const settings = (await ok(f.service.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single())).event_notify;
-    expect(settings).toMatchObject({ discord_enabled: false, discord_routes: { flash: { enabled: false }, polls: { ended: false } } });
+    expect(settings).toMatchObject({ discord_enabled: false, discord_routes: { announcements: { channel_id: channel }, flash: { enabled: false }, polls: { ended: false } } });
     await page.reload();
     await expect(masterToggle).not.toBeChecked();
     await expect(details).toBeHidden();
@@ -233,7 +235,8 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await page.reload();
     await expect(masterToggle).toBeChecked();
     await expect(details).toBeVisible();
-    await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveValue(channel);
+    await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("combobox", { name: "새 공지 알림 채널", exact: true })).toHaveValue(channel);
     await expect(page.getByRole("switch", { name: "깜짝 내전 알림", exact: true })).not.toBeChecked();
     await expect(page.getByRole("switch", { name: "종료·결과 알림", exact: true })).not.toBeChecked();
     await page.setViewportSize({ width: 390, height: 844 });

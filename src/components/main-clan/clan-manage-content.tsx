@@ -35,7 +35,7 @@ import { ClanCommunityLinksForm } from "./clan-community-links-form";
 import { readClanCommunityLinks } from "@/lib/clan/community-links";
 import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
-import { readDiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
+import { discordRoutesForSettings } from "@/lib/clan/discord-notification-settings";
 import { ClanPromotionSettings } from "./clan-promotion-settings";
 import operation from "./clan-operation.module.css";
 
@@ -80,7 +80,7 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
     <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links)} discordConnected={!!connection.data} />
     <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}:${connection.data?.guild_id ?? ""}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
     botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
-    routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />
+    routes={discordRoutesForSettings(settings.data.event_notify, connection.data?.channel_id ?? null)} connectionResult={connectionResult} />
   </div>;
 }
 

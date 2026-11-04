@@ -27,3 +27,16 @@ export function discordDestination(raw: Json | null | undefined, category: Disco
   if (config.discord_transport !== "bot" || config.discord_enabled !== true || !route.enabled || stage && !route[stage]) return null;
   return route.channel_id || fallback;
 }
+
+/** Show the actual destination for older enabled routes that inherited the server channel. */
+export function discordRoutesForSettings(raw: Json | undefined | null, legacyChannel: string | null) {
+  const routes = readDiscordNotificationRoutes(raw);
+  for (const { id } of DISCORD_NOTIFICATION_TYPES) {
+    const route = routes[id];
+    if (route.enabled && !route.channel_id) {
+      route.channel_id = legacyChannel ?? "";
+      route.enabled = Boolean(route.channel_id);
+    }
+  }
+  return routes;
+}
