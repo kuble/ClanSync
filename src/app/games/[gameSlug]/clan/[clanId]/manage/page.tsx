@@ -22,7 +22,7 @@ export default async function ManagePage({ params, searchParams }: {
   const basePath = `/games/${gameSlug}/clan/${clanId}/manage`;
 
   return (
-    <div className="grid min-w-0 gap-5">
+    <div className={`grid min-w-0 ${selected === "notifications" ? "gap-3" : "gap-5"}`}>
       <ClanManageNavigation selected={selected} pendingCount={ctx.pendingJoinRequestCount} basePath={basePath} />
       <section tabIndex={scrollsWithPage ? undefined : 0} className={`min-h-80 min-w-0 space-y-4 ${scrollsWithPage
         ? ""

@@ -64,6 +64,11 @@ test("leaders manage chat links and active members open dashboard icons", async 
         new Set(inputs.map(input => Math.round(input.getBoundingClientRect().top))).size);
       expect(rows).toBe(expectedRows);
       expect(await form.evaluate(card => card.scrollWidth <= card.clientWidth)).toBe(true);
+      const nav = (await page.getByRole("navigation", { name: "클랜 관리 항목", exact: true }).boundingBox())!;
+      const chat = (await form.boundingBox())!;
+      const bot = (await page.getByRole("region", { name: "Discord 알림 설정", exact: true }).boundingBox())!;
+      expect(Math.round(chat.y - nav.y - nav.height)).toBe(12);
+      expect(Math.round(bot.y - chat.y - chat.height)).toBe(12);
     }
     await page.screenshot({ path:test.info().outputPath("community-link-settings.png") });
 

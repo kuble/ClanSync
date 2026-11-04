@@ -37,7 +37,7 @@ export function ClanManageNavigation({ selected, pendingCount, basePath }: {
   const group = visibleSections.find((section) => section.key === selected)?.group;
   const groups = [...new Set(visibleSections.map((section) => section.group))];
   const requestBadge = pendingCount > 0 ? <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] tabular-nums text-primary">{pendingCount}</span> : undefined;
-  return <div className="min-w-0 space-y-2">
+  return <div className="grid min-w-0 gap-2">
     <ClanSectionLinks label={tx("클랜 관리 분류")} items={groups.map((name) => ({
       label: name, href: `${basePath}?tab=${name === group ? selected : visibleSections.find((section) => section.group === name)!.key}`,
       selected: name === group, badge: name === "구성원 관리" ? requestBadge : undefined,
