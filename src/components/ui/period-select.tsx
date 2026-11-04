@@ -2,7 +2,7 @@
 
 import { useTranslator } from "#use-translator";
 import { Select } from "@base-ui/react/select";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 export function PeriodSelect({ label, options, value, onChange, disabled = false }: {
   label: string;
@@ -24,9 +24,8 @@ export function PeriodSelect({ label, options, value, onChange, disabled = false
       <Select.Positioner side="bottom" align="start" sideOffset={6} collisionPadding={8} alignItemWithTrigger={false} className="z-50">
         <Select.Popup style={{ width: columns === 1 ? "8rem" : `min(${columns * 4.25}rem, calc(100vw - 16px))` }} className="min-w-[var(--anchor-width)] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl outline-none">
           <Select.List aria-label={tx(label)} style={gridStyle} className="grid p-1">
-            {options.map((option) => <Select.Item key={option.id} value={option.id} className="relative flex min-h-9 cursor-pointer items-center justify-center rounded-lg px-1 text-xs tabular-nums outline-none data-selected:bg-primary/10 data-selected:font-semibold data-selected:text-primary data-highlighted:bg-muted">
+            {options.map((option) => <Select.Item key={option.id} value={option.id} className="flex min-h-9 cursor-pointer items-center justify-center rounded-lg px-1 text-xs tabular-nums outline-none aria-selected:bg-primary/15 aria-selected:font-bold aria-selected:text-primary data-[highlighted]:inset-ring data-[highlighted]:inset-ring-muted-foreground/50">
               <Select.ItemText>{tx(option.label)}</Select.ItemText>
-              <Select.ItemIndicator className="absolute bottom-0.5 left-1/2 -translate-x-1/2"><Check aria-hidden="true" className="size-2.5" /></Select.ItemIndicator>
             </Select.Item>)}
           </Select.List>
         </Select.Popup>

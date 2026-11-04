@@ -334,9 +334,20 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(totalMatches).toHaveText("10");
     await selectMobileMode(personalPeriod, "월별");
     await expectCompactPeriod(personalPeriod);
-    await page.setViewportSize({ width: 320, height: 740 });
-    await expectCompactPeriod(personalPeriod);
+    for (const width of [280, 302, 320]) {
+      await page.setViewportSize({ width, height: 740 });
+      const controls = personalPeriod.getByRole("combobox").or(personalPeriod.getByRole("button"));
+      const overlaps = await controls.evaluateAll((nodes) => {
+        const boxes = nodes.map((node) => node.getBoundingClientRect());
+        return boxes.some((a, i) => boxes.slice(i + 1).some((b) =>
+          a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom));
+      });
+      expect(overlaps, `개인 기록 필터 ${width}px`).toBe(false);
+    }
     await personalPeriod.getByRole("combobox", { name: "기간", exact: true }).click();
+    const selectedMonthMode = page.getByRole("option", { name: "월별", selected: true });
+    await expect(selectedMonthMode.locator("svg")).toHaveCount(0);
+    await expect(selectedMonthMode).toHaveCSS("font-weight", "700");
     const compactPopup = (await page.getByRole("listbox", { name: "기간", exact: true }).boundingBox())!;
     expect(compactPopup.x).toBeGreaterThanOrEqual(0);
     expect(compactPopup.x + compactPopup.width).toBeLessThanOrEqual(320);
