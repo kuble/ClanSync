@@ -1,7 +1,4 @@
-import { getTranslator } from "@/lib/i18n/server";
-import Link from "next/link";
 import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
-import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { canManageRound } from "@/lib/balance/room-access";
 import { ClanBalanceSessionPanel } from "@/components/main-clan/clan-balance-session-panel";
@@ -51,7 +48,6 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   clanId: string;
   room: Database["public"]["Tables"]["balance_rooms"]["Row"];
 }) {
-  const tx = await getTranslator();
   const supabase = await getRequestClient();
   const user = await getRequestUser();
   if (!user) {
@@ -230,45 +226,41 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   // Request-time clock aligns the initial reveal on this authenticated server page.
   const serverNow = Date.now();
   return (
-    <div className="space-y-3">
-      <Link href={`/games/${gameSlug}/clan/${clanId}/balance`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />{tx("내전 로비")}</Link>
-
-      <ClanBalanceSessionPanel
-        key={session.id}
-        gameSlug={gameSlug}
-        clanId={clanId}
-        userId={user.id}
-        canManage={canManage}
-        canViewHistory={canViewHistory}
-        historyScope={staff ? "clan" : "session"}
-        flash={room.kind === "flash"}
-        canViewScores={canViewScores}
-        scores={scores}
-        analysisContext={analysisContext}
-        playerSessionInfo={playerSessionInfo}
-        hostNickname={hostNickname}
-        roomTitle={room.title}
-        session={{ ...session, ma_snapshot: visibleSessionScores }}
-        series={series}
-        profileRanking={parseRoleRanking(profilePreference?.ranking)}
-        roundRanking={
-          roundPreference ? parseRoleRanking(roundPreference.ranking) : null
-        }
-        serverNow={serverNow}
-        votes={votes ?? []}
-        heroVotes={heroVotes ?? []}
-        balancePredictions={balancePredictions ?? []}
-        predictionPool={predictionPool}
-        rosterPool={rosterPool}
-        canEditMscore={canEditMscore}
-        planPremium={planPremium}
-        qaPreviewEnabled={
-          canManage &&
-          process.env.VERCEL_ENV !== "production" &&
-          process.env.NEXT_PUBLIC_SUPABASE_URL ===
-            "https://moretvteewfcztxvwztw.supabase.co"
-        }
-      />
-    </div>
+    <ClanBalanceSessionPanel
+      key={session.id}
+      gameSlug={gameSlug}
+      clanId={clanId}
+      userId={user.id}
+      canManage={canManage}
+      canViewHistory={canViewHistory}
+      historyScope={staff ? "clan" : "session"}
+      flash={room.kind === "flash"}
+      canViewScores={canViewScores}
+      scores={scores}
+      analysisContext={analysisContext}
+      playerSessionInfo={playerSessionInfo}
+      hostNickname={hostNickname}
+      roomTitle={room.title}
+      session={{ ...session, ma_snapshot: visibleSessionScores }}
+      series={series}
+      profileRanking={parseRoleRanking(profilePreference?.ranking)}
+      roundRanking={
+        roundPreference ? parseRoleRanking(roundPreference.ranking) : null
+      }
+      serverNow={serverNow}
+      votes={votes ?? []}
+      heroVotes={heroVotes ?? []}
+      balancePredictions={balancePredictions ?? []}
+      predictionPool={predictionPool}
+      rosterPool={rosterPool}
+      canEditMscore={canEditMscore}
+      planPremium={planPremium}
+      qaPreviewEnabled={
+        canManage &&
+        process.env.VERCEL_ENV !== "production" &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL ===
+          "https://moretvteewfcztxvwztw.supabase.co"
+      }
+    />
   );
 }
