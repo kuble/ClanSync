@@ -58,7 +58,7 @@ export function AccountGameMenu() {
     <a href={`#${pendingMenuId}`} role="button" aria-haspopup="menu" aria-controls={pendingMenuId} className={headerActionClassName} aria-label={tx("게임 선택")} title={tx("게임 선택")}><Gamepad2 aria-hidden="true" /></a>
     <div id={pendingMenuId} ref={attachPendingMenu} role="menu" aria-label={tx("게임 선택")} className="fixed top-14 right-3 z-50 hidden w-72 max-w-[calc(100vw-24px)] rounded-xl border bg-popover p-3 text-sm text-popover-foreground shadow-lg target:block">
       <p role="status" className="mb-2 text-muted-foreground">{tx("게임을 불러오는 중…")}</p>
-      <a href="/games" role="menuitem">{tx("전체 게임 보기")}</a>
+      <Link href="/games" role="menuitem">{tx("전체 게임 보기")}</Link>
     </div>
   </>;
   return <DropdownMenu open={open} triggerId={triggerId} onOpenChange={changeOpen} modal={false}>
