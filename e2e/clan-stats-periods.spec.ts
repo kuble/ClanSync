@@ -247,6 +247,13 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(page.getByRole("dialog", { name: "내전 통계 설정", exact: true })).toBeHidden();
     await page.getByRole("button", { name: /^통계 선택:/ }).click();
     await page.getByRole("menuitem", { name: "개인 기록", exact:true }).click();
+    for (const width of [1050, 390]) {
+      await page.setViewportSize({ width, height: 884 });
+      const search = page.getByRole("textbox", { name: "멤버 이름 검색" });
+      const firstMember = page.getByRole("region", { name: "개인 기록 멤버 목록" }).getByRole("button").first();
+      await expect(firstMember).toBeVisible();
+      expect((await firstMember.boundingBox())!.x).toBe((await search.boundingBox())!.x);
+    }
     await page.route(`**/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`, (route) => route.fulfill({ status: 503, body: "unavailable" }), { times: 1 });
     await page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true }).click();
     await expect(page.getByRole("alert").filter({ hasText: "통계 기록을 불러오지 못했습니다." })).toBeVisible();
