@@ -155,9 +155,9 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <table className="w-full min-w-[400px] text-sm tabular-nums">
                 <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-normal">{tx("역할")}</th><th scope="col" className="px-3 py-2 text-right font-normal">{tx("승률")}</th><th scope="col" className="px-3 py-2 text-right font-normal">{tx("승/무/패")}</th><th scope="col" className="px-3 py-2 text-right font-normal">{tx("경기")}</th></tr></thead>
-                <tbody>{roleRows.map((row) => <tr key={row.id} className={`border-b border-border/60 ${row.id === "all" ? "bg-primary/5" : ""}`}>
+                <tbody>{roleRows.map((row) => <tr key={row.id} className="border-b border-border/60">
                   <th scope="row" className="px-3 py-3 text-left font-medium text-foreground/90"><span className="inline-flex items-center gap-2">{"icon" in row ? row.icon : <OverwatchRoleIcon role="flex" />}{row.label}</span></th>
-                  <td className={`px-3 py-3 text-right font-bold tracking-tight ${row.id === "all" ? "text-2xl text-primary" : "text-xl"}`}>{value(rate(row.rate))}</td><td className="px-3 py-3 text-right text-xs text-muted-foreground">{value(`${row.wins}/${row.draws}/${row.losses}`)}</td><td className="px-3 py-3 text-right text-sm font-medium text-foreground/80">{value(row.matches)}</td>
+                  <td className="px-3 py-3 text-right text-xl font-bold tracking-tight">{value(rate(row.rate))}</td><td className="px-3 py-3 text-right text-xs text-muted-foreground">{value(`${row.wins}/${row.draws}/${row.losses}`)}</td><td className="px-3 py-3 text-right text-sm font-medium text-foreground/80">{value(row.matches)}</td>
                 </tr>)}</tbody>
               </table>
             </div>
