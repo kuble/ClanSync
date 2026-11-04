@@ -194,7 +194,7 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await page.goto(path);
     const notificationCard = page.getByRole("region", { name: "Discord 알림 설정", exact: true });
     await expect(page.getByRole("navigation", { name: "클랜 관리 항목", exact: true }).getByRole("link")).toHaveText(["알림·연동", "내전", "코인·플랜"]);
-    await expect(notificationCard.getByRole("heading", { name: "Discord", exact: true })).toBeVisible();
+    await expect(notificationCard.getByRole("heading", { name: "Discord 봇 연동", exact: true })).toBeVisible();
     await expect(notificationCard.getByRole("button", { name: "Discord 활용 예시", exact: true })).toBeVisible();
     const masterToggle = notificationCard.getByRole("switch", { name: "Discord 알림 사용", exact: true });
     const details = notificationCard.locator("#discord-notification-details");

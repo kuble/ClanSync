@@ -75,7 +75,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
       <div className="p-5">
       <div className="flex items-start gap-4 sm:items-center">
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold"><HelpText label="Discord" help={tx("자동 알림은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
+        <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold"><HelpText label={tx("Discord 봇 연동")} help={tx("자동 알림은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection ? `${connection.guild_name}${connection.channel_name ? ` · #${connection.channel_name}` : ""}` : tx("일정과 소식을 우리 서버에 자동으로 전달하십시오.")}</p></div>
         <div className="flex flex-wrap items-center gap-2">
         <Dialog><DialogTrigger render={<Button size="sm" variant="outline" aria-label={tx("Discord 활용 예시")} />}>{tx("활용 예시")}</DialogTrigger>
