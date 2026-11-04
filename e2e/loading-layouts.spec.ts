@@ -41,6 +41,7 @@ test("지연·실패·재시도 중 통계의 필터·소개·카드 영역을 �
       await expect(filter.locator("..")).toHaveAttribute("aria-busy", "true");
       await expect(banner).toHaveAttribute("aria-busy", "false");
       await expect(summary.getByText("—", { exact: true }).first()).toBeVisible();
+      await expect(page.locator("[data-sonner-toast]").filter({ hasText: "기록을 불러오는 중…" })).toBeVisible();
       const before = await boxes([filter, banner, summary, maps]);
       const nodes = await Promise.all([filter, banner, summary, maps].map(locator => locator.elementHandle()));
       if (width === 1280) await page.screenshot({ path: info.outputPath("personal-stats-pending.png") });

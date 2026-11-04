@@ -44,7 +44,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
       {settings && <div className="col-start-2 row-start-1 justify-self-end empty:hidden @min-[44rem]/archive:order-last">{settings}</div>}
       {filters}
     </div>
-    <StatsDetailLoader compact cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
+    <StatsDetailLoader cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
       {(detail, pending) => detail.kind === "archive" && <ArchiveDay inlinePreview={inlinePreview} dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={loading || pending} editor={clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
     </StatsDetailLoader>
   </div>;

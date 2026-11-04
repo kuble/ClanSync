@@ -1,5 +1,6 @@
 "use client";
 
+import { useStatsFetchToast } from "./use-stats-fetch-toast";
 import { useEffect, useRef, useState } from "react";
 import type { ClanStatsDetail, ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 
@@ -31,8 +32,9 @@ export function useStatsPeriod(model: ClanStatsPageModel, key: string, needed: b
   }, [model, key, needed, attempt]);
   const current = result?.model === model && result.key === key ? result : undefined;
   const pending = model.deferredPeriods && needed && !current?.data;
-  return { data: current?.data, pending, feedback: pending ? <div role={current?.error ? "alert" : "status"} className="absolute right-4 top-3 z-10 rounded-md bg-card px-2 py-1 text-xs text-muted-foreground">
-    {current?.error ?? "선택한 기간의 통계를 불러오는 중…"}
-    {current?.error && <button type="button" className="ml-3 underline" onClick={() => { setResult(undefined); setAttempt((n) => n + 1); }}>다시 불러오기</button>}
-  </div> : null };
+  useStatsFetchToast(!!pending && !current?.error, "선택한 기간의 통계를 불러오는 중…");
+  return { data: current?.data, pending, feedback: current?.error && <div role="alert" className="absolute right-4 top-3 z-10 rounded-md bg-card px-2 py-1 text-xs text-muted-foreground">
+    {current.error}
+    <button type="button" className="ml-3 underline" onClick={() => { setResult(undefined); setAttempt((n) => n + 1); }}>다시 불러오기</button>
+  </div> };
 }

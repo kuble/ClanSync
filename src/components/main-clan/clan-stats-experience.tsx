@@ -46,7 +46,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
     if (value === "personal") setPersonId(null);
   }
   return <div className="mx-auto w-full max-w-[1120px] space-y-6">
-    <Tabs value={tab} onValueChange={selectTab} className="w-full gap-4">
+    <Tabs value={tab} onValueChange={selectTab} className="w-full gap-2 sm:gap-4">
       <ClanSectionPicker label={tx("통계 선택")} items={sections.map(({value,label,icon: Icon}) => ({
         label, icon: <Icon className="size-4" aria-hidden />, selected: tab === value, onSelect: () => selectTab(value),
       }))}>
@@ -62,10 +62,10 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
       <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
       {model.permissions.viewIntraStats !== false && <TabsContent value="intra"><IntraClanStats model={model} settings={settingsFor("intra")} /></TabsContent>}
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails
-        ? <StatsDetailLoader compact cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail, pending) => detail.kind === "archive" && <ClanMatchHistory pending={pending} model={{ ...model, archive: detail.archive }} settings={settingsFor("records")} />}</StatsDetailLoader>
+        ? <StatsDetailLoader cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail, pending) => detail.kind === "archive" && <ClanMatchHistory pending={pending} model={{ ...model, archive: detail.archive }} settings={settingsFor("records")} />}</StatsDetailLoader>
         : <ClanMatchHistory model={model} settings={settingsFor("records")} />}</TabsContent>}
       {showPersonalTab && <TabsContent value="personal">{personId && !canViewSelectedStats ? <div className="space-y-3"><div className="flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setPersonId(null)}>{tx("멤버 선택")}</Button></div><StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} hof={model.hof} userId={personId} nickname={people.find(person => person.userId === personId)?.nickname ?? "플레이어"} /><section className="flex items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4"><p className="text-sm text-muted-foreground">{tx("개인 기록 열람이 제한되어 있습니다.")}</p>{settingsFor("personal")}</section></div> : personId ? model.deferredDetails
-        ? <StatsDetailLoader compact cache={cache} initial={{ kind: "personal", person: model.personal.people.find(person => person.userId === personId)! }} url={`/api/clans/${clanId}/stats?section=personal&userId=${personId}`}>{(detail, pending) => detail.kind === "personal" && <PersonalStats key={personId} pending={pending} model={{ ...model, personal: { ...model.personal, people: [detail.person] } }} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />}</StatsDetailLoader>
+        ? <StatsDetailLoader cache={cache} initial={{ kind: "personal", person: model.personal.people.find(person => person.userId === personId)! }} url={`/api/clans/${clanId}/stats?section=personal&userId=${personId}`}>{(detail, pending) => detail.kind === "personal" && <PersonalStats key={personId} pending={pending} model={{ ...model, personal: { ...model.personal, people: [detail.person] } }} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />}</StatsDetailLoader>
         : <PersonalStats key={personId} model={model} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />
         : <StatsMemberPicker people={people} onSelect={choosePerson} settings={settingsFor("personal")} />}</TabsContent>}
     </Tabs>
