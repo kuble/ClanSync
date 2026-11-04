@@ -103,26 +103,27 @@ async function Overview({ ctx }: Pick<Props, "ctx">) {
     <div role="group" aria-label={tx("클랜 운영 요약")} className={operation.metrics}>
       {facts.map(({ label, value, icon: Icon }) => (
         <section key={label} aria-label={`${label} ${value}`} className={operation.metric}>
-          <h4><span><Icon size={18} aria-hidden /></span>{tx(label)}</h4>
+          <h4><Icon size={15} aria-hidden />{tx(label)}</h4>
+          <p className={operation.metricValue}>{value}</p>
           {label === "총 내전" ? <>
-            <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <div><dt className="text-[11px] text-muted-foreground">{tx("정규 내전")}</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? tx("확인 필요") : tx("{0}회", history.regular.toLocaleString(tx.locale))}</dd></div>
-              <div><dt className="text-[11px] text-muted-foreground">{tx("깜짝 내전")}</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? tx("확인 필요") : tx("{0}회", history.flash.toLocaleString(tx.locale))}</dd></div>
+            <dl className={operation.breakdown}>
+              <div><dt>{tx("정규 내전")}</dt><dd>{history.regular == null ? tx("확인 필요") : tx("{0}회", history.regular.toLocaleString(tx.locale))}</dd></div>
+              <div><dt>{tx("깜짝 내전")}</dt><dd>{history.flash == null ? tx("확인 필요") : tx("{0}회", history.flash.toLocaleString(tx.locale))}</dd></div>
             </dl>
             {history.regular != null && history.flash != null && history.total != null && history.regular + history.flash !== history.total && <p role="status" className="mt-2 text-[11px] text-muted-foreground">{tx("분류 확인 필요")}</p>}
-          </> : <p className={operation.metricValue}>{value}</p>}
+          </> : null}
         </section>
       ))}
     </div>
     <section className={operation.record} aria-label={tx("클랜 기록")}>
-      <dl className="grid gap-5 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-border">
-        <div className="flex items-start gap-3 sm:pr-5"><CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">{tx("클랜 설립일")}</dt><dd className="mt-2 text-sm font-medium">{dateLabel(profile.data.created_at)}</dd></div></div>
-        <div className="flex items-start gap-3 sm:pl-5"><Clock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">{tx("최근 내전")}</dt><dd className="mt-2 text-sm font-medium">{history.total == null ? tx("기록 확인 필요") : history.latestAt ? dateLabel(history.latestAt) : tx("아직 개설된 내전이 없습니다.")}</dd></div></div>
+      <dl>
+        <div><dt><CalendarDays size={14} aria-hidden />{tx("클랜 설립일")}</dt><dd>{dateLabel(profile.data.created_at)}</dd></div>
+        <div><dt><Clock size={14} aria-hidden />{tx("최근 내전")}</dt><dd>{history.total == null ? tx("기록 확인 필요") : history.latestAt ? dateLabel(history.latestAt) : tx("아직 개설된 내전이 없습니다.")}</dd></div>
       </dl>
     </section>
-    <section className={`${operation.badges} space-y-4`} aria-label={tx("클랜 배지")}>
+    <section className={operation.badges} aria-label={tx("클랜 배지")}>
       <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden /><h4 className="text-sm font-semibold">{tx("클랜 배지")}</h4></div>
-      {badges ? <ClanBadges collection={badges} gameSlug={ctx.gameSlug} clanId={ctx.clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">{tx("배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주십시오.")}</p>}
+      {badges ? <ClanBadges collection={badges} gameSlug={ctx.gameSlug} clanId={ctx.clanId} compact /> : <p role="alert" className="flex min-h-24 items-center justify-center text-sm text-muted-foreground">{tx("배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주십시오.")}</p>}
     </section>
   </div>;
 }

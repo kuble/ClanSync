@@ -1,10 +1,39 @@
-.overview { display: grid; gap: 20px; min-width: 0; }
-.metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
-.metric { min-width: 0; padding: 22px 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
-.metric h4 { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 550; }
-.metric h4 > span { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; color: var(--primary); background: color-mix(in srgb,var(--primary) 10%,transparent); }
-.metricValue { margin-top: 18px; font-size: clamp(24px,3vw,34px); font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.04em; overflow-wrap: anywhere; }
-.metric dl { margin-top: 20px; }
-.record { padding: 22px 24px; border-block: 1px solid var(--border); }
-.badges { min-width: 0; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
-@media(max-width: 700px) { .metrics { gap: 8px; } .metric { padding: 14px 10px; border-radius: 12px; } .metric h4 { gap: 8px; flex-direction: column; align-items: flex-start; font-size: 11px; } .metricValue { font-size: 24px; margin-top: 12px; } .record { padding: 20px 8px; } .badges { padding: 20px 16px; } }
+.overview {
+  display: grid;
+  grid-template-areas: "metrics badges" "record badges";
+  grid-template-columns: minmax(0, 1fr) clamp(240px, 27%, 320px);
+  align-items: start;
+  gap: 0 24px;
+  min-width: 0;
+}
+
+.metrics {
+  grid-area: metrics;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  padding-block: 18px;
+  border-block: 1px solid var(--border);
+}
+
+.metric { min-width: 0; padding-inline: clamp(10px, 1.5vw, 20px); }
+.metric + .metric { border-inline-start: 1px solid var(--border); }
+.metric h4, .record dt { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 12px; font-weight: 500; }
+.metric h4 svg, .record dt svg { flex-shrink: 0; }
+.metricValue { margin-top: 8px; font-size: clamp(22px, 2.3vw, 30px); font-weight: 650; line-height: 1.2; letter-spacing: -.03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.breakdown { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 8px; font-size: 11px; }
+.breakdown > div { display: flex; flex-wrap: wrap; gap: 4px; }
+.breakdown dt { color: var(--muted-foreground); }
+.breakdown dd { font-variant-numeric: tabular-nums; }
+
+.record { grid-area: record; }
+.record dl { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 12px clamp(10px, 1.5vw, 20px); }
+.record dl > div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.record dd { font-size: 12px; font-weight: 500; }
+
+.badges { grid-area: badges; display: grid; width: 100%; max-width: 320px; gap: 10px; }
+.badges [data-badge-case] { padding: 10px 12px; border-width: 4px; border-radius: 12px; }
+
+@media (max-width: 800px) {
+  .overview { grid-template-areas: "metrics" "record" "badges"; grid-template-columns: minmax(0, 1fr); }
+  .badges { margin-top: 12px; }
+}
