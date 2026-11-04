@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -342,7 +343,7 @@ function HistoryContent({
                             className="truncate px-2 py-3 text-left font-medium"
                             title={nickname(member.userId)}
                           >
-                            {nickname(member.userId)}
+                            <PlayerNickname name={nickname(member.userId)} />
                           </th>
                           <td className="wrap-anywhere px-1 py-3 text-right">
                             {member.appearances}

@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import type { FormEvent } from "react";
 import Link from "next/link";
@@ -225,7 +226,7 @@ export function ManageMembersTable({
                     aria-label={tx("{0} 개인 기록", memberName(m))}
                     className="min-w-0 rounded-sm text-left [overflow-wrap:anywhere] hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
                   >
-                    {memberName(m)}
+                    <PlayerNickname name={memberName(m)} />
                   </Link>
                   </div>
                   {scope === "former" && <span className="mt-1 block text-[10px] font-normal text-muted-foreground @min-[720px]/members:hidden">{m.status === "banned" ? tx("재가입 차단") : tx("재가입 가능")}</span>}
