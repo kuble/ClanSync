@@ -246,6 +246,9 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     const examplesButton = page.getByRole("button", { name: "Discord 활용 예시", exact: true });
     await notificationCard.getByRole("button", { name: "Discord 봇 연동", exact: true }).focus();
     await expect(page.getByRole("tooltip")).toContainText("클랜 일정과 소식");
+    await page.keyboard.press("Escape");
+    await examplesButton.hover();
+    await expect(page.getByRole("tooltip", { name: "Discord 알림 예시 보기", exact: true })).toBeVisible();
     await examplesButton.click();
     const examplesDialog = page.getByRole("dialog", { name: "Discord 활용 예시", exact: true });
     await expect(examplesDialog).toBeVisible();

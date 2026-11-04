@@ -3,7 +3,7 @@
 import { useTranslator } from "#use-translator";
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, ExternalLink, RefreshCw, Unlink2 } from "lucide-react";
+import { BookOpen, Check, ExternalLink, RefreshCw, Unlink2 } from "lucide-react";
 import { disconnectClanDiscordAction, listClanDiscordChannelsAction, updateClanEventNotifyAction } from "@/app/actions/clan-event-notify";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,11 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
         <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold"><HelpText label={tx("Discord 봇 연동")} help={tx("클랜 일정과 소식을 연결한 Discord 서버에 자동으로 보냅니다. 이 설정은 클랜 전체에 적용됩니다.")} /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
           {connection && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection.guild_name}{connection.channel_name && ` · #${connection.channel_name}`}</p>}</div>
         <div className="flex flex-wrap items-center gap-2">
-        <Dialog><DialogTrigger render={<Button size="sm" variant="outline" aria-label={tx("Discord 활용 예시")} />}>{tx("활용 예시")}</DialogTrigger>
+        <Dialog>
+          <StatTooltip label={tx("Discord 활용 예시")} description={tx("Discord 알림 예시 보기")}
+            render={<DialogTrigger render={<Button type="button" size="icon-sm" variant="outline" aria-label={tx("Discord 활용 예시")} />} />}>
+            <BookOpen aria-hidden />
+          </StatTooltip>
           <DialogContent className="flex min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
             <DialogHeader className="shrink-0 border-b border-border px-5 py-4 pr-12">
               <DialogTitle>{tx("Discord 활용 예시")}</DialogTitle>
