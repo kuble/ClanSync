@@ -6,7 +6,6 @@ import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ClanStatsArchive } from "./clan-stats-archive";
 import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { PeriodSelect } from "@/components/ui/period-select";
@@ -346,9 +345,6 @@ export function ClanStatsView({
             {tx("함께 쌓아온 기록. 경기와 멤버의 활동을 한눈에 살펴보십시오.")}
           </p>
         </div>
-        {model.hof.exposeHof ? (
-          <Badge variant="secondary">{tx("명예의 전당 공개 중")}</Badge>
-        ) : null}
       </div>
 
       <Tabs defaultValue={defaultMainTab} className="w-full">

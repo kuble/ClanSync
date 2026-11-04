@@ -4,7 +4,6 @@ import { useTranslator } from "#use-translator";
 import { useMemo, useState } from "react";
 import { Crown, Swords, UserRound, History } from "lucide-react";
 import { ClanSectionPicker } from "./clan-section-picker";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { HallOfFame } from "./clan-hall-of-fame";
@@ -50,14 +49,11 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
       <ClanSectionPicker label={tx("통계 선택")} items={sections.map(({value,label,icon: Icon}) => ({
         label, icon: <Icon className="size-4" aria-hidden />, selected: tab === value, onSelect: () => selectTab(value),
       }))}>
-        <div className="flex items-center gap-2 border-b">
-          <TabsList variant="line" className="h-auto min-w-0 flex-1">
+          <TabsList variant="line" className="h-auto w-full border-b">
             {sections.map(({value,label,icon: Icon}) => <TabsTrigger key={value} value={value} onClick={() => selectTab(value)}>
               <Icon className="size-4" aria-hidden />{tx(label)}
             </TabsTrigger>)}
           </TabsList>
-          {model.hof.exposeHof && <Badge variant="secondary">{tx("명예의 전당 공개 중")}</Badge>}
-        </div>
       </ClanSectionPicker>
       <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
       {model.permissions.viewIntraStats !== false && <TabsContent value="intra"><IntraClanStats model={model} settings={settingsFor("intra")} /></TabsContent>}
