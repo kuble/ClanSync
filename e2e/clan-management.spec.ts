@@ -186,8 +186,17 @@ test("management sections preserve navigation, pending counts and officer/member
     async function selectSection(key: string) {
       const group = ["overview", "appearance", "insights"].includes(key) ? "클랜 운영" : ["requests", "members"].includes(key) ? "구성원 관리" : "운영 설정";
       const label = { overview: "운영 현황", appearance: "클랜 꾸미기", requests: "가입 요청", members: "구성원", balance: "내전", notifications: "알림·연동", insights: "운영 통계", subscription: "코인·플랜" }[key]!;
-      await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: new RegExp(`^${group}`) }).click();
-      await nav.getByRole("link", { name: new RegExp(`^${label}`) }).click();
+      for (const [menu, target] of [["클랜 관리 분류", group], ["클랜 관리 항목", label]]) {
+        const navigation = page.getByRole("navigation", { name: menu, exact: true });
+        const trigger = navigation.getByRole("button");
+        const name = new RegExp(`^${target}`);
+        if (await trigger.isVisible()) {
+          await trigger.click();
+          await page.getByRole("menuitem", { name }).click();
+        } else {
+          await navigation.getByRole("link", { name }).click();
+        }
+      }
     }
     await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: /^구성원 관리/ }).click();
     await expect(page).toHaveURL(/tab=members$/);
@@ -301,7 +310,8 @@ test("management sections preserve navigation, pending counts and officer/member
       const yearPopupBox = (await touchYearList.boundingBox())!;
       expect(yearPopupBox.x).toBeGreaterThanOrEqual(0);
       expect(yearPopupBox.x + yearPopupBox.width).toBeLessThanOrEqual(390);
-      expect(await touchYearList.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true);
+      expect(yearPopupBox.y).toBeGreaterThanOrEqual(0);
+      expect(yearPopupBox.y + yearPopupBox.height).toBeLessThanOrEqual(844);
       await touchPage.getByRole("option", { name: `${visitYear}년`, exact: true }).tap();
       await touchPage.getByRole("combobox", { name: "클랜 페이지 조회 월", exact: true }).tap();
       await touchPage.getByRole("option", { name: `${visitMonth}월`, exact: true }).tap();
@@ -336,7 +346,8 @@ test("management sections preserve navigation, pending counts and officer/member
     for (const key of ["overview", "appearance", "requests", "members", "balance", "notifications", "insights", "subscription"]) {
       await selectSection(key);
       await expect(page).toHaveURL(new RegExp(`tab=${key}$`));
-      await expect(nav.locator(`a[href$="tab=${key}"]`)).toHaveAttribute("aria-current", "page");
+      const label = await nav.getByRole("button").innerText();
+      await expect(page.getByRole("region", { name: label.trim(), exact: true }).first()).toHaveCSS("overflow-y", "visible");
       await expect(page.getByRole("status").filter({ hasText: "불러오는 중" })).toHaveCount(0);
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
