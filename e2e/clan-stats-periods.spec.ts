@@ -12,6 +12,11 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
   test.setTimeout(150_000); page.setDefaultTimeout(12_000);
   const f = await createIsolatedBalanceFixture(3);
   async function selectMobileMode(region: Locator, mode: string) {
+    const toggle = region.getByRole("radiogroup", { name: "기간", exact: true });
+    if (await toggle.isVisible()) {
+      await toggle.getByRole("radio", { name: mode, exact: true }).click();
+      return;
+    }
     await region.getByRole("combobox", { name: "기간", exact: true }).click();
     await page.getByRole("option", { name: mode, exact: true }).click();
   }
@@ -21,7 +26,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
       const boxes = nodes.map((node) => node.getBoundingClientRect());
       return Math.max(...boxes.map((box) => box.y)) - Math.min(...boxes.map((box) => box.y));
     })).toBeLessThan(2);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   try {
     const rows = await ok(f.service.from("matches").insert(Array.from({ length: 10 }, (_, i) => ({ clan_id: f.clanId, game_id: f.gameId, match_type: "intra" as const, status: "finished" as const, played_at: i === 0 ? "2025-07-01T10:00:00Z" : "2025-08-02T10:00:00Z", map_label: i === 0 ? "부산" : "네팔", created_by: f.users[0].id }))).select("id, map_label"));
@@ -230,9 +235,11 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("button", { name: /^통계 선택:/ }).click();
     await page.getByRole("menuitem", { name: "내전 통계", exact:true }).click();
-    await page.setViewportSize({ width: 390, height: 844 });
     const intraPeriod = page.getByRole("region", { name: "내전 통계 기간", exact: true });
+    await page.setViewportSize({ width: 639, height: 844 });
     await selectMobileMode(intraPeriod, "월별");
+    await expect(intraPeriod.getByRole("radiogroup", { name: "기간", exact: true })).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
     await expectCompactPeriod(intraPeriod);
     await intraPeriod.getByRole("button", { name: "내전 통계 설정", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "내전 통계 설정", exact: true })).toBeVisible();
