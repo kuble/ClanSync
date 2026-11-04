@@ -20,9 +20,9 @@ export function StatsMemberPicker({ people, onSelect, settings }: { settings?: R
   });
   return <section className="space-y-4" aria-label={tx("개인 기록 멤버 선택")}>
     <h3 className="text-lg font-bold">{tx("멤버를 선택하십시오")}</h3>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search aria-hidden className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={tx("멤버 이름 검색")} placeholder={tx("멤버 이름 검색")} value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" /></div>
-      <div className="ml-auto flex min-w-0 items-center gap-2">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+      <div className="relative min-w-0 sm:max-w-sm sm:flex-1"><Search aria-hidden className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={tx("멤버 이름 검색")} placeholder={tx("멤버 이름 검색")} value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" /></div>
+      <div className="flex min-w-0 items-center justify-between gap-2 sm:ml-auto">
         <RubberSegment label={tx("멤버 정렬")} labelPosition="hidden" options={[{ id: "recent", label: "최근 출전순" }, { id: "name", label: "이름순" }]} value={sort} onChange={setSort} />
         {settings}
       </div>

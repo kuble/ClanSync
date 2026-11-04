@@ -170,7 +170,7 @@ export function ManageMembersTable({
           {tx("매일 00:00 내전 참여 기준 · 4주 비활성 · 8주 휴면")}
         </span>
       </div>}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid items-center gap-2 @min-[20rem]/members:grid-cols-2 @min-[32rem]/members:flex">
         <div className="relative min-w-0 flex-1">
           <Search
             className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground"
@@ -194,7 +194,7 @@ export function ManageMembersTable({
             setFilter(event.target.value);
             setPageIndex(0);
           }}
-          className="h-[44px] w-20 rounded-lg border border-input bg-background px-2 text-xs @min-[720px]/members:h-9 @min-[720px]/members:w-auto @min-[720px]/members:px-3"
+          className="h-[44px] w-full min-w-0 rounded-lg border border-input bg-background px-2 text-xs @min-[32rem]/members:w-auto @min-[720px]/members:h-9 @min-[720px]/members:px-3"
         >
           <option value="all">{tx("전체")}</option>
           {scope === "current" ? <><option value="active">{tx("활성만")}</option><option value="inactive">{tx("비활성만")}</option><option value="dormant">{tx("휴면만")}</option></> : <><option value="left">{tx("재가입 가능")}</option><option value="banned">{tx("재가입 차단")}</option></>}

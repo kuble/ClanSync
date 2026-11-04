@@ -15,13 +15,14 @@ import { ArchiveDayTable } from "./archive-day-table";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 import { MatchRecordEditor } from "./match-record-editor";
 
-export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, mapFilter = "all", participantSearch = "", loading = false, inlinePreview = false }: {
+export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, settings, mapFilter = "all", participantSearch = "", loading = false, inlinePreview = false }: {
   archive: ClanStatsPageModel["archive"];
   clanId?: string;
   canEdit?: boolean;
   canCreate?: boolean; canUpdate?: boolean; canDelete?: boolean;
   periodKey?: string;
   filters?: ReactNode;
+  settings?: ReactNode;
   mapFilter?: string;
   participantSearch?: string;
   loading?: boolean;
@@ -37,9 +38,10 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
   const { requests: cache } = useMemo(() => ({ current, requests: new Map() as StatsDetailCache }), [current]);
   const fetchDay = clanId && current.deferredDays && current.datesKst.includes(selectedDay) && !current.sampleByDate[selectedDay];
   const onSaved = (data: typeof archive, day: string) => { setSaved({ base: archive, data }); setSelectedDay(day); router.refresh(); };
-  return <div className="space-y-4">
-    <div className="sticky top-[60px] z-30 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80" role="region" aria-label={tx("경기 기록 날짜 및 필터")}>
+  return <div className="@container/archive space-y-4">
+    <div className="sticky top-[60px] z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80 @min-[44rem]/archive:flex" role="region" aria-label={tx("경기 기록 날짜 및 필터")}>
       <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={current.datesKst} periodKey={periodKey} />
+      {settings && <div className="col-start-2 row-start-1 justify-self-end empty:hidden @min-[44rem]/archive:order-last">{settings}</div>}
       {filters}
     </div>
     <StatsDetailLoader compact cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
