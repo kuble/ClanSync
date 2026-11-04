@@ -59,7 +59,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
           {model.hof.exposeHof && <Badge variant="secondary">{tx("명예의 전당 공개 중")}</Badge>}
         </div>
       </ClanSectionPicker>
-      <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} showRoles={gameSlug === "overwatch"} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
+      <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
       {model.permissions.viewIntraStats !== false && <TabsContent value="intra"><IntraClanStats model={model} settings={settingsFor("intra")} /></TabsContent>}
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails
         ? <StatsDetailLoader cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail, pending) => detail.kind === "archive" && <ClanMatchHistory pending={pending} model={{ ...model, archive: detail.archive }} settings={settingsFor("records")} />}</StatsDetailLoader>

@@ -1,16 +1,15 @@
 "use client";
 
 import { useStatsFetchToast } from "./use-stats-fetch-toast";
-import type { StatRole } from "@/lib/clan/stats/clan-stats-analytics";
 import { useEffect, useRef, useState } from "react";
 import type { ClanStatsDetail, ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 
 type PeriodDetail = Extract<ClanStatsDetail, { kind: "period" }>;
 
 /** Keep the filter mounted while loading; never display the previous period as the new one. */
-export function useStatsPeriod(model: ClanStatsPageModel, period: string, needed: boolean, role: StatRole = null) {
-  const key = new URLSearchParams(role ? { period, role } : { period }).toString();
-  const shouldFetch = needed && (!!model.deferredPeriods || role !== null);
+export function useStatsPeriod(model: ClanStatsPageModel, period: string, needed: boolean) {
+  const key = new URLSearchParams({ period }).toString();
+  const shouldFetch = needed && !!model.deferredPeriods;
   const owner = useRef({ model, cache: new Map<string, Promise<PeriodDetail>>() });
   const [result, setResult] = useState<{ model: ClanStatsPageModel; key: string; data?: PeriodDetail; error?: string }>();
   const [attempt, setAttempt] = useState(0);

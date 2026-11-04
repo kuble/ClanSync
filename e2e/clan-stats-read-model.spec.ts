@@ -65,27 +65,19 @@ test("stats read model stays exact across results, corrections, predictions, cas
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(f.path.replace(/balance$/, "stats"));
     const filters = page.getByRole("region", { name: "명예의 전당 필터" });
-    await filters.getByRole("radiogroup", { name: "출전 역할" }).getByRole("radio", { name: "돌격" }).click();
-    await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("1승 / 1무 / 0패");
-    const roles = filters.getByRole("radiogroup", { name: "출전 역할" });
-    for (const width of [493, 319]) {
+    const ranking = page.getByLabel("승률 순위", { exact: true });
+    for (const width of [761, 319]) {
       await page.setViewportSize({ width, height: 884 });
-      const category = filters.getByRole(width === 319 ? "combobox" : "radiogroup", { name: "부문" });
-      const categoryBox = (await category.boundingBox())!;
-      const roleBox = (await roles.boundingBox())!;
-      expect(Math.abs(categoryBox.y + categoryBox.height / 2 - roleBox.y - roleBox.height / 2)).toBeLessThan(2);
-      expect(categoryBox.x + categoryBox.width).toBeLessThan(roleBox.x);
-      await expect(roles.getByRole("radio").locator('[style*="/images/overwatch/icons/"]')).toHaveCount(4);
+      await expect(filters.getByLabel("출전 역할")).toHaveCount(0);
+      await expect(ranking).toContainText("2승 / 1무 / 1패");
     }
-    await roles.getByRole("radio", { name: "지원" }).click();
-    await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("0승 / 0무 / 1패");
     const category = filters.getByRole("combobox", { name: "부문" });
     await category.click();
     await page.getByRole("option", { name: "예측 적중", exact: true }).click();
-    await expect(roles).toBeHidden();
+    await expect(page.getByLabel("예측 적중 순위", { exact: true })).toBeVisible();
     await category.click();
     await page.getByRole("option", { name: "승률", exact: true }).click();
-    await expect(roles.getByRole("radio", { name: "지원" })).toBeChecked();
+    await expect(ranking).toContainText("2승 / 1무 / 1패");
     await Promise.all([
       ok(f.service.from("match_results").update({ winner_team: 2 }).eq("match_id", explicitId)),
       ok(f.service.from("balance_session_predictions").update({ pool_settlement: "refund" }).eq("session_id", roundIds[1])),
