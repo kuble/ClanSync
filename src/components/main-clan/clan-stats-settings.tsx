@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { HofSettingsForm } from "./clan-stats-view";
-import { StatHelpIcon } from "./stat-help";
+import { StatHelp } from "./stat-help";
 import styles from "./hof-settings.module.css";
 
 export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
@@ -27,7 +27,7 @@ export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
     </SheetTrigger>
     <SheetContent className={styles.sheet} initialFocus={titleRef}><div className={styles.panel}>
       <SheetHeader className="shrink-0 px-5 pb-5 pt-5 pr-12">
-        <div className="flex items-center gap-1"><SheetTitle tabIndex={-1} ref={titleRef}>{title}</SheetTitle>{scope !== "personal" && <StatHelpIcon title={title} help={description} />}</div>
+        <SheetTitle tabIndex={-1} ref={titleRef}>{scope === "personal" ? title : <StatHelp title={title}>{description}</StatHelp>}</SheetTitle>
         {scope === "personal" && <SheetDescription>{description}</SheetDescription>}
       </SheetHeader>
       {scope === "hof" || scope === "personal" ? <HofSettingsForm scope={scope} gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config}
