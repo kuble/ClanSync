@@ -125,7 +125,7 @@ test("명예의 전당: 무승부를 승률 분모에 포함하고 결과 미기
   const result = buildHofPeriod(
     hofRecords(),
     "month",
-    HOF_CONFIG_DEFAULTS,
+    { ...HOF_CONFIG_DEFAULTS, monthlyRankVisibility: "always" },
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
@@ -196,6 +196,13 @@ test("명예의 전당: 공개 전인 이번 달 순위와 확정된 지난달 �
   expect(thisMonth.undisclosed).toBe(true);
   expect(pastMonth.undisclosed).toBe(false);
   expect(pastMonth.cumulative.length).toBeGreaterThan(0);
+});
+
+test("명예의 전당: 연도별 순위는 매년 1월 1일에 전년도 기록을 공개한다", () => {
+  const rows = normalizeClanMatchRecords([], [session({ match_outcome: "team1" })]);
+  const year = new Date("2026-09-15T00:00:00Z");
+  expect(buildHofPeriod(rows, "year", HOF_CONFIG_DEFAULTS, new Map(), year).undisclosed).toBe(true);
+  expect(buildHofPeriod(rows, "year", HOF_CONFIG_DEFAULTS, new Map(), year, [], false, true).undisclosed).toBe(false);
 });
 
 test("명예의 전당: 예측 적중 횟수 순위는 공개 범위와 유효 표본을 따른다", () => {

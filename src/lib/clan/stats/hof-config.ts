@@ -36,7 +36,7 @@ export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
   participationVisibleTop: 10,
   cumulativeVisibleTop: 10,
   monthlyRankVisibility: "month_start",
-  yearlyRankVisibility: "always",
+  yearlyRankVisibility: "year_start",
   eligibilityGameThreshold: 100,
   eligibilityBelowPct: 30,
   eligibilityAboveMinGames: 30,
@@ -59,7 +59,7 @@ function monthVis(v: unknown): "always" | "month_start" {
 }
 
 function yearVis(v: unknown): "always" | "year_start" {
-  return v === "year_start" ? "year_start" : "always";
+  return v === "always" ? "always" : HOF_CONFIG_DEFAULTS.yearlyRankVisibility;
 }
 
 /** clan_settings.hof_config jsonb → 앱에서 쓰는 정규화 값 */

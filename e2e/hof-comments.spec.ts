@@ -24,8 +24,11 @@ test("HoF comments RLS: membership, author, disclosure and thread boundaries", a
     await ok(f.service.from("clan_members").insert({ clan_id: other.id, user_id: f.users[2].id, role: "leader", status: "active" }));
     const thread = { clan_id: f.clanId, ranking: "rate", period_key: "all", content: "응원합니다" };
     const currentThread = { p_clan_id: f.clanId, p_ranking: "rate", p_period_key: month };
+    const annualThread = { ...currentThread, p_period_key: String(now.year) };
+    expect(await ok(member.rpc("can_access_hof_comments", annualThread))).toBe(false);
     expect(await ok(member.rpc("can_access_hof_comments", currentThread))).toBe(false);
-    await ok(f.service.from("clan_settings").upsert({ clan_id: f.clanId, hof_config: { monthly_rank_visibility: "always" } }));
+    await ok(f.service.from("clan_settings").upsert({ clan_id: f.clanId, hof_config: { monthly_rank_visibility: "always", yearly_rank_visibility: "always" } }));
+    expect(await ok(member.rpc("can_access_hof_comments", annualThread))).toBe(true);
     expect(await ok(member.rpc("can_access_hof_comments", currentThread))).toBe(true);
     const row = await ok(member.from("clan_hof_comments").insert(thread).select().single());
     expect(row.author_id).toBe(f.users[1].id);
