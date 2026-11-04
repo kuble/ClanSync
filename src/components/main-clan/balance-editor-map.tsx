@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Map, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { selectBalanceMapAction } from "@/app/actions/clan-balance-session";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BalanceMapImage } from "./clan-balance-map-image";
 import { BalanceManualMapPicker } from "./clan-balance-map-options";
 
@@ -64,9 +64,8 @@ export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, can
     <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-4xl">
       <DialogHeader>
         <DialogTitle>{tx("경기 맵 선택")}</DialogTitle>
-        <DialogDescription>{tx("맵을 선택하면 창이 닫히고 배너에 표시됩니다.")}</DialogDescription>
       </DialogHeader>
-      <BalanceManualMapPicker gameSlug={gameSlug} value={map} onChange={selectMap} disabled={pending} canManage={canManage} />
+      <BalanceManualMapPicker gameSlug={gameSlug} value={map} onChange={selectMap} disabled={pending} canManage={canManage} hideTypeHeading />
     </DialogContent>
   </Dialog>;
 }
