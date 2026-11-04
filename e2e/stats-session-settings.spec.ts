@@ -70,35 +70,31 @@ test("stats: session summary, eligibility rules and settings tabs preserve saved
     await expect(personalSettings).toBeHidden();
     await page.getByRole("tab", { name: "명예의 전당", exact: true }).click();
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "명예의 전당 설정", exact: true });
+    const settings = page.getByRole("dialog", { name: "명예의 전당 설정 도움말", exact: true });
     await settings.getByRole("tab", { name: "순위 공개", exact: true }).click();
-    await settings.getByLabel("승률 순위 공개(구성원)", { exact: true }).selectOption("5");
+    await settings.getByLabel("승률", { exact: true }).selectOption("5");
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
     await settings.getByLabel("기준 전환점", { exact: true }).fill("10");
-    await settings.getByLabel("전체 경기의", { exact: true }).fill("50");
-    await settings.getByLabel("출전 횟수", { exact: true }).fill("7");
-    await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("60");
+    await settings.getByLabel("최소 출전 비율", { exact: true }).fill("50");
+    await settings.getByLabel("최소 출전 경기 수", { exact: true }).fill("7");
     await expect(settings.getByLabel("순위 등재 미리보기", { exact: true })).toHaveCount(0);
     await settings.getByRole("button", { name: "순위 등재 기준 도움말", exact: true }).focus();
     await expect(page.getByRole("tooltip")).toContainText("새벽까지");
     await settings.getByRole("button", { name: "저장", exact: true }).click();
     await expect(settings).toBeHidden();
     const saved = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
-    expect(saved.hof_config).toMatchObject({ member_personal_records: true, personal_record_min_role: "member", win_rate_visible_top: 5, wins_visible_top: 3, streak_visible_top: 5, eligibility_game_threshold: 10, eligibility_below_pct: 50, eligibility_above_min_games: 7, eligibility_session_pct: 60 });
+    expect(saved.hof_config).toMatchObject({ member_personal_records: true, personal_record_min_role: "member", win_rate_visible_top: 5, wins_visible_top: 3, streak_visible_top: 5, eligibility_game_threshold: 10, eligibility_below_pct: 50, eligibility_above_min_games: 7 });
     const [staff, member] = await Promise.all([
       loadClanStatsPage(leader, f.users[0].id, f.clanId, { deferDetails: true }),
       loadClanStatsPage(await f.memberClient(1), f.users[1].id, f.clanId, { deferDetails: true }),
     ]);
-    expect(staff?.hof.periods.all.minimumSessions).toBe(2);
-    expect(staff?.hof.periods.all.participation).toEqual([]);
-    expect(staff?.hof.periods.all.unqualifiedParticipation[0]).toMatchObject({ played: 1, ratePct: 50 });
-    expect(member?.hof.periods.all.unqualifiedParticipation).toEqual([]);
+    for (const model of [staff, member]) expect(model?.hof.periods.all.participation[0]).toMatchObject({ played: 1, ratePct: 50 });
     await page.getByRole("radio", { name: "최다 참여", exact: true }).click();
-    await expect(page.getByLabel("최다 참여 순위", { exact: true })).toContainText("규정 미달 · 1회 부족");
+    await expect(page.getByLabel("최다 참여 순위", { exact: true })).toContainText("2회 중 1회 참여");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
-    await expect(settings.getByLabel("전체 정규 내전의", { exact: true })).toHaveValue("60");
+    await expect(settings.getByLabel("최소 출전 비율", { exact: true })).toHaveValue("50");
     await expect(settings.getByRole("button", { name: "저장", exact: true })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally { await f.cleanup(); }

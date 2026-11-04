@@ -122,13 +122,13 @@ function HofCommentsThread({ clanId, ranking, periodKey, label, drawerOpen, onDr
     <HofCommentsCard label={tx(label)} disabled={loading || busy} onRefresh={() => setRefresh(value => value + 1)} drawerOpen={drawerOpen} onDrawerOpenChange={onDrawerOpenChange}>
     <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
       {error && <p role="alert" className="text-sm text-destructive">{tx(error)}</p>}
-      <StatsScrollArea label={tx("순위 댓글 목록")} className="min-h-0 flex-1" viewportRef={viewport}>
+      <StatsScrollArea label={tx(ranking === "prediction" ? "적중률 댓글 목록" : "순위 댓글 목록")} className="min-h-0 flex-1" viewportRef={viewport}>
         {loading ? <p role="status" className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">{tx("반응을 불러오는 중…")}</p> : <>
         {cursor && <Button type="button" className="w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>{tx("이전 댓글 더 보기")}</Button>}
-        {comments.length ? <ClanComments comments={chronological} clanId={clanId} targetKind="hof_comment" disabled={busy || loading} onDelete={comment => remove(comment.id)} onReact={react} loadReactionPeople={(comment, reaction) => listHofCommentReactionPeopleAction(thread, comment.id, reaction)} /> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">{tx("이번 순위에 대한 의견을 남길 수 있습니다.")}</p><p className="text-xs text-muted-foreground">{tx("아직 등록된 댓글이 없습니다. 첫 댓글을 남겨 주십시오.")}</p></div>}
+        {comments.length ? <ClanComments comments={chronological} clanId={clanId} targetKind="hof_comment" disabled={busy || loading} onDelete={comment => remove(comment.id)} onReact={react} loadReactionPeople={(comment, reaction) => listHofCommentReactionPeopleAction(thread, comment.id, reaction)} /> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">{tx(ranking === "prediction" ? "이번 예측 결과에 대한 의견을 남길 수 있습니다." : "이번 순위에 대한 의견을 남길 수 있습니다.")}</p><p className="text-xs text-muted-foreground">{tx("아직 등록된 댓글이 없습니다. 첫 댓글을 남겨 주십시오.")}</p></div>}
         </>}
       </StatsScrollArea>
-      <ClanCommentComposer pickerLabel="댓글 이모티콘 선택" id="hof-comment" label={tx("순위 보고 한마디")} value={draft} onChange={setDraft} onSubmit={submit} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} submitDisabled={loading} placeholder={tx("이번 순위에 한마디 남겨보십시오.")} />
+      <ClanCommentComposer pickerLabel="댓글 이모티콘 선택" id="hof-comment" label={tx(ranking === "prediction" ? "예측 결과 보고 한마디" : "순위 보고 한마디")} value={draft} onChange={setDraft} onSubmit={submit} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} submitDisabled={loading} placeholder={tx(ranking === "prediction" ? "이번 예측 결과에 한마디 남겨보십시오." : "이번 순위에 한마디 남겨보십시오.")} />
     </CardContent>
     </HofCommentsCard>
   );

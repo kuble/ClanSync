@@ -20,8 +20,8 @@ export function statsExampleModel(records: ClanArchiveMatch[]): ClanStatsPageMod
     ],
   }));
   const block: HofPeriodPayload = {
-    totals: { sessions: 24, days: 24, matches: 120 }, minimumGames: 30, minimumSessions: 8,
-    unqualified: [], unqualifiedParticipation: [], undisclosed: false, undisclosedHint: null,
+    totals: { sessions: 24, days: 24, matches: 120 }, minimumGames: 30,
+    unqualified: [], undisclosed: false, undisclosedHint: null,
     winRate: people.map((p, i) => ({ ...p, wins: 36 - i * 3, draws: 0, losses: 12 + i * 3, ratePct: (36 - i * 3) / 48 * 100 })),
     wins: [], streaks: [], participation: people.map((p, i) => ({ ...p, played: 24 - i * 3, ratePct: (24 - i * 3) / 24 * 100 })),
     cumulative: people.map((p, i) => ({ ...p, played: 108 - i * 12 })),

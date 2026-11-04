@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildHofPeriod } from "../src/lib/clan/stats/load-clan-stats";
-import { HOF_CONFIG_DEFAULTS, minSessionsToQualify, minGamesToQualify } from "../src/lib/clan/stats/hof-config";
+import { HOF_CONFIG_DEFAULTS, minGamesToQualify } from "../src/lib/clan/stats/hof-config";
 import {
   normalizeClanMatchRecords,
   type CompletedBalanceSession,
@@ -174,18 +174,16 @@ test("내전 참여는 같은 날의 여러 내전도 각각 세고 개최 일�
   expect(all.participation[0]).toMatchObject({ played: 3, ratePct: 75 });
 });
 
-test("내전 참여 최소 비율에는 경기 출전의 고정 횟수를 적용하지 않고 미달 기록은 운영진만 확인한다", () => {
+test("내전 참여는 최소 참여 비율 없이 실제 참여 횟수를 표시한다", () => {
   const cfg = { ...HOF_CONFIG_DEFAULTS, eligibilitySessionPct: 50 };
-  expect(minSessionsToQualify(200, cfg)).toBe(100);
   expect(minGamesToQualify(200, cfg)).toBe(30);
   const opened = Array.from({ length: 3 }, (_, i) => ({ id: `series-${i}`, openedAt: "2026-09-01T10:00:00Z" }));
   const rows = normalizeClanMatchRecords([], [session({ series_id: opened[0].id, match_outcome: "team1" })]);
   const args = [rows, "all", cfg, new Map(), new Date("2026-09-15T00:00:00Z"), opened] as const;
   const staff = buildHofPeriod(...args, true), member = buildHofPeriod(...args);
-  expect(staff.minimumSessions).toBe(2);
-  expect(staff.participation).toEqual([]);
-  expect(staff.unqualifiedParticipation.find((r) => r.userId === "blue-tank")).toMatchObject({ played: 1, ratePct: 33.3 });
-  expect(member.unqualifiedParticipation).toEqual([]);
+  for (const block of [staff, member]) {
+    expect(block.participation.find((r) => r.userId === "blue-tank")).toMatchObject({ played: 1, ratePct: 33.3 });
+  }
 });
 
 test("명예의 전당: 공개 전인 이번 달 순위와 확정된 지난달 순위를 구분한다", () => {
@@ -205,15 +203,17 @@ test("명예의 전당: 연도별 순위는 매년 1월 1일에 전년도 기록
   expect(buildHofPeriod(rows, "year", HOF_CONFIG_DEFAULTS, new Map(), year, [], false, true).undisclosed).toBe(false);
 });
 
-test("명예의 전당: 예측 적중 횟수 순위는 공개 범위와 유효 표본을 따른다", () => {
+test("명예의 전당: 예측 적중률 목록은 공개 범위와 유효 표본을 따른다", () => {
   const picks = Array.from({ length: 5 }, (_, index) => ({
     sessionId: String(index), userId: "predictor", playedAt: "2026-09-01T10:00:00Z",
     map: null, pickTeam: 1, outcome: index === 4 ? "team2" as const : "team1" as const,
   }));
+  picks.push({ ...picks[0], userId: "one-correct" });
   const hidden = buildHofPeriod([], "all", HOF_CONFIG_DEFAULTS, new Map(), new Date("2026-09-15T00:00:00Z"), [], false, false, picks);
   const shown = buildHofPeriod([], "all", { ...HOF_CONFIG_DEFAULTS, predictionVisibleTop: 3 }, new Map(), new Date("2026-09-15T00:00:00Z"), [], false, false, picks);
   expect(hidden.predictionCorrect).toEqual([]);
-  expect(shown.predictionCorrect[0]).toMatchObject({ correct: 4, valid: 5, ratePct: 80 });
+  expect(shown.predictionCorrect[0]).toMatchObject({ correct: 1, valid: 1, ratePct: 100 });
+  expect(shown.predictionCorrect[1]).toMatchObject({ correct: 4, valid: 5, ratePct: 80 });
 });
 
 test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 완료 경기로 판단한다", () => {
@@ -225,7 +225,7 @@ test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 �
     new Date("2026-09-15T00:00:00Z"),
   );
   expect(result.participation).toEqual([]);
-  expect(result.cumulative.map((row) => row.userId)).toEqual(expect.arrayContaining(["regular", "once", "draw-only"]));
+  expect(result.cumulative.map((row) => row.userId)).toEqual(["regular"]);
   expect(result.winRate.map((row) => row.userId)).toEqual(["regular"]);
 });
 

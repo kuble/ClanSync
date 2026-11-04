@@ -64,7 +64,7 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     const anchorBox = await rankingTitle.boundingBox(), guideBox = await guide.boundingBox();
     expect(guideBox!.x).toBeGreaterThan(anchorBox!.x + anchorBox!.width);
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "명예의 전당 설정", exact: true });
+    const settings = page.getByRole("dialog", { name: "명예의 전당 설정 도움말", exact: true });
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
     await settings.getByRole("button", { name: "순위 등재 기준 도움말", exact: true }).focus();
     await expect(guide).toContainText("새벽까지");

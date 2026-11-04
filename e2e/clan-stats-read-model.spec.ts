@@ -60,7 +60,8 @@ test("stats read model stays exact across results, corrections, predictions, cas
     expect(tank?.kind === "period" && tank.hof.winRate.find(p => p.userId === f.users[0].id))
       .toMatchObject({ wins: 1, draws: 1, losses: 0, ratePct: 50 });
     expect(tank?.kind === "period" && tank.hof.participation.find(p => p.userId === f.users[0].id)?.played).toBe(1);
-    expect(support?.kind === "period" && support.hof.cumulative).toMatchObject([{ userId: f.users[0].id, played: 1 }]);
+    expect(support?.kind === "period" && support.hof.minimumGames).toBe(2);
+    expect(support?.kind === "period" && support.hof.cumulative).toEqual([]);
     expect(damage?.kind === "period" && damage.hof.cumulative).toEqual([]);
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(f.path.replace(/balance$/, "stats"));
@@ -73,8 +74,10 @@ test("stats read model stays exact across results, corrections, predictions, cas
     }
     const category = filters.getByRole("combobox", { name: "부문" });
     await category.click();
-    await page.getByRole("option", { name: "예측 적중", exact: true }).click();
-    await expect(page.getByLabel("예측 적중 순위", { exact: true })).toBeVisible();
+    await page.getByRole("option", { name: "예측 적중률", exact: true }).click();
+    const predictions = page.getByLabel("예측 적중률 목록", { exact: true });
+    await expect(predictions).toContainText("%");
+    await expect(predictions.getByText("위", { exact: true })).toHaveCount(0);
     await category.click();
     await page.getByRole("option", { name: "승률", exact: true }).click();
     await expect(ranking).toContainText("2승 / 1무 / 1패");

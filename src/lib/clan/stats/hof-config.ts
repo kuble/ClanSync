@@ -21,7 +21,6 @@ export type ResolvedHofConfig = {
   eligibilityGameThreshold: number;
   eligibilityBelowPct: number;
   eligibilityAboveMinGames: number;
-  eligibilitySessionPct: number;
 };
 
 export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
@@ -40,7 +39,6 @@ export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
   eligibilityGameThreshold: 100,
   eligibilityBelowPct: 30,
   eligibilityAboveMinGames: 30,
-  eligibilitySessionPct: 30,
 };
 
 function num(v: unknown, fallback: number, min: number, max: number): number {
@@ -111,13 +109,7 @@ export function resolveHofConfig(raw: Json | undefined): ResolvedHofConfig {
       1,
       2000,
     ),
-    eligibilitySessionPct: num(o.eligibility_session_pct, HOF_CONFIG_DEFAULTS.eligibilitySessionPct, 1, 100),
   };
-}
-
-/** Session attendance stays proportional; the game appearance ceiling does not apply. */
-export function minSessionsToQualify(totalSessions: number, cfg: ResolvedHofConfig): number {
-  return Math.ceil(totalSessions * cfg.eligibilitySessionPct / 100);
 }
 
 export function minGamesToQualify(

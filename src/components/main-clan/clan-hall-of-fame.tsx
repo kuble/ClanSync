@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { PeriodSelect } from "@/components/ui/period-select";
 import { StatTitle } from "./stat-help";
-import { Crown, MessageSquare, Trophy } from "lucide-react";
+import { ChartNoAxesColumn, Crown, MessageSquare, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
@@ -21,9 +21,9 @@ import { useStatsPeriod } from "./use-stats-period";
 
 const RANKINGS = [
   { id: "rate", label: "승률", help: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다." },
-  { id: "attendance", label: "최다 참여", help: "한 경기 이상 출전한 정규 내전 횟수입니다. 같은 내전의 여러 경기는 1회로 세며, 전체 정규 내전 중 최소 참여 비율을 충족한 멤버를 등재합니다." },
+  { id: "attendance", label: "최다 참여", help: "한 경기 이상 출전한 정규 내전 횟수입니다. 같은 내전의 여러 경기는 1회로 셉니다." },
   { id: "appearances", label: "최다 출전", help: "선택 기간의 전체 유효 경기 중 실제 출전한 경기 수입니다." },
-  { id: "prediction", label: "예측 적중", help: "적중 횟수순으로 순위를 매깁니다. 적중률을 함께 표시하며 무승부·무효 예측은 제외합니다." },
+  { id: "prediction", label: "예측 적중률", help: "유효한 예측 중 적중한 비율이 높은 순서로 표시합니다." },
 ] as const;
 
 type RankRow = { userId: string; nickname: string; value: string | number; unit?: string; detail: string; rank?: number | null; shortfall?: number };
@@ -52,7 +52,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
   const loaded = useStatsPeriod(model, statsPeriodKey(period), !selectedBlock);
   const block = selectedBlock ?? loaded.data?.hof ?? {
-    totals: { sessions: 0, days: 0, matches: 0 }, minimumGames: 1, minimumSessions: 1, unqualifiedParticipation: [],
+    totals: { sessions: 0, days: 0, matches: 0 }, minimumGames: 1,
     unqualified: model.permissions.isStaff ? [...model.hof.periods.all.winRate, ...model.hof.periods.all.unqualified].map((row) => ({ ...row, wins: 0, draws: 0, losses: 0, ratePct: null })) : [],
     undisclosed: false, undisclosedHint: null, winRate: [], wins: [], streaks: [], participation: [], cumulative: [], predictionCorrect: [],
   };
@@ -63,22 +63,20 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
       ...(model.permissions.isStaff ? block.unqualified.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumGames - row.wins - row.draws - row.losses) })) : []),
     ].sort((a, b) => (b.ratePct ?? -1) - (a.ratePct ?? -1) || b.wins - a.wins || a.userId.localeCompare(b.userId))
       .map((row) => ({ ...row, value: row.ratePct === null ? "—" : formatPercent(row.ratePct), detail: tx("{0}승 / {1}무 / {2}패 · {3}경기", row.wins, row.draws, row.losses, row.wins + row.draws + row.losses) })),
-    attendance: [
-      ...block.participation.map((row, index) => ({ ...row, rank: index + 1, shortfall: 0 })),
-      ...(model.permissions.isStaff ? block.unqualifiedParticipation.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumSessions - row.played) })) : []),
-    ].sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId))
-      .map((row) => ({ ...row, value: row.played, unit: "회", detail: tx("전체 정규 내전 {0}회 중 {1}회 참여 · 참여율 {2}", totals.sessions, row.played, formatPercent(row.ratePct)) })),
+    attendance: block.participation.map((row) => ({ ...row, value: row.played, unit: "회", detail: tx("전체 정규 내전 {0}회 중 {1}회 참여 · 참여율 {2}", totals.sessions, row.played, formatPercent(row.ratePct)) })),
     appearances: block.cumulative.map((row) => ({ ...row, value: row.played, unit: "경기", detail: tx("전체 {0}경기 중 {1}경기 출전 · 내전 {2}회", totals.matches, row.played, totals.sessions) })),
-    prediction: block.predictionCorrect.map((row) => ({ ...row, value: row.correct, unit: "회", detail: tx("{0}회 예측 중 {1}회 적중 · 적중률 {2}", row.valid, row.correct, formatPercent(row.ratePct ?? 0)) })),
+    prediction: block.predictionCorrect.map((row) => ({ ...row, value: formatPercent(row.ratePct ?? 0), detail: tx("{0}회 예측 중 {1}회 적중", row.valid, row.correct) })),
   };
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
   const criteria = {
     rate: totals.matches ? tx("{0}경기 이상 출전", block.minimumGames) : "집계할 경기 없음",
-    attendance: totals.sessions ? tx("{0}회 이상 참여 · {1}%", block.minimumSessions, model.hof.config.eligibilitySessionPct) : "집계할 내전 없음",
-    appearances: "출전 경기 수",
-    prediction: "예측 적중 횟수",
+    attendance: "참여 횟수순",
+    appearances: tx("{0}경기 이상 출전", block.minimumGames),
+    prediction: "적중률 높은 순",
   };
+  const isPrediction = active?.id === "prediction";
+  const CategoryIcon = isPrediction ? ChartNoAxesColumn : Trophy;
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
     <section aria-label={tx("명예의 전당 필터")} className="@container/hof sticky top-[60px] z-30 flex flex-wrap items-center gap-x-1.5 gap-y-2 rounded-xl border bg-background/95 px-2 py-2 shadow-sm backdrop-blur sm:gap-3 sm:px-3 supports-[backdrop-filter]:bg-background/80">
       {active && <div className="flex max-w-full min-w-0 items-center gap-1.5 sm:gap-3">
@@ -99,11 +97,11 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{tx(block.undisclosedHint)}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{tx("공개된 통계 부문이 없습니다.")}</p> : <>
       <div className="grid items-stretch gap-4 min-[1000px]:auto-rows-[max(36rem,calc(100dvh-15rem))] min-[1000px]:grid-cols-2" aria-label={tx("명예의 전당 순위와 반응")}>
           {!reactions && <StatsDrawerTab label={tx("반응")} title={tx("반응 열기")} icon={MessageSquare} open={reactionsOpen} onOpen={() => setReactionsOpen(true)} />}
-          <Card size="sm" className="h-[36rem] min-h-0 min-w-0 min-[1000px]:h-auto" aria-label={tx("{0} 순위", active.label)}>
-            <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={tx(active.label)} help={active.help} /></h4></CardTitle></CardHeader>
+          <Card size="sm" className="h-[36rem] min-h-0 min-w-0 min-[1000px]:h-auto" aria-label={isPrediction ? tx("예측 적중률") : tx("{0} 순위", active.label)}>
+            <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><CategoryIcon className="size-4 text-primary" aria-hidden="true" /><StatTitle title={tx(active.label)} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-              <HofScoreboard sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} pending={loaded.pending} />
-                <StatsScrollArea label={tx("{0} 순위 목록", active.label)} className="min-h-0 flex-1">
+              <HofScoreboard sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} criterionLabel={isPrediction || active.id === "attendance" ? "정렬 기준" : "등재 기준"} pending={loaded.pending} />
+                <StatsScrollArea label={isPrediction ? tx("예측 적중률 목록") : tx("{0} 순위 목록", active.label)} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
                   <ol className="space-y-2">
                     {rankingRows[active.id].map((row, index) => {
@@ -111,24 +109,24 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                       const rank = row.rank === undefined ? index + 1 : row.rank;
                       const unqualified = rank === null;
                       const content = <>
-                        <span className={`flex w-9 shrink-0 flex-col items-center font-bold tabular-nums sm:w-10 ${rank === 1 ? "text-pro-gold" : rank === 2 ? "text-slate-700 dark:text-slate-300" : rank === 3 ? "text-orange-700 dark:text-orange-300" : "text-muted-foreground"}`}>
+                        {!isPrediction && <span className={`flex w-9 shrink-0 flex-col items-center font-bold tabular-nums sm:w-10 ${rank === 1 ? "text-pro-gold" : rank === 2 ? "text-slate-700 dark:text-slate-300" : rank === 3 ? "text-orange-700 dark:text-orange-300" : "text-muted-foreground"}`}>
                           {rank !== null && rank <= 3 && <Crown className="mb-0.5 size-3.5" aria-hidden="true" />}
                           <span className="text-2xl leading-none">{rank === null ? "--" : String(rank).padStart(2, "0")}<span className="sr-only">{unqualified ? tx("순위 제외") : tx("위")}</span></span>
-                        </span>
+                        </span>}
                         <span className="min-w-0 flex-1 space-y-1.5">
                           <span className="block truncate text-sm font-medium text-foreground/90"><PlayerNickname name={row.nickname} /></span>
                           <span className="block text-xs leading-relaxed text-muted-foreground">{row.detail}</span>
                           {unqualified && <span className="block text-xs text-muted-foreground">{tx("규정 미달 ·")} {row.shortfall}{active.id === "attendance" ? tx("회") : tx("경기")} {tx("부족")}</span>}
                         </span>
-                        <strong className={`shrink-0 whitespace-nowrap text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : rank === 1 ? "text-pro-gold" : "text-foreground/85"}`}>
+                        <strong className={`shrink-0 whitespace-nowrap text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : !isPrediction && rank === 1 ? "text-pro-gold" : "text-foreground/85"}`}>
                           {row.value}{row.unit && <small className="ml-1 text-xs font-normal tracking-normal text-muted-foreground">{tx(row.unit)}</small>}
                         </strong>
                       </>;
-                      const className = `relative flex min-h-[80px] w-full items-center gap-2.5 rounded-lg border p-3 text-left sm:gap-3 ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "border-border/60 bg-background/20"}`;
+                      const className = `relative flex min-h-[80px] w-full items-center gap-2.5 rounded-lg border p-3 text-left sm:gap-3 ${unqualified ? "border-dashed bg-muted/20" : !isPrediction && rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "border-border/60 bg-background/20"}`;
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
                     })}
                   </ol>
-              ) : <p className="flex min-h-72 items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? tx("집계 중…") : tx("등재 기준을 충족한 기록이 없습니다.")}</p>}
+              ) : <p className="flex min-h-72 items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? tx("집계 중…") : isPrediction ? tx("집계할 예측이 없습니다.") : active.id === "attendance" ? tx("참여한 내전이 없습니다.") : tx("등재 기준을 충족한 기록이 없습니다.")}</p>}
                 </StatsScrollArea>
             </CardContent>
           </Card>

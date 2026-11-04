@@ -1,14 +1,14 @@
 import { useTranslator } from "#use-translator";
 import { Layers3, ShieldCheck, Swords } from "lucide-react";
 
-export function HofScoreboard({ sessions, matches, criterion, pending = false }: {
-  sessions: number; matches: number; criterion: string; pending?: boolean;
+export function HofScoreboard({ sessions, matches, criterion, criterionLabel = "등재 기준", pending = false }: {
+  sessions: number; matches: number; criterion: string; criterionLabel?: string; pending?: boolean;
 }) {
   const tx = useTranslator();
   const metrics = [
     { label: "정규 내전", icon: Swords, value: sessions.toLocaleString(tx.locale), unit: "회" },
     { label: "전체 경기", icon: Layers3, value: matches.toLocaleString(tx.locale), unit: "경기" },
-    { label: "등재 기준", icon: ShieldCheck, value: criterion, unit: "" },
+    { label: criterionLabel, icon: ShieldCheck, value: criterion, unit: "" },
   ];
   return (
     <dl className="@container/score grid grid-cols-6 gap-1.5">

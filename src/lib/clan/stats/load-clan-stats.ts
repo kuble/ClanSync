@@ -8,7 +8,7 @@ import {
   isHofMonthTabUndisclosed,
   isHofYearTabUndisclosed,
   minGamesToQualify,
-  minSessionsToQualify,
+
   resolveHofConfig,
   type ResolvedHofConfig,
 } from "./hof-config";
@@ -19,7 +19,7 @@ import { canViewPersonalRecords, restrictPersonalStats, type PersonalScore, type
 import type { ClanMemberRole } from "../permission-defaults";
 import { readStatsSummary, readStatsRecords, readStatsRolePlayers, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
 import type { StatRole } from "./clan-stats-analytics";
-import type { HofEmblem } from "./hof-emblems";
+import { predictionAwardRows, type HofEmblem } from "./hof-emblems";
 import { awardEmblems, awardFamilies, milestoneEmblems, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
 import type { PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
@@ -100,14 +100,16 @@ export type HofRowCumulative = {
 
 export type HofRowWins = { userId: string; nickname: string; wins: number; played: number };
 export type HofRowStreak = { userId: string; nickname: string; longest: number };
+function byPredictionAccuracy(a: HofRowPrediction, b: HofRowPrediction) {
+  return b.correct * a.valid - a.correct * b.valid || b.valid - a.valid || a.userId.localeCompare(b.userId);
+}
+
 export type HofRowPrediction = { userId: string; nickname: string; correct: number; valid: number; ratePct: number | null };
 
 export type HofPeriodPayload = {
   totals: { sessions: number; days: number; matches: number };
   minimumGames: number;
-  minimumSessions: number;
   unqualified: HofRowWinRate[];
-  unqualifiedParticipation: HofRowParticipation[];
   undisclosed: boolean;
   undisclosedHint: string | null;
   winRate: HofRowWinRate[];
@@ -245,9 +247,7 @@ export function buildHofPeriod(
     return {
       totals: { sessions: 0, days: 0, matches: 0 },
       minimumGames: 0,
-      minimumSessions: 0,
       unqualified: [],
-      unqualifiedParticipation: [],
       undisclosed: true,
       undisclosedHint,
       winRate: [],
@@ -357,23 +357,22 @@ export function buildHofPeriod(
     ...matches.map((match) => isoToKstYmd(match.played_at)),
   ]);
   const totals = { sessions: openedIds.size, days: heldDays.size, matches: totalIntra };
-  const minimumSessions = totals.sessions ? minSessionsToQualify(totals.sessions, cfg) : 1;
+
   const participationRow = (uid: string): HofRowParticipation => {
     const pl = participationByPlayer.get(uid)?.size ?? 0;
     return { userId: uid, nickname: nick.get(uid) ?? "알 수 없음", played: pl, ratePct: totals.sessions ? Math.round(pl / totals.sessions * 1000) / 10 : 0 };
   };
-  const participation = [...participationByPlayer.keys()].map(participationRow).filter((row) => row.played >= minimumSessions);
-  participation.sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId));
+  const participation = [...participationByPlayer.keys()].map(participationRow);
+  participation.sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId));
   const partTop =
     viewerIsStaff || cfg.participationVisibleTop === 999
       ? participation.length
       : cfg.participationVisibleTop;
   const partSlice = participation.slice(0, partTop);
-  const unqualifiedParticipation = viewerIsStaff ? [...new Set([...nick.keys(), ...played.keys()])].map(participationRow)
-    .filter((row) => row.played < minimumSessions).sort((a, b) => b.played - a.played || a.nickname.localeCompare(b.nickname, "ko")) : [];
 
   const cumulative: HofRowCumulative[] = [];
   for (const uid of played.keys()) {
+    if (!eligible(uid)) continue;
     cumulative.push({
       userId: uid,
       nickname: nick.get(uid) ?? "알 수 없음",
@@ -408,14 +407,12 @@ export function buildHofPeriod(
   }).filter((row) => row.valid > 0);
   const predictionTop = viewerIsStaff || cfg.predictionVisibleTop === 999
     ? predictionRows.length : cfg.predictionVisibleTop;
-  const predictionCorrect = [...predictionRows].sort((a, b) => b.correct - a.correct || b.valid - a.valid || a.nickname.localeCompare(b.nickname, "ko")).slice(0, predictionTop);
+  const predictionCorrect = [...predictionRows].sort(byPredictionAccuracy).slice(0, predictionTop);
 
   return {
     totals,
     minimumGames: minG,
-    minimumSessions,
     unqualified,
-    unqualifiedParticipation,
     undisclosed: false,
     undisclosedHint: null,
     winRate: winSlice,
@@ -715,7 +712,7 @@ export async function finalizeClanPersonalEmblemAwards(clanId: string, now = new
     const summary = periods[key] ?? EMPTY_STATS_AGGREGATE;
     const block = aggregateHof(summary, key, canonical, now);
     const candidates = ([ ["승률", block.winRate], ["최다 참여", block.participation], ["최다 출전", block.cumulative],
-      ["최장 연승", block.streaks], ["예측 적중", block.predictionCorrect] ] as const)
+      ["최장 연승", block.streaks], ["예측 적중", predictionAwardRows(block.predictionCorrect)] ] as const)
       .flatMap(([category, rows]) => rows.slice(0, 3).flatMap((row, index) => users.has(row.userId)
         ? [{ user_id: row.userId, family: awardFamilies[category], rank: index + 1 }] : []));
     const { error } = await service.rpc("finalize_clan_personal_emblem_awards", {
@@ -819,7 +816,7 @@ function aggregateHof(data: StatsAggregate, key: string, source: Pick<StatsSourc
   const empty = buildHofPeriod([], kind, cfg, nick, now, [], staff, key.slice(0, currentKey.length) !== currentKey);
   if (empty.undisclosed) return empty;
   const minimum = data.totals.matches ? minGamesToQualify(data.totals.matches, cfg) : 1;
-  const minimumSessions = data.totals.sessions ? minSessionsToQualify(data.totals.sessions, cfg) : 1;
+
   const name = (id: string) => nick.get(id) ?? "알 수 없음";
   const rate = (w: number, n: number) => n ? Math.round(w / n * 1000) / 10 : null;
   const top = <T,>(rows: T[], limit: number) => rows.slice(0, staff || limit === 999 ? rows.length : limit);
@@ -831,7 +828,7 @@ function aggregateHof(data: StatsAggregate, key: string, source: Pick<StatsSourc
     return { userId: id, nickname: name(id), played: sessions, ratePct: rate(sessions, data.totals.sessions) ?? 0 };
   };
   return {
-    ...empty, totals: data.totals, minimumGames: minimum, minimumSessions,
+    ...empty, totals: data.totals, minimumGames: minimum,
     winRate: top(records.filter((p) => played(p) >= minimum).sort((a, b) => (b.ratePct ?? 0) - (a.ratePct ?? 0) || b.wins - a.wins || a.userId.localeCompare(b.userId)), cfg.winRateVisibleTop),
     unqualified: staff ? [...new Set([...nick.keys(), ...people.keys()])].filter((id) => (people.get(id)?.played ?? 0) < minimum).map((id) => {
       const p = people.get(id);
@@ -839,10 +836,10 @@ function aggregateHof(data: StatsAggregate, key: string, source: Pick<StatsSourc
     }).sort((a, b) => played(b) - played(a) || a.nickname.localeCompare(b.nickname, "ko")) : [],
     wins: top(data.players.map((p) => ({ userId: p.userId, nickname: name(p.userId), wins: p.wins, played: p.played })).sort((a, b) => b.wins - a.wins || b.played - a.played || a.nickname.localeCompare(b.nickname, "ko")), cfg.winsVisibleTop),
     streaks: top(data.players.filter((p) => p.longest > 0).map((p) => ({ userId: p.userId, nickname: name(p.userId), longest: p.longest })).sort((a, b) => b.longest - a.longest || a.nickname.localeCompare(b.nickname, "ko")), cfg.streakVisibleTop),
-    participation: top(data.players.map((p) => participationRow(p.userId)).filter((p) => p.played >= minimumSessions).sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId)), cfg.participationVisibleTop),
-    unqualifiedParticipation: staff ? [...new Set([...nick.keys(), ...people.keys()])].map(participationRow).filter((p) => p.played < minimumSessions).sort((a, b) => b.played - a.played || a.nickname.localeCompare(b.nickname, "ko")) : [],
-    cumulative: top(data.players.map((p) => ({ userId: p.userId, nickname: name(p.userId), played: p.played })).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.cumulativeVisibleTop),
-    predictionCorrect: top(data.predictions.map((p) => ({ ...p, nickname: name(p.userId), ratePct: rate(p.correct, p.valid) })).sort((a, b) => b.correct - a.correct || b.valid - a.valid || a.nickname.localeCompare(b.nickname, "ko")), cfg.predictionVisibleTop),
+    participation: top(data.players.map((p) => participationRow(p.userId)).filter((p) => p.played > 0).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.participationVisibleTop),
+
+    cumulative: top(data.players.filter((p) => p.played >= minimum).map((p) => ({ userId: p.userId, nickname: name(p.userId), played: p.played })).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.cumulativeVisibleTop),
+    predictionCorrect: top(data.predictions.filter((p) => p.valid > 0).map((p) => ({ ...p, nickname: name(p.userId), ratePct: rate(p.correct, p.valid) })).sort(byPredictionAccuracy), cfg.predictionVisibleTop),
   };
 }
 
