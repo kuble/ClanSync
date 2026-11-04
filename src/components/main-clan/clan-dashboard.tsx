@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClanRulesTicker } from "@/components/main-clan/clan-rules-ticker";
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { formatPercent } from "@/lib/format-percent";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { listUpcomingOccurrenceStarts } from "@/lib/clan/expand-clan-event-occurrences";
@@ -227,7 +228,7 @@ function MvpPlace({ value, position }: { value: DashboardMvp | undefined; positi
   return (
     <li className={cn(styles.mvpPlace, !value && styles.mvpMissing)} data-rank={rank} aria-label={value ? tx("{0}위 {1}", rank, displayName) : tx("{0}위 기록 없음", position)}>
       <span className={styles.mvpRank} data-mvp-rank aria-hidden="true">{rank}</span>
-      <p className={styles.mvpName} data-mvp-name>{displayName ?? "—"}</p>
+      <p className={styles.mvpName} data-mvp-name><PlayerNickname name={displayName ?? "—"} /></p>
       <p className={styles.mvpValue} data-mvp-value>
         {percentage.endsWith("%") ? <>{percentage.slice(0, -1)}<span>%</span></> : percentage}
       </p>
