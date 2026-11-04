@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslator } from "#use-translator";
+import { useAnalysisPrediction } from "./balance-analysis-provider";
 import { formatPercent } from "@/lib/format-percent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
@@ -42,11 +43,15 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
   const ids = [roster.team1.tank, ...roster.team1.dmg, ...roster.team1.sup, roster.team2.tank, ...roster.team2.dmg, ...roster.team2.sup];
   const complete = ids.every(Boolean) && new Set(ids).size === 10;
   const context = predictionContext(roster, scores, mode, null);
-  const resolvedEstimate = samplePrediction ? sampleBalanceEstimate(context) : estimate;
+  const analysis = useAnalysisPrediction(roster, mode);
+  const resolvedEstimate = analysis === undefined && samplePrediction ? sampleBalanceEstimate(context) : estimate;
   const validEstimate = isValidBalanceEstimate(resolvedEstimate, context, complete);
-  const predictedTeam1 = validEstimate ? resolvedEstimate!.team1 : null;
-  const predictionStatus = validEstimate ? samplePrediction ? "샘플" : `신뢰도 ${resolvedEstimate!.confidence} · ${resolvedEstimate!.sampleSize}경기` : complete ? "예측 준비 중" : "10명 편성 후 확인";
-  const prediction = comparisonMode === "prediction" && premium && showPrediction;
+  const predictedTeam1 = analysis !== undefined ? analysis : validEstimate ? resolvedEstimate!.team1 : null;
+  let predictionStatus = complete ? "예측 준비 중" : "10명 편성 후 확인";
+  if (typeof analysis === "number") predictionStatus = "조합·맵·상대 전적 반영";
+  else if (analysis === null) predictionStatus = "10명 편성 후 확인";
+  else if (validEstimate) predictionStatus = samplePrediction ? "샘플" : `신뢰도 ${resolvedEstimate!.confidence} · ${resolvedEstimate!.sampleSize}경기`;
+  const prediction = (analysis !== undefined || comparisonMode === "prediction") && premium && showPrediction;
   const share = prediction ? predictedTeam1 : scoreComparisonShare(totals[mode][0], totals[mode][1]);
   const title = prediction ? tx("예측 승률") : tx("{0} 합계", tx(SCORE_LABEL[mode]));
   const labels = prediction ? [predictedTeam1 == null ? "—" : formatPercent(predictedTeam1), predictedTeam1 == null ? "—" : formatPercent(100 - predictedTeam1)] : totals[mode].map(value => formatBalanceScore(value).replace(/점$/, tx("점")));

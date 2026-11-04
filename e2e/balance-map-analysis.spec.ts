@@ -104,9 +104,12 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     const card = panel.locator('[data-roster-slot="team1:tank"]');
     await expect(card).toContainText("+5");
+    const blueChance = panel.getByTestId("team-comparison-graph").getByLabel("1팀 예측 승률", { exact: true });
+    const lijiang = parseFloat((await blueChance.textContent())!);
     await panel.getByRole("button", { name: "경기 맵 변경 · 리장 타워", exact: true }).click();
     await picker.getByRole("button", { name: "오아시스 선택", exact: true }).click();
     await expect(card).toContainText("-5");
+    await expect.poll(async () => parseFloat((await blueChance.textContent())!)).toBeCloseTo(lijiang - 5, 1);
     const mapRound = await fixture.activeRound(room.roomId);
     expect((mapRound.ma_snapshot as Record<string, { m: number; a: number }>)[ids[0]]).toEqual({ m: 2, a: -5 });
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();

@@ -9,6 +9,8 @@ import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { parseAnalysisContext } from "@/lib/balance/analysis-context";
+import { buildPredictionModel } from "@/lib/balance/analysis-prediction";
+import { BalanceAnalysisProvider } from "./balance-analysis-provider";
 import { parsePredictionPool, type PredictionPool } from "@/lib/balance/prediction-pool";
 import {
   buildPlayerSessionInfo,
@@ -111,7 +113,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       const data = [];
       for (let offset = 0; ; offset += 500) {
         const result = await supabase.from("balance_sessions")
-      .select("ma_snapshot,roster,balance_session_series!inner(balance_rooms!inner(kind))")
+      .select("ma_snapshot,roster,opened_at,closed_at,predictions_settled_at,match_outcome,resolved_map_label,balance_session_series!inner(balance_rooms!inner(kind))")
       .eq("clan_id", clanId).eq("balance_session_series.balance_rooms.kind", "regular")
       .in("match_outcome", ["team1", "team2", "draw"])
       .order("opened_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
@@ -225,7 +227,11 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
 
   // Request-time clock aligns the initial reveal on this authenticated server page.
   const serverNow = Date.now();
+  const predictionModel = canViewScores && planPremium && session.phase !== "match_live"
+    ? buildPredictionModel(scoredResult.data, session.opened_at, Object.fromEntries(linkedAccounts))
+    : undefined;
   return (
+    <BalanceAnalysisProvider model={predictionModel} map={session.resolved_map_label}>
     <ClanBalanceSessionPanel
       key={session.id}
       gameSlug={gameSlug}
@@ -262,5 +268,6 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
           "https://moretvteewfcztxvwztw.supabase.co"
       }
     />
+    </BalanceAnalysisProvider>
   );
 }

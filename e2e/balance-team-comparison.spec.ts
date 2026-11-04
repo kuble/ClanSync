@@ -11,7 +11,9 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     const scores = Object.fromEntries(ids.map((id, index) => [id, { m: index < 5 ? -1 : -3, a: index < 5 ? 2 : 4 }]));
     const round = await fixture.activeRound(roomId);
-    expect((await fixture.service.from("balance_sessions").update({ roster, ma_snapshot: scores, round_number: 2, resolved_map_label: "리장 타워" }).eq("id", round.id)).error).toBeNull();
+    expect((await fixture.service.from("balance_sessions").update({ roster, round_number: 2, resolved_map_label: "리장 타워" }).eq("id", round.id)).error).toBeNull();
+    // Assign the roles before saving their evaluation scores, as in the editor.
+    expect((await fixture.service.from("balance_sessions").update({ ma_snapshot: scores }).eq("id", round.id)).error).toBeNull();
     expect((await fixture.service.from("balance_sessions").insert({
       clan_id: fixture.clanId, game_id: fixture.gameId, host_user_id: ids[0], series_id: round.series_id,
       round_number: 1, opened_at: new Date(Date.now() - 60_000).toISOString(), closed_at: new Date(Date.now() - 30_000).toISOString(),
@@ -45,7 +47,8 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     const footerBox = await panel.getByTestId("balance-formation").boundingBox(), boardBox = await board.boundingBox();
     expect(footerBox!.y - boardBox!.y - boardBox!.height).toBeLessThanOrEqual(13);
     await toggle.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(graph).toHaveAttribute("aria-label", /분석 점수 합계.*0점.*0점/);
+    await expect(graph).toHaveAttribute("aria-label", /예측 승률.*50\.0%.*50\.0%/);
+    await expect(graph).not.toContainText("샘플");
     await expect(graph.getByTestId("team-comparison-blue-bar")).toHaveAttribute("style", /width:\s*50%/);
     await toggle.getByRole("button", { name: "평가 점수", exact: true }).click();
     await expect(graph).toContainText("-5점");
@@ -74,7 +77,7 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toHaveCount(0);
     await expect(graph).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await graph.screenshot({ path: test.info().outputPath("team-graph-mobile.png") });
     // An incomplete lineup must never receive even a QA sample percentage.
     await panel.locator('[data-roster-slot="team1:tank"]').press("Delete");
