@@ -104,7 +104,7 @@
 - `close_balance_session_series`
 - `close_stale_balance_sessions`
 - `commit_balance_formation`
-- `complete_balance_tier_welcome`
+- `complete_balance_score_welcome`
 - `complete_clan_welcome`
 - `connect_clan_discord_bot`
 - `count_lfg_applications`
@@ -157,7 +157,7 @@
 - `read_clan_stats_role_players`
 - `read_clan_stats_summary`
 - `read_closed_balance_ballot`
-- `read_own_balance_entry_tiers`
+- `read_own_initialized_roles`
 - `read_player_profile`
 - `recheck_clan_discord_notification`
 - `record_clan_activity`

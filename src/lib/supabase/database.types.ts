@@ -3584,8 +3584,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      complete_balance_tier_welcome: {
-        Args: { p_clan_id: string; p_joined_at: string; p_tiers: Json }
+      complete_balance_score_welcome: {
+        Args: { p_clan_id: string; p_joined_at: string; p_scores: Json }
         Returns: boolean
       }
       complete_clan_welcome: {
@@ -3890,9 +3890,9 @@ export type Database = {
         }
         Returns: Json
       }
-      read_own_balance_entry_tiers: {
+      read_own_initialized_roles: {
         Args: { p_clan_id: string }
-        Returns: Json
+        Returns: string[]
       }
       read_player_profile: { Args: { p_user_id: string }; Returns: Json }
       recheck_clan_discord_notification: {

@@ -63,9 +63,9 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     const playerId = fixture.users[1].id;
     const player = await fixture.memberClient(1);
     const membership = await player.from("clan_members").select("joined_at").eq("clan_id", fixture.clanId).eq("user_id", playerId).single();
-    expect((await player.rpc("complete_balance_tier_welcome", {
-      p_clan_id: fixture.clanId, p_joined_at: membership.data!.joined_at!, p_tiers: { tank: 17, dmg: 22, sup: 0 },
-    })).data).toBe(true);
+    const signup = { p_clan_id: fixture.clanId, p_joined_at: membership.data!.joined_at! };
+    expect((await player.rpc("complete_balance_score_welcome", { ...signup, p_scores: { tank: 0, dmg: 1, sup: -3.4 } })).data).toBe(true);
+    expect((await player.rpc("complete_balance_score_welcome", { ...signup, p_scores: { dmg: 5.4 } })).data).toBe(true);
     const entry = await player.from("clan_members").select("welcome_completed_at").eq("clan_id", fixture.clanId).eq("user_id", playerId).single();
     const enteredAt = Date.parse(entry.data!.welcome_completed_at!);
     const room = await createAndEnterBalanceRoom(page, fixture.path, "맵 분석 검증");

@@ -15,9 +15,11 @@ test("new members see links, rules and notices once per membership; completion i
     const member = await f.memberClient(1), former = await f.memberClient(2);
     const membership = async () => (await ok(f.service.from("clan_members").select("joined_at,welcome_completed_at").eq("clan_id", f.clanId).eq("user_id", f.users[1].id).single()))!;
     const before = await membership();
-    const tierArgs = { p_clan_id: f.clanId, p_joined_at: before.joined_at!, p_tiers: { tank: 17 } };
-    expect(await ok(former.rpc("complete_balance_tier_welcome", tierArgs))).toBe(false);
-    expect(await ok(member.rpc("complete_balance_tier_welcome", { ...tierArgs, p_tiers: { tank: 45 } }))).toBe(false);
+    const scoreArgs = { p_clan_id: f.clanId, p_joined_at: before.joined_at! };
+    expect(await ok(former.rpc("complete_balance_score_welcome", { ...scoreArgs, p_scores: { tank: 0 } }))).toBe(false);
+    for (const invalid of [5.6, -3.6, 0.01, "0"]) {
+      expect(await ok(member.rpc("complete_balance_score_welcome", { ...scoreArgs, p_scores: { tank: invalid } }))).toBe(false);
+    }
     expect(await ok(former.rpc("complete_clan_welcome", { p_clan_id: f.clanId, p_joined_at: before.joined_at! }))).toBe(false);
     expect(await ok(member.rpc("complete_clan_welcome", { p_clan_id: f.clanId, p_joined_at: "2000-01-01T00:00:00Z" }))).toBe(false);
     const direct = await member.from("clan_members").update({ welcome_completed_at: new Date().toISOString() }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id).select();
@@ -42,22 +44,30 @@ test("new members see links, rules and notices once per membership; completion i
     await guide.getByRole("button", { name: "다음", exact: true }).click();
     const tankTier = guide.getByRole("combobox", { name: "탱커" });
     await expect(tankTier.locator("option")).toHaveCount(46);
-    await expect(tankTier.locator('option[value="44"]')).toHaveText("챔피언 1");
+    const scores = await tankTier.locator("optgroup option").evaluateAll(options => options.map(option => Number(option.getAttribute("value"))));
+    expect(scores).toEqual(Array.from({ length: 45 }, (_, i) => (27 - i) / 5));
+    await expect(tankTier.locator('option[value="5.4"]')).toHaveText("챔피언 1");
     await tankTier.selectOption({ label: "플래티넘 3" });
+    await expect(tankTier).toHaveValue("0");
     await guide.getByRole("combobox", { name: "딜러" }).selectOption({ label: "에메랄드 3" });
     await expect(guide.getByRole("combobox", { name: "힐러" })).toHaveValue("");
     await guide.getByRole("button", { name: "안내 완료", exact: true }).click();
     await expect(guide).toBeHidden();
     expect((await membership()).welcome_completed_at).not.toBeNull();
-    expect(await ok(member.rpc("read_own_balance_entry_tiers", { p_clan_id: f.clanId }))).toEqual({ tank: 17, dmg: 22 });
-    expect(await ok(member.rpc("complete_balance_tier_welcome", { ...tierArgs, p_tiers: { tank: 44, sup: 0 } }))).toBe(true);
-    expect(await ok(member.rpc("read_own_balance_entry_tiers", { p_clan_id: f.clanId }))).toEqual({ tank: 17, dmg: 22, sup: 0 });
+    const initializedRoles = () => ok(member.rpc("read_own_initialized_roles", { p_clan_id: f.clanId }));
+    expect(await initializedRoles()).toEqual(["dmg", "tank"]);
     await page.reload();
     await expect(guide).toHaveCount(0);
     await page.goto(base);
     await page.getByRole("button", { name: "클랜 이용 안내", exact: true }).click();
     await expect(guide).toBeVisible();
-    await page.keyboard.press("Escape");
+    for (let i = 0; i < 3; i++) await guide.getByRole("button", { name: "다음", exact: true }).click();
+    await expect(guide.getByText("반영 완료", { exact: true })).toHaveCount(2);
+    await expect(guide.getByRole("combobox")).toHaveCount(1);
+    await guide.getByRole("combobox", { name: "힐러" }).selectOption({ label: "브론즈 5" });
+    await guide.getByRole("button", { name: "안내 완료", exact: true }).click();
+    await expect(guide).toBeHidden();
+    expect(await initializedRoles()).toEqual(["dmg", "sup", "tank"]);
     // A later membership must not inherit completion of the previous one.
     await ok(f.service.from("clan_members").update({ joined_at: new Date(Date.now() + 1000).toISOString() }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     await page.reload();

@@ -4,7 +4,7 @@ import { useTranslator } from "#use-translator";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BookOpen, Check, ChevronLeft, ExternalLink, HelpCircle, Megaphone, MessageCircle, Trophy } from "lucide-react";
-import { entryTierGroups, type EntryTiers } from "@/lib/balance/entry-tiers";
+import { entryTierGroups, type InitialAnalysisScores } from "@/lib/balance/entry-tiers";
 import { OVERWATCH_POSITIONS } from "@/lib/clan/recruitment";
 import { completeClanWelcomeAction } from "@/app/actions/clan-welcome";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -21,17 +21,17 @@ const guideSteps = [
   { label: "공지사항", title: "먼저 확인할 소식", icon: Megaphone },
 ];
 
-export function ClanMemberWelcome({ clanId, clanName, basePath, model, joinedAt, entryTiers, initialOpen, showTrigger = true }: {
+export function ClanMemberWelcome({ clanId, clanName, basePath, model, joinedAt, initializedRoles, initialOpen, showTrigger = true }: {
   clanId: string; clanName: string; basePath: string; model: Pick<ClanDashboardModel, "communityLinks" | "discordConnected" | "rules"> & {
     notices: { id: string; title: string; content: string }[]; errors: { rules: boolean; notices: boolean };
   };
-  joinedAt: string; entryTiers?: EntryTiers; initialOpen: boolean; showTrigger?: boolean;
+  joinedAt: string; initializedRoles?: readonly string[]; initialOpen: boolean; showTrigger?: boolean;
 }) {
   const tx = useTranslator();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const steps = entryTiers ? [...guideSteps, { label: "티어", title: "역할별 경쟁전 티어", icon: Trophy }] : guideSteps;
-  const [draft, setDraft] = useState<EntryTiers>({});
+  const steps = initializedRoles ? [...guideSteps, { label: "티어", title: "역할별 경쟁전 티어", icon: Trophy }] : guideSteps;
+  const [draft, setDraft] = useState<InitialAnalysisScores>({});
   const [open, setOpen] = useState(initialOpen && !searchParams.has("notice"));
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -45,8 +45,8 @@ export function ClanMemberWelcome({ clanId, clanName, basePath, model, joinedAt,
   async function finish() {
     setSaving(true); setError(false);
     try {
-      const result = await completeClanWelcomeAction(clanId, joinedAt, entryTiers ? draft : undefined);
-      if (result.ok) { setOpen(false); router.refresh(); } else setError(true);
+      const result = await completeClanWelcomeAction(clanId, joinedAt, initializedRoles ? draft : undefined);
+      if (result.ok) { setDraft({}); setOpen(false); router.refresh(); } else setError(true);
     } catch { setError(true); } finally { setSaving(false); }
   }
   return <>
@@ -63,22 +63,26 @@ export function ClanMemberWelcome({ clanId, clanName, basePath, model, joinedAt,
             {step === 0 && (services.length ? services.map(({ id, label }) => <a key={id} href={links[id]} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: "w-full justify-start gap-3" })}><ChatServiceIcon service={id} />{tx(label)}<ExternalLink size={13} className="ml-auto" aria-hidden /></a>) : <p className="text-sm text-muted-foreground">{tx("등록된 참여 링크가 없습니다.")}</p>)}
             {step === 1 && (rules.length ? <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed">{rules.map((rule, i) => <li key={i} className="whitespace-pre-wrap break-words pl-1">{rule}</li>)}</ol> : <p className="text-sm text-muted-foreground">{model.errors.rules ? tx("규칙을 불러오지 못했습니다. 게시판에서 다시 확인하십시오.") : tx("등록된 규칙이 없습니다.")}</p>)}
             {step === 2 && (notices.length ? notices.map(notice => <article key={notice.id} className="rounded-lg border bg-card p-3"><h4 className="text-sm font-semibold break-words">{notice.title}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed text-muted-foreground">{notice.content}</p></article>) : <p className="text-sm text-muted-foreground">{model.errors.notices ? tx("공지사항을 불러오지 못했습니다. 게시판에서 다시 확인하십시오.") : tx("등록된 공지사항이 없습니다.")}</p>)}
-            {step === 3 && entryTiers && <>
-              <p className="text-sm text-muted-foreground">첫 내전부터 두 팀의 실력을 고르게 맞출 수 있도록, 배치를 마친 역할의 티어를 꼭 선택해 주세요. 선택한 티어는 역할별로 저장되며 내전 승률 예측의 기준이 됩니다.</p>
-              {OVERWATCH_POSITIONS.map(({ value: role, label }) => <label key={role} className="flex items-center justify-between gap-3 text-sm">
+            {step === 3 && initializedRoles && <>
+              <p className="text-sm text-muted-foreground">첫 내전부터 두 팀의 실력을 고르게 맞출 수 있도록, 배치를 마친 역할의 티어를 꼭 선택해 주세요. 선택한 티어는 초기 분석점수로 변환하며 점수만 저장합니다.</p>
+              {OVERWATCH_POSITIONS.map(({ value: role, label }) => initializedRoles.includes(role) ? (
+                <div key={role} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <span>{label}</span><span className="text-muted-foreground">반영 완료</span>
+                </div>
+              ) : <label key={role} className="flex items-center justify-between gap-3 text-sm">
                 {label}
-                <select value={entryTiers[role] ?? draft[role] ?? ""} disabled={entryTiers[role] !== undefined || saving}
+                <select value={draft[role] ?? ""} disabled={saving}
                   className="rounded-md border bg-background px-3 py-2"
                   onChange={e => {
-                    const step = e.target.value;
+                    const score = e.target.value;
                     setDraft(previous => {
                       const next = { ...previous };
-                      if (step === "") delete next[role]; else next[role] = Number(step);
+                      if (score === "") delete next[role]; else next[role] = Number(score);
                       return next;
                     });
                   }}>
                   <option value="">미배치 / 모름</option>
-                  {entryTierGroups.map(group => <optgroup key={group.name} label={group.name}>{group.divisions.map(tier => <option key={tier.step} value={tier.step}>{tier.label}</option>)}</optgroup>)}
+                  {entryTierGroups.map(group => <optgroup key={group.name} label={group.name}>{group.divisions.map(tier => <option key={tier.initialScore} value={tier.initialScore}>{tier.label}</option>)}</optgroup>)}
                 </select>
               </label>)}
             </>}

@@ -2,13 +2,12 @@ import { cache } from "react";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { readClanCommunityLinks } from "./community-links";
-import { readEntryTiers } from "@/lib/balance/entry-tiers";
 
-export const getOwnEntryTiers = cache(async (clanId: string) => {
+export const getOwnInitializedRoles = cache(async (clanId: string) => {
   const client = await getRequestClient();
-  const { data, error } = await client.rpc("read_own_balance_entry_tiers", { p_clan_id: clanId });
-  if (error) throw new Error("가입 티어를 불러오지 못했습니다.", { cause: error });
-  return readEntryTiers(data);
+  const { data, error } = await client.rpc("read_own_initialized_roles", { p_clan_id: clanId });
+  if (error) throw new Error("초기 분석점수가 반영된 역할을 불러오지 못했습니다.", { cause: error });
+  return data ?? [];
 });
 
 export const getRequestClanWelcomeMembership = cache(async (clanId: string) => {
