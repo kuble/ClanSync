@@ -1,19 +1,19 @@
 "use client";
 
 import { useTranslator } from "#use-translator";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Check, ExternalLink } from "lucide-react";
-import { listClanDiscordChannelsAction, updateClanEventNotifyAction } from "@/app/actions/clan-event-notify";
+import { disconnectClanDiscordAction, listClanDiscordChannelsAction, updateClanEventNotifyAction } from "@/app/actions/clan-event-notify";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DiscordBenefitsGallery } from "./discord-benefits-gallery";
 import { HelpText } from "./help-text";
 import { useAutosave, AutosaveStatus } from "@/components/ui/use-autosave";
 
-export type EventNotifyConnection = { guild_name: string; channel_id: string | null; channel_name: string | null };
+export type EventNotifyConnection = { guild_id: string; guild_name: string; channel_id: string | null; channel_name: string | null };
 type Props = {
   gameSlug: string; clanId: string; discordEnabled: boolean;
   canEdit: boolean; premium: boolean; botConfigured: boolean; connection: EventNotifyConnection | null;
@@ -31,10 +31,13 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
   const [loading, setLoading] = useState(canEdit && premium && !!connection && botConfigured);
   const [loadError, setLoadError] = useState("");
   const [refresh, setRefresh] = useState(0);
+  const [disconnecting, startDisconnect] = useTransition();
+  const [disconnectError, setDisconnectError] = useState("");
   const autosave = useAutosave({ channelId: connection?.channel_id ?? "", enabled: discordEnabled, routes: initialRoutes }, async (draft) => {
     if (!canEdit || !premium) return { ok: false, error: "알림 설정은 Premium 클랜의 클랜장만 변경할 수 있습니다." };
     if (draft.enabled && !draft.channelId) return { ok: false, error: "기본 알림 채널을 선택해 주십시오." };
     const form = new FormData();
+    form.set("discord_guild_id", connection?.guild_id ?? "");
     form.set("discord_channel_id", draft.channelId);
     form.set("discord_enabled", draft.enabled ? "on" : "off");
     for (const { id } of DISCORD_NOTIFICATION_TYPES) {
@@ -62,6 +65,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
   const status = !connection ? "연결 안 됨" : !channelId ? "채널 선택 필요" : !botConfigured ? "연결 확인 필요" : enabled ? "알림 사용 중" : "알림 꺼짐";
   const channelDisabled = !canEdit || !premium || !connection || !botConfigured || loading || !!loadError;
   return <div className="space-y-5" data-testid="clan-event-notify-settings">
+    {connectionResult === "disconnected" && !connection && <p role="status" className="text-sm text-muted-foreground">{tx("Discord 서버 연결을 해제했습니다.")}</p>}
     {connectionResult === "failed" && <p role="alert" className="text-sm text-destructive">{tx("Discord 연결을 완료하지 못했습니다. 서버 관리 권한과 봇 초대를 확인해 주십시오.")}</p>}
     {connectionResult === "connected" && <p role="status" className="flex items-center gap-2 text-sm text-primary"><Check className="size-4" />{tx("서버를 연결했습니다. 기본 알림 채널을 선택해 주십시오.")}</p>}
     <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label={tx("Discord 알림 설정")}>
@@ -78,6 +82,22 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
         {canEdit && premium && <Button size="sm" nativeButton={!botConfigured} variant={connection ? "outline" : "default"} disabled={!botConfigured} render={botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined}>
           <ExternalLink className="size-3.5" />{connection ? tx("서버 다시 연결") : tx("Discord 연결하기")}
         </Button>}
+        {canEdit && connection && <Dialog onOpenChange={() => setDisconnectError("")}>
+          <DialogTrigger render={<Button type="button" size="sm" variant="outline" disabled={autosave.status === "saving"} />}>{tx("연결 해제")}</DialogTrigger>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader><DialogTitle>{tx("Discord 연결을 해제할까요?")}</DialogTitle>
+              <DialogDescription><strong>{connection.guild_name}</strong> 서버로 보내는 클랜 알림과 봇을 통한 자동 입장이 중단됩니다. 대기 중인 알림도 취소됩니다.</DialogDescription>
+            </DialogHeader>
+            {disconnectError && <p role="alert" className="text-sm text-destructive">{disconnectError}</p>}
+            <DialogFooter>
+              <DialogClose render={<Button type="button" variant="outline" disabled={disconnecting} />}>{tx("취소")}</DialogClose>
+              <Button type="button" variant="destructive" disabled={disconnecting} onClick={() => startDisconnect(async () => {
+                const result = await disconnectClanDiscordAction(gameSlug, clanId, connection.guild_id);
+                setDisconnectError(result.error);
+              })}>{disconnecting ? "해제 중…" : "연결 해제"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>}
         </div>
       </div>
       <div className="flex h-8 shrink-0 items-center"><Toggle name="discord_enabled" label={tx("Discord 알림 사용")} controls="discord-notification-details" checked={enabled} onChange={(value) => autosave.update((current) => ({ ...current, enabled: value }))} disabled={!canEdit || !premium || !connection || !botConfigured && !enabled} /></div>

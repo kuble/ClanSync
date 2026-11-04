@@ -1,9 +1,22 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect, RedirectType } from "next/navigation";
 import { discordConnectionLeader } from "@/lib/notifications/discord-connection";
 import { discordBotConfigured, listDiscordBotChannels } from "@/lib/notifications/discord-bot";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
+
+export async function disconnectClanDiscordAction(gameSlug: string, clanId: string, guildId: string) {
+  const actor = await discordConnectionLeader(clanId, { requirePremium: false });
+  if (!actor || actor.gameSlug !== gameSlug) return { error: "클랜장만 Discord 연결을 해제할 수 있습니다." };
+  const { error } = await actor.svc.rpc("disconnect_clan_discord_bot", {
+    p_clan_id: clanId, p_actor_id: actor.user.id, p_guild_id: guildId,
+  });
+  if (error) return { error: "연결을 해제하지 못했습니다. 현재 연결된 서버를 확인한 뒤 다시 시도해 주세요." };
+  const path = `/games/${gameSlug}/clan/${clanId}`;
+  revalidatePath(path, "layout");
+  redirect(`${path}/manage?tab=notifications&discord=disconnected`, RedirectType.replace);
+}
 
 export async function listClanDiscordChannelsAction(gameSlug: string, clanId: string) {
   const actor = await discordConnectionLeader(clanId);
@@ -31,9 +44,10 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
   }])) as DiscordNotificationRoutes;
   const { data: connection } = await actor.svc.from("clan_discord_connections").select("guild_id,channel_id,channel_name").eq("clan_id", clanId).maybeSingle();
   // The browser supplies an ID, never a destination URL or trusted channel name.
-  let channelName = connection?.channel_name ?? "";
+  if (!connection || connection.guild_id !== formData.get("discord_guild_id")) return { ok: false as const, error: "서버 연결이 변경되었습니다. 새로고침 후 다시 시도해 주세요." };
+  let channelName = connection.channel_name ?? "";
   if (enabled) {
-    if (!connection || !discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주십시오." };
+    if (!discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주십시오." };
     try {
       const result = await listDiscordBotChannels(connection.guild_id);
       const channel = result.channels.find((entry) => entry.id === channelId);
@@ -45,7 +59,7 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
     }
   }
   const { error } = await actor.svc.rpc("set_clan_discord_notification_preferences", {
-    p_actor_id: actor.user.id, p_clan_id: clanId, p_guild_id: connection?.guild_id ?? "",
+    p_actor_id: actor.user.id, p_clan_id: clanId, p_guild_id: connection.guild_id,
     p_channel_id: channelId, p_channel_name: channelName,
     p_enabled: enabled,
     p_routes: routes,

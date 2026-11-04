@@ -72,13 +72,13 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
   const svc = createServiceRoleClient();
   const [settings, connection] = await Promise.all([
     svc.from("clan_settings").select("event_notify,community_links").eq("clan_id", ctx.clanId).single(),
-    svc.from("clan_discord_connections").select("guild_name,channel_id,channel_name").eq("clan_id", ctx.clanId).maybeSingle(),
+    svc.from("clan_discord_connections").select("guild_id,guild_name,channel_id,channel_name").eq("clan_id", ctx.clanId).maybeSingle(),
   ]);
   if (settings.error || connection.error) throw new Error("알림 설정을 불러오지 못했습니다.");
   const notify = readClanEventNotifySettings(settings.data.event_notify);
   return <div className="space-y-5">
     <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links)} discordConnected={!!connection.data} />
-    <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
+    <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}:${connection.data?.guild_id ?? ""}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
     botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
     routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />
   </div>;

@@ -3620,6 +3620,10 @@ export type Database = {
         Args: { p_clan_id: string; p_officer_id?: string; p_room_id: string }
         Returns: Json
       }
+      disconnect_clan_discord_bot: {
+        Args: { p_actor_id: string; p_clan_id: string; p_guild_id: string }
+        Returns: undefined
+      }
       discover_clans: {
         Args: {
           p_game_id: string

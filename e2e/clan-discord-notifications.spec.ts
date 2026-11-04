@@ -120,6 +120,40 @@ test("five routes: role checks, room timing/reschedule/cancel, notices once, pol
   } finally { globalThis.fetch = original; if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token; await f.cleanup(); }
 });
 
+test("leader can disconnect Discord after downgrade and cancel pending delivery", async ({ page }) => {
+  test.setTimeout(180_000);
+  const f = await createIsolatedBalanceFixture(2);
+  try {
+    const args = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild };
+    await ok(f.service.rpc("connect_clan_discord_bot", { ...args, p_guild_name: "QA 해제 테스트" }));
+    await ok(f.service.rpc("set_clan_discord_notification_preferences", { ...args, p_channel_id: channel,
+      p_channel_name: "공지", p_enabled: true, p_routes: readDiscordNotificationRoutes(null) }));
+    const notice = await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "알림", content: "본문", created_by: f.users[0].id }).select("id").single());
+    const log = () => f.service.from("notification_log").select("status").eq("notice_id", notice.id).eq("channel", "discord").single();
+    expect((await ok(log())).status).toBe("scheduled");
+    expect((await f.service.rpc("disconnect_clan_discord_bot", { ...args, p_actor_id: f.users[1].id })).error?.code).toBe("42501");
+    expect((await f.service.rpc("disconnect_clan_discord_bot", { ...args, p_guild_id: other })).error).toBeTruthy();
+    await ok(f.service.from("clans").update({ subscription_tier: "free" }).eq("id", f.clanId));
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(f.path.replace(/balance$/, "manage?tab=notifications&discord=failed"));
+    const trigger = page.getByTestId("clan-event-notify-settings").getByRole("button", { name: "연결 해제", exact: true });
+    const dialog = page.getByRole("dialog", { name: "Discord 연결을 해제할까요?" });
+    await trigger.click();
+    await dialog.getByRole("button", { name: "취소" }).click();
+    await expect(dialog).toBeHidden();
+    await trigger.click();
+    await dialog.getByRole("button", { name: "연결 해제" }).click();
+    await expect(page.getByText("Discord 서버 연결을 해제했습니다.")).toBeVisible();
+    await expect(trigger).toHaveCount(0);
+    expect((await ok(log())).status).toBe("cancelled");
+    expect(await ok(f.service.from("clan_discord_connections").select("guild_id").eq("clan_id", f.clanId))).toEqual([]);
+    const settings = await ok(f.service.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single());
+    expect(settings.event_notify).toMatchObject({ discord_enabled: false, discord_configured: false });
+    expect(settings.event_notify).not.toHaveProperty("discord_routes");
+    await ok(f.service.rpc("disconnect_clan_discord_bot", args));
+  } finally { await f.cleanup(); }
+});
+
 test("new clan success offers optional Discord setup and skip", async ({ page }) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(2);
