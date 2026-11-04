@@ -30,13 +30,14 @@ export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["
 export type BoardListPost=Pick<BoardPost,"id"|"title"|"content"|"details"|"status"|"image_path"|"created_at"|"author"|"commentCount"|"coachName">;
 export const STREAM_PLATFORMS = ["YouTube","CHZZK","Twitch","SOOP"] as const;
 export type BoardChannel = {platform:string;url:string};
-export type BoardDetails = { role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; channels?: BoardChannel[]; schedule?: string; takenAt?: string; isLive?: boolean; photoFrame?: string; photoSticker?: string; photoStickerPlacement?: PhotoStickerPlacement; photoStickers?: PhotoStickerInstance[] };
+export type BoardDetails = { photoOffset?: number; role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; channels?: BoardChannel[]; schedule?: string; takenAt?: string; isLive?: boolean; photoFrame?: string; photoSticker?: string; photoStickerPlacement?: PhotoStickerPlacement; photoStickers?: PhotoStickerInstance[] };
 export const FEEDBACK_STATUS = { requested: "신청", answering: "답변 중", complete: "완료" } as const;
 export function boardDetails(value: Json): BoardDetails {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const details = Object.fromEntries(Object.entries(value).filter(([key, v]) => ["role","replay","video","moment","platform","channel","schedule","takenAt","photoFrame","photoSticker"].includes(key) && typeof v === "string")) as BoardDetails;
   if(Array.isArray(value.channels))details.channels=value.channels.filter((entry):entry is {platform:string;url:string}=>!!entry&&typeof entry==='object'&&!Array.isArray(entry)&&typeof entry.platform==='string'&&typeof entry.url==='string');
   if(typeof value.isLive==="boolean")details.isLive=value.isLive;
+  if (typeof value.photoOffset === "number" && Number.isSafeInteger(value.photoOffset) && value.photoOffset >= 0) details.photoOffset = value.photoOffset;
   const placement=readPhotoStickerPlacement(value.photoStickerPlacement);
   if(placement)details.photoStickerPlacement=placement;
   const stickers=readPhotoStickers(value.photoStickers);
@@ -58,9 +59,10 @@ export function validateBoardInput(kind: BoardKind, title: string, content: stri
   if (kind === "memories" && /[\r\n\u2028\u2029]/.test(content)) return "글은 한 줄로 입력해 주십시오.";
   if (kind === "free" && !content.trim()) return "본문을 입력해 주십시오.";
   if (kind === "memories" && ((raw.photoFrame && !PHOTO_FRAMES.some(option=>option.id===raw.photoFrame)) || (raw.photoSticker && !PHOTO_STICKERS.some(option=>option.id===raw.photoSticker)))) return "사진 꾸미기를 확인해 주십시오.";
+  if (raw.photoOffset !== undefined && (kind !== "free" || !Number.isSafeInteger(raw.photoOffset) || raw.photoOffset < 0 || raw.photoOffset > content.length)) return "본문의 사진 위치를 확인해 주십시오.";
   if (raw.photoStickers !== undefined && (kind !== "memories" || !readPhotoStickers(raw.photoStickers) || (raw.photoSticker && raw.photoSticker !== "none") || raw.photoStickerPlacement !== undefined)) return "스티커 목록과 배치를 확인해 주십시오.";
   if (raw.photoStickerPlacement !== undefined && (kind !== "memories" || !raw.photoSticker || raw.photoSticker === "none" || !readPhotoStickerPlacement(raw.photoStickerPlacement))) return "스티커 위치와 회전을 확인해 주십시오.";
-  if (Object.entries(raw).some(([key,v]) => key==="isLive" ? kind!=="channels"||typeof v!=="boolean" : !["channels","photoStickerPlacement","photoStickers"].includes(key)&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주십시오.";
+  if (Object.entries(raw).some(([key,v]) => key==="isLive" ? kind!=="channels"||typeof v!=="boolean" : !["channels","photoStickerPlacement","photoStickers","photoOffset"].includes(key)&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주십시오.";
   if (kind === "feedback") {
     if (!raw.role?.trim() || raw.role.length > 100 || !content.trim()) return "역할·영웅과 궁금한 점을 입력해 주십시오.";
     if (raw.replay && !/^[a-z0-9]{6,12}$/i.test(raw.replay.trim())) return "리플레이 코드는 영문·숫자 6~12자로 입력해 주십시오.";

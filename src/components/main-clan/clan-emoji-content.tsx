@@ -60,25 +60,27 @@ export function ClanEmojiText({ text, className, large = true }: { text: string;
 }
 
 /** Serialize our image atoms as text, without accepting pasted HTML or arbitrary images. */
-function readText(root: Node): string {
+function readText(root: Node, photoMarker = ""): string {
   if (root.nodeType === Node.TEXT_NODE) return root.textContent ?? "";
   if (!(root instanceof HTMLElement)) return "";
+  if (root.hasAttribute("data-board-photo")) return photoMarker;
   if (root.dataset.emojiId) return emojiToken(root.dataset.emojiId);
   if (root.tagName === "BR") return "\n";
   let text="";
   Array.from(root.childNodes).forEach((child,index)=>{
     const block=child instanceof HTMLElement&&/^(DIV|P)$/.test(child.tagName);
     if(block&&text&&!text.endsWith("\n"))text+="\n";
-    const content=readText(child);
+    const content=readText(child,photoMarker);
     text+=block&&content==="\n"?"":content;
     if(block&&index<root.childNodes.length-1&&!text.endsWith("\n"))text+="\n";
   });
   return text;
 }
 
-export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled = false, placeholder, className, name, editorRef, pickerLabel, variant="comment", actions, textOnly = false }: {
+export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled = false, placeholder, className, name, editorRef, pickerLabel, variant="comment", actions, textOnly = false, photo }: {
   id?: string; label: string; value: string; onChange: (value: string) => void; maxLength: number; disabled?: boolean;
   placeholder?: string; className?: string; name?: string; editorRef?: RefObject<HTMLDivElement | null>; pickerLabel?:string;
+  photo?: {src:string; offset:number; onMove:(offset:number)=>void};
   variant?:"comment"|"post"|"caption"; actions?:ReactNode; textOnly?:boolean;
 }) {
   const tx = useTranslator();
@@ -106,16 +108,56 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
     }
     return result;
   }
+  const renderedPhoto = useRef<{src:string; offset:number} | null>(null);
+  function renderBody(text:string, offset=photo?.offset??0) {
+    const root=input.current;
+    if (!root) return;
+    if (photo) {
+      const image=document.createElement("img");
+      image.src=photo.src; image.alt="첨부 사진"; image.draggable=true; image.dataset.boardPhoto="";
+      image.className="mx-auto block max-h-52 max-w-full cursor-grab rounded-lg object-contain";
+      root.replaceChildren(fragment(text.slice(0,offset)), image, fragment(text.slice(offset)));
+      renderedPhoto.current={src:photo.src,offset};
+    } else {
+      root.replaceChildren(fragment(text));
+      renderedPhoto.current=null;
+    }
+    last.current=text;
+  }
   useLayoutEffect(() => {
-    if (input.current && last.current !== value) { input.current.replaceChildren(fragment(value)); last.current = value; }
+    if (last.current !== value || renderedPhoto.current?.src !== photo?.src || renderedPhoto.current?.offset !== photo?.offset) renderBody(value);
   });
   const remember = () => { const current = window.getSelection(); if (current?.rangeCount && input.current?.contains(current.anchorNode)) selection.current = current.getRangeAt(0).cloneRange(); };
   function commit() {
     if (!input.current || disabled) return;
-    const raw = readText(input.current), next = singleLine ? singleLineText(raw) : raw;
-    if (next.length > maxLength) { input.current.replaceChildren(fragment(value)); setError(`최대 ${maxLength.toLocaleString("ko-KR")}자까지 입력할 수 있습니다.`); return; }
+    const marker=photo ? crypto.randomUUID() : "";
+    const marked=readText(input.current,marker);
+    const offset=photo ? marked.indexOf(marker) : -1;
+    const raw=offset<0 ? marked : marked.slice(0,offset)+marked.slice(offset+marker.length), next = singleLine ? singleLineText(raw) : raw;
+    if (next.length > maxLength) { renderBody(value); setError(`최대 ${maxLength.toLocaleString("ko-KR")}자까지 입력할 수 있습니다.`); return; }
     if (singleLine && raw !== next) input.current.replaceChildren(fragment(next));
+    if (photo) {
+      const position=offset<0 ? Math.min(photo.offset,next.length) : offset;
+      if (offset<0) renderBody(next,position);
+      renderedPhoto.current={src:photo.src,offset:position};
+      photo.onMove(position);
+    }
     last.current = next; setError(""); onChange(next); remember();
+  }
+  function movePhoto(range:Range|null) {
+    const root=input.current, image=root?.querySelector("[data-board-photo]");
+    if (disabled || !range || !root || !image || !root.contains(range.startContainer)) return;
+    range=range.cloneRange();
+    range.collapse(true);
+    const container=range.startContainer;
+    const atom=(container instanceof Element ? container : container.parentElement)?.closest("[data-emoji-id],[data-board-photo]");
+    if (atom) range.setStartAfter(atom);
+    range.insertNode(image);
+    range.setStartAfter(image); range.collapse(true);
+    root.focus();
+    const current=window.getSelection();
+    current?.removeAllRanges(); current?.addRange(range);
+    commit();
   }
   function insert(text: string) {
     const root = input.current; if (!root || disabled) return;
@@ -131,11 +173,29 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
   return <div className={cn(styles.composer,variant==="post"&&styles.post,singleLine&&styles.caption)}>
     {name && <input type="hidden" name={name} value={value} />}
     <div id={id} ref={input} role="textbox" aria-label={tx(label)} aria-multiline={!singleLine} aria-disabled={disabled} contentEditable={!disabled} suppressContentEditableWarning
-      data-placeholder={placeholder} data-empty={!value || undefined} className={cn("board-scroll",styles.editor,className)}
+      data-placeholder={placeholder} data-empty={(!value && !photo) || undefined} className={cn("board-scroll",styles.editor,className)}
       onInput={commit} onBlur={remember} onKeyUp={remember} onMouseUp={remember} onKeyDown={event=>{if(event.nativeEvent.isComposing)return;if(event.key==="Enter"&&!disabled){if(event.ctrlKey||event.metaKey){event.preventDefault();event.currentTarget.closest("form")?.requestSubmit();}else if(singleLine)event.preventDefault();}}}
-      onPaste={event => { event.preventDefault(); remember(); insert(event.clipboardData.getData("text/plain")); }} onDrop={event => event.preventDefault()}
+      onPaste={event => { event.preventDefault(); remember(); insert(event.clipboardData.getData("text/plain")); }} onDragStart={event=>{
+        if (photo && event.target instanceof HTMLElement && event.target.hasAttribute("data-board-photo")) {
+          event.dataTransfer.setData("application/x-clansync-photo", "move");
+          event.dataTransfer.effectAllowed="move";
+        }
+      }}
+      onDragOver={event=>{if (photo && event.dataTransfer.types.includes("application/x-clansync-photo")) event.preventDefault();}}
+      onDrop={event=>{
+        event.preventDefault();
+        if (!photo || !event.dataTransfer.types.includes("application/x-clansync-photo")) return;
+        const point=document.caretPositionFromPoint?.(event.clientX,event.clientY);
+        if (point) {
+          const range=document.createRange();
+          range.setStart(point.offsetNode,point.offset);
+          movePhoto(range);
+        } else {
+          movePhoto(document.caretRangeFromPoint?.(event.clientX,event.clientY)??null);
+        }
+      }}
       onCopy={event => { const current = window.getSelection(); if (!current?.rangeCount) return; const wrapper = document.createElement("div"); wrapper.append(current.getRangeAt(0).cloneContents()); event.clipboardData.setData("text/plain", readText(wrapper)); event.preventDefault(); }} />
-    <div className={styles.toolbar}>{!textOnly && <ClanEmojiPicker label={pickerLabel??tx("{0} 이모티콘 선택", label)} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} />}<span className={styles.counter}>{value.length} / {maxLength.toLocaleString(tx.locale)}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>
+    <div className={styles.toolbar}>{!textOnly && <ClanEmojiPicker label={pickerLabel??tx("{0} 이모티콘 선택", label)} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} />}{photo && <Button className={styles.movePhoto} type="button" size="sm" variant="ghost" disabled={disabled} onMouseDown={event=>event.preventDefault()} onClick={()=>movePhoto(selection.current)}>사진을 커서 위치로</Button>}<span className={styles.counter}>{value.length} / {maxLength.toLocaleString(tx.locale)}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>
     {error && <p role="alert" className="px-3 pb-2 text-xs text-destructive">{tx(error)}</p>}
   </div>;
 }
