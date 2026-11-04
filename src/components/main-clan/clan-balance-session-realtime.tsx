@@ -48,18 +48,20 @@ export function ClanBalanceSessionRealtime({
     const supabase = createClient();
     let disposed = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
-    const refresh = () => {
+    const scheduleRefresh = (catchUp: boolean) => {
       if (disposed) return;
-      if (refreshTimer) clearTimeout(refreshTimer);
+      if (refreshingRef.current) {
+        if (catchUp) queuedRefreshRef.current = true;
+        return;
+      }
+      if (refreshTimer) return;
       refreshTimer = setTimeout(() => {
-        if (refreshingRef.current) {
-          queuedRefreshRef.current = true;
-          return;
-        }
+        refreshTimer = undefined;
         refreshingRef.current = true;
         startRefresh(() => router.refresh());
       }, 120);
     };
+    const refresh = () => scheduleRefresh(true);
     const channel = supabase
       .channel(`balance_session:${sessionId ?? clanId}`)
       .on("system", {}, (payload) => {
@@ -163,7 +165,9 @@ export function ClanBalanceSessionRealtime({
         const key = data
           ? `${data.id}:${data.formation_revision}:${data.phase}:${data.match_outcome}`
           : "none";
-        if (key !== roundKeyRef.current) refresh();
+        // The next poll compares the committed revision again. A slow refresh
+        // must not queue another render on every poll of the same snapshot.
+        if (key !== roundKeyRef.current) scheduleRefresh(false);
       } catch {
         /* A later revision check retries transient network failures. */
       } finally {
@@ -179,7 +183,7 @@ export function ClanBalanceSessionRealtime({
     document.addEventListener("visibilitychange", checkRevision);
     // Also recover vote tallies, whose rows have independent revisions.
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState === "visible") scheduleRefresh(false);
     }, 30_000);
     return () => {
       disposed = true;

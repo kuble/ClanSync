@@ -154,6 +154,7 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     await picker.getByRole("button", { name: "오아시스 선택", exact: true }).click();
     await expect(card).toContainText("-5", { timeout: 15_000 });
     await expect.poll(async () => parseFloat((await blueChance.textContent())!)).toBeCloseTo(lijiang - 5, 1);
+    await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("오아시스");
     const mapRound = await fixture.activeRound(room.roomId);
     expect((mapRound.ma_snapshot as Record<string, { a: number }>)[playerId].a).toBeCloseTo(learned, 8);
     expect((mapRound.ma_snapshot as Record<string, { m: number; a: number }>)[ids[0]]).toEqual({ m: 2, a: -5 });

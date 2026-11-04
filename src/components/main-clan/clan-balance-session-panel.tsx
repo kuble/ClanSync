@@ -1,5 +1,7 @@
 "use client";
 import { useMovableDrawerTab } from "./use-movable-drawer-tab";
+import { BalanceAnalysisProvider } from "./balance-analysis-provider";
+import type { PredictionModel } from "@/lib/balance/analysis-prediction";
 import { useTranslator } from "#use-translator";
 import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
@@ -109,6 +111,7 @@ export function ClanBalanceSessionPanel({
   canViewScores,
   scores,
   analysisContext,
+  predictionModel,
   hostNickname,
   roomTitle,
   session,
@@ -136,6 +139,7 @@ export function ClanBalanceSessionPanel({
   canViewScores: boolean;
   scores: MaSnapshot;
   analysisContext?: AnalysisContext;
+  predictionModel?: PredictionModel;
   hostNickname: string | null;
   roomTitle: string;
   session: BalanceSession | null;
@@ -160,10 +164,14 @@ export function ClanBalanceSessionPanel({
   const rosterRef = useRef<ClanBalanceRosterEditorHandle>(null);
   const [busyFormation, setBusyFormation] = useState(false);
   const [preferencePending, setPreferencePending] = useState(false);
+  const [mapSaving, setMapSaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [savedMap, setSavedMap] = useState<{ roundId: string; label: string; revision: number } | null>(null);
+  const editorMapLabel = session && savedMap?.roundId === session.id && savedMap.revision > session.formation_revision
+    ? savedMap.label : session?.resolved_map_label ?? null;
   const [scoreMode, setScoreMode] = useState<ScoreMode>("m");
   const formation =
     session?.formation_state as unknown as FormationState | null;
@@ -306,14 +314,17 @@ export function ClanBalanceSessionPanel({
     onClick={() => setConfirmEnd(true)}>{tx("세션 종료")}</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
   const baseScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
-  const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, session?.resolved_map_label ?? null, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players);
+  const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, editorMapLabel, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players);
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
   const editorMap = editingScreen && session && !session.map_ban_enabled ?
-    <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
+    <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={editorMapLabel}
+      onSaved={(label, revision) => setSavedMap({ roundId: session.id, label, revision })}
+      saving={mapSaving} onSavingChange={setMapSaving} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
 
   return (
+    <BalanceAnalysisProvider model={predictionModel} map={editorMapLabel}>
     <BalanceNamecardMode hide={Boolean(canManage && editingScreen)} profileLinks={!canManage} nicknameOnly={settings.nicknameOnly}><div
       className="space-y-5"
       data-testid="clan-balance-session-panel"
@@ -550,7 +561,7 @@ export function ClanBalanceSessionPanel({
                       rosterAside={teamAdjustment ? undefined : editorMap}
                       scores={canViewScores ? displayScores : undefined}
                       analysisContext={analysisContext}
-                      analysisMap={session.resolved_map_label}
+                      analysisMap={editorMapLabel}
                       scoreMode={scoreMode}
                       planPremium={planPremium}
                       playerSessionInfo={playerSessionInfo}
@@ -629,7 +640,7 @@ export function ClanBalanceSessionPanel({
                   userId={userId}
                   canManage={canManage}
                   beforeStart={flushRoster}
-                  preferencePending={preferencePending}
+                  setupPending={preferencePending || mapSaving}
                   onPendingChange={setBusyFormation}
                 />
                 {formation && !["complete", "review"].includes(formation.stage) ? <div className="order-last">{endSessionControl}</div> : null}
@@ -785,5 +796,6 @@ export function ClanBalanceSessionPanel({
         {session && session.phase !== "editing" && session.phase !== "match_live" ? <div className="px-5 pb-3">{endSessionControl}</div> : null}
       </section>
     </div></BalanceNamecardMode>
+    </BalanceAnalysisProvider>
   );
 }

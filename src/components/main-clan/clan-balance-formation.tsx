@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils";
 export function ClanBalanceFormation({
   gameSlug, clanId, roundId, revision, drawHistoryLength, state, settings, bans,
   pool, userId, canManage, readOnly = false, beforeStart, onPendingChange,
-  serverNow, preferencePending = false, endSessionControl,
+  serverNow, setupPending = false, endSessionControl,
 }: {
-  serverNow: number; preferencePending?: boolean; endSessionControl?: ReactNode;
+  serverNow: number; setupPending?: boolean; endSessionControl?: ReactNode;
   gameSlug: string; clanId: string; roundId: string; revision: number; drawHistoryLength: number;
   state: FormationState | null; settings: FormationSettings;
   bans: { mapBan: boolean; heroBan: boolean };
@@ -79,8 +79,10 @@ export function ClanBalanceFormation({
         const result = await updateFormationAction(gameSlug, clanId, roundId, Math.max(revision, flushed.revision),
           command.type === "start" && "roster" in flushed ? { ...command, expectedRoster: flushed.roster, expectedBans: bans }
             : command.type === "choose-item" ? { ...command, expectedDrawId: state?.draw?.id } : command);
-        if (!result.ok) toast.error(result.error);
-        router.refresh();
+        if (!result.ok) {
+          toast.error(result.error);
+          router.refresh();
+        }
       } catch {
         toast.error("연결을 확인한 뒤 다시 시도하십시오.");
       } finally {
@@ -91,7 +93,7 @@ export function ClanBalanceFormation({
 
   if (!state) return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
     {endSessionControl ?? <span />}
-    {manager ? <Button disabled={pending || preferencePending} onClick={() => run({ type: "start", setup: settings, expectedDrawHistoryLength: drawHistoryLength })}>
+    {manager ? <Button disabled={pending || setupPending} onClick={() => run({ type: "start", setup: settings, expectedDrawHistoryLength: drawHistoryLength })}>
       {pending ? tx("처리 중…") : settings.roles === "lottery" || settings.teams === "random" ? tx("추첨 시작") : settings.teams === "draft" || settings.teams === "auction" ? tx("편성 진행") : tx("다음 단계")}
     </Button> : <p className="text-xs text-muted-foreground">{tx("운영진이 편성을 준비하고 있습니다.")}</p>}
   </section>;

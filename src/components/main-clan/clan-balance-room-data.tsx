@@ -10,7 +10,6 @@ import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { parseAnalysisContext } from "@/lib/balance/analysis-context";
 import { buildPredictionModel, readPredictionBasis } from "@/lib/balance/analysis-prediction";
-import { BalanceAnalysisProvider } from "./balance-analysis-provider";
 import { parsePredictionPool, type PredictionPool } from "@/lib/balance/prediction-pool";
 import {
   buildPlayerSessionInfo,
@@ -232,7 +231,6 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     ? buildPredictionModel(scoredResult.data, session.opened_at, Object.fromEntries(linkedAccounts), readPredictionBasis(analysisBundle.basis))
     : undefined;
   return (
-    <BalanceAnalysisProvider model={predictionModel} map={session.resolved_map_label}>
     <ClanBalanceSessionPanel
       key={session.id}
       gameSlug={gameSlug}
@@ -245,6 +243,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       canViewScores={canViewScores}
       scores={scores}
       analysisContext={analysisContext}
+      predictionModel={predictionModel}
       playerSessionInfo={playerSessionInfo}
       hostNickname={hostNickname}
       roomTitle={room.title}
@@ -269,6 +268,5 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
           "https://moretvteewfcztxvwztw.supabase.co"
       }
     />
-    </BalanceAnalysisProvider>
   );
 }

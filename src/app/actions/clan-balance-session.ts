@@ -101,6 +101,7 @@ async function withPrematchRound(
     round: BalanceRound,
     userId: string,
   ) => Promise<void>,
+  refreshPage = true,
 ): Promise<BalanceSessionActionResult> {
   try {
     const client = await createClient();
@@ -135,7 +136,7 @@ async function withPrematchRound(
     if (game?.slug !== gameSlug)
       throw new Error("게임 정보가 올바르지 않습니다.");
     await work(client, round, user.id);
-    revalidatePath(balancePath(gameSlug, clanId));
+    if (refreshPage) revalidatePath(balancePath(gameSlug, clanId));
     return { ok: true };
   } catch (error) {
     return {
@@ -153,7 +154,7 @@ async function savePrematchRound(
   client: BalanceClient,
   round: BalanceRound,
   patch: Database["public"]["Tables"]["balance_sessions"]["Update"],
-): Promise<void> {
+): Promise<number> {
   let query = client
     .from("balance_sessions")
     .update(patch)
@@ -178,12 +179,13 @@ async function savePrematchRound(
     round.banned_heroes === null
       ? query.is("banned_heroes", null)
       : query.not("banned_heroes", "is", null);
-  const { data, error } = await query.select("id").maybeSingle();
+  const { data, error } = await query.select("formation_revision").maybeSingle();
   if (error) throw new Error(error.message);
   if (!data)
     throw new Error(
       "경기 상태가 변경되었습니다. 최신 화면에서 다시 시도하십시오.",
     );
+  return data.formation_revision;
 }
 
 export async function startMapBanPhaseAction(
@@ -270,8 +272,9 @@ export async function selectBalanceMapAction(
   clanId: string,
   sessionId: string,
   mapLabel: string,
-): Promise<BalanceSessionActionResult> {
-  return withPrematchRound(
+): Promise<{ ok: true; revision: number } | { ok: false; error: string }> {
+  let revision = 0;
+  const result = await withPrematchRound(
     gameSlug,
     clanId,
     sessionId,
@@ -284,14 +287,17 @@ export async function selectBalanceMapAction(
         !mapPoolForGameSlug(gameSlug).includes(mapLabel)
       )
         throw new Error("이 게임의 맵 목록에서 선택하십시오.");
+      revision = round.formation_revision;
       if (round.resolved_map_label === mapLabel) return;
       // The DB invalidates a hero ballot/result only when this map changes.
-      await savePrematchRound(client, round, {
+      revision = await savePrematchRound(client, round, {
         resolved_map_label: mapLabel,
         map_ban_deadline_at: null,
       });
     },
+    false,
   );
+  return result.ok ? { ok: true, revision } : result;
 }
 
 export async function startHeroBanPhaseAction(

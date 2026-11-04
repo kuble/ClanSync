@@ -1,8 +1,7 @@
 "use client";
 
 import { useTranslator } from "#use-translator";
-import { useOptimistic, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Map, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { selectBalanceMapAction } from "@/app/actions/clan-balance-session";
@@ -10,42 +9,42 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { BalanceMapImage } from "./clan-balance-map-image";
 import { BalanceManualMapPicker } from "./clan-balance-map-options";
 
-export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, canManage, beforeSelect, autoOpen = true }: {
+export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap: map, onSaved, saving, onSavingChange, canManage, beforeSelect, autoOpen = true }: {
   gameSlug: string;
   clanId: string;
   sessionId: string;
   selectedMap: string | null;
+  onSaved: (map: string, revision: number) => void;
+  saving: boolean;
+  onSavingChange: (saving: boolean) => void;
   canManage: boolean;
   autoOpen?: boolean;
   beforeSelect?: () => Promise<{ ok: boolean }>;
 }) {
   const tx = useTranslator();
-  const router = useRouter();
-  const [map, setMap] = useOptimistic(selectedMap);
-  const [open, setOpen] = useState(autoOpen && canManage && !selectedMap);
-  const [pending, start] = useTransition();
+  const [open, setOpen] = useState(autoOpen && canManage && !map);
 
-  function selectMap(label: string) {
+  async function selectMap(label: string) {
     setOpen(false);
-    start(async () => {
-      setMap(label);
-      try {
-        if (beforeSelect && !(await beforeSelect()).ok) {
-          toast.error("명단을 저장한 뒤 맵을 다시 선택하십시오.");
-          setOpen(true);
-          return;
-        }
-        const result = await selectBalanceMapAction(gameSlug, clanId, sessionId, label);
-        if (!result.ok) {
-          toast.error(result.error);
-          setOpen(true);
-        }
-        router.refresh();
-      } catch {
-        toast.error("맵을 저장하지 못했습니다. 다시 선택하십시오.");
+    onSavingChange(true);
+    try {
+      if (beforeSelect && !(await beforeSelect()).ok) {
+        toast.error("명단을 저장한 뒤 맵을 다시 선택하십시오.");
+        setOpen(true);
+        return;
+      }
+      const result = await selectBalanceMapAction(gameSlug, clanId, sessionId, label);
+      if (result.ok) onSaved(label, result.revision);
+      else {
+        toast.error(result.error);
         setOpen(true);
       }
-    });
+    } catch {
+      toast.error("맵을 저장하지 못했습니다. 다시 선택하십시오.");
+      setOpen(true);
+    } finally {
+      onSavingChange(false);
+    }
   }
 
   return <Dialog open={open && canManage} onOpenChange={setOpen}>
@@ -65,7 +64,7 @@ export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, can
       <DialogHeader>
         <DialogTitle>{tx("경기 맵 선택")}</DialogTitle>
       </DialogHeader>
-      <BalanceManualMapPicker gameSlug={gameSlug} value={map} onChange={selectMap} disabled={pending} canManage={canManage} compact />
+      <BalanceManualMapPicker gameSlug={gameSlug} value={map} onChange={selectMap} disabled={saving} canManage={canManage} compact />
     </DialogContent>
   </Dialog>;
 }
