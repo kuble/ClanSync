@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+import { AccountShell } from "@/components/onboarding/account-shell";
+import ProfileLoading from "./loading";
 import { getTranslator } from "@/lib/i18n/server";
 import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
@@ -11,7 +14,6 @@ import { ProfileIdentity, type ProfileMembership } from "@/components/profile/pr
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
-import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
 import { ProfileLanguage } from "@/components/profile/profile-language";
@@ -45,7 +47,11 @@ type JoinRow = {
   games: { slug: string; name_ko: string } | null;
 };
 
-export default async function ProfilePage() {
+export default function ProfilePage() {
+  return <AccountShell context="프로필"><Suspense fallback={<ProfileLoading />}><ProfileContent /></Suspense></AccountShell>;
+}
+
+async function ProfileContent() {
   const tx = await getTranslator();
   const supabase = await createClient();
   const {
@@ -191,7 +197,7 @@ export default async function ProfilePage() {
     return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role, accountId: linkedGames.find((linked) => linked.gameId === clan.game_id)?.accountId ?? null, isVerified: linkedGames.find(linked => linked.gameId === clan.game_id)?.isVerified ?? false, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === clan.game_id).map(alt => alt.alt_nick), canManageAlts: !!linkedGames.find(linked => linked.gameId === clan.game_id)?.accountId }] : [];
   });
 
-  return <AccountShell context="프로필"><main className={styles.page}>
+  return <main className={styles.page}>
     <ProfilePanels overview={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
@@ -220,5 +226,5 @@ export default async function ProfilePage() {
         </div>
       </div>
     </div>} />
-  </main></AccountShell>;
+  </main>;
 }

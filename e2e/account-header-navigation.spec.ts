@@ -3,6 +3,31 @@ import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolat
 
 test.use({ hasTouch: true });
 
+test("좁은 화면에서 스크립트가 도착하기 전 첫 터치로 연 게임 메뉴를 유지한다", async ({ page }) => {
+  const f = await createIsolatedBalanceFixture(1);
+  let resume = () => {};
+  const scriptsReady = new Promise<void>(resolve => { resume = resolve; });
+  try {
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.setViewportSize({ width: 320, height: 884 });
+    await page.route(/\/_next\/static\/.*\.js(?:\?|$)/, async route => {
+      await scriptsReady;
+      await route.continue();
+    });
+    await page.goto("/profile", { waitUntil: "commit" });
+    const trigger = page.getByRole("button", { name: "게임 선택", exact: true });
+    await trigger.tap();
+    const menu = page.getByRole("menu", { name: "게임 선택", exact: true });
+    await expect(menu.getByRole("menuitem", { name: "전체 게임 보기" })).toBeVisible();
+    resume();
+    await expect(menu.getByRole("menuitem", { name: "오버워치", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await trigger.tap();
+    await expect(menu.getByRole("menuitem", { name: "전체 게임 보기" })).toBeVisible();
+  } finally { resume(); await f.cleanup(); }
+});
+
 test("계정 헤더는 게임 호버·키보드·터치 선택과 게임 선택 로고 이동을 제공한다", async ({ page }, info) => {
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(1);

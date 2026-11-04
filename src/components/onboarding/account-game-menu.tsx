@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslator } from "#use-translator";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -11,10 +11,19 @@ import { headerActionClassName } from "@/components/ui/header-action-style";
 
 type Game = { slug: string; name_ko: string; is_active: boolean };
 const order = ["overwatch", "valorant", "lol", "deadlock"];
+const pendingMenuId = "account-game-selection";
 
 export function AccountGameMenu() {
   const tx = useTranslator();
+  const triggerId = useId();
+  const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
+  const attachPendingMenu = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    // The fragment survives replacement of streamed HTML before hydration.
+    if (window.location.hash === `#${pendingMenuId}`) setOpen(true);
+    setReady(true);
+  }, []);
   const [games, setGames] = useState<Game[] | null>(null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -32,8 +41,28 @@ export function AccountGameMenu() {
     }).catch(() => { if (active) setError(true); });
     return () => { active = false; };
   }, [open, games, attempt]);
-  return <DropdownMenu open={open} onOpenChange={next => { setOpen(next); if (next) setError(false); }} modal={false}>
-    <DropdownMenuTrigger openOnHover delay={120} closeDelay={160} className={headerActionClassName} aria-label={tx("게임 선택")} title={tx("게임 선택")}>
+  useEffect(() => {
+    if (!open || window.location.hash !== `#${pendingMenuId}`) return;
+    const closeOnBack = () => setOpen(false);
+    window.addEventListener("hashchange", closeOnBack);
+    return () => window.removeEventListener("hashchange", closeOnBack);
+  }, [open]);
+  function changeOpen(next: boolean) {
+    setOpen(next);
+    if (next) setError(false);
+    else if (window.location.hash === `#${pendingMenuId}`) {
+      window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+    }
+  }
+  if (!ready) return <>
+    <a href={`#${pendingMenuId}`} role="button" aria-haspopup="menu" aria-controls={pendingMenuId} className={headerActionClassName} aria-label={tx("게임 선택")} title={tx("게임 선택")}><Gamepad2 aria-hidden="true" /></a>
+    <div id={pendingMenuId} ref={attachPendingMenu} role="menu" aria-label={tx("게임 선택")} className="fixed top-14 right-3 z-50 hidden w-72 max-w-[calc(100vw-24px)] rounded-xl border bg-popover p-3 text-sm text-popover-foreground shadow-lg target:block">
+      <p role="status" className="mb-2 text-muted-foreground">{tx("게임을 불러오는 중…")}</p>
+      <a href="/games" role="menuitem">{tx("전체 게임 보기")}</a>
+    </div>
+  </>;
+  return <DropdownMenu open={open} triggerId={triggerId} onOpenChange={changeOpen} modal={false}>
+    <DropdownMenuTrigger id={triggerId} openOnHover delay={120} closeDelay={160} className={headerActionClassName} aria-label={tx("게임 선택")} title={tx("게임 선택")}>
       <Gamepad2 aria-hidden="true" />
     </DropdownMenuTrigger>
     <DropdownMenuContent showArrow align="end" sideOffset={8} className="w-72 max-w-[calc(100vw-24px)] rounded-xl p-0 shadow-lg ring-border" aria-label={tx("게임 선택지")}>
