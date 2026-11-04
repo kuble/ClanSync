@@ -103,10 +103,8 @@ export function HofSettingsForm({
   const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
   const profileLabel = tx("명예의 전당을 클랜 프로필에 공개");
   const profileSwitch = <div className="flex items-center justify-between gap-3 text-sm">
-    <div className="flex items-center gap-1"><label htmlFor="expose_hof" className="cursor-pointer">{profileLabel}</label>
-      <StatHelpIcon title={profileLabel} help="클랜 프로필을 방문한 사람에게 공개합니다." />
-    </div>
-    <Switch id="expose_hof" name="expose_hof" defaultChecked={exposeHof} />
+    <StatHelp title={profileLabel}>클랜 프로필을 방문한 사람에게 공개합니다.</StatHelp>
+    <Switch id="expose_hof" name="expose_hof" aria-label={profileLabel} defaultChecked={exposeHof} />
   </div>;
   return (
     <form
@@ -154,10 +152,10 @@ export function HofSettingsForm({
         {profileSwitch}
       </section>}
       <section aria-labelledby="hof-ranking-title" className="space-y-3 rounded-xl border p-4">
-      <h4 id="hof-ranking-title" className="text-sm font-semibold">{tx("순위 공개 범위")}</h4>
+      <h4 id="hof-ranking-title" className="text-sm font-semibold">{tx("멤버 공개 범위")}</h4>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="win_rate_visible_top" className="text-muted-foreground">{tx("승률 순위 공개(구성원)")}</Label>
+          <Label htmlFor="win_rate_visible_top" className="text-muted-foreground">{tx("승률")}</Label>
           <select
             id="win_rate_visible_top"
             name="win_rate_visible_top"
@@ -176,13 +174,13 @@ export function HofSettingsForm({
         <input type="hidden" name="wins_visible_top" value={String(cfg.winsVisibleTop)} />
         <input type="hidden" name="streak_visible_top" value={String(cfg.streakVisibleTop)} />
         <div className="space-y-1">
-          <Label htmlFor="prediction_visible_top" className="text-muted-foreground">{tx("승부예측 순위 공개")}</Label>
+          <Label htmlFor="prediction_visible_top" className="text-muted-foreground">{tx("승부예측")}</Label>
           <select id="prediction_visible_top" name="prediction_visible_top" defaultValue={String(cfg.predictionVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
             {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? tx("비공개") : n === 999 ? tx("전체") : tx("상위 {0}명", n)}</option>)}
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="participation_visible_top" className="text-muted-foreground">{tx("내전 참여 순위 공개")}</Label>
+          <Label htmlFor="participation_visible_top" className="text-muted-foreground">{tx("내전 참여")}</Label>
           <select
             id="participation_visible_top"
             name="participation_visible_top"
@@ -199,7 +197,7 @@ export function HofSettingsForm({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="cumulative_visible_top" className="text-muted-foreground">{tx("경기 출전 순위 공개")}</Label>
+          <Label htmlFor="cumulative_visible_top" className="text-muted-foreground">{tx("경기 출전")}</Label>
           <select
             id="cumulative_visible_top"
             name="cumulative_visible_top"
@@ -218,7 +216,7 @@ export function HofSettingsForm({
       </div>
       </section>
       <section aria-labelledby="hof-period-title" className="space-y-3 rounded-xl border p-4">
-      <h4 id="hof-period-title" className="text-sm font-semibold">{tx("공개 시점")}</h4>
+      <h4 id="hof-period-title" className="text-sm font-semibold">{tx("업데이트 주기")}</h4>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="monthly_rank_visibility" className="text-muted-foreground">{tx("월별 순위")}</Label>
