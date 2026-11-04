@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { setTimeout as sleep } from "node:timers/promises";
 import { createClient } from "@supabase/supabase-js";
 import { loadTestEnv } from "./test-env.mjs";
 
@@ -111,7 +112,12 @@ test("balance sessions honor clan inactivity settings", async (t) => {
       .update({ last_activity_at: staleAt })
       .eq("id", opened.series_id),
   );
-  assert.equal((await ok(svc.rpc("close_stale_balance_sessions", {}))).closed, 0);
+  const readSeries = () => ok(svc.from("balance_session_series")
+    .select("closed_at").eq("id", opened.series_id).single());
+  // Let the regular one-minute scheduler run. Calling its global RPC here
+  // could also close unrelated rooms while someone is testing on shared QA.
+  await sleep(65_000);
+  assert.equal((await readSeries()).closed_at, null);
 
   await ok(
     leader.client
@@ -140,15 +146,12 @@ test("balance sessions honor clan inactivity settings", async (t) => {
       .update({ last_activity_at: staleAt })
       .eq("id", opened.series_id),
   );
-  assert.equal((await ok(svc.rpc("close_stale_balance_sessions", {}))).closed, 1);
-
-  const series = await ok(
-    svc
-      .from("balance_session_series")
-      .select("closed_at")
-      .eq("id", opened.series_id)
-      .single(),
-  );
+  const deadline = Date.now() + 120_000;
+  let series = await readSeries();
+  while (!series.closed_at && Date.now() < deadline) {
+    await sleep(3000);
+    series = await readSeries();
+  }
   const round = await ok(
     svc
       .from("balance_sessions")
