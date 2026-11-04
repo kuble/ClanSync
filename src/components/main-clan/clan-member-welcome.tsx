@@ -64,7 +64,7 @@ export function ClanMemberWelcome({ clanId, clanName, basePath, model, joinedAt,
             {step === 1 && (rules.length ? <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed">{rules.map((rule, i) => <li key={i} className="whitespace-pre-wrap break-words pl-1">{rule}</li>)}</ol> : <p className="text-sm text-muted-foreground">{model.errors.rules ? tx("규칙을 불러오지 못했습니다. 게시판에서 다시 확인하십시오.") : tx("등록된 규칙이 없습니다.")}</p>)}
             {step === 2 && (notices.length ? notices.map(notice => <article key={notice.id} className="rounded-lg border bg-card p-3"><h4 className="text-sm font-semibold break-words">{notice.title}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed text-muted-foreground">{notice.content}</p></article>) : <p className="text-sm text-muted-foreground">{model.errors.notices ? tx("공지사항을 불러오지 못했습니다. 게시판에서 다시 확인하십시오.") : tx("등록된 공지사항이 없습니다.")}</p>)}
             {step === 3 && entryTiers && <>
-              <p className="text-sm text-muted-foreground">역할마다 가입 티어를 한 번 저장합니다. 분석점수는 플래티넘 3을 0점으로 한 칸당 0.2점씩 차이 나며, 이후 내전 결과에 따라 바뀝니다. 미배치 역할은 나중에 입력할 수 있습니다.</p>
+              <p className="text-sm text-muted-foreground">첫 내전부터 두 팀의 실력을 고르게 맞출 수 있도록, 배치를 마친 역할의 티어를 꼭 선택해 주세요. 선택한 티어는 역할별로 저장되며 내전 승률 예측의 기준이 됩니다.</p>
               {OVERWATCH_POSITIONS.map(({ value: role, label }) => <label key={role} className="flex items-center justify-between gap-3 text-sm">
                 {label}
                 <select value={entryTiers[role] ?? draft[role] ?? ""} disabled={entryTiers[role] !== undefined || saving}
