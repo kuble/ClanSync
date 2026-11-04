@@ -9,7 +9,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { parseAnalysisContext } from "@/lib/balance/analysis-context";
-import { buildPredictionModel } from "@/lib/balance/analysis-prediction";
+import { buildPredictionModel, readPredictionBasis } from "@/lib/balance/analysis-prediction";
 import { BalanceAnalysisProvider } from "./balance-analysis-provider";
 import { parsePredictionPool, type PredictionPool } from "@/lib/balance/prediction-pool";
 import {
@@ -113,7 +113,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       const data = [];
       for (let offset = 0; ; offset += 500) {
         const result = await supabase.from("balance_sessions")
-      .select("ma_snapshot,roster,opened_at,closed_at,predictions_settled_at,match_outcome,resolved_map_label,balance_session_series!inner(balance_rooms!inner(kind))")
+      .select("id,ma_snapshot,roster,opened_at,closed_at,predictions_settled_at,match_outcome,resolved_map_label,balance_session_series!inner(balance_rooms!inner(kind))")
       .eq("clan_id", clanId).eq("balance_session_series.balance_rooms.kind", "regular")
       .in("match_outcome", ["team1", "team2", "draw"])
       .order("opened_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
@@ -124,8 +124,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     })()
       : Promise.resolve({ data: [], error: null }),
     canViewScores && planPremium && session.phase !== "match_live"
-      ? supabase.rpc("read_balance_analysis_context", { p_round_id: session.id, p_clan_id: clanId })
-      : Promise.resolve({ data: [], error: null }),
+      ? supabase.rpc("read_balance_analysis_model", { p_round_id: session.id, p_clan_id: clanId })
+      : Promise.resolve({ data: null, error: null }),
     supabase.from("profile_role_preferences").select("ranking")
       .eq("user_id", user.id).eq("game_id", session.game_id).maybeSingle(),
     supabase.from("balance_round_role_preferences").select("ranking")
@@ -147,15 +147,16 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null),
   ]);
   const canEditMscore = canViewScores && (canManage || scorePermission);
-  let analysisContext: ReturnType<typeof parseAnalysisContext> | undefined;
   const scores: MaSnapshot = {};
   if (analysisResult.error) throw new Error("분석 점수를 불러오지 못했습니다.");
+  const bundle = analysisResult.data;
+  const analysisBundle = bundle && typeof bundle === "object" && !Array.isArray(bundle) ? bundle : null;
+  const analysisContext = analysisBundle ? parseAnalysisContext(analysisBundle.context) : undefined;
   if (scoredResult.error) throw new Error("참가자 점수를 불러오지 못했습니다.");
   if (poolResult.error) throw new Error("승부예측 정보를 불러오지 못했습니다.", { cause: poolResult.error });
   if (participantLinks.error) throw new Error("참가자 연결 정보를 불러오지 못했습니다.");
   const linkedAccounts = new Map<string, string>((participantLinks.data ?? []).map((p: { id: string; user_id: string | null }) => [p.id, p.user_id!]));
   if (canViewScores) {
-    if (planPremium && session.phase !== "match_live") analysisContext = parseAnalysisContext(analysisResult.data);
     for (const round of scoredResult.data ?? []) {
       const saved = parseMaSnapshot(round.ma_snapshot);
       const roster = parseRoster(round.roster);
@@ -227,8 +228,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
 
   // Request-time clock aligns the initial reveal on this authenticated server page.
   const serverNow = Date.now();
-  const predictionModel = canViewScores && planPremium && session.phase !== "match_live"
-    ? buildPredictionModel(scoredResult.data, session.opened_at, Object.fromEntries(linkedAccounts))
+  const predictionModel = analysisBundle
+    ? buildPredictionModel(scoredResult.data, session.opened_at, Object.fromEntries(linkedAccounts), readPredictionBasis(analysisBundle.basis))
     : undefined;
   return (
     <BalanceAnalysisProvider model={predictionModel} map={session.resolved_map_label}>

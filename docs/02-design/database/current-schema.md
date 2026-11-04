@@ -7,7 +7,7 @@
 - QA 확인: `npm run db:test:types` → 생성 타입 대조·동기화 → `npm run db:schema:index`.
 - RLS·제약·함수 본문은 타입에 포함되지 않으므로 해당 마이그레이션을 확인한다. 운영 반영은 별도 승인 범위다.
 
-테이블 67개 · 함수 114개 · 열거형 35개.
+테이블 67개 · 함수 120개 · 열거형 35개.
 
 ## 테이블
 
@@ -104,11 +104,14 @@
 - `close_balance_session_series`
 - `close_stale_balance_sessions`
 - `commit_balance_formation`
+- `complete_balance_tier_welcome`
 - `complete_clan_welcome`
 - `connect_clan_discord_bot`
 - `count_lfg_applications`
 - `create_balance_room`
 - `delegate_balance_room`
+- `disconnect_clan_discord_and_check_departure`
+- `disconnect_clan_discord_bot`
 - `discover_clans`
 - `dispatch_inapp_notification_batch`
 - `edit_clan_match_record`
@@ -142,6 +145,7 @@
 - `place_balance_prediction_pool`
 - `purchase_profile_title`
 - `read_balance_analysis_context`
+- `read_balance_analysis_model`
 - `read_balance_prediction_pool`
 - `read_clan_badge_metrics`
 - `read_clan_join_invite`
@@ -150,8 +154,10 @@
 - `read_clan_personal_emblem_award_source`
 - `read_clan_prediction_ledger`
 - `read_clan_stats_records`
+- `read_clan_stats_role_players`
 - `read_clan_stats_summary`
 - `read_closed_balance_ballot`
+- `read_own_balance_entry_tiers`
 - `read_player_profile`
 - `recheck_clan_discord_notification`
 - `record_clan_activity`

@@ -9,11 +9,12 @@ const context = predictionContext(roster, scores, "m", null);
 const estimate = { context, team1: 70, sampleSize: 30, confidence: "보통" as const };
 
 test("완료된 경기만 학습하고 조합·맵·상대 보정을 양 팀에 대칭 적용한다", () => {
-  const round = { roster, resolved_map_label: "오아시스", match_outcome: "team1", opened_at: "2026-01-01T00:00:00Z", closed_at: "2026-01-01T00:10:00Z", predictions_settled_at: null };
+  const round = { id: "round", roster, resolved_map_label: "오아시스", match_outcome: "team1", opened_at: "2026-01-01T00:00:00Z", closed_at: "2026-01-01T00:10:00Z", predictions_settled_at: null };
   const aliases = { "0": "account" };
-  const before = buildPredictionModel([round], "2026-01-01T00:05:00Z", aliases);
+  const before = buildPredictionModel([round], "2026-01-01T00:05:00Z", aliases, { ratings: {}, baselines: {} });
   expect(analysisWinPercent(before, roster, "오아시스")).toBe(50);
-  const model = buildPredictionModel([round, { ...round, match_outcome: "void" }], "2026-01-01T00:15:00Z", aliases);
+  const ratings = Object.fromEntries(["account:tank", "1:dmg", "2:dmg", "3:sup", "4:sup", "5:tank", "6:dmg", "7:dmg", "8:sup", "9:sup"].map((player, i) => [player, i < 5 ? 0.1 : -0.1]));
+  const model = buildPredictionModel([round, { ...round, match_outcome: "void" }], "2026-01-01T00:15:00Z", aliases, { ratings, baselines: { round: 0.5 } });
   const base = 100 / (1 + (0.35 / 0.65) ** 0.2);
   expect(analysisWinPercent(model, roster, "오아시스")).toBeCloseTo(base + 1.5 + 2.5 + 4.5, 8);
   expect(analysisWinPercent(model, roster, "왕의 길")).toBeCloseTo(base + 1.5 + 4.5, 8);

@@ -7,7 +7,7 @@ import { MainClanShell } from "@/components/main-clan/main-clan-shell";
 import { loadClanInAppNotifications } from "@/lib/clan/load-clan-inapp-notifications";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
-import { getRequestClanWelcomeMembership, loadClanWelcomeContent } from "@/lib/clan/load-clan-welcome";
+import { getOwnEntryTiers, getRequestClanWelcomeMembership, loadClanWelcomeContent } from "@/lib/clan/load-clan-welcome";
 import { ClanMemberWelcome } from "@/components/main-clan/clan-member-welcome";
 
 export default async function MainClanLayout({
@@ -38,7 +38,10 @@ export default async function MainClanLayout({
   const cards = (namecards.data ?? {}) as ClanNamecards;
   const joinedAt = membership?.joined_at ?? membership?.created_at;
   const needsWelcome = ctx.role === "member" && !!joinedAt && (!membership?.welcome_completed_at || Date.parse(membership.welcome_completed_at) < Date.parse(joinedAt));
-  const welcomeContent = needsWelcome ? await loadClanWelcomeContent(clanId) : null;
+  const [welcomeContent, entryTiers] = await Promise.all([
+    needsWelcome ? loadClanWelcomeContent(clanId) : null,
+    needsWelcome && gameSlug === "overwatch" ? getOwnEntryTiers(clanId) : undefined,
+  ]);
 
   // Capture the authenticated client during render; after() cannot read cookies here.
   after(async () => {
@@ -53,7 +56,7 @@ export default async function MainClanLayout({
       ctx={ctx}
       inAppNotifications={inAppNotifications}
     >
-      {welcomeContent && joinedAt && <ClanMemberWelcome key={user.id + joinedAt} clanId={clanId} clanName={ctx.clanName} basePath={`/games/${gameSlug}/clan/${clanId}`} model={welcomeContent} joinedAt={joinedAt} initialOpen showTrigger={false} />}
+      {welcomeContent && joinedAt && <ClanMemberWelcome key={user.id + joinedAt} clanId={clanId} clanName={ctx.clanName} basePath={`/games/${gameSlug}/clan/${clanId}`} model={welcomeContent} joinedAt={joinedAt} entryTiers={entryTiers} initialOpen showTrigger={false} />}
       <ClanEmojiProvider key={user.id+clanId} clanId={clanId} gameSlug={gameSlug} emojis={emojis.data??[]}><ClanNamecardsProvider recordPath={`/games/${gameSlug}/clan/${clanId}/stats`} cards={cards}>{children}</ClanNamecardsProvider></ClanEmojiProvider>
     </MainClanShell>
   );

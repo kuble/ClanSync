@@ -3584,6 +3584,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      complete_balance_tier_welcome: {
+        Args: { p_clan_id: string; p_joined_at: string; p_tiers: Json }
+        Returns: boolean
+      }
       complete_clan_welcome: {
         Args: { p_clan_id: string; p_joined_at: string }
         Returns: boolean
@@ -3816,6 +3820,10 @@ export type Database = {
         Args: { p_clan_id: string; p_round_id: string }
         Returns: Json
       }
+      read_balance_analysis_model: {
+        Args: { p_clan_id: string; p_round_id: string }
+        Returns: Json
+      }
       read_balance_prediction_pool: {
         Args: { p_session_id: string }
         Returns: Json
@@ -3880,6 +3888,10 @@ export type Database = {
           p_kind: string
           p_round_id: string
         }
+        Returns: Json
+      }
+      read_own_balance_entry_tiers: {
+        Args: { p_clan_id: string }
         Returns: Json
       }
       read_player_profile: { Args: { p_user_id: string }; Returns: Json }

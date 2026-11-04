@@ -8,6 +8,7 @@ export type PredictionModel = {
 };
 
 type Round = {
+  id: string;
   roster: unknown;
   resolved_map_label: string | null;
   match_outcome: string;
@@ -15,6 +16,17 @@ type Round = {
   closed_at: string | null;
   predictions_settled_at: string | null;
 };
+
+type PredictionBasis = { ratings: Record<string, number>; baselines: Record<string, number> };
+
+export function readPredictionBasis(raw: unknown): PredictionBasis {
+  function isNumbers(value: unknown): value is Record<string, number> {
+    return !!value && typeof value === "object" && !Array.isArray(value) && Object.values(value).every(Number.isFinite);
+  }
+  if (!raw || typeof raw !== "object" || !("ratings" in raw) || !isNumbers(raw.ratings)
+    || !("baselines" in raw) || !isNumbers(raw.baselines)) throw new Error("분석점수 기준을 불러오지 못했습니다.");
+  return { ratings: raw.ratings, baselines: raw.baselines };
+}
 
 function lineup(roster: BalanceRoster, aliases: Record<string, string>) {
   const people = new Set<string>();
@@ -59,9 +71,9 @@ function teamFeatures(model: PredictionModel, team: string[], map: string | null
   return { rating: rating / 5, synergy: synergy / 10, mapEffect: mapEffect / 5 };
 }
 
-function expectation(model: PredictionModel, teams: string[][], map: string | null) {
+function expectation(model: PredictionModel, teams: string[][], map: string | null, historicalBase?: number) {
   const [a, b] = teams.map(team => teamFeatures(model, team, map));
-  const base = 1 / (1 + (0.35 / 0.65) ** (a.rating - b.rating));
+  const base = historicalBase ?? 1 / (1 + (0.35 / 0.65) ** (a.rating - b.rating));
   const synergy = limit(a.synergy - b.synergy, 0.03);
   const mapEffect = limit(a.mapEffect - b.mapEffect, 0.05);
   let opposition = 0;
@@ -81,8 +93,8 @@ export function analysisWinPercent(model: PredictionModel, roster: BalanceRoster
   return teams ? 100 * expectation(model, teams, map).chance : null;
 }
 
-export function buildPredictionModel(rounds: readonly Round[], before: string, aliases: Record<string, string>): PredictionModel {
-  const model: PredictionModel = { ratings: {}, evidence: {}, aliases };
+export function buildPredictionModel(rounds: readonly Round[], before: string, aliases: Record<string, string>, basis: PredictionBasis): PredictionModel {
+  const model: PredictionModel = { ratings: basis.ratings, evidence: {}, aliases };
   const cutoff = Date.parse(before);
   const events: { at: number; finish: boolean; run: () => void }[] = [];
   function observe(key: string, residual: number) {
@@ -99,21 +111,16 @@ export function buildPredictionModel(rounds: readonly Round[], before: string, a
     if (!teams) continue;
     const map = round.resolved_map_label;
     const actual = round.match_outcome === "draw" ? 0.5 : round.match_outcome === "team1" ? 1 : 0;
+    const baseline = basis.baselines[round.id];
+    if (baseline === undefined) continue;
     // Two rooms may overlap. Freeze expected values at opening and learn at settlement.
-    let baseline = 0.5;
     let matchupBaseline = 0.5;
-    const steps: Record<string, number> = {};
     events.push({ at: start, finish: false, run() {
-      ({ base: baseline, matchupBaseline } = expectation(model, teams, map));
-      for (const team of teams) for (const player of team) {
-        const games = model.evidence[player]?.games ?? 0;
-        steps[player] = games < 10 ? 0.20 : games < 30 ? 0.12 : 0.08;
-      }
+      matchupBaseline = expectation(model, teams, map, baseline).matchupBaseline;
     } }, { at: end, finish: true, run() {
       for (const [side, team] of teams.entries()) {
         const residual = (actual - baseline) * (side === 0 ? 1 : -1);
         for (const [i, player] of team.entries()) {
-          model.ratings[player] = (model.ratings[player] ?? 0) + steps[player] * residual;
           observe(player, residual);
           if (map) observe(mapKey(player, map), residual);
           for (let j = 0; j < i; j++) observe(pairKey(player, team[j]), residual);
