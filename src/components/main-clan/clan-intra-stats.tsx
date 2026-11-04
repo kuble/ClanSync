@@ -39,7 +39,7 @@ export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel;
   const bans = stats.bans.filter((row) => banRole === "all" || row.role === banRole).map((row) => ({ ...row, image: OW_HERO_PORTRAITS[row.id] }));
   const preferredMaps = stats.mapVotes.filter((row) => preferredMapType === "all" || mapDetailsForLabel(row.name)?.type === preferredMapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
   return <div className="space-y-5" aria-label={tx("내전 통계 내용")} aria-busy={loaded.pending}>
-    <section aria-label={tx("내전 통계 기간")} className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} />{settings}</div></section>
+    <section aria-label={tx("내전 통계 기간")} className="@container/stats sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} />{settings}</div></section>
     <div className="relative">
     {loaded.feedback}
     <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />{tx("참여 추이")}</CardTitle></CardHeader>
