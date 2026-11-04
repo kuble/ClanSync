@@ -35,7 +35,7 @@ export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
   predictionVisibleTop: 0,
   participationVisibleTop: 10,
   cumulativeVisibleTop: 10,
-  monthlyRankVisibility: "always",
+  monthlyRankVisibility: "month_start",
   yearlyRankVisibility: "always",
   eligibilityGameThreshold: 100,
   eligibilityBelowPct: 30,
@@ -55,7 +55,7 @@ function topCoerce(v: unknown, fallback: number): number {
 }
 
 function monthVis(v: unknown): "always" | "month_start" {
-  return v === "month_start" ? "month_start" : "always";
+  return v === "always" ? "always" : HOF_CONFIG_DEFAULTS.monthlyRankVisibility;
 }
 
 function yearVis(v: unknown): "always" | "year_start" {

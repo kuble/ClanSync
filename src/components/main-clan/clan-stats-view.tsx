@@ -230,8 +230,8 @@ export function HofSettingsForm({
               "border-input bg-background h-9 w-full rounded-md border px-2 text-sm",
             )}
           >
+            <option value="month_start">{tx("매월 1일")}</option>
             <option value="always">{tx("상시")}</option>
-            <option value="month_start">{tx("다음 달 1일 확정")}</option>
           </select>
         </div>
         <div className="space-y-1">

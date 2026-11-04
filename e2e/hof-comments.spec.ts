@@ -23,6 +23,10 @@ test("HoF comments RLS: membership, author, disclosure and thread boundaries", a
     otherClan = other.id;
     await ok(f.service.from("clan_members").insert({ clan_id: other.id, user_id: f.users[2].id, role: "leader", status: "active" }));
     const thread = { clan_id: f.clanId, ranking: "rate", period_key: "all", content: "응원합니다" };
+    const currentThread = { p_clan_id: f.clanId, p_ranking: "rate", p_period_key: month };
+    expect(await ok(member.rpc("can_access_hof_comments", currentThread))).toBe(false);
+    await ok(f.service.from("clan_settings").upsert({ clan_id: f.clanId, hof_config: { monthly_rank_visibility: "always" } }));
+    expect(await ok(member.rpc("can_access_hof_comments", currentThread))).toBe(true);
     const row = await ok(member.from("clan_hof_comments").insert(thread).select().single());
     expect(row.author_id).toBe(f.users[1].id);
     await ok(member.rpc("set_hof_comment_reaction", { p_comment_id: row.id, p_kind: "like" }));
@@ -96,7 +100,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
   const draft = "이번 승률도 응원합니다!";
   const content = draft + "👏";
   try {
-    await ok(f.service.from("clan_settings").upsert({ clan_id: f.clanId, hof_config: { eligibility_below_pct: 100 } }));
+    await ok(f.service.from("clan_settings").upsert({ clan_id: f.clanId, hof_config: { monthly_rank_visibility: "always", eligibility_below_pct: 100 } }));
     const matches = await ok(f.service.from("matches").insert(Array.from({ length: 3 }, () => ({ clan_id: f.clanId, game_id: f.gameId, status: "finished" as const }))).select("id"));
     await ok(f.service.from("match_players").insert([
       ...matches.map((match, i) => ({ match_id: match.id, user_id: f.users[0].id, team: i === 2 ? 2 : 1 })),
@@ -255,10 +259,10 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
       expect(denied.status()).toBe(307);
       expect(denied.headers().location).toContain("/sign-in?next=");
     } finally { await anonContext.close(); }
-    await ok(f.service.from("clan_settings").update({ hof_config: { eligibility_below_pct: 100, win_rate_visible_top: 0 } }).eq("clan_id", f.clanId));
+    await ok(f.service.from("clan_settings").update({ hof_config: { monthly_rank_visibility: "always", eligibility_below_pct: 100, win_rate_visible_top: 0 } }).eq("clan_id", f.clanId));
     const hidden = await page.request.post(path, { headers: actionHeaders, data: actionRequest.postData()! });
     expect(await hidden.text()).toContain('"ok":false');
-    await ok(f.service.from("clan_settings").update({ hof_config: { eligibility_below_pct: 100 } }).eq("clan_id", f.clanId));
+    await ok(f.service.from("clan_settings").update({ hof_config: { monthly_rank_visibility: "always", eligibility_below_pct: 100 } }).eq("clan_id", f.clanId));
     await page.getByLabel("순위 보고 한마디").focus();
     await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
     const failPeople = async (route: import("@playwright/test").Route) => {

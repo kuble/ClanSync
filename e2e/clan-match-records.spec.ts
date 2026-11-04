@@ -190,7 +190,7 @@ test("내전 참여 최소 비율에는 경기 출전의 고정 횟수를 적용
 
 test("명예의 전당: 공개 전인 이번 달 순위와 확정된 지난달 순위를 구분한다", () => {
   const rows = normalizeClanMatchRecords([], [session({ match_outcome: "team1" })]);
-  const cfg = { ...HOF_CONFIG_DEFAULTS, monthlyRankVisibility: "month_start" as const };
+  const cfg = HOF_CONFIG_DEFAULTS;
   const thisMonth = buildHofPeriod(rows, "month", cfg, new Map(), new Date("2026-09-15T00:00:00Z"));
   const pastMonth = buildHofPeriod(rows, "month", cfg, new Map(), new Date("2026-09-15T00:00:00Z"), [], false, true);
   expect(thisMonth.undisclosed).toBe(true);

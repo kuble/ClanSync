@@ -48,7 +48,7 @@ export async function saveClanHofConfigFormAction(gameSlug: string, clanId: stri
     }
     if (scope === "hof" || scope === "all") {
       for (const [key, fallback] of [["win_rate_visible_top", 10], ["wins_visible_top", 0], ["streak_visible_top", 0], ["prediction_visible_top", 0], ["participation_visible_top", 10], ["cumulative_visible_top", 10]] as const) patch[key] = top(fd, key, fallback);
-      patch.monthly_rank_visibility = fd.get("monthly_rank_visibility") === "month_start" ? "month_start" : "always";
+      if (fd.has("monthly_rank_visibility")) patch.monthly_rank_visibility = fd.get("monthly_rank_visibility") === "always" ? "always" : "month_start";
       patch.yearly_rank_visibility = fd.get("yearly_rank_visibility") === "year_start" ? "year_start" : "always";
       patch.eligibility_game_threshold = numberField(fd, "eligibility_game_threshold", 100, 1, 5000);
       patch.eligibility_below_pct = numberField(fd, "eligibility_below_pct", 30, 1, 100);
