@@ -167,6 +167,10 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     const regular = await scheduledRoom(page, fixture, "regular", "주간 단일 행");
     await expect(page.getByTestId("balance-lobby-room").first()).toHaveAttribute("data-room-id", regular.id);
     const detail = await details(page, regular.id);
+    await expect(detail.getByRole("radio", { name: "정규 내전", exact: true })).toBeChecked();
+    await expect(detail.getByRole("radio", { name: "깜짝 내전", exact: true })).toBeDisabled();
+    await expect(detail.getByRole("radio", { name: "예약", exact: true })).toBeChecked();
+    await expect(detail.getByRole("group", { name: "시작", exact: true }).getByRole("switch", { name: "반복 예약 유지" })).toBeChecked();
     await expect(detail.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
     await expect(detail.getByRole("listbox", { name: "날짜", exact: true })).toHaveCount(0);
     await expect(detail.getByRole("listbox", { name: "초", exact: true })).toHaveCount(0);
