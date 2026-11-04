@@ -3,7 +3,7 @@
 import { useTranslator } from "#use-translator";
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, ExternalLink } from "lucide-react";
+import { Check, ExternalLink, RefreshCw, Unlink2 } from "lucide-react";
 import { disconnectClanDiscordAction, listClanDiscordChannelsAction, updateClanEventNotifyAction } from "@/app/actions/clan-event-notify";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DiscordExampleTabs } from "./discord-benefits-gallery";
 import { HelpText } from "./help-text";
+import { StatTooltip } from "./stat-help";
 import { useAutosave, AutosaveStatus } from "@/components/ui/use-autosave";
 
 export type EventNotifyConnection = { guild_id: string; guild_name: string; channel_id: string | null; channel_name: string | null };
@@ -64,6 +65,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
   const selectClass = "h-9 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-xs focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 sm:max-w-64";
   const status = !connection ? "연결 안 됨" : !channelId ? "채널 선택 필요" : !botConfigured ? "연결 확인 필요" : enabled ? "알림 사용 중" : "알림 꺼짐";
   const channelDisabled = !canEdit || !premium || !connection || !botConfigured || loading || !!loadError;
+  const connectLink = botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined;
   return <div className="space-y-5" data-testid="clan-event-notify-settings">
     {connectionResult === "disconnected" && !connection && <p role="status" className="text-sm text-muted-foreground">{tx("Discord 서버 연결을 해제했습니다.")}</p>}
     {connectionResult === "bot-left" && !connection && <p role="status" className="text-sm text-muted-foreground">클랜 연결을 해제했고 봇도 Discord 서버에서 나갔습니다.</p>}
@@ -87,11 +89,19 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
             <DiscordExampleTabs />
           </DialogContent>
         </Dialog>
-        {canEdit && premium && <Button size="sm" nativeButton={!botConfigured} variant={connection ? "outline" : "default"} disabled={!botConfigured} render={botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined}>
-          <ExternalLink className="size-3.5" />{connection ? tx("서버 다시 연결") : tx("Discord 연결하기")}
-        </Button>}
+        {canEdit && premium && (connection
+          ? <StatTooltip label={tx("서버 다시 연결")} description={tx("Discord에서 서버를 다시 선택하고 봇 권한을 승인합니다.")}
+              render={<Button size="icon-sm" variant="outline" aria-label={tx("서버 다시 연결")} nativeButton={!botConfigured} disabled={!botConfigured} render={connectLink} />}>
+              <RefreshCw aria-hidden />
+            </StatTooltip>
+          : <Button size="sm" nativeButton={!botConfigured} disabled={!botConfigured} render={connectLink}>
+              <ExternalLink className="size-3.5" />{tx("Discord 연결하기")}
+            </Button>)}
         {canEdit && connection && <Dialog onOpenChange={() => setDisconnectError("")}>
-          <DialogTrigger render={<Button type="button" size="sm" variant="destructive" disabled={autosave.status === "saving"} />}>{tx("연결 해제")}</DialogTrigger>
+          <StatTooltip label={tx("연결 해제")} description={tx("Discord 서버 연결을 해제하면 알림과 자동 초대가 중단됩니다.")}
+            render={<DialogTrigger render={<Button type="button" size="icon-sm" variant="destructive" aria-label={tx("연결 해제")} disabled={autosave.status === "saving"} />} />}>
+            <Unlink2 aria-hidden />
+          </StatTooltip>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader><DialogTitle>{tx("Discord 연결을 해제할까요?")}</DialogTitle>
               <DialogDescription><strong>{connection.guild_name}</strong> 서버로 보내는 알림과 자동 초대가 중단되고 대기 중인 알림은 취소됩니다. 이 서버에 연결된 마지막 클랜이면 봇도 서버에서 나갑니다.</DialogDescription>
