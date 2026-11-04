@@ -37,7 +37,6 @@ export function ClanCommunityLinksForm({ gameSlug, clanId, initialLinks, canEdit
   }
   return <section aria-labelledby="clan-community-links-heading" className="rounded-xl border border-border bg-card p-4 sm:p-5">
     <h4 id="clan-community-links-heading" className="flex items-center gap-2 text-sm font-semibold"><MessagesSquare className="size-4 text-primary" aria-hidden />{tx("클랜 채팅방")}</h4>
-    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{tx("등록한 초대 링크는 대시보드에 아이콘으로 표시됩니다.")}</p>
     <form onSubmit={submit} className="mt-5 space-y-4" noValidate>
       <div className="grid gap-4 lg:grid-cols-2">
         {CHAT_SERVICES.map(({ id, label, example }) => {
