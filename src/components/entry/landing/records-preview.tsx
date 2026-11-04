@@ -16,7 +16,7 @@ export function RecordsPreview({ records }: { records: ClanArchiveMatch[] }) {
   const model = useMemo(() => statsExampleModel(records), [records]);
   return <PreviewPagination label={tx("기록과 통계")} slides={[
     { id: "clan", label: "클랜 통계", content: <ShowcaseFrame reverse title={tx("우리 클랜이 즐겨온 경기를 한눈에.")} description={tx("자주 플레이한 맵과 영웅 밴, 선호하는 전장을 살펴보세요.")}><div className={styles.clan}><IntraClanStats model={model} /></div></ShowcaseFrame> },
-    { id: "archive", label: "경기 기록", content: <ShowcaseFrame reverse title={tx("그날의 팀 구성과 성적을 한눈에.")} description={tx("경기별 팀 구성부터 참가자의 승패와 승률까지 함께 살펴보세요.")}><div className={styles.archive}><ClanStatsArchive archive={model.archive} /></div></ShowcaseFrame> },
+    { id: "archive", label: "경기 기록", content: <ShowcaseFrame reverse title={tx("그날의 팀 구성과 성적을 한눈에.")} description={tx("경기별 팀 구성부터 참가자의 승패와 승률까지 함께 살펴보세요.")}><div className={styles.archive}><ClanStatsArchive inlinePreview archive={model.archive} /></div></ShowcaseFrame> },
     { id: "personal", label: "개인 기록", content: <ShowcaseFrame reverse title={tx("함께한 경기가 나만의 기록으로.")} description={tx("역할별 승률과 최근 전적, 연승 기록으로 나의 활약을 확인해요.")}><div className={styles.personal}><PersonalStats model={model} selectedId="example-0" onBack={() => {}} gameSlug="overwatch" clanId={model.clanId} banner={null} /></div></ShowcaseFrame> },
   ]} />;
 }

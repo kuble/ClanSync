@@ -14,6 +14,7 @@ import { StatsPeriodFilter } from "./stats-period-filter";
 import { statsPeriodKey, statsPeriodLabel, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
 import { HofScoreboard } from "./hof-scoreboard";
 import { HofComments } from "./hof-comments";
+import { StatsDrawerTab } from "./stats-side-panel";
 import { useStatsPeriod } from "./use-stats-period";
 
 const RANKINGS = [
@@ -87,10 +88,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
     {loaded.feedback}
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{tx(block.undisclosedHint)}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{tx("공개된 통계 부문이 없습니다.")}</p> : <>
       <div className="grid items-stretch gap-4 min-[1000px]:auto-rows-[max(36rem,calc(100dvh-15rem))] min-[1000px]:grid-cols-2" aria-label={tx("명예의 전당 순위와 반응")}>
-          {!reactions && <button type="button" aria-label={tx("반응")} title={tx("반응 열기")} aria-haspopup="dialog" aria-hidden={reactionsOpen || undefined} tabIndex={reactionsOpen ? -1 : 0} onClick={() => setReactionsOpen(true)}
-            className={`fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring min-[1000px]:hidden ${reactionsOpen ? "invisible pointer-events-none" : ""}`}>
-            <MessageSquare className="size-4" aria-hidden /><span className="[writing-mode:vertical-rl]">{tx("반응")}</span>
-          </button>}
+          {!reactions && <StatsDrawerTab label={tx("반응")} title={tx("반응 열기")} icon={MessageSquare} open={reactionsOpen} onOpen={() => setReactionsOpen(true)} />}
           <Card size="sm" className="h-[36rem] min-h-0 min-w-0 min-[1000px]:h-auto" aria-label={tx("{0} 순위", active.label)}>
             <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={tx(active.label)} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">

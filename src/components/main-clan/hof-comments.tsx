@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslator } from "#use-translator";
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { MessageSquare, RefreshCw } from "lucide-react";
 import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, listHofCommentReactionPeopleAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
 import { HOF_COMMENT_MAX_LENGTH, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
@@ -10,16 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
 import { ClanCommentsDrawer } from "./clan-comments-drawer";
+import { useStatsDrawerLayout } from "./stats-side-panel";
 
 type DrawerProps = { drawerOpen?: boolean; onDrawerOpenChange?: (open: boolean) => void };
-const narrowQuery = "(width < 1000px)";
-function subscribeNarrow(onChange: () => void) {
-  const query = window.matchMedia(narrowQuery);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-const isNarrow = () => window.matchMedia(narrowQuery).matches;
-const serverNarrow = () => false;
 
 /** Preserve the card and controls; only a thread's draft/replies reset on a scope change. */
 export function HofComments(props: HofCommentThread & { label: string } & DrawerProps) {
@@ -30,7 +23,7 @@ export function HofComments(props: HofCommentThread & { label: string } & Drawer
 
 export function HofCommentsCard({ label, disabled, onRefresh, children, drawerOpen = false, onDrawerOpenChange }: { label: string; disabled: boolean; onRefresh: () => void; children: ReactNode } & DrawerProps) {
   const tx = useTranslator();
-  const narrow = useSyncExternalStore(subscribeNarrow, isNarrow, serverNarrow);
+  const narrow = useStatsDrawerLayout();
   const refreshButton = <Button type="button" variant="ghost" size="icon-sm" aria-label={tx("반응 새로고침")} disabled={disabled} onClick={onRefresh}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>;
   if (narrow) return <ClanCommentsDrawer open={drawerOpen} onOpenChange={onDrawerOpenChange} title={tx("반응")} label={tx(label)} action={refreshButton}>{children}</ClanCommentsDrawer>;
   return <Card size="sm" className="hidden min-h-0 min-w-0 overflow-hidden min-[1000px]:flex" aria-label={label + " 반응"}>

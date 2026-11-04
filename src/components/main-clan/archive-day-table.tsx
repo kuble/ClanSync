@@ -2,11 +2,13 @@
 
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Trophy } from "lucide-react";
 import type { ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import { buildArchiveDayStats, sortArchiveDayStats, type ArchiveDaySortKey } from "@/lib/clan/stats/archive-day-stats";
 import { cn } from "@/lib/utils";
+import { ClanCommentsDrawer } from "./clan-comments-drawer";
+import { StatsDrawerTab, useStatsDrawerLayout } from "./stats-side-panel";
 
 const columns: { key: ArchiveDaySortKey; label: string; accessibleLabel?: string }[] = [
   { key: "nickname", label: "이름" },
@@ -17,19 +19,27 @@ const columns: { key: ArchiveDaySortKey; label: string; accessibleLabel?: string
   { key: "maxLossStreak", label: "연패", accessibleLabel: "당일 최장 연패" },
 ];
 
-export function ArchiveDayTable({ records, pending = false }: { records: ClanArchiveMatch[]; pending?: boolean }) {
+function DayTableDrawer({ children }: { children: ReactNode }) {
   const tx = useTranslator();
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  return <>
+    <StatsDrawerTab ref={trigger} label={tx("이날의 기록")} title={tx("이날의 내전 기록")} icon={Trophy} open={open} onOpen={() => setOpen(true)} />
+    <ClanCommentsDrawer open={open} onOpenChange={setOpen} finalFocus={trigger} icon={Trophy} title={tx("이날의 내전 기록")} label={tx("당일 전체 내전 기준")}>
+      {children}
+    </ClanCommentsDrawer>
+  </>;
+}
+
+export function ArchiveDayTable({ records, pending = false, inlinePreview = false }: { records: ClanArchiveMatch[]; pending?: boolean; inlinePreview?: boolean }) {
+  const tx = useTranslator();
+  const narrow = useStatsDrawerLayout();
   const [sort, setSort] = useState<{ key: ArchiveDaySortKey; direction: "asc" | "desc" }>({ key: "rate", direction: "desc" });
   const totals = useMemo(() => buildArchiveDayStats(records), [records]);
   const rows = sortArchiveDayStats(totals, sort.key, sort.direction);
   const SortIcon = sort.direction === "asc" ? ArrowUp : ArrowDown;
-  return <aside className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-muted/15 min-[1100px]:h-auto min-[1100px]:max-h-[max(560px,calc(100dvh-15rem))] min-[1100px]:min-h-[560px]" aria-label={tx("선택한 날짜 내전 기록")}>
-    <div className="flex flex-wrap items-center justify-between gap-1 border-b px-4 py-3">
-      <h5 className="flex items-center gap-2 text-xs font-semibold"><Trophy className="size-4 text-amber-500" aria-hidden="true" />{tx("이날의 내전 기록")}</h5>
-      <span className="text-[10px] text-muted-foreground">{tx("당일 전체 내전 기준")}</span>
-    </div>
-    <div className="min-h-0 flex-1 overflow-auto [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-ring" role="region" aria-label={tx("당일 기록 표 스크롤")} tabIndex={0}>
-      <table className="w-full min-w-[430px] table-fixed text-xs tabular-nums" aria-label={tx("당일 내전 기록 정렬 표")}>
+  const table = <div className="min-h-0 flex-1 overflow-auto [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-ring" role="region" aria-label={tx("당일 기록 표 스크롤")} tabIndex={0}>
+      <table className="w-full table-fixed text-xs tabular-nums" aria-label={tx("당일 내전 기록 정렬 표")}>
         <colgroup><col className="w-[26%]" /><col className="w-[21%]" /><col className="w-[13%]" /><col className="w-[16%]" /><col className="w-[12%]" /><col className="w-[12%]" /></colgroup>
         <thead className="sticky top-0 z-10 bg-card text-[10px] text-muted-foreground">
           <tr>{columns.map((column) => <th key={column.key} scope="col" aria-sort={sort.key === column.key ? sort.direction === "asc" ? "ascending" : "descending" : "none"} className="border-b p-0 font-medium">
@@ -49,6 +59,15 @@ export function ArchiveDayTable({ records, pending = false }: { records: ClanArc
           <td className="text-center">{row.maxWinStreak}</td><td className="text-center">{row.maxLossStreak}</td>
         </tr>)}{!rows.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-muted-foreground"><span role={pending ? "status" : undefined}>{pending ? tx("내전 결과를 불러오는 중…") : tx("집계할 내전 결과가 없습니다.")}</span></td></tr>}</tbody>
       </table>
-    </div>
-  </aside>;
+    </div>;
+  return <>
+    <aside className={cn("min-w-0 flex-col overflow-hidden rounded-xl border bg-muted/15 min-[1000px]:flex min-[1000px]:max-h-[max(560px,calc(100dvh-15rem))] min-[1000px]:min-h-[560px]", inlinePreview ? "flex" : "hidden")} aria-label={tx("선택한 날짜 내전 기록")}>
+      <div className="flex flex-wrap items-center justify-between gap-1 border-b px-4 py-3">
+        <h5 className="flex items-center gap-2 text-xs font-semibold"><Trophy className="size-4 text-amber-500" aria-hidden="true" />{tx("이날의 내전 기록")}</h5>
+        <span className="text-[10px] text-muted-foreground">{tx("당일 전체 내전 기준")}</span>
+      </div>
+      {(!narrow || inlinePreview) && table}
+    </aside>
+    {narrow && !inlinePreview && <DayTableDrawer>{table}</DayTableDrawer>}
+  </>;
 }
