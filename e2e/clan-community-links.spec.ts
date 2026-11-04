@@ -58,7 +58,13 @@ test("leaders manage chat links and active members open dashboard icons", async 
     expect((await svc.from("clan_settings").select("event_notify").eq("clan_id",clanId).single()).data?.event_notify).toEqual(original?.event_notify);
     await page.reload();
     for (const { id,label } of CHAT_SERVICES) await expect(form.getByLabel(label,{ exact:true })).toHaveValue(links[id]);
-    await page.setViewportSize({ width:1280,height:1000 });
+    for (const [width, expectedRows] of [[390, 6], [878, 3], [1280, 2]]) {
+      await page.setViewportSize({ width, height: 884 });
+      const rows = await form.locator('input[type="url"]').evaluateAll(inputs =>
+        new Set(inputs.map(input => Math.round(input.getBoundingClientRect().top))).size);
+      expect(rows).toBe(expectedRows);
+      expect(await form.evaluate(card => card.scrollWidth <= card.clientWidth)).toBe(true);
+    }
     await page.screenshot({ path:test.info().outputPath("community-link-settings.png") });
 
     await page.goto(base);
