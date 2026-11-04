@@ -4,6 +4,7 @@ import { useTranslator } from "#use-translator";
 import Link from "next/link";
 import { useId, useRef, useState, type ReactNode } from "react";
 import { BadgeCheck, ShieldX, UsersRound } from "lucide-react";
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { GameLogo } from "@/components/ui/game-logo";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 import { ProfileIntro } from "./profile-intro";
@@ -65,7 +66,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           <span>{!membership.accountId ? tx("미등록") : membership.isVerified === undefined ? tx("인증 확인 중") : membership.isVerified ? tx("인증됨") : tx("미인증")}</span>
           {!readOnly && (membership.isVerified === false || (!membership.accountId && membership.isVerified === undefined)) && <Link href={`/games/${membership.gameSlug}/auth?reauth=1&next=/profile`}>{membership.accountId ? tx("게임 ID 수정") : membership.gameSlug === "overwatch" ? tx("배틀태그 입력") : tx("게임 ID 입력")}</Link>}
         </div>}
-        <div className={styles.profileAlts} role="region" aria-label={tx("부계정")} tabIndex={0} data-empty={!membership.altAccounts?.length || undefined} data-editable={membership.canManageAlts || undefined}><span><UsersRound size={14} aria-hidden="true" />{tx("부계정")}</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? tx("불러오는 중…") : readOnly ? tx("공개된 부계정 없음") : tx("등록된 부계정 없음")}</span>}</div>{membership.canManageAlts && <ProfileAltAccountsEditor key={userId + membership.gameSlug} gameSlug={membership.gameSlug} onChanged={onAltAccountsChanged} />}</div>
+        <div className={styles.profileAlts} role="region" aria-label={tx("부계정")} tabIndex={0} data-empty={!membership.altAccounts?.length || undefined} data-editable={membership.canManageAlts || undefined}><span><UsersRound size={14} aria-hidden="true" />{tx("부계정")}</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}><PlayerNickname name={nickname} /></span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? tx("불러오는 중…") : readOnly ? tx("공개된 부계정 없음") : tx("등록된 부계정 없음")}</span>}</div>{membership.canManageAlts && <ProfileAltAccountsEditor key={userId + membership.gameSlug} gameSlug={membership.gameSlug} onChanged={onAltAccountsChanged} />}</div>
       </article>)}
       </div>
       <span className="sr-only" role="status" aria-label={tx("현재 클랜")} aria-live="polite">{current + 1} / {profiles.length}</span>

@@ -4,6 +4,7 @@ import type { NamecardAppearance, NamecardCategory } from "@/lib/profile/namecar
 import styles from "./namecard.module.css";
 import { namecardBackground } from "@/lib/profile/backgrounds";
 import { namecardFrame } from "@/lib/profile/frames";
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { SymbolArtwork } from "./symbol-artwork";
 import { NamecardFrameArtwork } from "./namecard-frame-artwork";
 
@@ -17,7 +18,7 @@ export function Namecard({ displayName, title, emblem, namebar, frame, portrait,
       <NamecardFrameArtwork code={portrait} category="portrait" paletteId={portraitPalette} />
       {previewPart !== "portrait" && <span className={styles.symbolArt}><SymbolArtwork emblem={emblem} paletteId={symbolPalette} /></span>}
     </span></span>}
-    {(!previewPart || previewPart === "sub") && <span className={styles.identity}>{!previewPart && <strong title={displayName}>{displayName}</strong>}<small>{title || tx("칭호 없음")}</small></span>}
+    {(!previewPart || previewPart === "sub") && <span className={styles.identity}>{!previewPart && <strong title={displayName}><PlayerNickname name={displayName} /></strong>}<small>{title || tx("칭호 없음")}</small></span>}
     {children && <span className={styles.accessory}>{children}</span>}
   </span>;
 }

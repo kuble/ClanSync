@@ -3,7 +3,8 @@
 .portrait { position:relative; display:grid; place-items:center; width:var(--portrait-size); height:var(--portrait-size); }
 .symbolArt { display:block; width:var(--symbol-art-size); height:var(--symbol-art-size); }
 .card[data-namebar]:not([data-namebar="default"]) { background-size:cover; background-position:center; border-color:#ffffff30; color:#F1F5F3; }
-.card[data-namebar]:not([data-namebar="default"]) .identity small { color:#C3D0CA; }
+.card[data-namebar]:not([data-namebar="default"]) .identity small,
+.card[data-namebar]:not([data-namebar="default"]) .identity strong > span { color:#C3D0CA; }
 .card[data-namebar]:not([data-namebar="default"]) .emblem { background:transparent; }
 .card[data-namebar]:not([data-namebar="default"]) .symbolArt img { filter:none; }
 .card[data-namebar]:not([data-namebar="default"]) { --namecard-frame-color:#c3d0ca; }
