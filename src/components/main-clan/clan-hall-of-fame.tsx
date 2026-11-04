@@ -26,7 +26,7 @@ const RANKINGS = [
   { id: "prediction", label: "예측 적중", help: "적중 횟수순으로 순위를 매깁니다. 적중률을 함께 표시하며 무승부·무효 예측은 제외합니다." },
 ] as const;
 
-type RankRow = { userId: string; nickname: string; value: string; detail: string; rank?: number | null; shortfall?: number };
+type RankRow = { userId: string; nickname: string; value: string | number; unit?: string; detail: string; rank?: number | null; shortfall?: number };
 
 export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions }: {
   model: ClanStatsPageModel; clanId: string; onChoosePerson: (userId: string) => void; settings?: ReactNode; reactions?: ReactNode;
@@ -67,9 +67,9 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
       ...block.participation.map((row, index) => ({ ...row, rank: index + 1, shortfall: 0 })),
       ...(model.permissions.isStaff ? block.unqualifiedParticipation.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumSessions - row.played) })) : []),
     ].sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId))
-      .map((row) => ({ ...row, value: tx("{0}회", row.played), detail: tx("전체 정규 내전 {0}회 중 {1}회 참여 · 참여율 {2}", totals.sessions, row.played, formatPercent(row.ratePct)) })),
-    appearances: block.cumulative.map((row) => ({ ...row, value: tx("{0}경기", row.played), detail: tx("전체 {0}경기 중 {1}경기 출전 · 내전 {2}회", totals.matches, row.played, totals.sessions) })),
-    prediction: block.predictionCorrect.map((row) => ({ ...row, value: tx("{0}회", row.correct), detail: tx("{0}회 예측 중 {1}회 적중 · 적중률 {2}", row.valid, row.correct, formatPercent(row.ratePct ?? 0)) })),
+      .map((row) => ({ ...row, value: row.played, unit: "회", detail: tx("전체 정규 내전 {0}회 중 {1}회 참여 · 참여율 {2}", totals.sessions, row.played, formatPercent(row.ratePct)) })),
+    appearances: block.cumulative.map((row) => ({ ...row, value: row.played, unit: "경기", detail: tx("전체 {0}경기 중 {1}경기 출전 · 내전 {2}회", totals.matches, row.played, totals.sessions) })),
+    prediction: block.predictionCorrect.map((row) => ({ ...row, value: row.correct, unit: "회", detail: tx("{0}회 예측 중 {1}회 적중 · 적중률 {2}", row.valid, row.correct, formatPercent(row.ratePct ?? 0)) })),
   };
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
@@ -120,7 +120,9 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                           <span className="block text-xs leading-relaxed text-muted-foreground">{row.detail}</span>
                           {unqualified && <span className="block text-xs text-muted-foreground">{tx("규정 미달 ·")} {row.shortfall}{active.id === "attendance" ? tx("회") : tx("경기")} {tx("부족")}</span>}
                         </span>
-                        <strong className={`shrink-0 text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : rank === 1 ? "text-pro-gold" : "text-foreground/85"}`}>{row.value}</strong>
+                        <strong className={`shrink-0 whitespace-nowrap text-xl font-bold tracking-tight tabular-nums sm:text-2xl ${unqualified ? "text-muted-foreground" : rank === 1 ? "text-pro-gold" : "text-foreground/85"}`}>
+                          {row.value}{row.unit && <small className="ml-1 text-xs font-normal tracking-normal text-muted-foreground">{tx(row.unit)}</small>}
+                        </strong>
                       </>;
                       const className = `relative flex min-h-[80px] w-full items-center gap-2.5 rounded-lg border p-3 text-left sm:gap-3 ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "border-border/60 bg-background/20"}`;
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
