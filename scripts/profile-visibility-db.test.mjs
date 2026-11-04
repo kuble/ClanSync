@@ -29,7 +29,7 @@ test("signed-in visitors see public profiles without exposing private account da
     const serialized = JSON.stringify(room);
     for (const value of [f.users[0].email, f.users[0].nickname, "housing", "game_uid", "coinBalance", "coin_balance", "auto_login"]) assert.ok(!serialized.includes(value), value);
   });
-  await t.test("each current clan shares its verified game identity and unverified/provider identifiers stay excluded", async () => {
+  await t.test("current clans share their registered game ID and verification status without exposing provider identifiers", async () => {
     const game = await ok(f.service.from("games").select("id").eq("slug", "valorant").single());
     const clanId = randomUUID(), riotId = "PublicRiot#QA1";
     await ok(f.service.from("clans").insert({ id: clanId, game_id: game.id, name: "Public-" + clanId.slice(0, 8) }));
@@ -38,11 +38,14 @@ test("signed-in visitors see public profiles without exposing private account da
       await ok(f.service.from("user_game_profiles").insert({ user_id: userId, game_id: game.id, game_uid: "private-provider-id", riot_id: riotId, is_verified: true }));
       let room = await visit();
       assert.equal(room.memberships.find(m => m.gameSlug === "valorant").accountId, riotId);
+      assert.equal(room.memberships.find(m => m.gameSlug === "valorant").isVerified, true);
       assert.ok(!JSON.stringify(room).includes("private-provider-id"));
       await ok(f.service.from("user_game_profiles").update({ is_verified: false }).eq("user_id", userId).eq("game_id", game.id));
       room = await visit();
-      assert.equal(room.memberships.find(m => m.gameSlug === "valorant").accountId, null);
-      assert.ok(!JSON.stringify(room).includes(riotId));
+      const manual = room.memberships.find(m => m.gameSlug === "valorant");
+      assert.equal(manual.accountId, riotId);
+      assert.equal(manual.isVerified, false);
+      assert.ok(!JSON.stringify(room).includes("private-provider-id"));
     } finally { await ok(f.service.from("clans").delete().eq("id", clanId)); }
   });
   await t.test("leaving the last clan removes membership, while the intro remains viewable", async () => {

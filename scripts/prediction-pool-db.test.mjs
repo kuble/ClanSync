@@ -11,8 +11,7 @@ async function ok(query) {
 test("original host predicts without coins, preserves spectator eligibility and never dilutes payouts", async (t) => {
   const f = await createIsolatedBalanceFixture(13);
   t.after(() => f.cleanup());
-  const hostTag = "PredictionHost#1001";
-  await ok(f.service.from("user_game_profiles").update({ battle_tag: hostTag }).eq("game_id", f.gameId).eq("user_id", f.users[0].id));
+  const hostTag = f.users[0].nickname;
   const [host, winner, officer] = await Promise.all([0, 11, 12].map((index) => f.memberClient(index)));
   await ok(f.service.from("users").update({ coin_balance: 100 }).in("id", [0, 11, 12].map((index) => f.users[index].id)));
   await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[12].id));
