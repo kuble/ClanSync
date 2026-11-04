@@ -64,7 +64,7 @@ export function ClanMemberWelcome({ clanId, clanName, basePath, model, joinedAt,
             {step === 1 && (rules.length ? <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed">{rules.map((rule, i) => <li key={i} className="whitespace-pre-wrap break-words pl-1">{rule}</li>)}</ol> : <p className="text-sm text-muted-foreground">{model.errors.rules ? tx("규칙을 불러오지 못했습니다. 게시판에서 다시 확인하십시오.") : tx("등록된 규칙이 없습니다.")}</p>)}
             {step === 2 && (notices.length ? notices.map(notice => <article key={notice.id} className="rounded-lg border bg-card p-3"><h4 className="text-sm font-semibold break-words">{notice.title}</h4><p className="mt-2 whitespace-pre-wrap break-words text-xs leading-relaxed text-muted-foreground">{notice.content}</p></article>) : <p className="text-sm text-muted-foreground">{model.errors.notices ? tx("공지사항을 불러오지 못했습니다. 게시판에서 다시 확인하십시오.") : tx("등록된 공지사항이 없습니다.")}</p>)}
             {step === 3 && initializedRoles && <>
-              <p className="text-sm text-muted-foreground">첫 내전부터 두 팀의 실력을 고르게 맞출 수 있도록, 배치를 마친 역할의 티어를 꼭 선택해 주세요. 선택한 티어는 초기 분석점수로 변환하며 점수만 저장합니다.</p>
+              <p className="text-sm text-muted-foreground">첫 내전부터 두 팀의 실력을 고르게 맞출 수 있도록, 배치를 마친 역할의 티어를 꼭 선택해 주세요. 티어는 점수로 변환해 저장합니다. 해당 역할의 첫 정규 경기에는 이 점수의 절반을 반영하고, 20판에 걸쳐 그 비중을 줄입니다.</p>
               {OVERWATCH_POSITIONS.map(({ value: role, label }) => initializedRoles.includes(role) ? (
                 <div key={role} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <span>{label}</span><span className="text-muted-foreground">반영 완료</span>

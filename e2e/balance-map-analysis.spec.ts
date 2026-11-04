@@ -78,19 +78,20 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     const opening = await leader.rpc("read_balance_analysis_model", args);
     expect(opening.error).toBeNull();
     const initialBasis = readPredictionBasis((opening.data as { basis: Json }).basis);
-    expect(initialBasis.ratings).toEqual({ [playerId + ":tank"]: 0, [playerId + ":dmg"]: 1, [playerId + ":sup"]: -3.4 });
+    expect(initialBasis.ratings).toEqual({ [playerId + ":tank"]: 0, [playerId + ":dmg"]: 0.5, [playerId + ":sup"]: -1.7 });
     const initialForecast = buildPredictionModel([], round.opened_at, {}, initialBasis);
-    expect(analysisWinPercent(initialForecast, parseRoster(roster), null)).toBeCloseTo(100 / (1 + (0.35 / 0.65) ** 0.2), 8);
-    const finalStart = enteredAt + 1;
-    expect(finalStart + 1).toBeLessThan(Date.parse(round.opened_at));
+    expect(analysisWinPercent(initialForecast, parseRoster(roster), null)).toBeCloseTo(100 / (1 + (0.35 / 0.65) ** 0.1), 8);
+    // One damage appearance predates signup. The next 19 use the remaining role weight.
+    const historyTimes = Array.from({ length: 20 }, (_, i) => i === 0 ? historyStart : enteredAt + i * 10);
+    expect(historyTimes[19] + 1).toBeLessThan(Date.parse(round.opened_at));
     expect((await fixture.service.from("balance_sessions").update({ round_number: 21 }).eq("id", round.id)).error).toBeNull();
     const history = await fixture.service.from("balance_sessions").insert(Array.from({ length: 20 }, (_, i) => ({
       clan_id: fixture.clanId, game_id: fixture.gameId, host_user_id: ids[0], series_id: round.series_id,
-      round_number: i + 1, opened_at: new Date(i === 19 ? finalStart : historyStart + i * 60_000).toISOString(),
-      closed_at: new Date(i === 19 ? finalStart + 1 : historyStart + i * 60_000 + 30_000).toISOString(), phase: "match_live" as const,
+      round_number: i + 1, opened_at: new Date(historyTimes[i]).toISOString(),
+      closed_at: new Date(historyTimes[i] + 1).toISOString(), phase: "match_live" as const,
       match_outcome: i < 10 ? "team1" as const : "team2" as const,
       resolved_map_label: i < 10 ? "리장 타워" : "오아시스", roster,
-    })));
+    }))).select("id,round_number").order("round_number");
     expect(history.error).toBeNull();
     // Assign roles before setting their explicit evaluation scores.
     expect((await fixture.service.from("balance_sessions").update({ roster }).eq("id", round.id)).error).toBeNull();
@@ -110,20 +111,22 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     expect(analysisValue(editorContext, ids[0], "tank", "리장 타워")).toBe(5);
     let learned = 0;
     for (let i = 0; i < 20; i++) {
-      const difference = 2 * learned + (i === 19 ? 1 / 5 : 0);
+      const signupContribution = i === 0 ? 0 : 0.5 - i * 0.025;
+      const difference = 2 * learned + signupContribution / 5;
       const expected = 1 / (1 + (0.35 / 0.65) ** difference);
+      expect(basis.baselines[history.data![i].id]).toBeCloseTo(expected, 8);
       learned += (i < 10 ? 0.2 : 0.12) * ((i < 10 ? 1 : 0) - expected);
     }
     expect(basis.ratings[playerId + ":tank"]).toBe(0);
-    expect(basis.ratings[playerId + ":sup"]).toBe(-3.4);
-    expect(basis.ratings[playerId + ":dmg"]).toBeCloseTo(1 + learned, 8);
+    expect(basis.ratings[playerId + ":sup"]).toBe(-1.7);
+    expect(basis.ratings[playerId + ":dmg"]).toBeCloseTo(learned, 8);
     expect(basis.ratings[ids[5] + ":tank"]).toBeCloseTo(-learned, 8);
     expect(Object.keys(basis.baselines)).toHaveLength(20);
     const model = await leader.rpc("read_balance_analysis_context", { p_round_id: round.id, p_clan_id: fixture.clanId });
     expect(model.error).toBeNull();
     const context = parseAnalysisContext(model.data);
-    expect(analysisValue(context, playerId, "dmg", "오아시스")).toBeCloseTo(1 + learned, 8);
-    expect(analysisValue(context, playerId, "sup", null)).toBe(-3.4);
+    expect(analysisValue(context, playerId, "dmg", "오아시스")).toBeCloseTo(learned, 8);
+    expect(analysisValue(context, playerId, "sup", null)).toBe(-1.7);
     expect(analysisValue(context, ids[0], "tank", "리장 타워")).toBe(5);
     expect(analysisValue(context, ids[0], "tank", "오아시스")).toBe(-5);
     expect(analysisValue(context, ids[0], "tank", "왕의 길")).toBe(0);
@@ -143,7 +146,7 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("리장 타워");
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     const card = panel.locator('[data-roster-slot="team1:tank"]');
-    await expect(panel.locator('[data-roster-slot="team1:d0"]')).toContainText((1 + learned).toFixed(2));
+    await expect(panel.locator('[data-roster-slot="team1:d0"]')).toContainText(learned.toFixed(2));
     await expect(card).toContainText("+5", { timeout: 15_000 });
     const blueChance = panel.getByTestId("team-comparison-graph").getByLabel("1팀 예측 승률", { exact: true });
     const lijiang = parseFloat((await blueChance.textContent())!);
@@ -152,7 +155,7 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     await expect(card).toContainText("-5", { timeout: 15_000 });
     await expect.poll(async () => parseFloat((await blueChance.textContent())!)).toBeCloseTo(lijiang - 5, 1);
     const mapRound = await fixture.activeRound(room.roomId);
-    expect((mapRound.ma_snapshot as Record<string, { a: number }>)[playerId].a).toBeCloseTo(1 + learned, 8);
+    expect((mapRound.ma_snapshot as Record<string, { a: number }>)[playerId].a).toBeCloseTo(learned, 8);
     expect((mapRound.ma_snapshot as Record<string, { m: number; a: number }>)[ids[0]]).toEqual({ m: 2, a: -5 });
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await expect(card).toContainText("+2");
