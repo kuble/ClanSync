@@ -13,6 +13,8 @@ import { OverwatchMapIcon } from "@/components/ui/overwatch-icons";
 import { cn } from "@/lib/utils";
 import { BalanceMapImage } from "./clan-balance-map-image";
 
+const mapTypeGroupClass = "grid grid-flow-col auto-cols-fr gap-1 rounded-xl border border-border bg-muted/20 p-1 @min-[36rem]/map-types:gap-2 @min-[36rem]/map-types:border-0 @min-[36rem]/map-types:bg-transparent @min-[36rem]/map-types:p-0";
+
 function MapTypeCard({ id, label, selected, disabled, onClick }: {
   id: MapType | "all";
   label: string;
@@ -23,9 +25,9 @@ function MapTypeCard({ id, label, selected, disabled, onClick }: {
   const tx = useTranslator();
   return (
     <button type="button" aria-label={tx(label)} title={tx(label)} aria-pressed={selected} disabled={disabled} onClick={onClick}
-      className={cn("flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-default", selected ? "border-primary bg-primary/15 text-primary ring-1 ring-primary/40" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/50 hover:text-foreground")}>
-      {id === "all" ? <LayoutGrid className="size-6" aria-hidden="true" /> : <OverwatchMapIcon type={id} className="size-7" />}
-      <span>{tx(label)}</span>
+      className={cn("flex min-h-10 min-w-0 flex-col items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default @min-[36rem]/map-types:min-h-20 @min-[36rem]/map-types:gap-2 @min-[36rem]/map-types:rounded-xl @min-[36rem]/map-types:border @min-[36rem]/map-types:p-2", selected ? "bg-primary text-primary-foreground @min-[36rem]/map-types:border-primary @min-[36rem]/map-types:bg-primary/15 @min-[36rem]/map-types:text-primary" : "text-muted-foreground hover:text-foreground @min-[36rem]/map-types:border-border @min-[36rem]/map-types:bg-muted/20")}>
+      {id === "all" ? <LayoutGrid className="size-5 @min-[36rem]/map-types:size-6" aria-hidden="true" /> : <OverwatchMapIcon type={id} className="size-5 @min-[36rem]/map-types:size-7" />}
+      <span className="hidden @min-[36rem]/map-types:block">{tx(label)}</span>
     </button>
   );
 }
@@ -41,9 +43,9 @@ export function MapTypeFilter({
 }) {
   const tx = useTranslator();
   return (
-    <fieldset disabled={disabled} className="space-y-3" data-balance-guide="map-types">
-      <legend className="text-sm font-semibold">{tx("맵 유형")}</legend>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
+    <fieldset disabled={disabled} className="@container/map-types min-w-0 space-y-3" data-balance-guide="map-types">
+      <legend className="text-sm font-semibold">{tx("맵 유형")} <span aria-hidden="true" className="ml-1 text-xs font-normal text-muted-foreground @min-[36rem]/map-types:hidden">{value.length ? MAP_TYPES.filter(({ id }) => value.includes(id)).map(({ label }) => tx(label)).join(" · ") : tx("전체")}</span></legend>
+      <div className={mapTypeGroupClass}>
         <MapTypeCard id="all" label={tx("전체")} selected={value.length === 0} disabled={disabled} onClick={() => onChange([])} />
         {MAP_TYPES.map(({ id, label }) => (
           <MapTypeCard
@@ -102,9 +104,9 @@ export function BalanceManualMapPicker({
   return (
     <section className="space-y-4" aria-label={tx("경기 맵")} data-balance-guide="map-picker">
       {gameSlug === "overwatch" && maps.length > 0 ? (
-        <fieldset className="space-y-3" data-balance-guide="map-types">
-          <legend className="text-sm font-semibold">{tx("맵 유형")}</legend>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <fieldset className="@container/map-types min-w-0 space-y-3" data-balance-guide="map-types">
+          <legend className="text-sm font-semibold">{tx("맵 유형")} <span aria-hidden="true" className="ml-1 text-xs font-normal text-muted-foreground @min-[36rem]/map-types:hidden">{tx(types.find(({ id }) => id === type)?.label ?? "기타")}</span></legend>
+          <div className={mapTypeGroupClass}>
             {types.map(({ id, label }) => (
               <MapTypeCard key={id} id={id} label={tx(label)} selected={type === id} disabled={disabled}
                 onClick={() => { setType(id); setPreview(null); }} />
