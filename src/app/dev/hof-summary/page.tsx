@@ -32,7 +32,7 @@ export default function Preview() {
       <h2><span>0{i + 1}</span>{title}</h2><p>{note}</p>
       <article className={styles.card}><h3><Trophy />승률</h3>
         {i === 0 && <div className={styles.bar}><div className={styles.line}><Period /><Metrics /></div><Rule /></div>}
-        {i === 1 && <HofScoreboard period="전체 기간" sessions={295} matches={1280} criterion="30경기 이상 출전" />}
+        {i === 1 && <HofScoreboard sessions={295} matches={1280} criterion="30경기 이상 출전" />}
         {i === 2 && <div className={styles.hero}><div className={styles.lead}><Period /><Metrics indices={[2]} /></div><div className={styles.side}><Metrics indices={[0,1]} /><Rule /></div></div>}
         {i === 3 && <div className={styles.ticket}><div><Period /><Metrics /></div><div className={styles.stub}><Flag /><span>최소 출전 기준</span><strong>30<small>경기 이상</small></strong></div></div>}
         {i === 4 && <div className={styles.criteria}><div className={styles.line}><Rule /><Period /></div><Metrics /></div>}

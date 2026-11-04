@@ -102,7 +102,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
           <Card size="sm" className="h-[36rem] min-h-0 min-w-0 min-[1000px]:h-auto" aria-label={tx("{0} 순위", active.label)}>
             <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={tx(active.label)} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-              <HofScoreboard period={periodLabel} sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} pending={loaded.pending} />
+              <HofScoreboard sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} pending={loaded.pending} />
                 <StatsScrollArea label={tx("{0} 순위 목록", active.label)} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
                   <ol className="space-y-2">
