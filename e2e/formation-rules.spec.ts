@@ -161,6 +161,8 @@ test("applying waits for lottery or random-team reveal but manual keep has no re
   }
   const manual = createFormation(roster, { roles: "manual", teams: "keep" }, keepOrder,
     { id: "manual-draw", startedAt: startTime, durationMs: 4000, roleMode: "manual" });
+  expect(manual.appliedAt).toBe(startTime);
+  expect(getFormationDeadline(manual)).toBeNull();
   expect(advanceFormation(manual, { type: "apply" }, manager, startTime, keepOrder).appliedAt).toBe(startTime);
 });
 

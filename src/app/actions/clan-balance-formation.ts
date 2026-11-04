@@ -135,16 +135,16 @@ export async function updateFormationAction(
       const valid = new Set(
         (pool ?? []).map((p: { user_id: string }) => p.user_id),
       );
-      const { data: resolved, error: preferenceError } =
-        await createServiceRoleClient().rpc(
+      const settings = parseFormationSettings(round.formation_settings);
+      const { data: resolved, error: preferenceError } = settings.roles === "lottery"
+        ? await createServiceRoleClient().rpc(
           "resolve_balance_role_preferences",
           { p_round_id: roundId },
-        );
+        ) : { data: {}, error: null };
       if (preferenceError)
         throw new Error("선호 역할을 불러오지 못했습니다. 다시 시도하십시오.");
       // Client-supplied rankings or rules are not trusted. Both are saved before
       // starting, and preference/settings changes invalidate this revision CAS.
-      const settings = parseFormationSettings(round.formation_settings);
       const { data: auctionItems, error: itemsError } =
         settings.teams === "auction" && settings.auctionItemsEnabled
           ? await client.from("clan_auction_items")

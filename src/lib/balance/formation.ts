@@ -380,6 +380,8 @@ export function createFormation(
   if (setup.teams === "keep" && setup.roles === "manual") {
     state.roster = structuredClone(roster);
     state.remaining = [];
+    // Fixed lineups have no reveal or review. The start command confirms them.
+    if (draw) state.appliedAt = draw.startedAt;
     return state;
   }
   if (setup.teams === "keep" || setup.teams === "random") {
