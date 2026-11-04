@@ -17,7 +17,8 @@ import { buildIntraStats, buildPersonalMatches, type IntraStats, type PersonalMa
 import { buildIntraOverviewPeriods, EMPTY_INTRA_OVERVIEW, type IntraOverview } from "./intra-overview";
 import { canViewPersonalRecords, restrictPersonalStats, type PersonalScore, type PersonalStatsSection } from "./personal-visibility";
 import type { ClanMemberRole } from "../permission-defaults";
-import { readStatsSummary, readStatsRecords, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
+import { readStatsSummary, readStatsRecords, readStatsRolePlayers, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
+import type { StatRole } from "./clan-stats-analytics";
 import type { HofEmblem } from "./hof-emblems";
 import { awardEmblems, awardFamilies, milestoneEmblems, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
 import type { PersonalEmblemCollection } from "@/lib/personal-emblems/types";
@@ -845,12 +846,14 @@ function aggregateHof(data: StatsAggregate, key: string, source: Pick<StatsSourc
   };
 }
 
-export async function loadClanStatsPeriod(supabase: SupabaseClient<Database>, clanId: string, key: string, now = new Date()): Promise<ClanStatsDetail | null> {
+export async function loadClanStatsPeriod(supabase: SupabaseClient<Database>, clanId: string, key: string, now = new Date(), role: StatRole = null): Promise<ClanStatsDetail | null> {
   const source = await loadClanStatsSource(supabase, clanId, "metadata");
   if (!source) return null;
-  const { periods } = await readStatsSummary(clanId, [key]);
+  const [{ periods }, players] = await Promise.all([
+    readStatsSummary(clanId, [key]), role ? readStatsRolePlayers(clanId, key, role) : null,
+  ]);
   const data = periods[key] ?? EMPTY_STATS_AGGREGATE;
-  return { kind: "period", key, hof: aggregateHof(data, key, source, now), intra: source.permissions.viewIntraStats ? data.overview : EMPTY_INTRA_OVERVIEW };
+  return { kind: "period", key, hof: aggregateHof(players ? { ...data, players } : data, key, source, now), intra: source.permissions.viewIntraStats ? data.overview : EMPTY_INTRA_OVERVIEW };
 }
 
 export async function loadClanStatsArchive(supabase: SupabaseClient<Database>, clanId: string, day?: string): Promise<ClanStatsDetail | null> {

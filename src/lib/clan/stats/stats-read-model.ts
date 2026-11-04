@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { OW_HEROES } from "@/lib/balance/ow-hero-ban";
+import type { StatRole } from "./clan-stats-analytics";
 import { EMPTY_INTRA_OVERVIEW, type IntraOverview } from "./intra-overview";
 import { normalizeClanMatchRecords, type StoredClanMatch, type CompletedBalanceSession } from "./normalize-clan-match-records";
 
@@ -40,6 +41,14 @@ export async function readStatsSummary(clanId: string, periods: string[]): Promi
     }).sort((a, b) => b.value - a.value || a.id.localeCompare(b.id, "ko"));
   }
   return summary;
+}
+
+export async function readStatsRolePlayers(clanId: string, period: string, role: NonNullable<StatRole>) {
+  const { data, error } = await createServiceRoleClient().rpc("read_clan_stats_role_players", {
+    p_clan_id: clanId, p_period: period, p_role: role,
+  });
+  if (error) throw new Error("역할별 순위를 불러오지 못했습니다.", { cause: error });
+  return data as unknown as StatsAggregate["players"];
 }
 
 /** Indexed date/member selection. Pagination applies only to that selection. */

@@ -3865,6 +3865,10 @@ export type Database = {
           source: string
         }[]
       }
+      read_clan_stats_role_players: {
+        Args: { p_clan_id: string; p_period: string; p_role: string }
+        Returns: Json
+      }
       read_clan_stats_summary: {
         Args: { p_clan_id: string; p_periods: string[] }
         Returns: Json

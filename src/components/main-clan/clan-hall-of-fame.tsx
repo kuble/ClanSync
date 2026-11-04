@@ -1,6 +1,7 @@
 "use client";
 
 import { PlayerNickname } from "@/components/ui/player-nickname";
+import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
@@ -27,8 +28,15 @@ const RANKINGS = [
 ] as const;
 
 type RankRow = { userId: string; nickname: string; value: string; detail: string; rank?: number | null; shortfall?: number };
+const ROLES = [
+  { id: "all", label: "전체 역할", icon: <OverwatchRoleIcon role="flex" /> },
+  { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> },
+  { id: "dmg", label: "공격", icon: <OverwatchRoleIcon role="damage" /> },
+  { id: "sup", label: "지원", icon: <OverwatchRoleIcon role="support" /> },
+] as const;
 
-export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions }: {
+export function HallOfFame({ model, clanId, showRoles, onChoosePerson, settings, reactions }: {
+  showRoles?: boolean;
   model: ClanStatsPageModel; clanId: string; onChoosePerson: (userId: string) => void; settings?: ReactNode; reactions?: ReactNode;
 }) {
   const tx = useTranslator();
@@ -45,13 +53,18 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
   const month = `${period.year}-${period.month}`, year = period.year;
   const [ranking, setRanking] = useState<(typeof RANKINGS)[number]["id"]>("rate");
   const [reactionsOpen, setReactionsOpen] = useState(false);
-  const selectedBlock = period.mode === "all" ? model.hof.periods.all
+  const available = RANKINGS.filter(({ id }) => visible[id]);
+  const active = available.find(({ id }) => id === ranking) ?? available[0];
+  const [role, setRole] = useState<(typeof ROLES)[number]["id"]>("all");
+  const hasRoleFilter = showRoles && active && active.id !== "prediction";
+  const filteredRole = hasRoleFilter && role !== "all" ? role : null;
+  const selectedBlock = filteredRole ? undefined : period.mode === "all" ? model.hof.periods.all
     : period.mode === "month" ? (month === currentMonth ? model.hof.periods.month : model.hof.historyMonths[month])
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
-  const loaded = useStatsPeriod(model, statsPeriodKey(period), !selectedBlock);
+  const loaded = useStatsPeriod(model, statsPeriodKey(period), !selectedBlock, filteredRole);
   const block = selectedBlock ?? loaded.data?.hof ?? {
     totals: { sessions: 0, days: 0, matches: 0 }, minimumGames: 1, minimumSessions: 1, unqualifiedParticipation: [],
-    unqualified: model.permissions.isStaff ? [...model.hof.periods.all.winRate, ...model.hof.periods.all.unqualified].map((row) => ({ ...row, wins: 0, draws: 0, losses: 0, ratePct: null })) : [],
+    unqualified: !filteredRole && model.permissions.isStaff ? [...model.hof.periods.all.winRate, ...model.hof.periods.all.unqualified].map((row) => ({ ...row, wins: 0, draws: 0, losses: 0, ratePct: null })) : [],
     undisclosed: false, undisclosedHint: null, winRate: [], wins: [], streaks: [], participation: [], cumulative: [], predictionCorrect: [],
   };
   const { totals } = block;
@@ -69,8 +82,6 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
     appearances: block.cumulative.map((row) => ({ ...row, value: tx("{0}경기", row.played), detail: tx("전체 {0}경기 중 {1}경기 출전 · 내전 {2}회", totals.matches, row.played, totals.sessions) })),
     prediction: block.predictionCorrect.map((row) => ({ ...row, value: tx("{0}회", row.correct), detail: tx("{0}회 예측 중 {1}회 적중 · 적중률 {2}", row.valid, row.correct, formatPercent(row.ratePct ?? 0)) })),
   };
-  const available = RANKINGS.filter(({ id }) => visible[id]);
-  const active = available.find(({ id }) => id === ranking) ?? available[0];
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
   const criteria = {
@@ -90,8 +101,19 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
         </div>
         <div className="hidden @min-[15rem]/hof:block @max-[41rem]/hof:[&_[role=radio]]:px-1.5"><RubberSegment label={tx("부문")} labelPosition="hidden" options={available} value={active.id} onChange={setRanking} /></div>
       </>}
-      <div className="flex max-w-full min-w-0 grow basis-max items-center gap-1.5 @min-[15rem]/hof:@max-[29rem]/hof:basis-full sm:gap-3">
+      <div className="flex max-w-full min-w-0 grow flex-wrap basis-max items-center gap-1.5 @min-[15rem]/hof:@max-[29rem]/hof:basis-full sm:gap-3">
         <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
+        {hasRoleFilter && <>
+          <div className="@min-[44rem]/hof:hidden">
+            <PeriodSelect label="출전 역할" options={ROLES} value={role} onChange={(id) => {
+              const option = ROLES.find((item) => item.id === id);
+              if (option) setRole(option.id);
+            }} />
+          </div>
+          <div className="hidden @min-[44rem]/hof:block [&_[role=radio]]:min-w-8 [&_[role=radio]]:px-2">
+            <RubberSegment label="출전 역할" labelPosition="hidden" options={ROLES} value={role} onChange={setRole} />
+          </div>
+        </>}
         <div className="ml-auto shrink-0 empty:hidden">{settings}</div>
       </div>
     </section>

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { loadTestEnv } from "../scripts/test-env.mjs";
-import { createIsolatedBalanceFixture } from "./isolated-balance-fixture";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { loadClanStatsPage, loadClanStatsPeriod, loadClanStatsArchive, loadClanStatsDetail } from "../src/lib/clan/stats/load-clan-stats";
 
 async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
@@ -11,7 +11,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   return data as NonNullable<T>;
 }
 
-test("stats read model stays exact across results, corrections, predictions, cascades and permission changes", async () => {
+test("stats read model stays exact across results, corrections, predictions, cascades and permission changes", async ({ page }) => {
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(3);
   const now = new Date("2026-10-09T12:00:00Z");
@@ -27,7 +27,7 @@ test("stats read model stays exact across results, corrections, predictions, cas
         id, series_id: seriesId, round_number: i + 1, clan_id: f.clanId, game_id: f.gameId, host_user_id: f.users[0].id,
         opened_at: `2026-10-01T0${i}:00:00Z`, phase: "map_ban", match_outcome: "pending", prediction_pool_enabled: false,
         hero_ban_enabled: true, map_ban_enabled: true, map_ban_deadline_at: new Date(Date.now() + 60_000).toISOString(), map_candidates: ["부산", "네팔", "오아시스"],
-        roster: { team1: { tank: f.users[0].id, dmg: [null, null], sup: [null, null] }, team2: { tank: f.users[1].id, dmg: [null, null], sup: [null, null] } },
+        roster: { team1: { tank: i === 2 ? null : f.users[0].id, dmg: [null, null], sup: [i === 2 ? f.users[0].id : null, null] }, team2: { tank: f.users[1].id, dmg: [null, null], sup: [null, null] } },
         ma_snapshot: { [f.users[0].id]: { m: 1.2, a: 2.3 }, [f.users[1].id]: { m: -0.5, a: null } },
       }));
       await ok(f.service.from("balance_session_map_votes").insert({ session_id: id, user_id: f.users[0].id, choice_idx: 1 }));
@@ -55,6 +55,27 @@ test("stats read model stays exact across results, corrections, predictions, cas
       return summary!;
     }
     expect((await parity()).summary.intraCount).toBe(4);
+    const [tank, support, damage] = await Promise.all((["tank", "sup", "dmg"] as const).map(role =>
+      loadClanStatsPeriod(leader, f.clanId, "all", now, role)));
+    expect(tank?.kind === "period" && tank.hof.winRate.find(p => p.userId === f.users[0].id))
+      .toMatchObject({ wins: 1, draws: 1, losses: 0, ratePct: 50 });
+    expect(tank?.kind === "period" && tank.hof.participation.find(p => p.userId === f.users[0].id)?.played).toBe(1);
+    expect(support?.kind === "period" && support.hof.cumulative).toMatchObject([{ userId: f.users[0].id, played: 1 }]);
+    expect(damage?.kind === "period" && damage.hof.cumulative).toEqual([]);
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(f.path.replace(/balance$/, "stats"));
+    const filters = page.getByRole("region", { name: "명예의 전당 필터" });
+    await filters.getByRole("radiogroup", { name: "출전 역할" }).getByRole("radio", { name: "돌격" }).click();
+    await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("1승 / 1무 / 0패");
+    await page.setViewportSize({ width: 390, height: 844 });
+    const roleSelect = filters.getByRole("combobox", { name: "출전 역할" });
+    await roleSelect.click();
+    await page.getByRole("option", { name: "지원", exact: true }).click();
+    await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("0승 / 0무 / 1패");
+    await filters.getByRole("radio", { name: "예측 적중" }).click();
+    await expect(roleSelect).toBeHidden();
+    await filters.getByRole("radio", { name: "승률" }).click();
+    await expect(roleSelect).toHaveText("지원");
     await Promise.all([
       ok(f.service.from("match_results").update({ winner_team: 2 }).eq("match_id", explicitId)),
       ok(f.service.from("balance_session_predictions").update({ pool_settlement: "refund" }).eq("session_id", roundIds[1])),
@@ -82,6 +103,7 @@ test("stats read model stays exact across results, corrections, predictions, cas
     await parity();
     const env = loadTestEnv(), anon = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     for (const client of [member, anon]) {
+      expect((await client.rpc("read_clan_stats_role_players", { p_clan_id: f.clanId, p_period: "all", p_role: "tank" })).error).not.toBeNull();
       expect((await client.rpc("read_clan_stats_summary", { p_clan_id: f.clanId, p_periods: ["all"] })).error).not.toBeNull();
       expect((await client.rpc("read_clan_stats_records", { p_clan_id: f.clanId, p_day: "2026-09-29" })).error).not.toBeNull();
     }
@@ -90,7 +112,8 @@ test("stats read model stays exact across results, corrections, predictions, cas
       const period = await loadClanStatsPeriod(member, f.clanId, key, now);
       expect(period?.kind === "period" && period.hof.undisclosed).toBe(true);
     }
-    expect(await loadClanStatsDetail(member, f.users[2].id, f.clanId, f.users[0].id)).toBeNull();
+    const publicDetail = await loadClanStatsDetail(member, f.users[2].id, f.clanId, f.users[0].id);
+    expect(publicDetail).toMatchObject({ kind: "personal", person: { visibleSections: ["predictions", "emblems"], matches: [], scores: [], predictionPoints: [] } });
     await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id));
     expect(await loadClanStatsPage(member, f.users[2].id, f.clanId, { deferDetails: true })).toBeNull();
     expect(await loadClanStatsPeriod(member, f.clanId, "all")).toBeNull();
