@@ -37,3 +37,9 @@
   .overview { grid-template-areas: "metrics" "record" "badges"; grid-template-columns: minmax(0, 1fr); }
   .badges { margin-top: 12px; }
 }
+
+@media (max-width: 400px) {
+  .metrics { grid-template-columns: 1fr 1.2fr 1fr; }
+  .metric { padding-inline: 8px; }
+  .metric h4 { gap: 4px; }
+}
