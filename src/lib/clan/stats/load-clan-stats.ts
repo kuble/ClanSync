@@ -885,7 +885,7 @@ async function loadClanStatsOverview(supabase: SupabaseClient<Database>, userId:
       matches: [], predictions: [], predictionPoints: [],
     })) },
     summary: { ...all.summary, memberCount: source.memberCount ?? 0, clanCreatedAt: source.clan.created_at },
-    hof: { exposeHof: source.settings?.expose_hof ?? false, config: resolveHofConfig(source.settings?.hof_config),
+    hof: { exposeHof: true, config: resolveHofConfig(source.settings?.hof_config),
       periods: { all: aggregateHof(all, "all", source, now), month: aggregateHof(periods[monthKey] ?? EMPTY_STATS_AGGREGATE, monthKey, source, now), year: aggregateHof(periods[String(year)] ?? EMPTY_STATS_AGGREGATE, String(year), source, now) },
       historyMonths: {}, historyYears: {},
     },
@@ -949,7 +949,7 @@ export async function loadClanStatsPageFromRecords(
   // A void result remains visible in the archive but does not count as a played match.
   const matches = records.filter((record) => record.outcome !== "void" && record.outcome !== "unrecorded");
   const cfg = resolveHofConfig(settings?.hof_config);
-  const exposeHof = settings?.expose_hof ?? false;
+  const exposeHof = true;
   const nick = buildNickMap(nickRows);
 
   let intraCount = 0;

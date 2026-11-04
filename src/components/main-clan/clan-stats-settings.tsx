@@ -31,7 +31,7 @@ export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
         {scope === "personal" && <SheetDescription>{description}</SheetDescription>}
       </SheetHeader>
       {scope === "hof" || scope === "personal" ? <HofSettingsForm scope={scope} gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config}
-        exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setOpen(false)} />
+        onDone={() => setOpen(false)} />
         : <StatsAccessSettings model={model} gameSlug={gameSlug} clanId={clanId} scope={scope} onDone={() => setOpen(false)} />}
     </div></SheetContent>
   </Sheet>;

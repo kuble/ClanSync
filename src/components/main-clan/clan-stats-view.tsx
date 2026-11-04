@@ -85,27 +85,18 @@ export function HofSettingsForm({
   gameSlug,
   clanId,
   cfg,
-  exposeHof,
-  isLeader,
   onDone,
   scope = "all",
 }: {
   gameSlug: string;
   clanId: string;
   cfg: ResolvedHofConfig;
-  exposeHof: boolean;
-  isLeader: boolean;
   onDone: () => void;
   scope?: "all" | "hof" | "personal";
 }) {
   const tx = useTranslator();
   const [pending, start] = useTransition();
   const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
-  const profileLabel = tx("명예의 전당을 클랜 프로필에 공개");
-  const profileSwitch = <div className="flex items-center justify-between gap-3 text-sm">
-    <StatHelp title={profileLabel}>클랜 프로필을 방문한 사람에게 공개합니다.</StatHelp>
-    <Switch id="expose_hof" name="expose_hof" aria-label={profileLabel} defaultChecked={exposeHof} />
-  </div>;
   return (
     <form
       className="flex min-h-0 flex-1 flex-col gap-4"
@@ -133,24 +124,13 @@ export function HofSettingsForm({
           <StatHelp title={tx(label)}>{description}</StatHelp>
           <Switch aria-label={tx(label)} checked={personalSections.includes(id)} onChange={event => { const checked = event.currentTarget.checked; setPersonalSections(current => checked ? [...current, id] : current.filter(section => section !== id)); }} />
         </div>)}
-      </section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
-        <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label={tx("명예의 전당 설정 영역")}>
-          {scope === "all" && <TabsTrigger value="access">{tx("열람·공개")}</TabsTrigger>}
+      </section></div> : <Tabs defaultValue="ranking" className="min-h-0 flex-1 gap-4">
+        <TabsList className="grid h-10 w-full shrink-0 grid-cols-2" aria-label={tx("명예의 전당 설정 영역")}>
           <TabsTrigger value="ranking">{tx("순위 공개")}</TabsTrigger>
           <TabsTrigger value="eligibility">{tx("등재 기준")}</TabsTrigger>
         </TabsList>
         <div className="board-scroll min-h-0 flex-1 overflow-y-auto pb-1">
-      {scope === "all" && <TabsContent value="access" keepMounted>
-      <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
-      <h4 id="hof-access-title" className="text-sm font-semibold">{tx("열람·공개")}</h4>
-      {isLeader && profileSwitch}
-      </section>
-      </TabsContent>}
       <TabsContent value="ranking" keepMounted className="space-y-4">
-      {scope === "hof" && isLeader && <section className="space-y-3 rounded-xl border p-4" aria-label={tx("프로필 공개")}>
-        <h4 className="text-sm font-semibold">{tx("프로필 공개")}</h4>
-        {profileSwitch}
-      </section>}
       <section aria-labelledby="hof-ranking-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-ranking-title" className="text-sm font-semibold">{tx("멤버 공개 범위")}</h4>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -488,8 +468,6 @@ export function ClanStatsView({
                       gameSlug={gameSlug}
                       clanId={clanId}
                       cfg={model.hof.config}
-                      exposeHof={model.hof.exposeHof}
-                      isLeader={model.permissions.isLeader}
                       onDone={() => setHofOpen(false)}
                     />
                   </DialogContent>

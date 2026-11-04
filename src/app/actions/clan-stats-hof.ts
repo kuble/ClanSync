@@ -54,7 +54,6 @@ export async function saveClanHofConfigFormAction(gameSlug: string, clanId: stri
       patch.eligibility_below_pct = numberField(fd, "eligibility_below_pct", 30, 1, 100);
       patch.eligibility_above_min_games = numberField(fd, "eligibility_above_min_games", 30, 1, 2000);
       patch.eligibility_session_pct = numberField(fd, "eligibility_session_pct", 30, 1, 100);
-      if (member.role === "leader") patch.expose_hof = fd.get("expose_hof") === "on" || fd.get("expose_hof") === "true";
     }
   }
   const { error: saveError } = await createServiceRoleClient().rpc("save_clan_stats_settings", {
