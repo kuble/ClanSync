@@ -2,6 +2,7 @@
 
 import { useTranslator } from "#use-translator";
 import { useId, useRef, useState, type ReactElement, type ReactNode } from "react";
+import { CircleHelp } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Pointer hover never latches focus open; touch can toggle, keyboard uses focus/Escape. */
@@ -28,4 +29,11 @@ export function StatHelp({ title, children }: { title: string; children: ReactNo
 }
 export function StatTitle({ title, help }: { title: string; help: ReactNode }) {
   return <StatHelp title={title}>{help}</StatHelp>;
+}
+
+export function StatHelpIcon({ title, help }: { title: string; help: string }) {
+  const tx = useTranslator();
+  return <StatTooltip label={tx("{0} 도움말", tx(title))} description={tx(help)} className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+    <CircleHelp className="size-4" aria-hidden />
+  </StatTooltip>;
 }

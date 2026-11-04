@@ -20,7 +20,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -31,10 +30,9 @@ import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import type { ResolvedHofConfig } from "@/lib/clan/stats/hof-config";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { cn } from "@/lib/utils";
-import { HofEligibilitySettings, HofEligibilityPreview, useHofEligibilityDraft } from "./hof-eligibility-settings";
-import settingsStyles from "./hof-settings.module.css";
+import { HofEligibilitySettings } from "./hof-eligibility-settings";
 import { PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
-import { StatHelp } from "./stat-help";
+import { StatHelp, StatHelpIcon } from "./stat-help";
 import {
   Activity,
   BarChart3,
@@ -87,8 +85,6 @@ export function HofSettingsForm({
   gameSlug,
   clanId,
   cfg,
-  totalGames,
-  totalSessions,
   exposeHof,
   isLeader,
   onDone,
@@ -97,8 +93,6 @@ export function HofSettingsForm({
   gameSlug: string;
   clanId: string;
   cfg: ResolvedHofConfig;
-  totalGames?: number;
-  totalSessions?: number;
   exposeHof: boolean;
   isLeader: boolean;
   onDone: () => void;
@@ -107,7 +101,13 @@ export function HofSettingsForm({
   const tx = useTranslator();
   const [pending, start] = useTransition();
   const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
-  const draft = useHofEligibilityDraft(cfg);
+  const profileLabel = tx("명예의 전당을 클랜 프로필에 공개");
+  const profileSwitch = <div className="flex items-center justify-between gap-3 text-sm">
+    <div className="flex items-center gap-1"><label htmlFor="expose_hof" className="cursor-pointer">{profileLabel}</label>
+      <StatHelpIcon title={profileLabel} help="클랜 프로필을 방문한 사람에게 공개합니다." />
+    </div>
+    <Switch id="expose_hof" name="expose_hof" defaultChecked={exposeHof} />
+  </div>;
   return (
     <form
       className="flex min-h-0 flex-1 flex-col gap-4"
@@ -145,19 +145,13 @@ export function HofSettingsForm({
       {scope === "all" && <TabsContent value="access" keepMounted>
       <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-access-title" className="text-sm font-semibold">{tx("열람·공개")}</h4>
-      {isLeader && <label className="flex cursor-pointer items-start justify-between gap-3 border-t pt-3 text-sm">
-        <span>{tx("명예의 전당을 클랜 프로필에 공개")}<span className="mt-1 block text-xs text-muted-foreground">{tx("클랜 프로필을 방문한 사람에게 공개합니다.")}</span></span>
-        <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
-      </label>}
+      {isLeader && profileSwitch}
       </section>
       </TabsContent>}
       <TabsContent value="ranking" keepMounted className="space-y-4">
       {scope === "hof" && isLeader && <section className="space-y-3 rounded-xl border p-4" aria-label={tx("프로필 공개")}>
         <h4 className="text-sm font-semibold">{tx("프로필 공개")}</h4>
-        <label className="flex cursor-pointer items-start justify-between gap-3 text-sm">
-          <span>{tx("명예의 전당을 클랜 프로필에 공개")}<span className="mt-1 block text-xs text-muted-foreground">{tx("클랜 프로필을 방문한 사람에게 공개합니다.")}</span></span>
-          <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
-        </label>
+        {profileSwitch}
       </section>}
       <section aria-labelledby="hof-ranking-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-ranking-title" className="text-sm font-semibold">{tx("순위 공개 범위")}</h4>
@@ -258,8 +252,7 @@ export function HofSettingsForm({
       </section>
       </TabsContent>
       <TabsContent value="eligibility" keepMounted>
-        <HofEligibilitySettings draft={draft} />
-        <div className={settingsStyles.preview}><HofEligibilityPreview draft={draft} totalGames={totalGames} totalSessions={totalSessions} /></div>
+        <HofEligibilitySettings cfg={cfg} />
       </TabsContent>
         </div>
       </Tabs>}
@@ -488,10 +481,10 @@ export function ClanStatsView({
                   </DialogTrigger>
                   <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
-                      <DialogTitle>{tx("명예의 전당 설정")}</DialogTitle>
-                      <DialogDescription>
-                        {tx("순위 공개 범위와 등재 기준을 정합니다.")}
-                      </DialogDescription>
+                      <div className="flex items-center gap-1">
+                        <DialogTitle>{tx("명예의 전당 설정")}</DialogTitle>
+                        <StatHelpIcon title="명예의 전당 설정" help="순위 공개 범위와 등재 기준을 정합니다." />
+                      </div>
                     </DialogHeader>
                     <HofSettingsForm
                       gameSlug={gameSlug}

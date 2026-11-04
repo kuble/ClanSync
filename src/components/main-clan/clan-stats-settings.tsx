@@ -2,7 +2,7 @@
 import { useTranslator } from "#use-translator";
 import { Switch } from "@/components/ui/switch";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
 import { Settings2 } from "lucide-react";
@@ -10,12 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { HofSettingsForm } from "./clan-stats-view";
+import { StatHelpIcon } from "./stat-help";
 import styles from "./hof-settings.module.css";
 
 export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
   model: ClanStatsPageModel; gameSlug: string; clanId: string; scope: "hof" | "personal" | "records" | "intra";
 }) {
   const [open, setOpen] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   if (scope === "records" || scope === "intra" ? !model.permissions.isLeader : !model.permissions.isStaff || !model.permissions.setHofRules) return null;
   const title = { hof: "명예의 전당 설정", personal: "개인 기록 설정", records: "경기 기록 설정", intra: "내전 통계 설정" }[scope];
   const description = { hof: "순위 공개와 등재 기준을 설정합니다.", personal: "일반 멤버에게 공개할 통계 항목을 선택합니다.", records: "경기 기록의 열람·추가·편집·삭제 대상을 각각 선택합니다.", intra: "내전 통계를 볼 수 있는 대상을 선택합니다." }[scope];
@@ -23,10 +25,12 @@ export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
     <SheetTrigger render={<Button type="button" size="icon" variant="ghost" className="border-border bg-muted/20 sm:border-transparent sm:bg-transparent" aria-label={title} title={title} />}>
       <Settings2 className="size-4" aria-hidden="true" />
     </SheetTrigger>
-    <SheetContent className={styles.sheet}><div className={styles.panel}>
-      <SheetHeader className="shrink-0 px-5 pb-5 pt-5 pr-12"><SheetTitle>{title}</SheetTitle><SheetDescription>{description}</SheetDescription></SheetHeader>
+    <SheetContent className={styles.sheet} initialFocus={titleRef}><div className={styles.panel}>
+      <SheetHeader className="shrink-0 px-5 pb-5 pt-5 pr-12">
+        <div className="flex items-center gap-1"><SheetTitle tabIndex={-1} ref={titleRef}>{title}</SheetTitle>{scope !== "personal" && <StatHelpIcon title={title} help={description} />}</div>
+        {scope === "personal" && <SheetDescription>{description}</SheetDescription>}
+      </SheetHeader>
       {scope === "hof" || scope === "personal" ? <HofSettingsForm scope={scope} gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config}
-        totalGames={model.hof.periods.all.totals.matches} totalSessions={model.hof.periods.all.totals.sessions}
         exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setOpen(false)} />
         : <StatsAccessSettings model={model} gameSlug={gameSlug} clanId={clanId} scope={scope} onDone={() => setOpen(false)} />}
     </div></SheetContent>
@@ -57,7 +61,6 @@ function StatsAccessSettings({ model, gameSlug, clanId, scope, onDone }: {
           return <tr key={key} className="border-b last:border-b-0"><th scope="row" className="p-3 text-left font-medium">{tx(label)}</th>{([{ id: "leader", label: "클랜장" }, { id: "officer", label: "운영진" }, { id: "member", label: "멤버" }] as const).map((role) => <td key={role.id} className="p-2 text-center"><Switch name={key} value={role.id} aria-label={`${label} ${role.label}`} defaultChecked={role.id === "leader" || selected.includes(role.id)} disabled={role.id === "leader"} />{role.id === "leader" && <input type="hidden" name={key} value="leader" />}</td>)}</tr>;
         })}</tbody>
       </table>
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{tx("클랜장은 항상 허용됩니다.")}{scope === "records" && " 추가·편집·삭제 권한을 가진 사람도 경기 열람이 허용되어야 작업할 수 있습니다."}</p>
     </fieldset>
     <div className="flex shrink-0 justify-end gap-2 border-t px-5 py-4"><Button variant="outline" type="button" disabled={pending} onClick={onDone}>{tx("취소")}</Button><Button type="submit" disabled={pending}>{pending ? tx("저장 중…") : tx("저장")}</Button></div>
   </form>;

@@ -10,7 +10,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   return data as NonNullable<T>;
 }
 
-test("stats: session summary, visual eligibility and settings tabs preserve saved fields", async ({ page }) => {
+test("stats: session summary, eligibility rules and settings tabs preserve saved fields", async ({ page }) => {
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1304, height: 884 });
   const f = await createIsolatedBalanceFixture(2);
@@ -64,7 +64,7 @@ test("stats: session summary, visual eligibility and settings tabs preserve save
     await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
     const personalSettings = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
-    await personalSettings.getByRole("radiogroup", { name: "기록 공개", exact: true }).getByRole("radio", { name: "멤버", exact: true }).click();
+    await expect(personalSettings.getByRole("switch", { name: "경기 전적", exact: true })).toBeVisible();
     await personalSettings.getByRole("button", { name: "저장", exact: true }).click();
     await expect(personalSettings).toBeHidden();
     await page.getByRole("tab", { name: "명예의 전당", exact: true }).click();
@@ -77,33 +77,9 @@ test("stats: session summary, visual eligibility and settings tabs preserve save
     await settings.getByLabel("전체 경기의", { exact: true }).fill("50");
     await settings.getByLabel("출전 횟수", { exact: true }).fill("7");
     await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("60");
-    const preview = settings.getByLabel("순위 등재 미리보기", { exact: true });
-    await expect(preview.getByText("미리보기", { exact: true })).toBeVisible();
-    await expect(settings.getByRole("button", { name: /^\d+경기$/ })).toHaveCount(0);
-    const total = preview.getByLabel("클랜 전체 경기", { exact: true });
-    await expect(total).toHaveAttribute("max", "200");
-    await total.press("Home");
-    for (let i = 0; i < 10; i++) await total.press("ArrowRight");
-    await expect(preview.locator("output")).toContainText("5경기");
-    await total.press("ArrowRight");
-    await expect(preview.locator("output")).toContainText("7경기");
-    await settings.getByLabel("멤버 출전", { exact: true }).press("End");
-    await expect(settings.getByRole("status", { name: "출전 기준 확인", exact: true })).toContainText("순위 등재 가능");
-    await total.press("End");
-    await expect(total).toHaveValue("200");
-    await expect(preview.locator("output")).toContainText("순위 등재 최소 요구 경기7경기");
-    const previewBox = await preview.boundingBox();
-    const rulesBox = await settings.getByLabel("전체 정규 내전의", { exact: true }).boundingBox();
-    expect(previewBox!.x + previewBox!.width).toBeLessThan(rulesBox!.x);
+    await expect(settings.getByLabel("순위 등재 미리보기", { exact: true })).toHaveCount(0);
     await settings.getByRole("button", { name: "순위 등재 기준 도움말", exact: true }).focus();
     await expect(page.getByRole("tooltip")).toContainText("새벽까지");
-    await preview.getByRole("button", { name: "내전 참여", exact: true }).click();
-    await expect(preview.locator("output")).toContainText("2회");
-    await preview.getByLabel("클랜 전체 내전", { exact: true }).press("End");
-    await expect(preview.locator("output")).toContainText("120회");
-    await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("50");
-    await expect(preview.locator("output")).toContainText("100회");
-    await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("60");
     await settings.getByRole("button", { name: "저장", exact: true }).click();
     await expect(settings).toBeHidden();
     const saved = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
@@ -121,9 +97,8 @@ test("stats: session summary, visual eligibility and settings tabs preserve save
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
-    await expect(preview).toBeVisible();
-    const mobile = await preview.boundingBox();
-    expect(mobile!.width).toBeLessThanOrEqual(350);
+    await expect(settings.getByLabel("전체 정규 내전의", { exact: true })).toHaveValue("60");
+    await expect(settings.getByRole("button", { name: "저장", exact: true })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally { await f.cleanup(); }
 });
