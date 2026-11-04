@@ -372,7 +372,6 @@ export function buildHofPeriod(
 
   const cumulative: HofRowCumulative[] = [];
   for (const uid of played.keys()) {
-    if (!eligible(uid)) continue;
     cumulative.push({
       userId: uid,
       nickname: nick.get(uid) ?? "알 수 없음",
@@ -838,7 +837,7 @@ function aggregateHof(data: StatsAggregate, key: string, source: Pick<StatsSourc
     streaks: top(data.players.filter((p) => p.longest > 0).map((p) => ({ userId: p.userId, nickname: name(p.userId), longest: p.longest })).sort((a, b) => b.longest - a.longest || a.nickname.localeCompare(b.nickname, "ko")), cfg.streakVisibleTop),
     participation: top(data.players.map((p) => participationRow(p.userId)).filter((p) => p.played > 0).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.participationVisibleTop),
 
-    cumulative: top(data.players.filter((p) => p.played >= minimum).map((p) => ({ userId: p.userId, nickname: name(p.userId), played: p.played })).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.cumulativeVisibleTop),
+    cumulative: top(data.players.filter((p) => p.played > 0).map((p) => ({ userId: p.userId, nickname: name(p.userId), played: p.played })).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.cumulativeVisibleTop),
     predictionCorrect: top(data.predictions.filter((p) => p.valid > 0).map((p) => ({ ...p, nickname: name(p.userId), ratePct: rate(p.correct, p.valid) })).sort(byPredictionAccuracy), cfg.predictionVisibleTop),
   };
 }

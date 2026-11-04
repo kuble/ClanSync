@@ -72,7 +72,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
   const criteria = {
     rate: totals.matches ? tx("{0}경기 이상 출전", block.minimumGames) : "집계할 경기 없음",
     attendance: "참여 횟수순",
-    appearances: tx("{0}경기 이상 출전", block.minimumGames),
+    appearances: "출전 횟수순",
     prediction: "적중률 높은 순",
   };
   const isPrediction = active?.id === "prediction";
@@ -100,7 +100,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
           <Card size="sm" className="h-[36rem] min-h-0 min-w-0 min-[1000px]:h-auto" aria-label={isPrediction ? tx("예측 적중률") : tx("{0} 순위", active.label)}>
             <CardHeader><CardTitle><h4 className="flex items-center gap-2 text-base font-semibold tracking-tight"><CategoryIcon className="size-4 text-primary" aria-hidden="true" /><StatTitle title={tx(active.label)} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-              <HofScoreboard sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} criterionLabel={isPrediction || active.id === "attendance" ? "정렬 기준" : "등재 기준"} pending={loaded.pending} />
+              <HofScoreboard sessions={totals.sessions} matches={totals.matches} criterion={criteria[active.id]} criterionLabel={active.id === "rate" ? "등재 기준" : "정렬 기준"} pending={loaded.pending} />
                 <StatsScrollArea label={isPrediction ? tx("예측 적중률 목록") : tx("{0} 순위 목록", active.label)} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
                   <ol className="space-y-2">
@@ -126,7 +126,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
                     })}
                   </ol>
-              ) : <p className="flex min-h-72 items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? tx("집계 중…") : isPrediction ? tx("집계할 예측이 없습니다.") : active.id === "attendance" ? tx("참여한 내전이 없습니다.") : tx("등재 기준을 충족한 기록이 없습니다.")}</p>}
+              ) : <p className="flex min-h-72 items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? tx("집계 중…") : isPrediction ? tx("집계할 예측이 없습니다.") : active.id === "attendance" ? tx("참여한 내전이 없습니다.") : active.id === "appearances" ? tx("출전한 경기가 없습니다.") : tx("등재 기준을 충족한 기록이 없습니다.")}</p>}
                 </StatsScrollArea>
             </CardContent>
           </Card>

@@ -61,7 +61,7 @@ test("stats read model stays exact across results, corrections, predictions, cas
       .toMatchObject({ wins: 1, draws: 1, losses: 0, ratePct: 50 });
     expect(tank?.kind === "period" && tank.hof.participation.find(p => p.userId === f.users[0].id)?.played).toBe(1);
     expect(support?.kind === "period" && support.hof.minimumGames).toBe(2);
-    expect(support?.kind === "period" && support.hof.cumulative).toEqual([]);
+    expect(support?.kind === "period" && support.hof.cumulative).toMatchObject([{ userId: f.users[0].id, played: 1 }]);
     expect(damage?.kind === "period" && damage.hof.cumulative).toEqual([]);
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(f.path.replace(/balance$/, "stats"));

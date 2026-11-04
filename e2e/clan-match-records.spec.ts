@@ -225,7 +225,7 @@ test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 �
     new Date("2026-09-15T00:00:00Z"),
   );
   expect(result.participation).toEqual([]);
-  expect(result.cumulative.map((row) => row.userId)).toEqual(["regular"]);
+  expect(result.cumulative.map((row) => row.userId)).toEqual(expect.arrayContaining(["regular", "once", "draw-only"]));
   expect(result.winRate.map((row) => row.userId)).toEqual(["regular"]);
 });
 
