@@ -91,7 +91,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           <ExternalLink className="size-3.5" />{connection ? tx("서버 다시 연결") : tx("Discord 연결하기")}
         </Button>}
         {canEdit && connection && <Dialog onOpenChange={() => setDisconnectError("")}>
-          <DialogTrigger render={<Button type="button" size="sm" variant="outline" disabled={autosave.status === "saving"} />}>{tx("연결 해제")}</DialogTrigger>
+          <DialogTrigger render={<Button type="button" size="sm" variant="destructive" disabled={autosave.status === "saving"} />}>{tx("연결 해제")}</DialogTrigger>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader><DialogTitle>{tx("Discord 연결을 해제할까요?")}</DialogTitle>
               <DialogDescription><strong>{connection.guild_name}</strong> 서버로 보내는 알림과 자동 초대가 중단되고 대기 중인 알림은 취소됩니다. 이 서버에 연결된 마지막 클랜이면 봇도 서버에서 나갑니다.</DialogDescription>
