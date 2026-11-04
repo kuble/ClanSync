@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useMemo, useRef, useState, type ReactNode } from "react";
@@ -50,7 +51,7 @@ export function ArchiveDayTable({ records, pending = false, inlinePreview = fals
           </th>)}</tr>
         </thead>
         <tbody className="divide-y">{rows.map((row) => <tr key={row.userId} className="hover:bg-muted/40">
-          <th scope="row" className="break-all px-3 py-3 text-left font-medium" title={row.nickname}>{row.nickname}</th>
+          <th scope="row" className="break-all px-3 py-3 text-left font-medium" title={row.nickname}><PlayerNickname name={row.nickname} /></th>
           <td className="text-center whitespace-nowrap"><span className="text-team-blue">{row.wins}</span><span className="text-muted-foreground">/{row.draws}/</span><span className="text-team-red">{row.losses}</span></td>
           <td className="text-center font-semibold">{row.rate === null ? "—" : formatPercent(row.rate * 100)}</td>
           <td className={cn("text-center", row.currentStreak > 0 ? "text-team-blue" : row.currentStreak < 0 ? "text-team-red" : "text-muted-foreground")}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
@@ -115,7 +116,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions 
                           <span className="text-2xl leading-none">{rank === null ? "--" : String(rank).padStart(2, "0")}<span className="sr-only">{unqualified ? tx("순위 제외") : tx("위")}</span></span>
                         </span>
                         <span className="min-w-0 flex-1 space-y-1.5">
-                          <span className="block truncate text-sm font-medium text-foreground/90">{row.nickname}</span>
+                          <span className="block truncate text-sm font-medium text-foreground/90"><PlayerNickname name={row.nickname} /></span>
                           <span className="block text-xs leading-relaxed text-muted-foreground">{row.detail}</span>
                           {unqualified && <span className="block text-xs text-muted-foreground">{tx("규정 미달 ·")} {row.shortfall}{active.id === "attendance" ? tx("회") : tx("경기")} {tx("부족")}</span>}
                         </span>

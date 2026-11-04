@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -214,7 +215,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                             className="min-w-0 flex-1 break-all font-medium leading-relaxed"
                             title={player.nickname}
                           >
-                            {player.nickname}
+                            <PlayerNickname name={player.nickname} />
                           </span>
                         </li>
                       );

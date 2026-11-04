@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
@@ -65,7 +66,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   if (!peer) return <aside aria-label={tx("시너지 승률 차트")} className="flex h-80 items-center justify-center rounded-xl border border-dashed px-5 text-center text-sm text-muted-foreground">{tx("멤버 이름에 마우스를 올리거나 선택하면 시너지 승률이 표시됩니다.")}</aside>;
   const percentage = Math.round(peer.wins / peer.matches * 1000) / 10;
   return <aside aria-label={tx("시너지 승률 차트")} className="flex h-80 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
-    <h3 className="mb-2 max-w-full truncate px-1 text-sm font-medium text-foreground/90" title={peer.nickname}>{peer.nickname}</h3>
+    <h3 className="mb-2 max-w-full truncate px-1 text-sm font-medium text-foreground/90" title={peer.nickname}><PlayerNickname name={peer.nickname} /></h3>
     <div className="relative size-44 text-team-red">
       <svg viewBox="0 0 180 180" role="img" aria-label={tx("{0} {1} 승률 {2}, {3}경기", peer.nickname, relation === "ally" ? "같은 팀" : "상대 팀", formatPercent(percentage), peer.matches)} className="size-full overflow-visible">
         <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
@@ -189,7 +190,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
                   <th scope="col" className="p-2 text-right" aria-sort={relationSort === "matches" ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation("matches")} className="hover:text-foreground">{tx("경기")}{relationSort === "matches" ? relationDescending ? " ↓" : " ↑" : ""}</button></th>
                 </tr></thead>
                 <tbody>{relations.map((row) => <tr key={row.id} onPointerEnter={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)} className={`cursor-pointer border-b hover:bg-muted/40 ${selectedPeer?.id === row.id ? "bg-muted/40" : ""}`}>
-                  <th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium text-foreground/90 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}>{row.nickname}</button></th>
+                  <th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium text-foreground/90 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}><PlayerNickname name={row.nickname} /></button></th>
                   <td className="p-2 text-right text-lg font-semibold tracking-tight tabular-nums">{formatPercent(row.wins / row.matches * 100)}</td>
                   <td className="whitespace-nowrap p-2 text-right text-xs text-muted-foreground tabular-nums">{row.wins}{tx("승 /")} {row.draws}{tx("무 /")} {row.losses}{tx("패")}</td>
                   <td className="p-2 text-right text-sm text-foreground/80 tabular-nums">{row.matches}</td>

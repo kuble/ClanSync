@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerNickname } from "@/components/ui/player-nickname";
 import { useTranslator } from "#use-translator";
 import { useState, type ReactNode } from "react";
 import { Search, UserRound } from "lucide-react";
@@ -29,7 +30,7 @@ export function StatsMemberPicker({ people, onSelect, settings }: { settings?: R
     <StatsScrollArea label={tx("개인 기록 멤버 목록")} className="-mx-1 max-h-[min(32rem,60vh)]">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{visible.map((person) => <button key={person.userId} type="button" onClick={() => onSelect(person.userId)} aria-label={tx("{0} 개인 기록 열기", person.nickname)}
         className="flex min-h-16 min-w-0 items-center gap-2 rounded-xl border bg-card px-3 py-3 text-left text-sm font-semibold hover:border-primary/50 hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary">
-        <UserRound aria-hidden className="size-4 shrink-0 text-muted-foreground" /><span className="truncate" title={person.nickname}>{person.nickname}</span>
+        <UserRound aria-hidden className="size-4 shrink-0 text-muted-foreground" /><span className="truncate" title={person.nickname}><PlayerNickname name={person.nickname} /></span>
       </button>)}</div>
       {!visible.length && <p className="py-8 text-center text-sm text-muted-foreground">{tx("검색 결과가 없습니다.")}</p>}
     </StatsScrollArea>
