@@ -207,7 +207,11 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(datePicker).toContainText("2025년 7월 1일");
     await expect(table.getByRole("rowheader")).toHaveCount(2);
     await page.getByRole("button", { name: "기록 맵", exact: true }).click();
-    await page.getByRole("dialog", { name: "기록 맵 선택" }).getByRole("button", { name: "전체 맵", exact: true }).click();
+    const mapDialog = page.getByRole("dialog", { name: "기록 맵 선택" });
+    await expect(mapDialog.getByRole("separator")).toBeVisible();
+    const firstTypeAction = mapDialog.getByRole("group", { name: "맵 유형" }).getByRole("button").first();
+    await expect(firstTypeAction).toHaveAccessibleName("전체 맵");
+    await firstTypeAction.click();
     await page.getByRole("searchbox", { name: "경기 참가자 검색" }).fill("no-such-player");
     await expect(detail).toContainText("선택한 조건에 맞는 경기가 없습니다.");
     await page.getByRole("searchbox", { name: "경기 참가자 검색" }).fill("");

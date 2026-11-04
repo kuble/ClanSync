@@ -2,7 +2,7 @@
 
 import { useTranslator } from "#use-translator";
 import { useState } from "react";
-import { Check, LayoutGrid } from "lucide-react";
+import { Check, Ellipsis, LayoutGrid } from "lucide-react";
 import {
   MAP_TYPES,
   mapDetailsForLabel,
@@ -16,17 +16,18 @@ import { BalanceMapImage } from "./clan-balance-map-image";
 const mapTypeGroupClass = "grid grid-flow-col auto-cols-fr gap-1 rounded-xl border border-border bg-muted/20 p-1 @min-[36rem]/map-types:gap-2 @min-[36rem]/map-types:border-0 @min-[36rem]/map-types:bg-transparent @min-[36rem]/map-types:p-0";
 
 function MapTypeCard({ id, label, selected, disabled, onClick }: {
-  id: MapType | "all";
+  id: MapType | "all" | "other";
   label: string;
-  selected: boolean;
+  selected?: boolean;
   disabled: boolean;
   onClick: () => void;
 }) {
   const tx = useTranslator();
+  const GroupIcon = id === "other" ? Ellipsis : LayoutGrid;
   return (
     <button type="button" aria-label={tx(label)} title={tx(label)} aria-pressed={selected} disabled={disabled} onClick={onClick}
       className={cn("flex min-h-10 min-w-0 flex-col items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default @min-[36rem]/map-types:min-h-20 @min-[36rem]/map-types:gap-2 @min-[36rem]/map-types:rounded-xl @min-[36rem]/map-types:border @min-[36rem]/map-types:p-2", selected ? "bg-primary text-primary-foreground @min-[36rem]/map-types:border-primary @min-[36rem]/map-types:bg-primary/15 @min-[36rem]/map-types:text-primary" : "text-muted-foreground hover:text-foreground @min-[36rem]/map-types:border-border @min-[36rem]/map-types:bg-muted/20")}>
-      {id === "all" ? <LayoutGrid className="size-5 @min-[36rem]/map-types:size-6" aria-hidden="true" /> : <OverwatchMapIcon type={id} className="size-5 @min-[36rem]/map-types:size-7" />}
+      {id === "all" || id === "other" ? <GroupIcon className="size-5 @min-[36rem]/map-types:size-6" aria-hidden="true" /> : <OverwatchMapIcon type={id} className="size-5 @min-[36rem]/map-types:size-7" />}
       <span className="hidden @min-[36rem]/map-types:block">{tx(label)}</span>
     </button>
   );
@@ -85,6 +86,7 @@ export function BalanceManualMapPicker({
 }) {
   const tx = useTranslator();
   const maps = availableMaps ?? mapPoolForGameSlug(gameSlug);
+  const isRecordFilter = availableMaps !== undefined;
   const types = gameSlug === "overwatch"
     ? MAP_TYPES.filter(({ id }) => maps.some((label) => mapDetailsForLabel(label)?.type === id))
     : [];
@@ -103,24 +105,27 @@ export function BalanceManualMapPicker({
   const locked = disabled || !canManage;
   return (
     <section className="space-y-4" aria-label={tx("경기 맵")} data-balance-guide="map-picker">
-      {gameSlug === "overwatch" && maps.length > 0 ? (
-        <fieldset className="@container/map-types min-w-0 space-y-3" data-balance-guide="map-types">
-          <legend className="text-sm font-semibold">{tx("맵 유형")} <span aria-hidden="true" className="ml-1 text-xs font-normal text-muted-foreground @min-[36rem]/map-types:hidden">{tx(types.find(({ id }) => id === type)?.label ?? "기타")}</span></legend>
-          <div className={mapTypeGroupClass}>
+      {isRecordFilter || (gameSlug === "overwatch" && maps.length > 0) ? (
+        <fieldset aria-label={isRecordFilter ? tx("맵 유형") : undefined} className="@container/map-types min-w-0 space-y-3" data-balance-guide="map-types">
+          {!isRecordFilter && <legend className="text-sm font-semibold">{tx("맵 유형")} <span aria-hidden="true" className="ml-1 text-xs font-normal text-muted-foreground @min-[36rem]/map-types:hidden">{tx(types.find(({ id }) => id === type)?.label ?? "기타")}</span></legend>}
+          <div className={cn(mapTypeGroupClass, !types.length && !hasOther && "w-24")}>
+            {isRecordFilter && <MapTypeCard id="all" label="전체 맵" disabled={locked} onClick={() => onChange("")} />}
             {types.map(({ id, label }) => (
               <MapTypeCard key={id} id={id} label={tx(label)} selected={type === id} disabled={disabled}
                 onClick={() => { setType(id); setPreview(null); }} />
             ))}
-            {hasOther && <MapTypeCard id="all" label="기타" selected={type === null} disabled={disabled}
+            {hasOther && <MapTypeCard id="other" label="기타" selected={type === null} disabled={disabled}
               onClick={() => { setType(null); setPreview(null); }} />}
           </div>
         </fieldset>
       ) : null}
+      {isRecordFilter && <hr className="border-border" />}
+      {isRecordFilter && !maps.length && <p className="text-sm text-muted-foreground">기록된 맵이 없습니다.</p>}
       {pool.length > 0 ? <>
-      <div className="flex items-center justify-between gap-3 text-sm">
+      {!isRecordFilter && <div className="flex items-center justify-between gap-3 text-sm">
         <span className="text-muted-foreground">{pool.length}{tx("개 맵")}</span>
         <span role="status" className="font-semibold text-primary">{value ? tx("{0} 선택됨", value) : tx("맵을 선택하십시오")}</span>
-      </div>
+      </div>}
       <div className="flex flex-col gap-2 sm:h-80 sm:flex-row lg:h-96" onMouseLeave={() => setPreview(null)}>
         {pool.map((label) => {
           const expanded = active === label;

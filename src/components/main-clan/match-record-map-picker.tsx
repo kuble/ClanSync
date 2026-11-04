@@ -31,10 +31,7 @@ export function MatchRecordMapPicker({ gameSlug, value, onChange, availableMaps 
     </DialogTrigger>
     <DialogContent className="max-h-[85dvh] sm:max-w-4xl">
       <DialogTitle>{tx(isFilter ? "기록 맵 선택" : "경기 맵 선택")}</DialogTitle>
-      {isFilter && <Button type="button" variant={value ? "outline" : "secondary"} size="sm"
-        className="justify-self-start" aria-pressed={!value} onClick={() => select("")}>{tx("전체 맵")}</Button>}
-      {availableMaps?.length === 0 ? <p className="text-sm text-muted-foreground">기록된 맵이 없습니다.</p> :
-        <BalanceManualMapPicker gameSlug={gameSlug} availableMaps={availableMaps} value={value || null} onChange={select} />}
+      <BalanceManualMapPicker gameSlug={gameSlug} availableMaps={availableMaps} value={value || null} onChange={select} />
     </DialogContent>
   </Dialog>;
 }
