@@ -13,7 +13,7 @@ export function ClanParticipantManagement({ clanId, gameSlug, records }: { clanI
   return <section aria-label={tx("내전 참가자 명부")} className="space-y-4 rounded-xl border bg-card p-4 sm:p-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><h4 className="text-sm font-semibold">{tx("미가입 참가자 기록")}</h4><ClanParticipantEditor clanId={clanId} /></div>
     <input aria-label={tx("참가자 명부 검색")} value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tx("닉네임 검색")} className="h-9 w-full rounded-lg border bg-background px-3 text-sm" />
-    <div className="min-h-24 max-h-96 divide-y overflow-y-auto rounded-lg border">
+    <div className="min-h-24 divide-y rounded-lg border">
       {filtered.map((p) => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3" data-guest-record={p.id}>
         <div className="min-w-0">
           <Link href={`/games/${gameSlug}/clan/${clanId}/stats?player=${p.id}`} prefetch={false} className="break-words text-sm font-semibold hover:text-primary">{p.nickname}</Link>

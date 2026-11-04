@@ -51,6 +51,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(`${base}/manage`);
     await expect(page.getByRole("region", { name: "총 내전 101회", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "운영 현황", exact: true })).toHaveCSS("overflow-y", "visible");
     const counts = page.getByRole("region", { name: "총 내전 101회", exact: true });
     await expect(counts.getByText("정규 내전", { exact: true }).locator("..")).toContainText("100회");
     await expect(counts.getByText("깜짝 내전", { exact: true }).locator("..")).toContainText("1회");

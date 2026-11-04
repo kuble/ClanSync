@@ -248,7 +248,10 @@ test("management sections preserve navigation, pending counts and officer/member
     await usage.getByRole("radio", { name: "표", exact: true }).click();
     await expect(usage.getByRole("table", { name: "날짜별 방문자 표", exact: true }).getByRole("row")).toHaveCount(visitMonthDays + 1);
     await expect(usage.getByRole("table", { name: "월별 방문자 표", exact: true }).getByRole("row")).toHaveCount(13);
-    expect(Math.abs((await usage.boundingBox())!.height - usageHeight)).toBeLessThan(2);
+    for (const table of await usage.getByRole("table").all()) {
+      await expect(table.locator("..")).toHaveCSS("overflow-y", "visible");
+    }
+    expect((await usage.boundingBox())!.height).toBeGreaterThan(usageHeight);
     expect(await usageNode!.evaluate((node) => node.isConnected)).toBe(true);
     await usage.getByRole("radio", { name: "표", exact: true }).press("Home");
     await expect(usage.getByRole("radio", { name: "그래프", exact: true })).toHaveAttribute("aria-checked", "true");

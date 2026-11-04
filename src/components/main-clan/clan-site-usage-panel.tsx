@@ -81,14 +81,14 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
           <h4 className="text-sm font-semibold"><StatTitle title={tx("날짜별 방문자")} help={tx("막대에 마우스를 올리면 날짜와 방문 멤버를 볼 수 있습니다. 키보드 초점과 터치로도 확인할 수 있습니다.")} /></h4>
           <RubberSegment label={tx("클랜 페이지 표시")} labelPosition="hidden" options={[{ id: "chart", label: "그래프" }, { id: "table", label: "표" }]} value={display} onChange={setDisplay} />
         </div>
-        <div className="h-48 min-w-0">
+        <div className={display === "chart" ? "h-48 min-w-0" : "min-w-0"}>
           {display === "chart" ? <>
             <div className="flex h-40 items-end gap-1 border-b" aria-label={tx("일별 방문자 그래프")}>{dayCounts.map((day) => <StatTooltip key={day.date} label={tx("{0} 방문 {1}명", day.date, day.count)} hoverable
               render={<button type="button" aria-label={tx("{0} 방문 {1}명", day.date, day.count)} style={{ height: `${Math.max(4, day.count / max * 100)}%` }} />}
               className="min-w-0 flex-1 rounded-t-sm bg-primary/55 transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-primary data-popup-open:bg-primary"
               description={<VisitDetails label={day.date} visitors={day.visitors} memberNames={memberNames} />}>{null}</StatTooltip>)}</div>
             <div className="mt-3 flex justify-between text-[10px] tabular-nums text-muted-foreground"><span>{start.slice(5).replace("-", ".")}</span><span>{days[Math.floor((days.length - 1) / 2)].slice(5).replace("-", ".")}</span><span>{end.slice(5).replace("-", ".")}</span></div>
-          </> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label={tx("날짜별 방문자 표")}><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">{tx("날짜")}</th><th className="p-3 text-right font-normal">{tx("방문자")}</th></tr></thead><tbody className="divide-y">{dayCounts.map((day) => <tr key={day.date}><td className="px-3 py-2 tabular-nums">{day.date}</td><td className="px-3 py-2 text-right tabular-nums">{day.count.toLocaleString()}{tx("명")}</td></tr>)}</tbody></table></div>}
+          </> : <div className="rounded-lg border"><table className="w-full text-xs" aria-label={tx("날짜별 방문자 표")}><thead className="bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">{tx("날짜")}</th><th className="p-3 text-right font-normal">{tx("방문자")}</th></tr></thead><tbody className="divide-y">{dayCounts.map((day) => <tr key={day.date}><td className="px-3 py-2 tabular-nums">{day.date}</td><td className="px-3 py-2 text-right tabular-nums">{day.count.toLocaleString()}{tx("명")}</td></tr>)}</tbody></table></div>}
         </div>
       </div>
       <div className="space-y-4 border-t pt-5">
@@ -96,13 +96,13 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
           <div><h4 className="text-sm font-semibold"><StatTitle title={tx("월·연도별 비교")} help={tx("월별·연간 고유 방문 멤버 수와 활동일 합계입니다. 연간 방문자는 월별 방문자를 더하지 않고 중복을 제외합니다.")} /></h4><p className="mt-2 text-xs tabular-nums text-muted-foreground">{tx("방문")} {annual.visitors.toLocaleString()}{tx("명 · 활동일")} {annual.personDays.toLocaleString()}{tx("일")}</p></div>
           <PeriodSelect label={tx("클랜 페이지 비교 연도")} value={String(year)} options={years} onChange={(value) => setYear(Number(value))} />
         </div>
-        <div className="h-44 min-w-0">
-          {display === "chart" ? <div className="flex h-full items-end gap-1.5" role="group" aria-label={tx("월별 방문자 그래프")}>{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2"><span className="text-[10px] tabular-nums">{month.visitors.toLocaleString()}</span>
+        <div className="min-w-0">
+          {display === "chart" ? <div className="flex h-44 items-end gap-1.5" role="group" aria-label={tx("월별 방문자 그래프")}>{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2"><span className="text-[10px] tabular-nums">{month.visitors.toLocaleString()}</span>
             <StatTooltip label={tx("{0}년 {1}월 방문 {2}명", year, Number(month.key.slice(5)), month.visitors)} hoverable
               render={<button type="button" aria-label={tx("{0}년 {1}월 방문 {2}명", year, Number(month.key.slice(5)), month.visitors)} style={{ height: `${Math.max(4, month.visitors / monthMax * 126)}px` }} />}
               className="w-full rounded-t-sm bg-primary/55 transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-primary data-popup-open:bg-primary"
               description={<VisitDetails label={tx("{0}년 {1}월", year, Number(month.key.slice(5)))} visitors={month.visitorIds} memberNames={memberNames} />}>{null}</StatTooltip>
-            <span className="text-[10px] tabular-nums text-muted-foreground">{Number(month.key.slice(5))}{tx("월")}</span></div>)}</div> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label={tx("월별 방문자 표")}><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">{tx("월")}</th><th className="p-3 text-right font-normal">{tx("방문 멤버")}</th><th className="p-3 text-right font-normal">{tx("활동일")}</th></tr></thead><tbody className="divide-y">{monthly.map((month) => <tr key={month.key}><td className="px-3 py-2 tabular-nums">{month.key}</td><td className="px-3 py-2 text-right tabular-nums">{month.visitors.toLocaleString()}{tx("명")}</td><td className="px-3 py-2 text-right tabular-nums">{month.personDays.toLocaleString()}{tx("일")}</td></tr>)}</tbody></table></div>}
+            <span className="text-[10px] tabular-nums text-muted-foreground">{Number(month.key.slice(5))}{tx("월")}</span></div>)}</div> : <div className="rounded-lg border"><table className="w-full text-xs" aria-label={tx("월별 방문자 표")}><thead className="bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">{tx("월")}</th><th className="p-3 text-right font-normal">{tx("방문 멤버")}</th><th className="p-3 text-right font-normal">{tx("활동일")}</th></tr></thead><tbody className="divide-y">{monthly.map((month) => <tr key={month.key}><td className="px-3 py-2 tabular-nums">{month.key}</td><td className="px-3 py-2 text-right tabular-nums">{month.visitors.toLocaleString()}{tx("명")}</td><td className="px-3 py-2 text-right tabular-nums">{month.personDays.toLocaleString()}{tx("일")}</td></tr>)}</tbody></table></div>}
         </div>
       </div>
     </CardContent>

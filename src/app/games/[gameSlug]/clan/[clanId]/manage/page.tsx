@@ -17,16 +17,13 @@ export default async function ManagePage({ params, searchParams }: {
   if (ctx && query.tab === "notices") redirect("/games/"+gameSlug+"/clan/"+clanId+"/board/notices");
   if (!ctx || ctx.role === "member") forbidden();
   const selected = resolveManageTab(query.tab);
-  const scrollsWithPage = selected === "notifications" || selected === "promotion";
   const section = MANAGE_SECTIONS.find((item) => item.key === selected)!;
   const basePath = `/games/${gameSlug}/clan/${clanId}/manage`;
 
   return (
     <div className={`grid min-w-0 ${selected === "notifications" ? "gap-3" : "gap-5"}`}>
       <ClanManageNavigation selected={selected} pendingCount={ctx.pendingJoinRequestCount} basePath={basePath} />
-      <section tabIndex={scrollsWithPage ? undefined : 0} className={`min-h-80 min-w-0 space-y-4 ${scrollsWithPage
-        ? ""
-        : "board-scroll h-[calc(100dvh-16rem)] overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-ring"}`} aria-label={tx(section.label)}>
+      <section className="min-h-80 min-w-0 space-y-4" aria-label={tx(section.label)}>
         <Suspense key={selected} fallback={<div role="status" className="space-y-3"><span className="sr-only">{tx(section.label)} {tx("불러오는 중")}</span><div className="h-28 animate-pulse rounded-xl bg-muted/50" /><div className="h-44 animate-pulse rounded-xl bg-muted/50" /></div>}>
           <ClanManageContent ctx={ctx} selected={selected} connectionResult={query.discord} />
         </Suspense>
