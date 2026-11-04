@@ -124,7 +124,7 @@ test("leader can disconnect Discord after downgrade and cancel pending delivery"
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(2);
   try {
-    const args = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild };
+    const args = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: `90000${Date.now()}` };
     await ok(f.service.rpc("connect_clan_discord_bot", { ...args, p_guild_name: "QA 해제 테스트" }));
     await ok(f.service.rpc("set_clan_discord_notification_preferences", { ...args, p_channel_id: channel,
       p_channel_name: "공지", p_enabled: true, p_routes: readDiscordNotificationRoutes(null) }));
@@ -143,14 +143,14 @@ test("leader can disconnect Discord after downgrade and cancel pending delivery"
     await expect(dialog).toBeHidden();
     await trigger.click();
     await dialog.getByRole("button", { name: "연결 해제" }).click();
-    await expect(page.getByText("Discord 서버 연결을 해제했습니다.")).toBeVisible();
+    await expect(page.getByText(/봇의 퇴장을 확인하지 못했으니/)).toBeVisible();
     await expect(trigger).toHaveCount(0);
     expect((await ok(log())).status).toBe("cancelled");
     expect(await ok(f.service.from("clan_discord_connections").select("guild_id").eq("clan_id", f.clanId))).toEqual([]);
     const settings = await ok(f.service.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single());
     expect(settings.event_notify).toMatchObject({ discord_enabled: false, discord_configured: false });
     expect(settings.event_notify).not.toHaveProperty("discord_routes");
-    await ok(f.service.rpc("disconnect_clan_discord_bot", args));
+    expect(await ok(f.service.rpc("disconnect_clan_discord_and_check_departure", args))).toBe(false);
   } finally { await f.cleanup(); }
 });
 

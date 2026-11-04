@@ -3,19 +3,31 @@
 import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
 import { discordConnectionLeader } from "@/lib/notifications/discord-connection";
-import { discordBotConfigured, listDiscordBotChannels } from "@/lib/notifications/discord-bot";
+import { discordBotConfigured, leaveDiscordGuild, listDiscordBotChannels } from "@/lib/notifications/discord-bot";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 
 export async function disconnectClanDiscordAction(gameSlug: string, clanId: string, guildId: string) {
   const actor = await discordConnectionLeader(clanId, { requirePremium: false });
   if (!actor || actor.gameSlug !== gameSlug) return { error: "클랜장만 Discord 연결을 해제할 수 있습니다." };
-  const { error } = await actor.svc.rpc("disconnect_clan_discord_bot", {
+  const started = performance.now();
+  const { data: lastConnection, error } = await actor.svc.rpc("disconnect_clan_discord_and_check_departure", {
     p_clan_id: clanId, p_actor_id: actor.user.id, p_guild_id: guildId,
   });
   if (error) return { error: "연결을 해제하지 못했습니다. 현재 연결된 서버를 확인한 뒤 다시 시도해 주세요." };
+  let result = "disconnected";
+  if (lastConnection) {
+    result = "departure-unconfirmed";
+    // The database reserves the guild for 30s. Leave room for Discord's 8s timeout.
+    if (performance.now() - started < 20_000) {
+      try {
+        await leaveDiscordGuild(guildId);
+        result = "bot-left";
+      } catch { /* The clan is already disconnected; offer manual removal. */ }
+    }
+  }
   const path = `/games/${gameSlug}/clan/${clanId}`;
   revalidatePath(path, "layout");
-  redirect(`${path}/manage?tab=notifications&discord=disconnected`, RedirectType.replace);
+  redirect(`${path}/manage?tab=notifications&discord=${result}`, RedirectType.replace);
 }
 
 export async function listClanDiscordChannelsAction(gameSlug: string, clanId: string) {

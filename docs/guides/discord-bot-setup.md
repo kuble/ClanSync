@@ -12,7 +12,7 @@ QA에 공용 봇 연결, 기본/종류별 채널, 내전·일정·공지·투표
 
 ## 공용 앱과 연결
 
-연결된 서버 옆의 **연결 해제**를 누르고 서버 이름을 확인하면 클랜 알림, 대기 중인 발송, 봇을 통한 자동 입장이 중단된다. 클랜장은 무료 플랜으로 전환한 뒤에도 해제할 수 있다. Discord 서버에 설치된 공용 봇과 직접 등록한 초대 링크는 별도로 관리한다.
+연결된 서버 옆의 **연결 해제**를 누르고 서버 이름을 확인하면 클랜 알림, 대기 중인 발송, 봇을 통한 자동 초대가 중단된다. 무료 플랜으로 전환한 클랜장도 해제할 수 있다. 해당 서버에 연결된 마지막 클랜이면 봇도 퇴장한다. 퇴장을 확인하지 못하면 수동 제거 안내가 표시된다. 대시보드의 Discord 아이콘은 연결 중에는 봇 초대를 열고, 해제 후에는 저장해 둔 수동 초대 링크가 있을 때만 표시된다.
 
 1. [Discord Developer Portal](https://discord.com/developers/applications)에서 ClanSync 앱의 Bot을 준비한다. Public Bot과 OAuth2 Code Grant를 설정한다. REST 발송이므로 Gateway와 Message Content Intent는 필요하지 않다.
 2. OAuth2 Redirects에 `{사이트 주소}/api/discord/callback`을 등록한다. QA 리더는 `http://localhost:3011/api/discord/callback`이다. 초대 시작·콜백 호스트가 같아야 로그인/state 쿠키가 유지된다.

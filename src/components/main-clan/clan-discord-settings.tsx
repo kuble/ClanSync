@@ -66,6 +66,8 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
   const channelDisabled = !canEdit || !premium || !connection || !botConfigured || loading || !!loadError;
   return <div className="space-y-5" data-testid="clan-event-notify-settings">
     {connectionResult === "disconnected" && !connection && <p role="status" className="text-sm text-muted-foreground">{tx("Discord 서버 연결을 해제했습니다.")}</p>}
+    {connectionResult === "bot-left" && !connection && <p role="status" className="text-sm text-muted-foreground">클랜 연결을 해제했고 봇도 Discord 서버에서 나갔습니다.</p>}
+    {connectionResult === "departure-unconfirmed" && !connection && <p role="status" className="text-sm text-muted-foreground">클랜 연결을 해제했습니다. 봇의 퇴장을 확인하지 못했으니, Discord 서버에 봇이 남아 있으면 서버 관리자가 내보내 주세요.</p>}
     {connectionResult === "failed" && <p role="alert" className="text-sm text-destructive">{tx("Discord 연결을 완료하지 못했습니다. 서버 관리 권한과 봇 초대를 확인해 주십시오.")}</p>}
     {connectionResult === "connected" && <p role="status" className="flex items-center gap-2 text-sm text-primary"><Check className="size-4" />{tx("서버를 연결했습니다. 기본 알림 채널을 선택해 주십시오.")}</p>}
     <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label={tx("Discord 알림 설정")}>
@@ -86,7 +88,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           <DialogTrigger render={<Button type="button" size="sm" variant="outline" disabled={autosave.status === "saving"} />}>{tx("연결 해제")}</DialogTrigger>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader><DialogTitle>{tx("Discord 연결을 해제할까요?")}</DialogTitle>
-              <DialogDescription><strong>{connection.guild_name}</strong> 서버로 보내는 클랜 알림과 봇을 통한 자동 입장이 중단됩니다. 대기 중인 알림도 취소됩니다.</DialogDescription>
+              <DialogDescription><strong>{connection.guild_name}</strong> 서버로 보내는 알림과 자동 초대가 중단되고 대기 중인 알림은 취소됩니다. 이 서버에 연결된 마지막 클랜이면 봇도 서버에서 나갑니다.</DialogDescription>
             </DialogHeader>
             {disconnectError && <p role="alert" className="text-sm text-destructive">{disconnectError}</p>}
             <DialogFooter>

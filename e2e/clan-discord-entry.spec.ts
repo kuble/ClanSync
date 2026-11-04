@@ -1,13 +1,50 @@
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { createDiscordGuildInvite, DISCORD_CONNECT_PERMISSIONS, DISCORD_SEND_PERMISSIONS } from "../src/lib/notifications/discord-bot";
+import { createDiscordGuildInvite, DISCORD_CONNECT_PERMISSIONS, DISCORD_SEND_PERMISSIONS, leaveDiscordGuild } from "../src/lib/notifications/discord-bot";
 import { resolveClanDiscordEntry } from "../src/lib/clan/resolve-clan-discord-entry";
 import { loadTestEnv } from "../scripts/test-env.mjs";
 import type { Database } from "../src/lib/supabase/database.types";
 
 const guild = "123456789012345678", channel = "234567890123456789", bot = "345678901234567890";
 const manual = "https://discord.gg/ManualClanQA";
+
+test("only the last clan can trigger bot departure; duplicate unlinks and racing connects are guarded", async () => {
+  const first = await createIsolatedBalanceFixture(1);
+  try {
+    const second = await createIsolatedBalanceFixture(1);
+    try {
+      const guildId = `80000${Date.now()}`;
+      const { service } = first;
+      const args = [first, second].map(f => ({ p_clan_id: f.clanId, p_actor_id: f.users[0].id, p_guild_id: guildId }));
+      for (const clan of args) expect((await service.rpc("connect_clan_discord_bot", { ...clan, p_guild_name: "Shared QA" })).error).toBeNull();
+      const results = await Promise.all(args.map(clan => service.rpc("disconnect_clan_discord_and_check_departure", clan)));
+      expect(results.map(result => result.error)).toEqual([null, null]);
+      expect(results.map(result => result.data).sort()).toEqual([false, true]);
+      expect((await service.rpc("disconnect_clan_discord_and_check_departure", args[0])).data).toBe(false);
+      expect((await service.rpc("connect_clan_discord_bot", { ...args[0], p_guild_name: "Shared QA" })).error?.message).toContain("bot is leaving");
+    } finally { await second.cleanup(); }
+  } finally { await first.cleanup(); }
+});
+
+test("bot leaves through Discord and treats an already absent guild as success", async () => {
+  const original = globalThis.fetch, token = process.env.DISCORD_BOT_TOKEN;
+  try {
+    process.env.DISCORD_BOT_TOKEN = "isolated-test-token";
+    for (const status of [204, 404, 429]) {
+      globalThis.fetch = async (input, init) => {
+        expect(String(input)).toBe(`https://discord.com/api/v10/users/@me/guilds/${guild}`);
+        expect(init).toMatchObject({ method: "DELETE", headers: { Authorization: "Bot isolated-test-token" } });
+        return new Response(null, { status });
+      };
+      if (status === 429) await expect(leaveDiscordGuild(guild)).rejects.toThrow("Discord HTTP 429");
+      else await leaveDiscordGuild(guild);
+    }
+  } finally {
+    globalThis.fetch = original;
+    if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token;
+  }
+});
 
 test("bot creates reusable invites only inside the connected guild and checks invite permissions", async () => {
   const original = globalThis.fetch, token = process.env.DISCORD_BOT_TOKEN;

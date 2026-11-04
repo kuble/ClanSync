@@ -24,6 +24,15 @@ function botAuthorization() {
   return `Bot ${process.env.DISCORD_BOT_TOKEN}`;
 }
 
+export async function leaveDiscordGuild(guildId: string) {
+  if (!isDiscordId(guildId)) throw new Error("Invalid Discord guild");
+  const response = await fetch(`${API}/users/@me/guilds/${guildId}`, {
+    method: "DELETE", headers: { Authorization: botAuthorization() },
+    cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8_000),
+  });
+  if (response.status !== 204 && response.status !== 404) throw new Error(`Discord HTTP ${response.status}`);
+}
+
 type Role = { id: string; permissions: string };
 type Overwrite = { id: string; type: number; allow: string; deny: string };
 export type DiscordChannel = { id: string; name: string; type: number; guild_id?: string; permission_overwrites?: Overwrite[] };
