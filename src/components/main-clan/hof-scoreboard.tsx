@@ -11,10 +11,10 @@ export function HofScoreboard({ sessions, matches, criterion, pending = false }:
     { label: "등재 기준", icon: ShieldCheck, value: criterion, unit: "" },
   ];
   return (
-    <dl className="grid grid-cols-3 gap-1.5">
-      {metrics.map(({ label, icon: Icon, value, unit }) => <div key={label} className="flex min-w-0 flex-col justify-between gap-1 rounded-lg bg-background/30 p-2 text-foreground/75 sm:p-2.5">
-        <dt className="flex items-center gap-1 text-xs text-muted-foreground"><Icon aria-hidden className="size-3.5 shrink-0" />{tx(label)}</dt>
-        <dd className={unit ? "text-lg font-semibold tabular-nums sm:text-xl" : "my-auto break-keep text-sm font-semibold leading-snug"}>
+    <dl className="@container/score grid grid-cols-6 gap-1.5">
+      {metrics.map(({ label, icon: Icon, value, unit }) => <div key={label} className={`flex min-w-0 justify-between gap-1 rounded-lg bg-background/30 p-2 text-foreground/75 sm:p-2.5 @min-[23rem]/score:col-span-2 ${unit ? "col-span-3 flex-col" : "col-span-full items-center @min-[23rem]/score:flex-col @min-[23rem]/score:items-start"}`}>
+        <dt className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"><Icon aria-hidden className="size-3.5 shrink-0" />{tx(label)}</dt>
+        <dd className={unit ? "whitespace-nowrap text-lg font-semibold tabular-nums sm:text-xl" : "my-auto text-right break-keep text-sm font-semibold leading-snug @min-[23rem]/score:text-left"}>
           {pending ? "—" : tx(value)}{unit && !pending && <small className="ml-1 text-xs font-normal text-muted-foreground">{tx(unit)}</small>}
         </dd>
       </div>)}
