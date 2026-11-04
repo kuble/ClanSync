@@ -70,7 +70,7 @@ export function MapTypeFilter({
 }
 
 export function BalanceManualMapPicker({
-  hideTypeHeading = false,
+  compact = false,
   gameSlug,
   value,
   onChange,
@@ -84,11 +84,12 @@ export function BalanceManualMapPicker({
   disabled?: boolean;
   canManage?: boolean;
   availableMaps?: readonly string[];
-  hideTypeHeading?: boolean;
+  compact?: boolean;
 }) {
   const tx = useTranslator();
   const maps = availableMaps ?? mapPoolForGameSlug(gameSlug);
   const isRecordFilter = availableMaps !== undefined;
+  const showDetails = !isRecordFilter && !compact;
   const types = gameSlug === "overwatch"
     ? MAP_TYPES.filter(({ id }) => maps.some((label) => mapDetailsForLabel(label)?.type === id))
     : [];
@@ -108,8 +109,8 @@ export function BalanceManualMapPicker({
   return (
     <section className="space-y-4" aria-label={tx("경기 맵")} data-balance-guide="map-picker">
       {isRecordFilter || (gameSlug === "overwatch" && maps.length > 0) ? (
-        <fieldset aria-label={isRecordFilter || hideTypeHeading ? tx("맵 유형") : undefined} className="@container/map-types min-w-0 space-y-3" data-balance-guide="map-types">
-          {!isRecordFilter && !hideTypeHeading && <legend className="text-sm font-semibold">{tx("맵 유형")} <span aria-hidden="true" className="ml-1 text-xs font-normal text-muted-foreground @min-[36rem]/map-types:hidden">{tx(types.find(({ id }) => id === type)?.label ?? "기타")}</span></legend>}
+        <fieldset aria-label={showDetails ? undefined : tx("맵 유형")} className="@container/map-types min-w-0 space-y-3" data-balance-guide="map-types">
+          {showDetails && <legend className="text-sm font-semibold">{tx("맵 유형")} <span aria-hidden="true" className="ml-1 text-xs font-normal text-muted-foreground @min-[36rem]/map-types:hidden">{tx(types.find(({ id }) => id === type)?.label ?? "기타")}</span></legend>}
           <div className={cn(mapTypeGroupClass, !types.length && !hasOther && "w-24")}>
             {isRecordFilter && <MapTypeCard id="all" label="전체 맵" disabled={locked} onClick={() => onChange("")} />}
             {types.map(({ id, label }) => (
@@ -121,10 +122,10 @@ export function BalanceManualMapPicker({
           </div>
         </fieldset>
       ) : null}
-      {isRecordFilter && <hr className="border-border" />}
+      {!showDetails && <hr className="border-border" />}
       {isRecordFilter && !maps.length && <p className="text-sm text-muted-foreground">기록된 맵이 없습니다.</p>}
       {pool.length > 0 ? <>
-      {!isRecordFilter && <div className="flex items-center justify-between gap-3 text-sm">
+      {showDetails && <div className="flex items-center justify-between gap-3 text-sm">
         <span className="text-muted-foreground">{pool.length}{tx("개 맵")}</span>
         <span role="status" className="font-semibold text-primary">{value ? tx("{0} 선택됨", value) : tx("맵을 선택하십시오")}</span>
       </div>}

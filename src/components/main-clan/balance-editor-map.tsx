@@ -65,7 +65,7 @@ export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, can
       <DialogHeader>
         <DialogTitle>{tx("경기 맵 선택")}</DialogTitle>
       </DialogHeader>
-      <BalanceManualMapPicker gameSlug={gameSlug} value={map} onChange={selectMap} disabled={pending} canManage={canManage} hideTypeHeading />
+      <BalanceManualMapPicker gameSlug={gameSlug} value={map} onChange={selectMap} disabled={pending} canManage={canManage} compact />
     </DialogContent>
   </Dialog>;
 }
