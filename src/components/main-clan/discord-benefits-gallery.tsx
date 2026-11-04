@@ -2,18 +2,16 @@
 
 import { useTranslator } from "#use-translator";
 import { useId, useState } from "react";
-import Image from "next/image";
 import { ArrowUpRight, CalendarDays, ChevronDown, Megaphone, Swords, Vote } from "lucide-react";
 import { BrandSymbol } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { buildDiscordNotificationCard, type DiscordNotificationRow } from "@/lib/notifications/discord-message";
 
 const benefits = [
-  { id: "room", icon: Swords, title: "내전 링크, 매번 공유하지 않아도", description: "정규·깜짝 내전을 구분해 예약은 시작 10분 전, 바로 열면 시작 알림을 보냅니다. 링크를 누르면 해당 내전으로 연결됩니다.", channel: "내전-알림", screen: "내전 화면", image: "balance" },
-  { id: "calendar", icon: CalendarDays, title: "함께할 일정을 놓치지 않도록", description: "등록한 일정마다 원하는 알림 시점을 선택하십시오. 반복 일정도 같은 시간에 알려줍니다.", channel: "일정-알림", screen: "캘린더 화면", image: "calendar" },
-  { id: "notice", icon: Megaphone, title: "새 공지가 채팅에 묻히지 않게", description: "새 공지의 제목과 본문을 Discord에도 전달합니다. 링크를 누르면 해당 공지를 열 수 있습니다.", channel: "클랜-공지", screen: "공지 화면", image: "notices" },
-  { id: "poll", icon: Vote, title: "투표 시작부터 결과까지", description: "참여할 때와 결과를 확인할 때, 각각 한 번씩. 시작·종료 알림은 따로 켜고 끌 수 있습니다.", channel: "일정-알림", screen: "투표 화면", image: "polls" },
+  { id: "room", icon: Swords, title: "내전 링크, 매번 공유하지 않아도", description: "정규·깜짝 내전을 구분해 예약은 시작 10분 전, 바로 열면 시작 알림을 보냅니다. 링크를 누르면 해당 내전으로 연결됩니다.", channel: "내전-알림" },
+  { id: "calendar", icon: CalendarDays, title: "함께할 일정을 놓치지 않도록", description: "등록한 일정마다 원하는 알림 시점을 선택하십시오. 반복 일정도 같은 시간에 알려줍니다.", channel: "일정-알림" },
+  { id: "notice", icon: Megaphone, title: "새 공지가 채팅에 묻히지 않게", description: "새 공지의 제목과 본문을 Discord에도 전달합니다. 링크를 누르면 해당 공지를 열 수 있습니다.", channel: "클랜-공지" },
+  { id: "poll", icon: Vote, title: "투표 시작부터 결과까지", description: "참여할 때와 결과를 확인할 때, 각각 한 번씩. 시작·종료 알림은 따로 켜고 끌 수 있습니다.", channel: "일정-알림" },
 ] as const;
 
 const example: DiscordNotificationRow = { log_id: "example", event_id: null, poll_id: null, title: "", slot_kind: "", start_at: null, deadline_at: null, game_slug: "overwatch", clan_id: "example", channel_id: "example" };
@@ -27,10 +25,9 @@ const samples: DiscordNotificationRow[] = [
 function Preview({ index }: { index: number }) {
   const tx = useTranslator();
   const item = benefits[index];
-  const [open, setOpen] = useState(false);
   const [pollEnded, setPollEnded] = useState(true);
   const card = buildDiscordNotificationCard({ ...samples[index], ...(item.id === "poll" ? { slot_kind: pollEnded ? "poll_ended" : "poll_created" } : {}) }, { siteUrl: "https://clansync.example", now: new Date("2026-10-12T10:00:00Z") });
-  return <><div className="overflow-hidden rounded-xl border border-border bg-background" role="region" aria-label={tx("{0} 활용 예시", item.title)}>
+  return <div className="overflow-hidden rounded-xl border border-border bg-background" role="region" aria-label={tx("{0} 활용 예시", item.title)}>
     <div className="flex items-center justify-between border-b border-border px-4 py-3 text-xs"><span className="font-medium text-muted-foreground">#{item.channel}</span><span className="rounded-md bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{tx("발송 예시")}</span></div>
     {item.id === "poll" && <div className="flex gap-2 px-4 pt-3">{[{ ended: false, label: "시작 알림" }, { ended: true, label: "종료 알림" }].map(({ ended, label }) => <button key={label} type="button" aria-pressed={pollEnded === ended} onClick={() => setPollEnded(ended)} className={cn("rounded-md px-2.5 py-1 text-xs focus-visible:outline-2 focus-visible:outline-ring", pollEnded === ended ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted")}>{tx(label)}</button>)}</div>}
     <div className="flex gap-3 p-4"><span role="img" aria-label={tx("ClanSync 프로필")} className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background"><BrandSymbol size={22} /></span>
@@ -38,8 +35,7 @@ function Preview({ index }: { index: number }) {
         <div className="mt-2 border-l-2 bg-muted/40 p-3" style={{ borderColor: `#${card.color.toString(16)}` }}><p className="mb-1.5 text-[11px] font-medium text-muted-foreground">{card.category}</p><p className="text-[13px] font-semibold leading-relaxed">{card.title}</p><p className="mt-1.5 whitespace-pre-wrap break-words text-xs text-muted-foreground">{card.body}</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">{card.action}<ArrowUpRight className="size-3" aria-hidden /></span></div>
       </div>
     </div>
-    <div className="border-t border-border"><p className="px-4 py-2 text-[10px] text-muted-foreground">{tx("링크를 누르면 ·")} {item.screen}</p><button type="button" aria-label={tx("{0} 크게 보기", item.screen)} onClick={() => setOpen(true)} className="relative block w-full focus-visible:outline-2 focus-visible:outline-ring"><Image src={`/images/discord/${item.image}.jpg`} alt={tx("{0} 서비스 화면 예시", item.screen)} width={1210} height={756} sizes="(max-width: 640px) 90vw, 600px" className="aspect-[16/10] w-full object-cover object-top" /><span className="absolute bottom-2 right-2 rounded bg-background/90 px-2 py-1 text-[10px] text-muted-foreground">{tx("크게 보기")}</span></button></div>
-  </div><Dialog open={open} onOpenChange={setOpen}><DialogContent className="sm:max-w-5xl"><DialogHeader><DialogTitle>{item.screen}</DialogTitle></DialogHeader><Image src={`/images/discord/${item.image}.jpg`} alt={tx("{0} 서비스 화면 예시 확대", item.screen)} width={1210} height={756} sizes="90vw" className="max-h-[75dvh] w-full object-contain" /></DialogContent></Dialog></>;
+  </div>;
 }
 
 export function DiscordBenefitsGallery() {

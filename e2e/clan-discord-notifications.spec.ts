@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createIsolatedBalanceFixture, createAndEnterBalanceRoom, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { mkdir } from "node:fs/promises";
 import { readDiscordNotificationRoutes } from "../src/lib/clan/discord-notification-settings";
 import { buildDiscordBotMessage, dispatchDiscordBotNotifications } from "../src/lib/notifications/dispatch-discord-bot-notifications";
@@ -252,7 +252,6 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     if (captureDir) {
       await mkdir(captureDir, { recursive: true });
       await page.getByText("알림 설정을 저장했습니다.", { exact: true }).waitFor({ state: "hidden" });
-      await page.getByRole("img", { name: "공지 화면 서비스 화면 예시", exact: true }).filter({ visible: true }).evaluate((image) => (image as HTMLImageElement).decode());
       await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-notice-preview.png` });
     }
     await page.getByRole("button", { name: "투표 시작부터 결과까지", exact: true }).click();
@@ -261,17 +260,11 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await page.getByRole("button", { name: "종료 알림", exact: true }).filter({ visible: true }).click();
     await expect(page.getByText("다음 내전 시간 투표가 종료 되었습니다", { exact: true }).filter({ visible: true })).toBeVisible();
     if (captureDir) {
-      await page.getByRole("img", { name: "투표 화면 서비스 화면 예시", exact: true }).filter({ visible: true }).evaluate((image) => (image as HTMLImageElement).decode());
       await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-poll-preview.png` });
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "함께할 일정을 놓치지 않도록", exact: true }).click();
-    await page.getByRole("button", { name: "캘린더 화면 크게 보기", exact: true }).filter({ visible: true }).click();
-    const screenDialog = page.getByRole("dialog", { name: "캘린더 화면", exact: true });
-    await expect(screenDialog).toBeVisible();
-    await expect.poll(() => screenDialog.getByRole("img").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-    await page.keyboard.press("Escape");
-    await expect(screenDialog).toBeHidden();
+    await expect(examplesDialog.getByRole("button", { name: /크게 보기/ })).toHaveCount(0);
     await expect(examplesDialog).toBeVisible();
     await expect.poll(() => examplesDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     await page.keyboard.press("Escape");
@@ -285,43 +278,6 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await officerContext.clearCookies(); await loginIsolatedBalanceUser(officer, f.users[2]); await officer.goto(path);
     await expect(officer.getByTestId("clan-event-notify-settings")).toHaveCount(0);
   } finally { await officerContext.close(); await f.cleanup(); }
-});
-
-test("capture actual QA screens for the Discord benefits gallery", async ({ page }) => {
-  test.skip(process.env.DISCORD_GALLERY_CAPTURE !== "1", "One-time artifact capture; isolated QA fixtures only");
-  test.setTimeout(180_000);
-  const f = await createIsolatedBalanceFixture(4);
-  try {
-    await page.setViewportSize({ width: 1304, height: 884 });
-    await ok(f.service.from("clans").update({ name: "ClanSync 데모 클랜", rules: "서로 존중하고 즐겁게 플레이합니다." }).eq("id", f.clanId));
-    await loginIsolatedBalanceUser(page, f.users[0]);
-    await createAndEnterBalanceRoom(page, f.path, "토요일 정규 내전");
-    const panel = page.getByTestId("clan-balance-session-panel"), candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
-    for (const user of f.users) await candidates.getByRole("button", { name: `${user.nickname} 출전 명단에 추가`, exact: true }).click();
-    await mkdir("public/images/discord", { recursive: true });
-    const capture = (image: string) => page.screenshot({ path: `public/images/discord/${image}.jpg`, type: "jpeg", quality: 85, clip: { x: 80, y: 75, width: 1210, height: 756 } });
-    await capture("balance");
-    const now = new Date(), friday = new Date(now); friday.setUTCDate(friday.getUTCDate()+((5-friday.getUTCDay()+7)%7)); friday.setUTCHours(12,0,0,0);
-    const event = await ok(f.service.from("clan_events").insert({ clan_id: f.clanId, title: "수요 듀오 연습회", kind: "event", start_at: friday.toISOString(), repeat: "weekly", repeat_weekdays: [3], repeat_time: "20:00:00", place: "Discord · 자유 플레이 채널", created_by: f.users[0].id }).select("id").single());
-    await ok(f.service.from("clan_events").insert({ clan_id: f.clanId, title: "토요 정규 내전", kind: "intra", start_at: friday.toISOString(), repeat: "weekly", repeat_weekdays: [6], repeat_time: "21:00:00", created_by: f.users[0].id }));
-    const wednesday = new Date(friday); wednesday.setUTCDate(wednesday.getUTCDate()+5); wednesday.setUTCHours(11,0,0,0);
-    await page.goto(`${f.path.replace(/balance$/, "events")}?event=${event.id}&at=${encodeURIComponent(wednesday.toISOString())}`);
-    await expect(page.getByRole("tab", { name: "캘린더", exact: true })).toBeVisible();
-    await expect(page.getByText("수요 듀오 연습회", { exact: true }).first()).toBeVisible();
-    await capture("calendar");
-    const notice = await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "이번 주 내전 운영 안내", content: "토요일 21시에 정규 내전이 열립니다.\n\n시작 10분 전에 Discord에 입장 링크가 올라옵니다. 참가하실 분은 미리 참석 응답을 남겨 주십시오.\n\n함께 즐거운 내전을 만들어 봐요!", is_pinned: true, created_by: f.users[0].id }).select("id").single());
-    await page.goto(`${f.path.replace(/\/balance$/, "")}?notice=${notice.id}`);
-    await expect(page.getByRole("dialog", { name: "이번 주 내전 운영 안내" })).toBeVisible();
-    await capture("notices");
-    const poll = await ok(f.service.from("clan_polls").insert({ clan_id: f.clanId, title: "다음 내전 시간 투표", deadline_at: new Date(Date.now()+86_400_000).toISOString(), created_by: f.users[0].id }).select("id").single());
-    const options = await ok(f.service.from("poll_options").insert([{ poll_id: poll.id, label: "토요일 오후 9시", sort_order: 0 }, { poll_id: poll.id, label: "일요일 오후 8시", sort_order: 1 }]).select("id"));
-    await ok(f.service.from("poll_votes").insert(f.users.map((user,index) => ({ poll_id: poll.id, option_id: options[index === 3 ? 1 : 0].id, user_id: user.id }))));
-    await ok(f.service.from("clan_polls").update({ closed_at: new Date().toISOString() }).eq("id", poll.id));
-    await page.goto(`${f.path.replace(/balance$/, "events")}?tab=polls&poll=${poll.id}`);
-    await expect(page.getByRole("dialog", { name: "다음 내전 시간 투표", exact: true })).toBeVisible();
-    await capture("polls");
-    expect(event.id).toBeTruthy();
-  } finally { await f.cleanup(); }
 });
 
 test("off periods skip past notices/closures, restore future reservations; matching calendar and room use one reminder", async () => {

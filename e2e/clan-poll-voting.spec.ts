@@ -130,7 +130,6 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     await expect(finalDialog.getByRole("region", { name: "투표 결과" }).locator('[aria-label="선택지 참여자"]')).toContainText(f.users[1].nickname);
     await expect(finalDialog.getByRole("region", { name: "투표 결과", exact: true }).getByRole("listitem").first()).toContainText("금요일 오후 9시");
     await capture(page, "poll-results-desktop.png");
-    if (process.env.POLL_GALLERY_CAPTURE === "1") await page.screenshot({ path: "public/images/discord/polls.jpg", type: "jpeg", quality: 85, clip: { x: 80, y: 75, width: 1210, height: 756 } });
     await page.keyboard.press("Escape");
     await page.getByRole("radio", { name: "종료된 투표", exact: true }).click();
     await page.getByRole("button", { name: "마감된 빈 투표 결과 보기", exact: true }).click();

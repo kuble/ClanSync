@@ -58,10 +58,8 @@ QA에 공용 봇 연결, 기본/종류별 채널, 내전·일정·공지·투표
 
 SKIP LOCKED와 5분 lease로 중복 claim을 막는다. 실패는 60/120/240/480초 후 재시도하고 5회 실패 시 DLQ로 보낸다. 같은 로그 ID의 nonce로 Discord 단기 중복을 막지만 nonce 보존 기간 밖의 네트워크 실패까지 정확히 한 번 전달을 보장하지는 않는다.
 
-## 검증 및 촬영
+## 검증
 
 `e2e/clan-discord-notifications.spec.ts`와 `e2e/event-discord-bot.spec.ts`에서 격리 QA 데이터로 권한, 종류별 라우팅, 예약 변경·취소, 공지 중복, 투표 종료, 병렬 claim, 발송 직전 토글, 채널 변경, 인증 복귀, 신규 클랜 안내, 모바일 갤러리를 검증한다. 모의 Discord API로 발송하며 E2E 서버는 실제 봇 키를 비운다.
-
-갤러리 재촬영은 `E2E_SKIP_SEED=1`, `DISCORD_GALLERY_CAPTURE=1`을 설정하고 `npx playwright test e2e/clan-discord-notifications.spec.ts --grep "capture actual" --project=chromium`을 실행한다. 테스트가 만든 임시 클랜·계정만 삭제하며 사용자 QA 데이터는 보존한다. 이미지 원본은 `public/images/discord/`에 둔다.
 
 공식 근거: [OAuth2](https://docs.discord.com/developers/topics/oauth2), [권한](https://docs.discord.com/developers/topics/permissions), [메시지](https://docs.discord.com/developers/resources/message#create-message).
