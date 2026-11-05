@@ -1,3 +1,4 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
@@ -52,14 +53,16 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     const recordsBefore = await readRecords();
     const personalTables = ["user_game_profiles", "user_alt_accounts", "profile_role_preferences", "user_nameplate_inventory", "user_namecard_selections", "purchases", "coin_transactions", "clan_personal_emblem_awards", "account_personal_emblem_picks"] as const;
     const readPersonal = async () => Object.fromEntries(await Promise.all(personalTables.map(async table => [table, await ok(f.service.from(table).select("*").eq("user_id", subject.id))] as const)));
-    const personalBefore = await readPersonal();
+    let personalBefore = await readPersonal();
     for (const rows of Object.values(personalBefore)) expect(rows.length).toBeGreaterThan(0);
     const memberBefore = await ok(f.service.from("clan_members").select("*").eq("clan_id", f.clanId).eq("user_id", subject.id).single());
 
     await loginIsolatedBalanceUser(page, subject);
     await page.goto("/profile");
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "계정 정보");
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
+    // Opening the profile finalizes any earned historical awards before withdrawal.
+    personalBefore = await readPersonal();
     await page.getByRole("button", { name: `${clan.name} 클랜 탈퇴`, exact: true }).click();
     const leave = page.getByRole("dialog", { name: "클랜을 탈퇴하시겠습니까?", exact: true });
     await leave.getByRole("button", { name: "클랜 탈퇴", exact: true }).click();
@@ -100,7 +103,7 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     await ok(f.service.from("clan_events").update({ operator_name: "forged" }).eq("id", event.id));
     expect((await ok(f.service.from("clan_events").select("operator_name").eq("id", event.id).single())).operator_name).toBe(hostName);
     await page.reload();
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "계정 정보");
     await page.getByRole("button", { name: "ClanSync 탈퇴", exact: true }).click();
     const deletion = page.getByRole("dialog", { name: "ClanSync를 탈퇴하시겠습니까?", exact: true });
     await deletion.getByRole("button", { name: "ClanSync 탈퇴하기", exact: true }).click();

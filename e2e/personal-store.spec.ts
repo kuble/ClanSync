@@ -29,7 +29,8 @@ test("기본 디자인과 공통 잔액은 여러 게임 클랜에서 동일하�
     expect(game.error).toBeNull();
     expect((await f.service.from("user_game_profiles").insert({user_id:f.users[0].id,game_id:game.data!.id,game_uid:"provider:"+randomUUID(),riot_id:"Store"+f.users[0].id.slice(0,8)+"#QA1",is_verified:true})).error).toBeNull();
     expect((await f.service.from("clans").insert({id:otherClanId,game_id:game.data!.id,name:"StoreUI-"+otherClanId.slice(0,8)})).error).toBeNull();
-    expect((await f.service.from("clan_members").insert({clan_id:otherClanId,user_id:f.users[0].id,role:"member",status:"active"})).error).toBeNull();
+    const joinedAt = new Date().toISOString();
+    expect((await f.service.from("clan_members").insert({clan_id:otherClanId,user_id:f.users[0].id,role:"member",status:"active",joined_at:joinedAt,welcome_completed_at:joinedAt})).error).toBeNull();
     expect((await f.service.from("users").update({coin_balance:1000}).eq("id",f.users[0].id)).error).toBeNull();
     await loginIsolatedBalanceUser(page,f.users[0]);
     await page.goto("/store");
@@ -41,8 +42,8 @@ test("기본 디자인과 공통 잔액은 여러 게임 클랜에서 동일하�
     await expect(page.getByRole("article",{name:"기본 카드 프레임",exact:true})).toBeVisible();
     await expect(page.getByRole("article",{name:"프리미엄 골드 프레임",exact:true})).toHaveCount(0);
     await page.goto("/games/valorant/clan/"+otherClanId+"/store");
-    // The development indicator overlaps this lower sidebar icon; use keyboard navigation.
-    await page.getByRole("link",{name:"프로필",exact:true}).press("Enter");
+    await page.getByRole("button",{name:"프로필 메뉴",exact:true}).click();
+    await page.getByRole("menuitem",{name:"프로필",exact:true}).click();
     await page.getByRole("link",{name:"개인 상점",exact:true}).click();
     await expect(page.getByRole("main").getByLabel("보유 코인").locator("strong")).toHaveText("1,000");
     expect((await f.service.from("coin_transactions").select("id").eq("user_id",f.users[0].id)).data).toEqual([]);

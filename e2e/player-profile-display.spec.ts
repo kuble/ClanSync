@@ -47,13 +47,13 @@ test("personal banners use game-specific BattleTags and signup details within pe
     const allowed = await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[2].id);
     expect(allowed?.kind === "personal" && allowed.person.profile?.gender).toBe("undisclosed");
     expect((await f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "leader" } }).eq("clan_id", f.clanId)).error).toBeNull();
-    expect((await loadClanStatsPage(member, f.users[1].id, f.clanId, { deferDetails: true }))?.personal.people).toEqual([]);
-    expect(await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[2].id)).toBeNull();
+    const restricted = await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[2].id);
+    expect(restricted?.kind === "personal" && restricted.person).toMatchObject({ matches: [], scores: [], lastPlayedAt: null, visibleSections: ["predictions", "emblems"] });
     await page.context().clearCookies();
     await loginIsolatedBalanceUser(page, f.users[1]);
     const denied = await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[2].id}`);
-    expect(denied.ok()).toBe(false);
-    expect(await denied.text()).not.toContain("2002");
+    expect(denied.ok()).toBe(true);
+    expect((await denied.json()).person).toMatchObject({ profile: { birthYear: 2002 }, matches: [], scores: [] });
     await page.goto("/games");
   } finally { await f.cleanup(); }
 });

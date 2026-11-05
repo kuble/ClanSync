@@ -114,7 +114,7 @@ test("모든 역할은 멤버 검색으로 시작하고 통계 제한 대상도 
       await expect(picker).toBeVisible();
       await expect(banner).toHaveCount(0);
       await page.getByRole("textbox", { name: "멤버 이름 검색", exact: true }).fill(tags[0].split("#")[0]);
-      await picker.getByRole("button", { name: `${tags[0].split("#")[0]} 개인 기록 열기`, exact: true }).click();
+      await picker.getByRole("button", { name: `${tags[0]} 개인 기록 열기`, exact: true }).click();
       await expect(banner).toContainText(tags[0]);
       await page.screenshot({ path: info.outputPath("personal-member-entry.png") });
       await page.goto(statsUrl + "?player=" + f.users[0].id);
@@ -137,18 +137,22 @@ test("모든 역할은 멤버 검색으로 시작하고 통계 제한 대상도 
     let before;
     try {
       await page.goto(statsUrl + "?player=" + f.users[0].id);
-      await expect(banner.getByRole("region", { name: "기본 정보", exact: true }).getByRole("definition")).toHaveText(["—", "—", "—"]);
+      // Public facts arrive with the initial stats model; the held request enriches the introduction.
+      await expect(banner).toHaveAttribute("aria-busy", "true");
+      await expect(banner.getByRole("region", { name: "기본 정보", exact: true }).getByRole("definition")).toHaveText(["남성", "1991", "2021. 4. 6."]);
       before = await banner.boundingBox();
     } finally { release(); }
     await expect(banner.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
-    await expect(page.getByRole("tabpanel", { name: "개인 기록", exact: true }).getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "플레이어 요약", exact: true })).toHaveCount(0);
     const facts = banner.getByRole("region", { name: "기본 정보", exact: true });
     await expect(facts.getByRole("definition")).toHaveText(["남성", "1991", "2021. 4. 6."]);
     const after = await banner.boundingBox();
     for (const axis of ["x", "y", "width", "height"] as const) expect(Math.abs(before![axis] - after![axis])).toBeLessThan(1);
     await page.screenshot({ path: info.outputPath("restricted-stats-public-facts.png") });
     await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
-    expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
+    const restricted = await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`);
+    expect(restricted.status()).toBe(200);
+    expect((await restricted.json()).person).toMatchObject({ matches: [], scores: [], lastPlayedAt: null });
     const identity = (await (await page.request.get(endpoint)).json()).profile;
     expect(identity.clanProfile).toEqual({ gender: "male", birthYear: 1991, clanJoinedAt: "2021-04-05T23:30:00+00:00", altAccounts: [] });
     expect(JSON.stringify(identity)).not.toContain(f.users[0].email);

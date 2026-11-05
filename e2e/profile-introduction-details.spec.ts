@@ -27,7 +27,7 @@ test("소개의 부계정은 게임과 공개 권한을 따르고 비공개 통�
     const aside = await identity.getByRole("region", { name: "대표 엠블럼", exact: true }).locator("..").boundingBox();
     expect(Math.abs(facts!.height - aside!.height)).toBeLessThan(1);
     const edit = identity.getByRole("button", { name: "한 줄 소개 편집", exact: true });
-    const summary = await edit.locator("..").evaluate(el => ({ border: getComputedStyle(el).borderTopWidth, height: el.getBoundingClientRect().height }));
+    const summary = await edit.evaluate(el => ({ border: getComputedStyle(el).borderTopWidth, height: el.getBoundingClientRect().height }));
     expect(summary.border).toBe("1px"); expect(summary.height).toBeGreaterThanOrEqual(88);
     await page.screenshot({ path: info.outputPath("profile-introduction-details.png") });
     await page.context().clearCookies();
@@ -36,11 +36,13 @@ test("소개의 부계정은 게임과 공개 권한을 따르고 비공개 통�
     await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
     await expect(page.getByRole("region", { name: "개인 기록 멤버 목록", exact: true })).toBeVisible();
     await page.getByRole("textbox", { name: "멤버 이름 검색", exact: true }).fill("FindPlayer");
-    await page.getByRole("button", { name: "FindPlayer 개인 기록 열기", exact: true }).click();
+    await page.getByRole("button", { name: "FindPlayer#1111 개인 기록 열기", exact: true }).click();
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
     await expect(banner).toContainText("FindPlayer#1111");
     await expect(banner.getByRole("region", { name: "부계정", exact: true })).toContainText("공개된 부계정 없음");
-    expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${owner.id}`)).status()).toBe(403);
+    const restricted = await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${owner.id}`);
+    expect(restricted.status()).toBe(200);
+    expect((await restricted.json()).person).toMatchObject({ matches: [], scores: [], lastPlayedAt: null });
     const endpoint = `/api/player-profiles/${owner.id}?clanId=${f.clanId}`;
     const hidden = await (await page.request.get(endpoint)).json();
     expect(hidden.profile.clanProfile.altAccounts).toEqual([]);

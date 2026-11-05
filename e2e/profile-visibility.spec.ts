@@ -1,9 +1,10 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test.use({ actionTimeout: 20_000 });
 
-test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하고 계정·보관함·미인증 ID를 제외한다", async ({ page, browser }) => {
+test("통합 소개 API는 로그인 방문자에게 등록 ID와 인증 여부를 공개하고 계정·보관함·내부 ID를 제외한다", async ({ page, browser }) => {
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2), owner = f.users[0];
   const visitorContext = await browser.newContext(), visitor = await visitorContext.newPage();
@@ -23,7 +24,7 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
     await ok(f.service.rpc("finalize_clan_personal_emblem_awards", { p_clan_id: f.clanId, p_period_type: "month", p_period_key: "2024-02", p_awards: [{ user_id: owner.id, family: "victory", rank: 1 }] }));
     await loginIsolatedBalanceUser(page, owner);
     await page.goto("/profile");
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "계정 정보");
     await expect(page.getByRole("region", { name: "내 계정", exact: true }).getByText(owner.email, { exact: true })).toBeVisible();
     await loginIsolatedBalanceUser(visitor, f.users[1]);
     const endpoint = "/api/player-profiles/" + owner.id;
@@ -32,7 +33,7 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
       expect(response.status()).toBe(200);
       expect(response.headers()["cache-control"]).toBe("private, no-store");
       const body = await response.text();
-      for (const value of [owner.email, owner.nickname, "UnverifiedPublic#KR1", "private-provider-id", "coinBalance", "auto_login", "birth_year", "birthYear", "gender", "clanJoinedAt", "housing", "inventory"])
+      for (const value of [owner.email, owner.nickname, "private-provider-id", "coinBalance", "auto_login", "birth_year", "birthYear", "gender", "clanJoinedAt", "housing", "inventory"])
         expect(body).not.toContain(value);
       return JSON.parse(body).profile;
     }
@@ -42,7 +43,7 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
     expect((await scopedResponse.json()).profile.clanProfile).toBeUndefined();
     expect(Object.keys(identity).sort()).toEqual(["appearance", "games", "intro", "memberships", "userId"]);
     expect(identity).toMatchObject({ userId: owner.id, intro, appearance: { title: title.name_ko } });
-    expect(identity.games).toEqual(expect.arrayContaining([{ gameSlug: "overwatch", gameName: "오버워치", accountId: battleTag }, { gameSlug: "valorant", gameName: "발로란트", accountId: null }]));
+    expect(identity.games).toEqual(expect.arrayContaining([{ gameSlug: "overwatch", gameName: "오버워치", accountId: battleTag, isVerified: true }, { gameSlug: "valorant", gameName: "발로란트", accountId: "UnverifiedPublic#KR1", isVerified: false }]));
     await visitor.goto("/profile/" + owner.id);
     await expect(visitor).toHaveURL(`/profile/${owner.id}/emblems`);
     await expect(visitor.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();

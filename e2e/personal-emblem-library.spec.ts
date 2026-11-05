@@ -39,7 +39,8 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     await expect(view.getByRole("heading", { name: /^(수상|개인의 성장)$/ })).toHaveCount(0);
     const [a, b] = await Promise.all([category.boundingBox(), game.boundingBox()]);
     expect(Math.abs(a!.y - b!.y)).toBeLessThan(2);
-    expect(b!.x - a!.x - a!.width).toBeLessThanOrEqual(16);
+    expect(b!.x).toBeGreaterThanOrEqual(a!.x + a!.width);
+    expect(b!.x + b!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
     await category.getByRole("radio", { name: "수상", exact: true }).click();
     await game.getByRole("radio", { name: "전체 게임", exact: true }).focus();
     await page.keyboard.press("End");
@@ -86,10 +87,14 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     await expect(annual.locator("[data-unearned-award]")).toHaveCount(5);
     await expect(annual.locator("[data-emblem-entry]")).toHaveCount(0);
     await expect(monthly.locator("[data-unearned-award]")).toHaveCount(4);
+    const awardsBounds = await view.getByRole("region", { name: "엠블럼 목록", exact: true }).boundingBox();
     await category.getByRole("radio", { name: "달성", exact: true }).click();
     const milestoneBounds = await view.getByRole("region", { name: "누적 달성 엠블럼", exact: true }).boundingBox();
     const frameBounds = await view.locator('[aria-busy]').last().boundingBox();
-    expect(frameBounds!.y + frameBounds!.height - milestoneBounds!.y - milestoneBounds!.height).toBeLessThanOrEqual(36);
+    // Filtering preserves the scroll frame so the controls and following content do not jump.
+    expect(frameBounds!.height).toBe(awardsBounds!.height);
+    expect(milestoneBounds!.y).toBeGreaterThanOrEqual(frameBounds!.y);
+    expect(milestoneBounds!.y + milestoneBounds!.height).toBeLessThanOrEqual(frameBounds!.y + frameBounds!.height);
     await category.getByRole("radio", { name: "수상", exact: true }).click();
     for (const width of [1023, 390, 320]) {
       await page.setViewportSize({ width, height: 884 });

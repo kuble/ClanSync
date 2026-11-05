@@ -41,7 +41,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId)).not.toBeNull();
     expect((await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId, f.users[0].id))?.emblems.some(emblem => emblem.kind === "award")).toBe(true);
     expect((await f.service.from("clan_settings").update({ hof_config: { ...config, personal_record_min_role: "leader" } }).eq("clan_id", f.clanId)).error).toBeNull();
-    expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId)).toBeNull();
+    expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId)).toMatchObject({ userId: f.users[1].id, canFeature: true });
     expect((await f.service.from("clan_settings").update({ hof_config: config }).eq("clan_id", f.clanId)).error).toBeNull();
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
     expect(await loadClanPersonalEmblemCollection(outsider, f.users[2].id, f.clanId)).toBeNull();
