@@ -20,7 +20,8 @@ test("birth-year tags preserve inclusive ranges and the original upper-bound mea
   assert.equal(recruitmentYearLabel({birth_year_from:null,min_birth_year:null}),"출생연도 무관");
 });
 test("tier tags only summarize a continuous range",()=>{
-  assert.equal(recruitmentTierSummary("overwatch",["diamond","gold","plat"]),"골드~다이아몬드");
+  assert.equal(recruitmentTierSummary("overwatch",["diamond","gold","plat","emerald"]),"골드~다이아몬드");
+  assert.equal(recruitmentTierSummary("overwatch",["gold","plat","diamond"]),"골드·플래티넘·다이아몬드");
   assert.equal(recruitmentTierSummary("overwatch",["gold","diamond"]),"골드·다이아몬드");
   assert.equal(recruitmentTierSummary("overwatch",[]),"티어 무관");
 });
