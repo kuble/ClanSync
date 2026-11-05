@@ -72,6 +72,7 @@ test("RSC request data stays isolated between accounts and refreshes changed per
       .single();
     expect(clan.error).toBeNull();
     clanId = clan.data!.id;
+    const joinedAt = new Date().toISOString();
     const setup = await Promise.all([
       svc.from("clan_members").insert(
         users.map((user, index) => ({
@@ -79,6 +80,8 @@ test("RSC request data stays isolated between accounts and refreshes changed per
           user_id: user.id,
           role: index === 0 ? "leader" : "member",
           status: "active",
+          joined_at: joinedAt,
+          welcome_completed_at: joinedAt,
         })),
       ),
       svc.from("user_game_profiles").insert(
@@ -86,6 +89,7 @@ test("RSC request data stays isolated between accounts and refreshes changed per
           user_id: user.id,
           game_id: game.data!.id,
           game_uid: `request-${user.id}`,
+          battle_tag: `Request${user.id.replaceAll("-", "").slice(0, 8)}#1000`,
           is_verified: true,
         })),
       ),
@@ -118,10 +122,10 @@ test("RSC request data stays isolated between accounts and refreshes changed per
     const leader = pages[0];
     const member = pages[1];
     await expect(
-      leader.getByRole("link", { name: "내전 로비 열기", exact: true }),
+      leader.getByRole("navigation", { name: "클랜 메뉴", exact: true }).getByRole("link", { name: "내전 로비", exact: true }),
     ).toBeVisible();
     await expect(
-      member.getByRole("link", { name: "내전 로비 열기", exact: true }),
+      member.getByRole("navigation", { name: "클랜 메뉴", exact: true }).getByRole("link", { name: "내전 로비", exact: true }),
     ).toBeVisible();
     await expect(
       leader
@@ -144,10 +148,10 @@ test("RSC request data stays isolated between accounts and refreshes changed per
     ).toBeNull();
     await Promise.all(pages.map((page) => page.reload()));
     await expect(
-      leader.getByRole("link", { name: "내전 로비 열기", exact: true }),
+      leader.getByRole("navigation", { name: "클랜 메뉴", exact: true }).getByRole("link", { name: "내전 로비", exact: true }),
     ).toBeVisible();
     await expect(
-      member.getByRole("link", { name: "내전 로비 열기", exact: true }),
+      member.getByRole("navigation", { name: "클랜 메뉴", exact: true }).getByRole("link", { name: "내전 로비", exact: true }),
     ).toBeVisible();
     expect(
       (
@@ -165,10 +169,10 @@ test("RSC request data stays isolated between accounts and refreshes changed per
         .getByRole("link", { name: "클랜 관리", exact: true }),
     ).toBeVisible();
     await expect(
-      member.getByRole("link", { name: "내전 로비 열기", exact: true }),
+      member.getByRole("navigation", { name: "클랜 메뉴", exact: true }).getByRole("link", { name: "내전 로비", exact: true }),
     ).toBeVisible();
     await expect(
-      leader.getByRole("link", { name: "내전 로비 열기", exact: true }),
+      leader.getByRole("navigation", { name: "클랜 메뉴", exact: true }).getByRole("link", { name: "내전 로비", exact: true }),
     ).toBeVisible();
   } finally {
     await Promise.all(contexts.map((context) => context.close()));

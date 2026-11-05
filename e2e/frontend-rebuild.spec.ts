@@ -146,8 +146,9 @@ test("separate stores cancel purchases without changing balances or ownership", 
     expect((await f.service.from("users").update({coin_balance:500}).eq("id",f.users[0].id)).error).toBeNull();
     expect((await f.service.from("clans").update({coin_balance:500}).eq("id",f.clanId)).error).toBeNull();
     expect((await f.service.from("nameplate_options").insert({id:titleId,game_id:f.gameId,category:"sub",code:"title-e2e-"+titleId,name_ko:"취소 검증 칭호",unlock_source:"store",price_coins:50})).error).toBeNull();
-    const item=await f.service.from("store_items").select("name_ko").eq("slug","clan_photo_frames").single();expect(item.error).toBeNull();
+    const item=await f.service.from("store_items").select("name_ko").eq("slug","clan_emoji_slots_3").single();expect(item.error).toBeNull();
     await loginIsolatedBalanceUser(page,f.users[0]);await page.goto(f.path.replace(/balance$/,"store"));
+    await page.getByRole("radiogroup",{name:"클랜 꾸미기 분류",exact:true}).getByRole("radio",{name:"반응",exact:true}).click();
     await page.getByRole("article",{name:item.data!.name_ko,exact:true}).getByRole("button",{name:"구매",exact:true}).click();
     await page.getByRole("dialog",{name:"꾸미기 구매",exact:true}).getByRole("button",{name:"취소",exact:true}).click();
     await page.goto("/store");

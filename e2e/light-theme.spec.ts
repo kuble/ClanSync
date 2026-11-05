@@ -1,3 +1,4 @@
+import { selectSection } from "./section-picker-helper";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -130,7 +131,6 @@ test("light desktop routes, account onboarding and the bannerless clan hero fit 
     await editor.getByLabel("본문", { exact: true }).fill("LongUnbrokenContent".repeat(30));
     await editor.getByRole("button", { name: "저장", exact: true }).click();
     await expect(editor).toBeHidden();
-    await page.getByText(title, { exact: true }).click();
     await page.waitForURL(/\/board\/free\/[^/]+$/);
     await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
     await fits(page);
@@ -158,7 +158,7 @@ test("light stats, reservation and live match settings stay within 320px and 390
       await page.setViewportSize({ width, height: 568 });
       await page.goto(`${base}/stats`);
       for (const [tab, title] of [["명예의 전당", "명예의 전당 설정"], ["내전 통계", "내전 통계 설정"], ["경기 기록", "경기 기록 설정"], ["개인 기록", "개인 기록 설정"]]) {
-        await page.getByRole("tab", { name: tab, exact: true }).click();
+        await selectSection(page, "통계 선택", tab);
         await page.getByRole("button", { name: title, exact: true }).click();
         const dialog = page.getByRole("dialog", { name: title, exact: true });
         await dialogFits(page, dialog, `${title}-${width}.png`);

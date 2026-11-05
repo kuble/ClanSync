@@ -42,9 +42,9 @@ test("five free symbols apply without purchases and follow the player into comme
     await toggleAccountTheme(page);
     await expect(page.getByRole("article",{name:"스파크",exact:true}).locator('[data-symbol-art="spark"]')).toHaveCSS("filter","brightness(0)");
     await page.setViewportSize({width:390,height:844});
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.screenshot({path:test.info().outputPath("symbols-store-mobile-light.png")});
-    await page.goto(`${base}/board/free/${postId}`);
+    await page.goto(`${base}/board/free/${postId}#comments`);
     await expect(page.locator("#comments").getByRole("img",{name:`${f.users[0].nickname} 프로필 심볼`,exact:true})).toHaveAttribute("src",/spark/);
     expect((await page.request.get("/namecards/v1/shield.webp")).status()).toBe(404);
   } finally {await f.cleanup();}

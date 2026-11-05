@@ -14,6 +14,10 @@ test("nickname-free signup retains errors and a new profile displays the full Ba
   const password = `${randomUUID()}aA1!`;
   let id: string | undefined;
   try {
+    // A confirmed duplicate produces the same real auth error on local and hosted DBs.
+    const created = await svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } });
+    expect(created.error).toBeNull();
+    id = created.data.user!.id;
     await page.goto("/sign-up");
     await expect(page.getByLabel("닉네임", { exact: true })).toHaveCount(0);
     await page.getByLabel("이메일", { exact: true }).fill(email);
@@ -21,15 +25,10 @@ test("nickname-free signup retains errors and a new profile displays the full Ba
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("checkbox", { name: /이용약관/ }).check();
     await page.getByRole("button", { name: "가입하기", exact: true }).click();
-    // QA has no custom SMTP. Its disposable .local email is intentionally rejected.
-    // Verify the real server action accepts the missing nickname and retains input.
+    // Verify the server action retains the inputs when registration is rejected.
     await expect(page.getByRole("alert").filter({ hasText: "가입하지 못했습니다" })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByLabel("이메일", { exact: true })).toHaveValue(email);
     await expect(page.getByLabel("출생연도", { exact: true })).toHaveValue("2000");
-    // No delivery bypass or global auth setting changes: create only a new fixture.
-    const created = await svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } });
-    expect(created.error).toBeNull();
-    id = created.data.user!.id;
     const profile = await svc.from("users").select("id").eq("email", email).single();
     expect(profile.error).toBeNull();
     expect(profile.data!.id).toBe(id);

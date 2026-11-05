@@ -1,3 +1,4 @@
+import { selectSection, selectProfileSection } from "./section-picker-helper";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { formatCommunityDate } from "../src/lib/main-game/format-community-date";
@@ -21,11 +22,11 @@ async function checkEditor(page: Page, dialog: Locator, action: string, capture:
   expect(Math.abs(box!.x + box!.width - page.viewportSize()!.width)).toBeLessThan(2);
   expect(box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   const title = dialog.locator('[data-slot="sheet-title"]');
-  const submit = action === "닫기"
-    ? dialog.locator('[data-slot="sheet-footer"]').getByRole("button", { name: action, exact: true })
-    : dialog.getByRole("button", { name: action, exact: true });
+  // Namecard designs apply immediately; its persistent close action is in the header.
+  const submit = dialog.getByRole("button", { name: action, exact: true });
   const before = [await title.boundingBox(), await submit.boundingBox()];
-  await dialog.locator(".board-scroll").first().evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  const body = action === "닫기" ? dialog.locator('[aria-busy]') : dialog.locator(".board-scroll").first();
+  await body.evaluate((el) => { el.scrollTop = el.scrollHeight; });
   await expect(submit).toBeInViewport();
   expect(Math.abs((await title.boundingBox())!.y - before[0]!.y)).toBeLessThan(2);
   expect(Math.abs((await submit.boundingBox())!.y - before[1]!.y)).toBeLessThan(2);
@@ -81,7 +82,10 @@ test("board, coaching, records and profile editors share fixed actions on mobile
       ["memories", "추억 남기기", "추억 남기기", "저장"],
     ]) {
       await page.goto(`${base}/board/${section}`);
-      await page.getByRole("button", { name: trigger, exact: true }).click();
+      if (section === "feedback") {
+        await page.getByRole("button", { name: "게시판 작성 메뉴", exact: true }).click();
+        await page.getByRole("menuitem", { name: trigger, exact: true }).click();
+      } else await page.getByRole("button", { name: trigger, exact: true }).click();
       const dialog = page.getByRole("dialog", { name: title, exact: true });
       if (section === "channels") for (let i = 0; i < 3; i++) await dialog.getByRole("button", { name: "방송 플랫폼 추가", exact: true }).click();
       await checkEditor(page, dialog, action, `${section}-${trigger}.png`);
@@ -89,13 +93,13 @@ test("board, coaching, records and profile editors share fixed actions on mobile
       await expect(dialog).toBeHidden();
     }
     await page.goto(`${base}/stats`);
-    await page.getByRole("tab", { name: "경기 기록", exact: true }).click();
+    await selectSection(page, "통계 선택", "경기 기록");
     await page.getByRole("button", { name: "기록 추가", exact: true }).click();
     let dialog = page.getByRole("dialog", { name: "경기 기록 추가", exact: true });
     await checkEditor(page, dialog, "기록 저장", "record-mobile.png");
     await dialog.getByRole("button", { name: "닫기", exact: true }).last().click();
     await page.goto("/profile");
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "플레이어 소개");
     await noPageOverflow(page);
     for (const [trigger, title, action] of [["네임카드 꾸미기", "네임카드 꾸미기", "닫기"]]) {
       await page.getByRole("button", { name: trigger, exact: true }).first().click();
