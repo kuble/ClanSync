@@ -2,7 +2,7 @@ import { copyFileSync, cpSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseEnvFile } from "./parse-env-file.mjs";
-import { loadTestEnv, TEST_PROJECT_REF } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv, TEST_PROJECT_REF } from "./test-env.mjs";
 
 const action = process.argv[2];
 if (!["push", "types", "list"].includes(action)) {

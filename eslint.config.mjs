@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".supabase-test/**",
+    ".local-tests/**",
     // Archived static mockups and vendored icon sources are not application code.
     "mockup/**",
   ]),

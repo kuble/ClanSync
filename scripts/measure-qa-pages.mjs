@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { qaFixtureEmail, FIXTURE_PASSWORD, QA_SEED_CLANS } from "./fixtures/qa-fixtures.mjs";
 
 // Read-only QA requests. Run once before and after a change; no fixture reseeding.

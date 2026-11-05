@@ -11,7 +11,7 @@ if (!/^\d+$/.test(E2E_PORT) || Number(E2E_PORT) < 1 || Number(E2E_PORT) > 65535)
 const defaultBase = `http://127.0.0.1:${E2E_PORT}`;
 
 /**
- * 전용 QA DB·3010 포트 사용. 기존 서버는 DB 대상을 보장할 수 없어 재사용하지 않는다.
+ * 전용 로컬 검사 DB·3010 포트 사용. 사용자의 3011 온라인 QA는 재사용하지 않는다.
  * CI: `npm run build` 후 `next start --port`.
  * QA 픽스처 로그인 기본값은 `e2e/qa-fixture-credentials.ts` → `scripts/fixtures/qa-fixtures.mjs`.
  * 온보딩만 선택적으로 `E2E_EMAIL`·`E2E_PASSWORD`로 Member 계정 덮어쓰기 가능.
@@ -22,7 +22,7 @@ export default defineConfig({
   tsconfig: "./tsconfig.playwright.json",
   fullyParallel: false,
   forbidOnly: isCi,
-  retries: isCi ? 2 : 0,
+  retries: 0,
   workers: 1,
   globalSetup: "./e2e/global-setup.ts",
   reporter: isCi ? "github" : "list",

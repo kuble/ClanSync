@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { maintainQaWorkspace, waitForQaHttp } from "./qa-startup-maintenance.mjs";
 
 const port = process.env.QA_DEV_PORT || "3011";

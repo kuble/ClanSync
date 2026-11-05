@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { QA_CLAN_ACCOUNT_EMAILS } from "./fixtures/qa-fixtures.mjs";
 import { buildVarietyHistory, summarizeVariety, VARIETY_CLAN_ID as CLAN_ID, VARIETY_TITLE } from "./fixtures/qa-stats-variety.mjs";
 

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
-import { loadTestEnv } from '../test-env.mjs';
+import { loadSharedQaEnv as loadTestEnv } from '../test-env.mjs';
 import { qaFixtureEmail, FIXTURE_PASSWORD } from '../fixtures/qa-fixtures.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomInt } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { FIXTURE_PASSWORD, QA_SEED_ACCOUNTS, qaFixtureEmail } from "./fixtures/qa-fixtures.mjs";
 
 const env=loadTestEnv();

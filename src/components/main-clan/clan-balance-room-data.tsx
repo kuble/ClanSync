@@ -264,8 +264,10 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       qaPreviewEnabled={
         canManage &&
         process.env.VERCEL_ENV !== "production" &&
-        process.env.NEXT_PUBLIC_SUPABASE_URL ===
-          "https://moretvteewfcztxvwztw.supabase.co"
+        (process.env.NEXT_PUBLIC_SUPABASE_URL ===
+          "https://moretvteewfcztxvwztw.supabase.co" ||
+          (process.env.CLANSYNC_E2E === "1" &&
+            process.env.NEXT_PUBLIC_SUPABASE_URL === "http://127.0.0.1:55431"))
       }
     />
   );

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { QA_CLAN_ACCOUNT_EMAILS } from "./fixtures/qa-fixtures.mjs";
 
 // Explicitly requested historical fixtures, not the destructive account/clan seed.

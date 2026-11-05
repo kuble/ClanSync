@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { qaFixtureEmail } from "./fixtures/qa-fixtures.mjs";
 
 // Add presentation content only to the named QA clan. Never reseed accounts or matches.

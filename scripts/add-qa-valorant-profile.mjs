@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { qaFixtureEmail } from "./fixtures/qa-fixtures.mjs";
 
 // Add only the leader's missing QA demo records; never reseed or overwrite a profile.

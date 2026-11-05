@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv } from "./test-env.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
 import { QA_SEED_ACCOUNTS, qaFixtureEmail, qaFixtureBattleTag } from "./fixtures/qa-fixtures.mjs";
 
 export function qaIdentityPatch(account, profile) {

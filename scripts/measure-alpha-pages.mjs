@@ -1,7 +1,7 @@
 import { chromium } from '@playwright/test';
 import { createServerClient } from '@supabase/ssr';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { loadTestEnv } from './test-env.mjs';
+import { loadSharedQaEnv as loadTestEnv } from './test-env.mjs';
 import { FIXTURE_PASSWORD, qaFixtureEmail } from './fixtures/qa-fixtures.mjs';
 
 const label = process.argv[2] ?? 'latest';

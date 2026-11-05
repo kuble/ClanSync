@@ -16,6 +16,7 @@
 /test-results/
 /blob-report/
 /.supabase-test/
+/.local-tests/
 
 # next.js
 /.next/

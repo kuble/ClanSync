@@ -26,11 +26,15 @@
     "db:test:push": "node scripts/supabase-test.mjs push",
     "db:test:types": "node scripts/supabase-test.mjs types",
     "debug:supabase": "node scripts/debug-supabase-games.mjs",
-    "test:e2e": "playwright test",
-    "test:db": "node --test --test-concurrency=1 scripts/clan-banner-store-db.test.mjs scripts/review-db.test.mjs scripts/retired-storage-db.test.mjs scripts/profile-photo-retirement-db.test.mjs scripts/legacy-nickname-retirement-db.test.mjs scripts/clan-notices-db.test.mjs scripts/personal-emblems-db.test.mjs scripts/account-personal-emblems-db.test.mjs scripts/personal-emblem-history-db.test.mjs scripts/profile-visibility-db.test.mjs scripts/account-namecards-db.test.mjs scripts/session-round-db.test.mjs scripts/formation-db.test.mjs scripts/nickname-only-db.test.mjs scripts/clan-auction-items-db.test.mjs scripts/clan-membership-db.test.mjs scripts/clan-recruitment-db.test.mjs scripts/clan-invites-db.test.mjs scripts/clan-leadership-db.test.mjs scripts/clan-participation-activity-db.test.mjs scripts/prematch-db.test.mjs scripts/prediction-settings-db.test.mjs scripts/prediction-pool-db.test.mjs scripts/balance-rooms-db.test.mjs scripts/balance-auto-close-db.test.mjs && node --test scripts/role-preferences-db.test.mjs",
-    "test:prediction-pool:db": "node --test scripts/prediction-pool-db.test.mjs",
+    "test:e2e": "node scripts/local-tests/run.mjs e2e",
+    "test:db": "node scripts/local-tests/run.mjs db",
+    "test:prediction-pool:db": "node scripts/local-tests/run.mjs db scripts/prediction-pool-db.test.mjs",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:env-check": "node e2e/check-e2e-env.mjs"
+    "test:e2e:env-check": "node e2e/check-e2e-env.mjs",
+    "test:db:raw": "node --test --test-concurrency=1 scripts/clan-banner-store-db.test.mjs scripts/review-db.test.mjs scripts/retired-storage-db.test.mjs scripts/profile-photo-retirement-db.test.mjs scripts/legacy-nickname-retirement-db.test.mjs scripts/clan-notices-db.test.mjs scripts/personal-emblems-db.test.mjs scripts/account-personal-emblems-db.test.mjs scripts/personal-emblem-history-db.test.mjs scripts/profile-visibility-db.test.mjs scripts/account-namecards-db.test.mjs scripts/session-round-db.test.mjs scripts/formation-db.test.mjs scripts/nickname-only-db.test.mjs scripts/clan-auction-items-db.test.mjs scripts/clan-membership-db.test.mjs scripts/clan-recruitment-db.test.mjs scripts/clan-invites-db.test.mjs scripts/clan-leadership-db.test.mjs scripts/clan-participation-activity-db.test.mjs scripts/prematch-db.test.mjs scripts/prediction-settings-db.test.mjs scripts/prediction-pool-db.test.mjs scripts/balance-rooms-db.test.mjs scripts/balance-auto-close-db.test.mjs && node --test scripts/role-preferences-db.test.mjs",
+    "test:local:setup": "node scripts/local-tests/setup.mjs",
+    "test:local:clean": "node scripts/local-tests/setup.mjs --reset",
+    "test:dashboard": "node scripts/local-tests/dashboard.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

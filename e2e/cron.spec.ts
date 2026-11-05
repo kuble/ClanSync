@@ -7,7 +7,7 @@ test("cron rejects requests without its secret", async ({ request }) => {
 
 test("cron can dispatch against the isolated QA database", async ({ request }) => {
   const secret = process.env.CRON_SECRET;
-  expect(secret, "Configure a test-only CRON_SECRET in .env.e2e.local").toBeTruthy();
+  expect(secret, "Run npm run test:local:setup to configure the local test CRON_SECRET").toBeTruthy();
   const response = await request.get("/api/cron/dispatch-notifications", {
     headers: { Authorization: `Bearer ${secret}` },
   });
