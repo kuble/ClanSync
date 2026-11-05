@@ -1,3 +1,4 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -49,8 +50,7 @@ test("leader confirms a transfer from members, becomes a member and loses manage
     expect((await f.service.from("clans").select("ownership_transferred_at").eq("id", f.clanId).single()).data?.ownership_transferred_at).toBeTruthy();
     await page.goto("/profile");
     await page.waitForLoadState("networkidle");
-    const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
-    await expect(async () => { await accountTab.click(); await expect(accountTab).toHaveAttribute("aria-selected", "true", { timeout: 1000 }); }).toPass({ timeout: 15_000 });
+    await selectProfileSection(page);
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await page.getByRole("button", { name: /클랜 탈퇴/ }).first().click();
     const leave = page.getByRole("dialog");

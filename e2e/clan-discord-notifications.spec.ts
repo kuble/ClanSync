@@ -376,8 +376,11 @@ test("notification links survive sign-in/sign-up, game verification and clan app
     await page.reload(); await expect(page).toHaveURL(new RegExp(`room=${room.room_id}`));
     expect((await page.context().cookies()).some((cookie) => cookie.name === "clansync-clan-return")).toBe(false);
     await ok(f.service.from("user_game_profiles").update({ is_verified: false }).eq("user_id", f.users[0].id));
+    await page.goto(target); await expect(page).toHaveURL(new RegExp(`room=${room.room_id}`));
+    const gameProfile = await ok(f.service.from("user_game_profiles").select("*").eq("user_id", f.users[0].id).single());
+    await ok(f.service.from("user_game_profiles").delete().eq("id", gameProfile.id));
     await page.goto(target); await expect(page).toHaveURL(/\/auth\?next=/);
-    await ok(f.service.from("user_game_profiles").update({ is_verified: true }).eq("user_id", f.users[0].id));
+    await ok(f.service.from("user_game_profiles").insert(gameProfile));
     await page.reload(); await expect(page).toHaveURL(new RegExp(`room=${room.room_id}`));
     const message = buildDiscordBotMessage({ log_id: "id", poll_id: poll.id, event_id: null, slot_kind: "poll_ended", title: "투표", start_at: null, deadline_at: start, clan_id: f.clanId, game_slug: "overwatch", channel_id: channel });
     expect(message.embeds?.[0].url).toContain(`?tab=polls&poll=${poll.id}`);

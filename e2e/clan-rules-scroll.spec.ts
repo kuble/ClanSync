@@ -1,59 +1,42 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("rules scroll slowly, pause while reading, and respect reduced motion", async ({ page }) => {
+test("rules advance every eight seconds, pause while reading, and respect reduced motion", async ({ page }) => {
   test.setTimeout(90_000);
   const fixture = await createIsolatedBalanceFixture(1);
   try {
-    const rules = Array.from({ length: 12 }, (_, i) => `${i + 1}. 서로 존중하고 즐겁게 게임합니다.`).join("\n");
-    const { error } = await fixture.service.from("clans").update({ rules }).eq("id", fixture.clanId);
-    expect(error).toBeNull();
+    const rules = Array.from({ length: 3 }, (_, i) => `규칙 ${i + 1} 서로 존중하고 즐겁게 게임합니다.`);
+    expect((await fixture.service.from("clans").update({ rules: rules.join("\n") }).eq("id", fixture.clanId)).error).toBeNull();
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await page.clock.install();
-    await page.setViewportSize({ width: 1169, height: 884 });
     await page.goto(`/games/overwatch/clan/${fixture.clanId}`);
-    const preview = page.getByRole("button", { name: "클랜 규칙 전체 보기", exact: true });
-    await expect(preview).toBeVisible();
+    const preview = page.getByRole("region", { name: "클랜 규칙", exact: true });
+    const text = preview.locator("[data-rule-text]");
+    await expect(text).toHaveText(rules[0]);
     await page.mouse.move(0, 0);
-    await page.clock.runFor(5000);
-    const scrollTop = () => preview.evaluate((el) => el.scrollTop);
-    const position = await scrollTop();
-    expect(position).toBeGreaterThan(0);
-    expect(position).toBeLessThanOrEqual(50);
-    expect(await preview.evaluate((el) => getComputedStyle(el).scrollbarWidth)).toBe("none");
-
-    await preview.hover();
-    await page.clock.runFor(3000);
-    expect(await scrollTop()).toBe(position);
-    await page.mouse.move(0, 0);
-    await preview.focus();
-    await page.clock.runFor(3000);
-    expect(await scrollTop()).toBe(position);
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await preview.evaluate((el) => el.blur());
-    await page.clock.runFor(3000);
-    expect(await scrollTop()).toBe(position);
-
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.clock.runFor(3000);
-    expect(await scrollTop()).toBeGreaterThan(position);
-    await preview.hover();
-    const bottom = await preview.evaluate((el) => {
-      el.scrollTop = el.scrollHeight;
-      return el.scrollTop;
-    });
-    await page.clock.runFor(100);
-    await page.mouse.move(0, 0);
+    await page.clock.runFor(7000);
+    await expect(text).toHaveText(rules[0]);
     await page.clock.runFor(1000);
-    expect(await scrollTop()).toBe(bottom);
-    await page.clock.runFor(3000);
-    expect(await scrollTop()).toBeLessThan(bottom);
-    await preview.click();
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText(rules);
-    await page.screenshot({ path: test.info().outputPath("rules-preview.png") });
-  } finally {
-    await fixture.cleanup();
-  }
+    await expect(text).toHaveText(rules[1]);
+    await preview.hover();
+    await page.clock.runFor(9000);
+    await expect(text).toHaveText(rules[1]);
+    await page.mouse.move(0, 0);
+    await page.keyboard.press("Tab");
+    const link = preview.getByRole("link", { name: /^규칙 \d:/ });
+    await link.focus();
+    await page.clock.runFor(9000);
+    await expect(text).toHaveText(rules[1]);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await link.evaluate(el => el.blur());
+    await page.clock.runFor(9000);
+    await expect(text).toHaveText(rules[1]);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.clock.runFor(8000);
+    await expect(text).toHaveText(rules[2]);
+    await page.clock.runFor(8000);
+    await expect(text).toHaveText(rules[0]);
+    await link.click();
+    await expect(page.getByRole("list", { name: "클랜 규칙 목록", exact: true }).getByRole("listitem")).toHaveCount(3);
+  } finally { await fixture.cleanup(); }
 });

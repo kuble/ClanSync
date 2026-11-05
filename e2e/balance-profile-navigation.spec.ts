@@ -47,7 +47,7 @@ test("내전의 출전자·관전자는 네임카드로 프로필을 방문하�
     await slot.press("Escape");
     await expect(slot).toHaveAttribute("aria-pressed", "false");
 
-    await ok(f.service.from("clan_settings").update({ hof_config: { member_personal_records: true, member_personal_audience: "own" } }).eq("clan_id", f.clanId));
+    await ok(f.service.from("clan_settings").update({ hof_config: { member_personal_records: true, member_personal_audience: "own", member_personal_sections: [] } }).eq("clan_id", f.clanId));
 
     await memberPage.goto(regular.url);
     const memberPanel = memberPage.getByTestId("clan-balance-session-panel");
@@ -61,8 +61,10 @@ test("내전의 출전자·관전자는 네임카드로 프로필을 방문하�
     await expect(memberPage.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     const targetBanner = memberPage.getByRole("region", { name: "플레이어 배너", exact: true });
     await expect(targetBanner.getByRole("link", { name: /엠블럼 케이스 열기$/ })).toHaveAttribute("href", `/profile/${f.users[0].id}/emblems`);
-    await expect(memberPage.getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
-    expect((await memberPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
+    await expect(memberPage.getByRole("region", { name: "플레이어 요약", exact: true })).toHaveCount(0);
+    const restricted = await memberPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`);
+    expect(restricted.status()).toBe(200);
+    expect((await restricted.json()).person).toMatchObject({ matches: [], scores: [], predictions: [], predictionPoints: [], visibleSections: ["emblems"] });
     await memberPage.reload();
     await expect(targetBanner.getByRole("link", { name: /엠블럼 케이스 열기$/ })).toHaveAttribute("href", `/profile/${f.users[0].id}/emblems`);
     await expect(memberPage.getByRole("tab", { name: "계정 정보", exact: true })).toHaveCount(0);

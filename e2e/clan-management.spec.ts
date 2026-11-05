@@ -1,3 +1,4 @@
+import { selectSectionLink } from "./section-picker-helper";
 import { expect, test, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { isoToKstYmd } from "../src/lib/clan/stats/kst";
@@ -139,8 +140,8 @@ test("officers manage real notices and rules across management and dashboard", a
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
-    await page.getByRole("navigation", { name: "클랜 관리 분류", exact: true }).getByRole("link", { name: /^구성원 관리/ }).click();
-    await page.getByRole("navigation", { name: "클랜 관리 항목", exact: true }).getByRole("link", { name: "구성원", exact: true }).click();
+    await selectSectionLink(page, "클랜 관리 분류", "구성원 관리");
+    await selectSectionLink(page, "클랜 관리 항목", "구성원");
     await expect(page.getByRole("textbox", { name: "구성원 검색", exact: true })).toBeVisible();
     expect(
       await page.evaluate(

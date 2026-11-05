@@ -165,7 +165,9 @@ test("completed guest rounds preserve scores, history identity and next-session 
     await createAndEnterBalanceRoom(page, f.path);
     const panel = page.getByTestId("clan-balance-session-panel");
     await panel.getByRole("button", { name: `${f.users[1].nickname} 출전 명단에 추가`, exact: true }).click();
-    const slot = panel.locator("[data-roster-slot]").filter({ hasText: f.users[1].nickname });
+    const slot = panel.getByRole("button", { name: new RegExp(`: ${f.users[1].nickname}$`) });
+    await expect(slot.getByLabel("평가 점수 0점", { exact: true })).toBeVisible();
+    await slot.dragTo(panel.locator('[data-roster-slot="team1:tank"]'));
     await expect(slot.getByText("+4.5", { exact: true })).toBeVisible();
     await expect.poll(async () => JSON.stringify((await f.activeRound()).roster)).toContain(f.users[1].id);
     // End the unstarted session before undoing; live actor identities stay fixed.
