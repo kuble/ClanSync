@@ -30,7 +30,7 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
   return (
     <>
       <h1 id="sign-up-title" className={styles.authHeading}>{tx("함께하게 되어 반갑습니다.")}</h1>
-      <p className={styles.authSubtitle}>{tx("계정을 만들고, 함께할 클랜을 만나보세요.")}</p>
+      <p className={styles.authSubtitle}>{tx("계정을 만들고, 함께할 클랜을 만나보십시오.")}</p>
       <form action={formAction} className={`${styles.form} ${styles.signUpForm}`} onReset={(event) => event.preventDefault()}>
         <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{tx(state.error)}</p> : null}
@@ -67,7 +67,7 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
         </label>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>{tx("이미 계정이 있으신가요?")} <Link href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>{tx("로그인")}<ArrowRight size={13} aria-hidden="true" /></Link></p>
+      <p className={styles.authFooter}>{tx("이미 계정이 있으십니까?")} <Link href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>{tx("로그인")}<ArrowRight size={13} aria-hidden="true" /></Link></p>
     </>
   );
 }

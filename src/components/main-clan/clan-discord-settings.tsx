@@ -71,7 +71,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
       case "connected": toast.success("Discord 서버를 연결했습니다."); break;
       case "disconnected": toast.success("Discord 서버 연결을 해제했습니다."); break;
       case "bot-left": toast.success("클랜 연결을 해제했고 봇도 Discord 서버에서 나갔습니다."); break;
-      case "departure-unconfirmed": toast.warning("클랜 연결을 해제했습니다. 봇의 퇴장을 확인하지 못했으니, Discord 서버에 봇이 남아 있으면 서버 관리자가 내보내 주세요."); break;
+      case "departure-unconfirmed": toast.warning("클랜 연결을 해제했습니다. 봇의 퇴장을 확인하지 못했으니, Discord 서버에 봇이 남아 있으면 서버 관리자가 내보내 주십시오."); break;
       case "failed": toast.error("Discord 연결을 완료하지 못했습니다. 서버 관리 권한과 봇 초대를 확인해 주십시오."); break;
       default: return;
     }
@@ -124,7 +124,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
             <Unlink2 aria-hidden />
           </StatTooltip>
           <DialogContent className="sm:max-w-sm">
-            <DialogHeader><DialogTitle>{tx("Discord 연결을 해제할까요?")}</DialogTitle>
+            <DialogHeader><DialogTitle>{tx("Discord 연결을 해제하시겠습니까?")}</DialogTitle>
               <DialogDescription><strong>{connection.guild_name}</strong> 서버로 보내는 알림과 자동 초대가 중단되고 대기 중인 알림은 취소됩니다. 이 서버에 연결된 마지막 클랜이면 봇도 서버에서 나갑니다.</DialogDescription>
             </DialogHeader>
             {disconnectError && <p role="alert" className="text-sm text-destructive">{disconnectError}</p>}

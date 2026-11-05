@@ -25,7 +25,7 @@ test.describe("공개 스모크", () => {
     const guide = nav.getByRole("link", { name: "이용 안내", exact: true });
     await guide.click();
     await expect(guide).toHaveAttribute("aria-current", "location");
-    await expect(page.getByText("회원가입은 무료인가요?", { exact: true })).toBeInViewport();
+    await expect(page.getByText("회원가입은 무료입니까?", { exact: true })).toBeInViewport();
     await page.goto("/sign-in");
     await expect(page.getByLabel("이메일")).toBeVisible();
     await expect(page.getByRole("button", { name: "로그인" })).toBeVisible();

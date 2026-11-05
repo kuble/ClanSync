@@ -44,7 +44,7 @@ export function CoachEditor({mine,gameSlug,clanId,onClose}:{mine?:ClanCoach;game
               <span className="text-xs tabular-nums text-muted-foreground">{expertise.length} / 1,000</span>
             </div>
             <textarea id="coach-expertise" value={expertise} onChange={e=>setExpertise(e.target.value)} required
-              maxLength={1000} rows={5} placeholder={tx("어떤 내용을 어떻게 코칭하는지 알려주세요.")}
+              maxLength={1000} rows={5} placeholder={tx("어떤 내용을 어떻게 코칭하는지 알려주십시오.")}
               className="board-scroll max-h-64 w-full resize-y rounded-lg border border-input bg-background p-4 text-base leading-7 sm:text-sm" />
           </div>
           <label className="flex items-center justify-between gap-3 text-sm">{tx("피드백 신청 받기")}<Switch checked={accepting} onChange={e=>setAccepting(e.target.checked)} disabled={pending}/></label>

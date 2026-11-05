@@ -18,17 +18,17 @@ export function ClanActivityPreview() {
   return <section id="clan-activity" className={styles.activity} aria-labelledby="activity-title">
     <div className={styles.sectionIntro}>
       <h2 id="activity-title">{tx("내전이 없는 날에도,")}<br /><span>{tx("함께할 이야기는 계속되니까.")}</span></h2>
-      <p>{tx("사진과 일정, 놓치면 아쉬운 소식까지 한곳에서 나눠요.")}</p>
+      <p>{tx("사진과 일정, 놓치면 아쉬운 소식까지 한곳에서 나눕니다.")}</p>
     </div>
     <PreviewPagination label={tx("클랜 활동")} slides={[
-      { id: "photos", label: "사진", content: <ShowcaseFrame title={tx("함께한 순간을 우리 클랜의 앨범에.")} description={tx("사진을 올리고 꾸미며, 다시 꺼내볼 추억을 모아두세요.")}><div className={showcase.photos}>
+      { id: "photos", label: "사진", content: <ShowcaseFrame title={tx("함께한 순간을 우리 클랜의 앨범에.")} description={tx("사진을 올리고 꾸미며, 다시 꺼내볼 추억을 모아두십시오.")}><div className={showcase.photos}>
         <MemoryPhoto src="/images/overwatch/maps/busan.webp" caption={tx("금요일 내전 · 부산")} />
         <MemoryPhoto src="/images/overwatch/maps/kings-row.webp" caption={tx("다음엔 왕의 길에서")} />
       </div></ShowcaseFrame> },
-      { id: "events", label: "일정", content: <ShowcaseFrame title={tx("다음에 만날 시간을 정해요.")} description={tx("정기 내전부터 자유 모임까지, 클랜 일정을 달력으로 확인하세요.")}><div className={showcase.events} inert>
+      { id: "events", label: "일정", content: <ShowcaseFrame title={tx("다음에 만날 시간을 정합니다.")} description={tx("정기 내전부터 자유 모임까지, 클랜 일정을 달력으로 확인하십시오.")}><div className={showcase.events} inert>
         <ClanEventsView gameSlug="overwatch" clanId="landing-example" serverNow="2026-10-30T10:00:00+09:00" events={events} canManageEvents={false} viewerUserId={null} myRsvpGoingKeys={[]} polls={[]} />
       </div></ShowcaseFrame> },
-      { id: "notifications", label: "알림", content: <ShowcaseFrame title={tx("중요한 소식은 놓치지 않도록.")} description={tx("다가오는 일정과 투표 마감, 새로운 댓글을 알림으로 받아보세요.")}><div className={showcase.notifications}><NotificationExample /></div></ShowcaseFrame> },
+      { id: "notifications", label: "알림", content: <ShowcaseFrame title={tx("중요한 소식은 놓치지 않도록.")} description={tx("다가오는 일정과 투표 마감, 새로운 댓글을 알림으로 받아보십시오.")}><div className={showcase.notifications}><NotificationExample /></div></ShowcaseFrame> },
     ]} />
     <p className={styles.previewNote}>{tx("실제 서비스 UI 일부 · 가상 데이터 · 사진은 맵 이미지 예시")}</p>
   </section>;

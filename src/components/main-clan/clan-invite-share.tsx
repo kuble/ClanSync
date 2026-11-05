@@ -68,7 +68,7 @@ export function ClanInviteShare({ gameSlug, clanId }: { gameSlug: string; clanId
         {ready ? <QRCodeSVG value={invite.url} size={176} level="M" marginSize={4} role="img" aria-label={tx("승인 없이 클랜에 가입하는 초대 QR코드")} /> : <p className="text-center text-xs text-muted-foreground">{error ? tx("초대를 불러오지 못했습니다.") : tx("QR코드를 준비하고 있습니다.")}</p>}
       </div>
       <div className={styles.inviteDetails}>
-        <p className="text-sm">{tx("초대 링크나 QR코드를 공유해 클랜원을 초대하세요.")}</p>
+        <p className="text-sm">{tx("초대 링크나 QR코드를 공유해 클랜원을 초대하십시오.")}</p>
         <label className="sr-only" htmlFor="clan-invite-url">{tx("초대 링크")}</label>
         <input id="clan-invite-url" readOnly value={ready ? invite.url : ""} placeholder={tx("초대 링크를 준비하고 있습니다.")} className={styles.inviteUrl} onFocus={event => event.target.select()} />
         <div className={styles.inviteActions}>

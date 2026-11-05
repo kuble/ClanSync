@@ -27,7 +27,7 @@ export default function Preview() {
   if (process.env.NODE_ENV !== "development") notFound();
   return <main className={styles.page}>
     <header><span className={styles.kicker}>클랜 통계 / 명예의 전당</span><h1>승률 요약 디자인 비교</h1>
-      <p>같은 전체 기간 기록을 다섯 가지 배치로 비교해 보세요.</p></header>
+      <p>같은 전체 기간 기록을 다섯 가지 배치로 비교해 보십시오.</p></header>
     {versions.map(([title, note], i) => <section key={title} className={styles.sample}>
       <h2><span>0{i + 1}</span>{title}</h2><p>{note}</p>
       <article className={styles.card}><h3><Trophy />승률</h3>

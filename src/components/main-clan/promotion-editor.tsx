@@ -129,7 +129,7 @@ export function PromotionEditor({ gameSlug, clanId, blocks, onChange, disabled }
     </div>
     <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden aria-label={tx("홍보 사진 선택")} disabled={disabled} onChange={event => { insertPhotos(Array.from(event.target.files ?? []),insertion.current); insertion.current=null; event.target.value = ""; }} />
     {selection?.image && <div className={styles.imageTools}><input aria-label={tx("사진 설명")} placeholder={tx("사진 설명 (선택)")} maxLength={160} value={selection.alt} disabled={disabled} onChange={event => editor?.commands.updateAttributes("image", { alt: event.target.value })} /><Button type="button" size="sm" variant="ghost" disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().command(({tr})=>{closeHistory(tr);return true;}).deleteSelection().run()}><Trash2 size={14} aria-hidden />{tx("선택한 사진 삭제")}</Button></div>}
-    <div className={styles.canvas} data-empty={empty} data-ready={!!editor}><EditorContent editor={editor} />{empty && <span className={styles.placeholder}>{tx("클랜 소개와 함께하고 싶은 활동을 적어보세요.")}</span>}</div>
+    <div className={styles.canvas} data-empty={empty} data-ready={!!editor}><EditorContent editor={editor} />{empty && <span className={styles.placeholder}>{tx("클랜 소개와 함께하고 싶은 활동을 적어보십시오.")}</span>}</div>
     <p id="promotion-content-hint" className={styles.hint} aria-live="polite"><span className={length > 8000 ? "text-destructive" : ""}>{length.toLocaleString()} {tx("/ 8,000자")}</span></p>
   </div>;
 }

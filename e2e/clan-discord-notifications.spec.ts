@@ -139,7 +139,7 @@ test("leader can disconnect Discord after downgrade and cancel pending delivery"
     const trigger = page.getByTestId("clan-event-notify-settings").getByRole("button", { name: "연결 해제", exact: true });
     await trigger.hover();
     await expect(page.getByRole("tooltip")).toContainText("알림과 자동 초대가 중단됩니다.");
-    const dialog = page.getByRole("dialog", { name: "Discord 연결을 해제할까요?" });
+    const dialog = page.getByRole("dialog", { name: "Discord 연결을 해제하시겠습니까?" });
     await trigger.click();
     await dialog.getByRole("button", { name: "취소" }).click();
     await expect(dialog).toBeHidden();

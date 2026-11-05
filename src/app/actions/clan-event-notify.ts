@@ -13,7 +13,7 @@ export async function disconnectClanDiscordAction(gameSlug: string, clanId: stri
   const { data: lastConnection, error } = await actor.svc.rpc("disconnect_clan_discord_and_check_departure", {
     p_clan_id: clanId, p_actor_id: actor.user.id, p_guild_id: guildId,
   });
-  if (error) return { error: "연결을 해제하지 못했습니다. 현재 연결된 서버를 확인한 뒤 다시 시도해 주세요." };
+  if (error) return { error: "연결을 해제하지 못했습니다. 현재 연결된 서버를 확인한 뒤 다시 시도해 주십시오." };
   let result = "disconnected";
   if (lastConnection) {
     result = "departure-unconfirmed";
@@ -55,7 +55,7 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
   }])) as DiscordNotificationRoutes;
   const { data: connection } = await actor.svc.from("clan_discord_connections").select("guild_id,channel_id,channel_name").eq("clan_id", clanId).maybeSingle();
   // The browser supplies an ID, never a destination URL or trusted channel name.
-  if (!connection || connection.guild_id !== formData.get("discord_guild_id")) return { ok: false as const, error: "서버 연결이 변경되었습니다. 새로고침 후 다시 시도해 주세요." };
+  if (!connection || connection.guild_id !== formData.get("discord_guild_id")) return { ok: false as const, error: "서버 연결이 변경되었습니다. 새로고침 후 다시 시도해 주십시오." };
   let channelId = connection.channel_id ?? "";
   let channelName = connection.channel_name ?? "";
   if (enabled) {
@@ -65,7 +65,7 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
       const available = new Map(result.channels.map((entry) => [entry.id, entry]));
       const destinations = Object.values(routes);
       if (destinations.some((route) => route.enabled && !available.has(route.channel_id))) {
-        return { ok: false as const, error: "알림을 켠 항목마다 봇이 메시지를 보낼 수 있는 채널을 선택해 주세요." };
+        return { ok: false as const, error: "알림을 켠 항목마다 봇이 메시지를 보낼 수 있는 채널을 선택해 주십시오." };
       }
       // Keep the stored invite destination where possible. Notifications use the explicit routes.
       const channel = available.get(channelId) ?? destinations.map((route) => available.get(route.channel_id)).find(Boolean);

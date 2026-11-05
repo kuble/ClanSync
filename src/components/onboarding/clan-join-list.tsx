@@ -100,7 +100,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           setSavedFavorites(previous => ({ ...previous, [clan.id]: !isFavorite }));
           router.refresh();
         } catch {
-          toast.error("즐겨찾기를 저장하지 못했습니다. 다시 시도해 주세요.");
+          toast.error("즐겨찾기를 저장하지 못했습니다. 다시 시도해 주십시오.");
         } finally {
           setSavingFavorite(false);
         }

@@ -36,6 +36,6 @@ export function ProfileLanguage({ initial }: { initial: string }) {
       <option value="ko" lang="ko">한국어</option>
       <option value="en" lang="en">English</option>
     </select>
-    {failed && <p role="alert">{tx.locale === "en-US" ? "Couldn’t save your language. Please try again." : "언어를 저장하지 못했습니다. 다시 시도해 주세요."}</p>}
+    {failed && <p role="alert">{tx.locale === "en-US" ? "Couldn’t save your language. Please try again." : "언어를 저장하지 못했습니다. 다시 시도해 주십시오."}</p>}
   </>;
 }

@@ -76,7 +76,7 @@ export function LandingPage() {
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
             <h2 id="workflow-title">{tx("팀을 나누고, 규칙을 정하고,")}<br /><span>{tx("함께 즐기는 내전.")}</span></h2>
-            <p>{tx("편성부터 영웅 밴과 승부 예측까지, 한 흐름으로 준비해요.")}</p>
+            <p>{tx("편성부터 영웅 밴과 승부 예측까지, 한 흐름으로 준비합니다.")}</p>
           </div>
           <FormationModesPreview />
           <p className={styles.previewNote}>{tx("실제 서비스 UI 일부 · 가상 데이터 · 읽기 전용")}</p>
@@ -85,7 +85,7 @@ export function LandingPage() {
           <div className={styles.recordsInner}>
             <div className={styles.sectionIntro}>
               <h2 id="records-title">{tx("경기가 끝나도,")}<br /><span>{tx("우리 클랜의 기록은 이어집니다.")}</span></h2>
-              <p>{tx("클랜의 흐름부터 그날의 경기, 나의 성적까지 돌아보세요.")}</p>
+              <p>{tx("클랜의 흐름부터 그날의 경기, 나의 성적까지 돌아보십시오.")}</p>
             </div>
             <RecordsPreview records={records} />
             <p className={styles.previewNote}>{tx("실제 서비스 UI 일부 · 가상 데이터 · 읽기 전용")}</p>
@@ -95,13 +95,13 @@ export function LandingPage() {
         <section id="games" className={styles.information} aria-labelledby="information-title">
           <h2 id="information-title">{tx("시작하기 전,")}<br />{tx("궁금한 점을 모았습니다.")}</h2>
           <dl>
-            <div><dt>{tx("어떤 게임을 지원하나요?")}</dt><dd>{tx("현재는 오버워치를 지원합니다. 앞으로 더 다양한 게임으로 지원 범위를 넓혀갈 예정입니다.")}</dd></div>
-            <div><dt>{tx("회원가입은 무료인가요?")}</dt><dd>{tx("회원가입은 무료입니다. 기능에 따라 Free와 Premium으로 구분됩니다.")}</dd></div>
-            <div><dt>{tx("Premium은 언제 이용할 수 있나요?")}</dt><dd>{tx("구독 결제는 준비 중입니다. 출시 시 요금과 이용 조건을 안내합니다.")}</dd></div>
+            <div><dt>{tx("어떤 게임을 지원합니까?")}</dt><dd>{tx("현재는 오버워치를 지원합니다. 앞으로 더 다양한 게임으로 지원 범위를 넓혀갈 예정입니다.")}</dd></div>
+            <div><dt>{tx("회원가입은 무료입니까?")}</dt><dd>{tx("회원가입은 무료입니다. 기능에 따라 Free와 Premium으로 구분됩니다.")}</dd></div>
+            <div><dt>{tx("Premium은 언제 이용할 수 있습니까?")}</dt><dd>{tx("구독 결제는 준비 중입니다. 출시 시 요금과 이용 조건을 안내합니다.")}</dd></div>
           </dl>
         </section>
         <section className={styles.closing} aria-labelledby="closing-title">
-          <h2 id="closing-title">{tx("다음 내전은,")}<br />{tx("조금 더 편하게 준비해 보세요.")}</h2>
+          <h2 id="closing-title">{tx("다음 내전은,")}<br />{tx("조금 더 편하게 준비해 보십시오.")}</h2>
           <p>{tx("함께할 다음 경기를 ClanSync에서.")}</p>
           <Link href="/sign-up" className={styles.primary}>{tx("무료로 시작하기")} <ArrowRight size={17} aria-hidden="true" /></Link>
         </section>

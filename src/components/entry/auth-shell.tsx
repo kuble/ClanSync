@@ -13,8 +13,8 @@ export function AuthShell({ children, mode }: { children: ReactNode; mode: "sign
     <main className={`${styles.content} ${signUp ? styles.signUpContent : ""}`}>
       <section className={`${styles.card} ${signUp ? styles.signUpCard : ""}`} aria-labelledby={`${mode}-title`}>{children}</section>
       <aside className={styles.story} aria-label={tx("ClanSync 소개")}>
-        <h2>{signUp ? <>{tx("함께하는 플레이,")}<br /><span>{tx("함께 쌓아가는 기록.")}</span></> : <>{tx("우리 클랜의 다음 경기,")}<br /><span>{tx("여기서 이어가세요.")}</span></>}</h2>
-        <p>{signUp ? <>{tx("게임을 연결하고, 클랜을 만나고,")}<br />{tx("함께할 다음 순간을 준비하세요.")}</> : <>{tx("팀을 나누고, 경기를 기록하고,")}<br />{tx("다음에 만날 시간을 정해보세요.")}</>}</p>
+        <h2>{signUp ? <>{tx("함께하는 플레이,")}<br /><span>{tx("함께 쌓아가는 기록.")}</span></> : <>{tx("우리 클랜의 다음 경기,")}<br /><span>{tx("여기서 이어가십시오.")}</span></>}</h2>
+        <p>{signUp ? <>{tx("게임을 연결하고, 클랜을 만나고,")}<br />{tx("함께할 다음 순간을 준비하십시오.")}</> : <>{tx("팀을 나누고, 경기를 기록하고,")}<br />{tx("다음에 만날 시간을 정해보십시오.")}</>}</p>
         <figure className={styles.album}>
           <div className={styles.photos}>
             <MemoryPhoto src="/images/overwatch/maps/busan.webp" caption={tx("금요일 내전 · 부산")} eager />

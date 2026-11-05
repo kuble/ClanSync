@@ -23,7 +23,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
   return (
     <>
       <h1 id="sign-in-title" className={styles.authHeading}>{tx("다시 만나 반갑습니다.")}</h1>
-      <p className={styles.authSubtitle}>{tx("로그인하고 우리 클랜의 활동을 이어가세요.")}</p>
+      <p className={styles.authSubtitle}>{tx("로그인하고 우리 클랜의 활동을 이어가십시오.")}</p>
       <form action={formAction} className={styles.form}>
         <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{tx(state.error)}</p> : null}
@@ -44,7 +44,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
         </div>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>{tx("계정이 없으신가요?")} <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>{tx("회원가입")} <ArrowRight size={13} aria-hidden="true" /></Link></p>
+      <p className={styles.authFooter}>{tx("계정이 없으십니까?")} <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>{tx("회원가입")} <ArrowRight size={13} aria-hidden="true" /></Link></p>
     </>
   );
 }

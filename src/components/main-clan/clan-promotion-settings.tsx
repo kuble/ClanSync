@@ -107,7 +107,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
             }
           }
         }
-        if (!targetId) throw new Error("클랜을 확인해 주세요.");
+        if (!targetId) throw new Error("클랜을 확인해 주십시오.");
         const prepared: PromotionDraftBlock[] = [];
         for (const block of blocks) {
           if (block.type !== "image" || !block.file) { prepared.push(block); continue; }
@@ -136,8 +136,8 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
           toast.success("홍보글과 가입 조건을 저장했습니다."); router.refresh();
         }
       } catch (cause) {
-        const reason = cause instanceof Error ? cause.message : "다시 시도해 주세요.";
-        setError(creating && targetId ? `클랜이 생성되었습니다. 홍보글 저장을 다시 시도해 주세요. ${reason}` : reason);
+        const reason = cause instanceof Error ? cause.message : "다시 시도해 주십시오.";
+        setError(creating && targetId ? `클랜이 생성되었습니다. 홍보글 저장을 다시 시도해 주십시오. ${reason}` : reason);
         if (uploaded.length) await createClient().storage.from(PROMOTION_IMAGE_BUCKET).remove(uploaded);
       }
     });
@@ -157,7 +157,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
           </div>
         </header>
           <fieldset disabled={saving} className={styles.editorFields}>
-            {creating && <div className="space-y-2"><Label htmlFor="name">{tx("클랜명 *")}</Label><Input id="name" name="name" maxLength={24} required readOnly={!!createdId} placeholder={tx("클랜 이름을 입력해 주세요")} /></div>}
+            {creating && <div className="space-y-2"><Label htmlFor="name">{tx("클랜명 *")}</Label><Input id="name" name="name" maxLength={24} required readOnly={!!createdId} placeholder={tx("클랜 이름을 입력해 주십시오")} /></div>}
             <div className={`space-y-2 ${styles.titleField}`}><Label htmlFor="promotion-title">{tx("제목")}</Label><Input id="promotion-title" name="title" value={title} onChange={event => setTitle(event.target.value)} required={!creating} maxLength={200} placeholder={tx("함께할 클랜원을 찾습니다")} /></div>
             <div className={styles.settingsBody}>
               <section aria-label={tx("가입 조건")}>

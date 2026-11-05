@@ -154,12 +154,12 @@ function InquiryConversation({ clanId }: { clanId: string }) {
       {room?.messages.length ? <ClanComments textOnly
         comments={room.messages.map(message => ({ ...message, id: String(message.id), content: message.body }))}
       /> : <p role="status" className="py-10 text-center text-sm text-muted-foreground">
-        {room ? tx("첫 메시지를 남겨 보세요.") : !readError && "대화를 불러오는 중입니다."}
+        {room ? tx("첫 메시지를 남겨 보십시오.") : !readError && "대화를 불러오는 중입니다."}
       </p>}
     </StatsScrollArea>
     {(readError || writeError) && <p role="alert" className="px-5 py-2 text-xs text-destructive">{writeError || readError}</p>}
     {room && <div className="shrink-0 border-t bg-card px-4 py-3">
-      <ClanCommentComposer textOnly label={tx("문의 메시지")} submitLabel="보내기" placeholder={tx("메시지를 입력하세요.")}
+      <ClanCommentComposer textOnly label={tx("문의 메시지")} submitLabel="보내기" placeholder={tx("메시지를 입력하십시오.")}
         value={draft} onChange={setDraft} onSubmit={send} disabled={busy} maxLength={1000} />
     </div>}
   </>;

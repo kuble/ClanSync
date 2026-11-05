@@ -14,7 +14,7 @@ test("promotion shares a QR invite and recipients join immediately after login a
     await page.clock.install();
     await page.goto(f.path.replace("/balance", "/manage?tab=promotion"));
     const share = page.getByRole("region", { name: "클랜 초대", exact: true });
-    await expect(share.getByText("초대 링크나 QR코드를 공유해 클랜원을 초대하세요.", { exact: true })).toBeVisible();
+    await expect(share.getByText("초대 링크나 QR코드를 공유해 클랜원을 초대하십시오.", { exact: true })).toBeVisible();
     await share.getByRole("button", { name: "클랜 초대 도움말" }).focus();
     await expect(page.getByRole("tooltip")).toContainText("QR코드는 30분 동안 유효");
     await page.keyboard.press("Escape");
