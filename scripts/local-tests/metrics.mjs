@@ -14,7 +14,7 @@ select json_build_object(
  'activity',(select json_build_object('active',count(*) filter(where state='active'),
    'lockWaits',count(*) filter(where wait_event_type='Lock'), 'ioWaits',count(*) filter(where wait_event_type='IO'),
    'longestSeconds',coalesce(max(extract(epoch from clock_timestamp()-query_start)) filter(where state='active'),0))
-   from pg_stat_activity where datname=current_database() and pid<>pg_backend_pid()),
+   from pg_stat_activity where datname=current_database() and pid<>pg_backend_pid() and backend_type='client backend'),
  'queries',coalesce((select json_agg(q) from (
    select s.queryid::text as id, s.calls, round(s.mean_exec_time::numeric,2) as "meanMs",
      round(s.total_exec_time::numeric,2) as "totalMs",s.shared_blks_read as "readBlocks",
@@ -108,7 +108,7 @@ export function createMetricsCollector(context=()=>({})) {
       if(source==='local') {
         assertLocalWorkdir();
         const current=JSON.parse((await checked('docker',['exec',container,'psql','-U','postgres','-d','postgres','-Atc',localSql],{timeout:8000})).trim());
-        persist({source,at,...tag,status:'ready',...localRates(current,previousLocal),...current.activity,
+        persist({source,at,...tag,status:'ready',activityScope:'client-backend-v1',...localRates(current,previousLocal),...current.activity,
           accounts:current.accounts,clans:current.clans,matches:current.matches,queries:current.queries});
         previousLocal=current;
       } else {
