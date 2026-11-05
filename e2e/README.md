@@ -2,84 +2,47 @@
 
 ## 테스트 환경
 
-동시 QA에서는 `PLAYWRIGHT_DEV_PORT`로 별도 포트를 지정한다. 지정 포트의 출력은 `.next-e2e-{포트}`로 분리되어 다른 작업의 서버·캐시를 공유하지 않는다. 기본값은 기존 3010·`.next-e2e`이며 사용자 QA의 3011은 사용하지 않는다.
+자동 검사는 PC 안의 전용 Supabase DB를 사용합니다. `loadTestEnv()`는 `.env.test-local`과 `http://127.0.0.1:55431`만 허용하며 온라인 QA와 운영 주소는 거부합니다. 사용자용 3011 QA는 기존 `.env.e2e.local`과 계정·내전 기록을 유지합니다.
 
-`clansync-test` (`moretvteewfcztxvwztw`, 서울 리전, Free)을 전용 QA DB로 사용합니다. 운영 데이터를 복사하지 않고 마이그레이션과 QA 픽스처로 구성했습니다.
+## 준비와 실행
 
-- `e2e/env.example`을 저장소 루트의 `.env.e2e.local`로 복사하고 **테스트 프로젝트**의 키와 DB 비밀번호를 채웁니다. 현재 개발 PC에는 설정되어 있습니다.
-- `CRON_SECRET`은 테스트용 난수를 사용합니다. 운영 키와 공유하지 않습니다.
-- 시드와 Playwright는 `.env.local`을 읽지 않습니다. CI 환경변수는 `.env.e2e.local`보다 우선하며, URL이 허용된 테스트 프로젝트와 다르면 실행 전에 차단합니다.
-- 프로젝트를 교체할 때는 `scripts/test-env.mjs`의 허용 대상을 함께 갱신합니다.
-
-## 실행
-
-기본은 **변경에 영향받는 파일/시나리오만 실행**합니다. 범위 선택은 [위험도별 검증 기준](../.cursor/rules/agent-auto-tasks.mdc), 코드와 테스트 대응은 [문서 진입점](../docs/README.md)을 따릅니다. 작은 UI·문구 수정에 전체 빌드·로그인 14계정·온보딩·DB 회귀를 반복하지 않습니다.
-
-**사용자가 QA를 직접 테스트 중인 현재는 시드를 건너뜁니다.** 예를 들어 내전 동작 변경은 PowerShell에서:
+Docker Desktop이 실행 중인 상태에서 최초 한 번 준비합니다.
 
 ```powershell
-$env:E2E_SKIP_SEED = "1"
-try {
-  npm run test:e2e -- e2e/balance-session-live.spec.ts
-} finally {
-  Remove-Item Env:E2E_SKIP_SEED
-}
+npm run test:local:setup
+npm run test:dashboard
 ```
 
-파일은 아래 시나리오 목록에서 골라 바꿉니다. 한 파일 안에서는 `--grep "테스트 제목"`으로 필요한 시나리오를 선택할 수 있습니다. 변경 소스 린트는 `npx eslint <변경 파일>`, 타입 검사는 `npx tsc --noEmit`입니다.
+[실시간 검사 현황](http://127.0.0.1:3040)에서 진행 단계·실패 상세·소요 시간·정리 결과를 봅니다. [환경 구성과 문제 복구](../docs/guides/local-test-lab.md).
 
-보안 경계·규칙 회귀는 아래처럼 실행합니다. `security-fix-boundaries.spec.ts`는 임시 사용자·클랜만 생성하고 종료 시 정리합니다.
+변경에 영향받는 파일 또는 `파일:줄번호`를 선택합니다.
 
 ```powershell
-$env:E2E_SKIP_SEED = "1"
-$env:PLAYWRIGHT_DEV_PORT = "3017"
-try {
-  npm run test:e2e -- e2e/security-fix-boundaries.spec.ts e2e/security-fix-rules.spec.ts
-} finally {
-  Remove-Item Env:E2E_SKIP_SEED, Env:PLAYWRIGHT_DEV_PORT
-}
+npm run test:e2e -- e2e/balance-session-live.spec.ts
+npm run test:e2e -- e2e/auth-performance.spec.ts:66
+npm run test:db -- scripts/role-preferences-db.test.mjs
 ```
 
-Playwright는 `tsconfig.playwright.json`을 사용합니다. Node에서 서버 조회 함수를 직접 검증할 때 `server-only`를 Next 내장 빈 모듈로 해석하며, 앱의 `tsconfig.json`과 서버/클라이언트 경계 검사는 그대로 유지합니다. 앱 코드의 `server-only` 선언을 제거하거나 테스트를 제외하지 않습니다.
+실행기는 검사 전후 전용 로컬 DB와 Storage 데이터를 정리하고, 브라우저 검사 전에 로컬 QA 계정만 생성합니다. 실패해도 정리하며 계정·클랜·경기 0건 확인을 별도로 기록합니다. 강제 종료 뒤 잔여 데이터는 다음 실행 시작 시 정리합니다. 실행 잠금으로 중복 검사와 동시 초기화를 막습니다. `npm run test:local:clean`으로 수동 정리할 수 있습니다.
 
-`balance-session-live.spec.ts`는 `isolated-balance-fixture.ts`로 임시 사용자 12명·Premium 클랜을 생성하고 종료 시 해당 데이터만 정리합니다. 시드 생략만으로 데이터가 격리되지는 않습니다. 다른 기존 시나리오에는 공유 픽스처를 변경하는 테스트도 있으므로 활성 QA 세션·명단을 건드리지 않는 범위를 선택하고, 쓰기 검증은 별도 임시 데이터를 사용합니다.
+브라우저는 프로덕션 빌드·전용 3010 서버·worker 1·재시도 0입니다. 기존 3011 서버를 재사용하지 않습니다. Next는 UTC·`CLANSYNC_E2E=1`·로컬 게임 연결 시뮬레이터로 실행하며 관리 토큰과 Discord 발송 키는 비웁니다. 결과는 `.local-tests/runs/`에 남겨 DB 정리 뒤에도 원인을 추적합니다.
 
-### 최초 환경 구성
+Playwright는 `tsconfig.playwright.json`을 사용합니다. Node에서 서버 조회 함수를 직접 검증할 때 `server-only`를 Next 내장 빈 모듈로 해석하며, 앱 코드의 서버/클라이언트 경계는 유지합니다.
 
-**사용 중인 QA 명단이 없는 경우에만** 아래를 실행합니다. E2E 시작 시 시드가 한 번 실행되므로 `db:seed`를 중복 호출하지 않습니다.
+프로덕션 세션은 `Secure` 쿠키를 사용한다. HTTP 루프백에서 Chromium이 보내는 이 쿠키를 Playwright의 Node HTTP 클라이언트가 생략할 수 있으므로, 인증된 서버 액션 재전송은 [공감자 조회 테스트](clan-board-reaction-people.spec.ts)처럼 브라우저 안의 `fetch`로 실행한다. 먼저 정상 인자의 성공·실제 결과를 확인한 뒤 위조·삭제·탈퇴를 검사하고, `redirect: "manual"`로 로그인 리다이렉트가 최종 응답에 섞이지 않게 한다. 비로그인 검증은 별도 브라우저 컨텍스트의 요청을 사용한다.
 
-```sh
-npm run db:test:push
-npm run test:db
-npm run test:e2e
-```
-
-`db:test:push`는 `.supabase-test/`의 별도 CLI 연결을 사용합니다. 기존 `supabase/.temp` 연결은 유지됩니다. 관리 토큰은 프로세스 환경 또는 `.env.local`의 `SUPABASE_ACCESS_TOKEN`을 사용하며, DB 비밀번호는 테스트 환경에서만 읽습니다. 타입 검증은 `npm run db:test:types`로 `.supabase-test/database.types.ts`에 생성합니다.
-
-Playwright는 전용 포트 **3010**에서 새 앱 서버를 시작합니다. 기존 서버를 재사용하거나 외부 URL로 연결하지 않으므로 테스트 DB와 앱 DB가 달라지는 일을 방지합니다. `CLANSYNC_E2E=1`을 자동 주입해 빌드 폴더를 `.next-e2e`로 분리하므로 QA 서버(3011)의 `.next`와 개발 서버를 동시에 실행할 수 있습니다. 포트 변경은 `PLAYWRIGHT_DEV_PORT`를 사용합니다. 공유 픽스처를 변경하는 테스트가 있어 작업자는 1개입니다. 서버는 UTC로 실행하고 테스트 환경에만 `DEV_GAME_LINK_SIMULATOR=1`을 주입합니다. 운영 DB URL·Vercel Production에서는 이 플래그로 시뮬레이터를 활성화할 수 없습니다.
+`db:test:push`와 `db:test:types`는 **온라인 QA 스키마 관리용** 명령입니다. 로컬 자동 검사 준비와 혼용하지 않습니다. 사용자의 QA 명단에는 시드를 실행하지 않습니다.
 
 ### main 병합·운영 반영 전 전체 회귀
-
-공유 픽스처 변경이 활성 QA와 충돌하지 않는 상태에서 실행합니다. PowerShell에서:
 
 ```powershell
 npm run lint
 npx tsc --noEmit
 npm run test:db
-$env:CI = "true"
-$env:E2E_SKIP_SEED = "1"
-try {
-  npm run test:e2e
-} finally {
-  Remove-Item Env:CI, Env:E2E_SKIP_SEED
-}
+npm run test:e2e
 ```
 
-CI 경로는 `npm run build` 후 `next start`를 사용하므로 같은 빌드를 직전에 중복 실행하지 않습니다. 로컬 기본 경로는 별도 빌드 폴더의 `next dev`입니다. 활성 QA 서버와 함께 실행할 수 있으므로 QA를 중단하거나 개발 서버 잠금을 피하려고 전체 빌드를 추가할 필요가 없습니다.
-
-프로덕션 세션은 `Secure` 쿠키를 사용한다. HTTP 루프백에서 Chromium이 보내는 이 쿠키를 Playwright의 Node HTTP 클라이언트가 생략할 수 있으므로, 인증된 서버 액션 재전송은 [공감자 조회 테스트](clan-board-reaction-people.spec.ts)처럼 브라우저 안의 `fetch`로 실행한다. 먼저 정상 인자의 성공·실제 결과를 확인한 뒤 위조·삭제·탈퇴를 검사하고, `redirect: "manual"`로 로그인 리다이렉트가 최종 응답에 섞이지 않게 한다. 비로그인 검증은 별도 브라우저 컨텍스트의 요청을 사용한다.
-
-DB 변경은 관련 `scripts/*-db.test.mjs`를 골라 `node --test <파일>`로 실행할 수 있습니다. 전체 `npm run test:db`는 넓은 DB 영향 또는 병합 전 검증에 사용합니다. 전체 회귀·빌드 통과가 운영 DB 적용·배포 승인을 뜻하지는 않습니다.
+로컬 회귀와 온라인 환경 확인을 구분합니다. 로컬 통과만으로 운영 환경의 성능·외부 연동까지 검증했다고 기록하지 않습니다.
 
 ### 통계 1만 경기 검증
 

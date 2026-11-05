@@ -18,6 +18,8 @@
 
 검증 범위는 [변경 위험도 기준](../.cursor/rules/agent-auto-tasks.mdc), 실행 명령은 [E2E 안내](../e2e/README.md)를 따릅니다. 아래는 관련 파일을 찾는 지도이며 매번 전부 읽거나 실행하는 목록이 아닙니다.
 
+자동 검사는 [전용 로컬 DB·실시간 현황](guides/local-test-lab.md)을 사용합니다. 사용자의 3011 QA 계정과 내전 기록은 온라인 QA DB에 그대로 유지합니다.
+
 | 기능 | 코드 시작점 | 관련 테스트 |
 |---|---|---|
 | 랜딩 | [공개 경로](../src/app/page.tsx) · [공용 화면·미리보기](../src/components/entry/landing/landing-page.tsx) · [개발 미리보기](../src/app/dev/landing-preview/page.tsx) | [공개 랜딩·메뉴·기록·알림·로그인 스모크](../e2e/smoke.spec.ts) |

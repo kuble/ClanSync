@@ -31,6 +31,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # 자동 실행 (터미널)
 
+- 자동 검사는 전용 로컬 DB(`127.0.0.1:55431`)를 사용한다. `npm run test:local:setup`으로 준비하며 `npm run test:db`·`npm run test:e2e`는 검사 전후 전용 로컬 데이터만 정리한다. `npm run test:dashboard`의 3040 화면에서 실시간 결과·실패 원인·정리를 본다. 사용자용 3011 QA 계정·내전 기록과 온라인 DB는 보존한다. [로컬 검사 안내](docs/guides/local-test-lab.md).
+
 검증은 **변경 위험도에 맞춰 에이전트가 직접 실행**한다. 범위·명령의 기준은 [자동 실행 규칙](.cursor/rules/agent-auto-tasks.mdc), QA 실행법은 [E2E 안내](e2e/README.md)다. 작은 UI·문구 수정에 전체 빌드·로그인 14계정·온보딩·DB 회귀를 반복하지 않는다. 동작 변경은 해당 시나리오, 인증·권한·스키마·금액·공통 라우팅 변경은 영향받는 넓은 범위와 빌드, main 병합·운영 반영 전에는 전체 회귀와 빌드를 검증한다.
 
 현재는 **QA 우선, 운영 DB·배포 보류**다. QA 스키마 변경은 `db:test:push` → `db:test:types`로 적용·타입 확인한다. 연결 DB를 바꾸는 `db:push`·`db:sync`를 QA 명령 대신 사용하지 않는다. 사용자가 테스트 중인 QA 명단에는 시드를 다시 실행하지 않으며 E2E는 `E2E_SKIP_SEED=1`과 별도 임시 데이터를 사용한다.

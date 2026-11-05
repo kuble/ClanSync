@@ -60,6 +60,8 @@ Discord 연결은 클랜 관리의 `알림·연동`에서 설정합니다. 기�
 
 ## 검증
 
+자동 검사는 PC의 전용 로컬 DB를 사용합니다. `npm run test:local:setup`으로 준비하고 `npm run test:dashboard`로 [실시간 현황](http://127.0.0.1:3040)을 엽니다. `npm run test:db`·`npm run test:e2e`는 검사 전후에 전용 로컬 데이터만 정리합니다. 기존 3011 QA 계정·기록은 유지합니다. [사용법](docs/guides/local-test-lab.md).
+
 로컬 캐시·검증 산출물은 `npm run clean:local`로 대상을 확인하고 `npm run clean:local -- -Apply`로 정리한다. 활성 검증 포트·QA 연결 설정·백업은 보존한다. [정리 기준](docs/maintenance.md) · [현재 DB 구조 색인](docs/02-design/database/current-schema.md). SQL 마이그레이션 이력은 유지한다.
 
 영상 촬영용 QA 대시보드는 `node scripts/add-qa-dashboard-demo.mjs`로 추가량을 확인하고 `--apply`로 적용합니다. `QA_01_Clan`에 공지 3개·주간 일정 3개·빈 클랜 규칙만 추가하며, 고정 ID로 중복을 막고 기존 계정·명단·경기·코인을 보존합니다. 사용자 편집 후 재실행해도 기존 공지·일정·규칙을 덮어쓰지 않습니다.
