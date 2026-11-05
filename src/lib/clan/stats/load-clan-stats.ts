@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { assertDatabaseRead, databaseAccessDenied, retryDatabaseRead } from "@/lib/supabase/read-query";
 import { resolveClanPermission } from "@/lib/clan/clan-access-snapshot";
 import type { ClanPermissionKey } from "@/lib/clan/permission-defaults";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -428,26 +429,34 @@ async function loadClanStatsSource(
   clanId: string,
   scope: "full" | "overview" | "detail" | "management" | "metadata" = "full",
 ) {
-  const [{ data: clan }, { count: memberCount }, { data: settings, error: settingsError }, membership] =
+  const [clanResult, memberCountResult, settingsResult, membership] =
     await Promise.all([
-      supabase
+      retryDatabaseRead("clan-stats.clan", () => supabase
         .from("clans")
         .select("id, game_id, created_at")
         .eq("id", clanId)
-        .maybeSingle(),
-      supabase
+        .maybeSingle().retry(false)),
+      retryDatabaseRead("clan-stats.member-count", () => supabase
         .from("clan_members")
         .select("*", { count: "exact", head: true })
         .eq("clan_id", clanId)
-        .eq("status", "active"),
-      supabase
+        .eq("status", "active").retry(false)),
+      retryDatabaseRead("clan-stats.settings", () => supabase
         .from("clan_settings")
         .select("hof_config, expose_hof, permissions")
         .eq("clan_id", clanId)
-        .maybeSingle(),
-      supabase.rpc("select_my_clan_membership", { p_clan_id: clanId }),
+        .maybeSingle().retry(false)),
+      retryDatabaseRead("clan-stats.membership", () => supabase.rpc("select_my_clan_membership", { p_clan_id: clanId }).retry(false)),
     ]);
 
+  const { data: clan } = clanResult;
+  const { data: settings, error: settingsError } = settingsResult;
+  const { count: memberCount } = memberCountResult;
+  if ([clanResult, membership, settingsResult, memberCountResult].some(databaseAccessDenied)) return null;
+  assertDatabaseRead("clan-stats.clan", clanResult);
+  assertDatabaseRead("clan-stats.membership", membership);
+  assertDatabaseRead("clan-stats.settings", settingsResult);
+  assertDatabaseRead("clan-stats.member-count", memberCountResult);
   if (!clan) return null;
 
   const role = !membership.error && membership.data?.[0]?.status === "active" ? membership.data[0].role : undefined;
@@ -463,8 +472,9 @@ async function loadClanStatsSource(
   };
   if (scope === "metadata") {
     if (settingsError) throw new Error("통계 공개 설정을 불러오지 못했습니다.");
-    const { data: nickRows, error } = await supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId });
-    if (error) throw new Error("멤버 정보를 불러오지 못했습니다.");
+    const nicknames = await retryDatabaseRead("clan-stats.nicknames", () => supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }).retry(false));
+    assertDatabaseRead("clan-stats.nicknames", nicknames);
+    const nickRows = nicknames.data;
     return { clan, memberCount, settings, role, permissions, nickRows,
       records: [] as ClanMatchRecord[], completedSessions: [] as CompletedBalanceSession[],
       openedSessions: [] as { id: string; opened_at: string }[] };
@@ -852,14 +862,14 @@ export async function loadClanStatsPeriod(supabase: SupabaseClient<Database>, cl
   return { kind: "period", key, hof: aggregateHof(players ? { ...data, players } : data, key, source, now), intra: source.permissions.viewIntraStats ? data.overview : EMPTY_INTRA_OVERVIEW };
 }
 
-export async function loadClanStatsArchive(supabase: SupabaseClient<Database>, clanId: string, day?: string): Promise<ClanStatsDetail | null> {
+export async function loadClanStatsArchive(supabase: SupabaseClient<Database>, clanId: string, day?: string, options: { includeDirectory?: boolean } = {}): Promise<ClanStatsDetail | null> {
   const source = await loadClanStatsSource(supabase, clanId, "metadata");
   if (!source?.permissions.viewMatchRecords) return null;
   const members = source.permissions.createMatchRecords || source.permissions.editMatchRecords ? [...buildNickMap(source.nickRows)].map(([userId, nickname]) => ({ userId, nickname })) : undefined;
-  if (day) return { kind: "archive", archive: await addArchiveSessionNumbers(clanId, buildArchive(await readStatsRecords(clanId, { day }), buildNickMap(source.nickRows), source.permissions.viewMscore)) };
+  if (day && !options.includeDirectory) return { kind: "archive", archive: await addArchiveSessionNumbers(clanId, buildArchive(await readStatsRecords(clanId, { day }), buildNickMap(source.nickRows), source.permissions.viewMscore)) };
   const { periods } = await readStatsSummary(clanId, ["all"]);
   const archive = periods.all?.archive ?? EMPTY_STATS_AGGREGATE.archive;
-  const latest = archive.datesKst[0];
+  const latest = day ?? archive.datesKst[0];
   const initial = latest ? await addArchiveSessionNumbers(clanId, buildArchive(await readStatsRecords(clanId, { day: latest }), buildNickMap(source.nickRows), source.permissions.viewMscore)) : { sampleByDate: {} };
   return { kind: "archive", archive: { ...archive, sampleByDate: initial.sampleByDate, deferredDays: true, members } };
 }

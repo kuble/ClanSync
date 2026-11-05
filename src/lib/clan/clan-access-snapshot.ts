@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/database.types";
+import { retryDatabaseRead } from "@/lib/supabase/read-query";
 import {
   CLAN_PERMISSION_DEFAULTS,
   LOCKED_LEADER_ONLY,
@@ -20,12 +21,12 @@ export async function readClanAccessSnapshot(
   clanId: string,
 ): Promise<ClanAccessSnapshot> {
   const [membership, settings] = await Promise.all([
-    supabase.rpc("select_my_clan_membership", { p_clan_id: clanId }),
-    supabase
+    retryDatabaseRead("clan-access.membership", () => supabase.rpc("select_my_clan_membership", { p_clan_id: clanId }).retry(false)),
+    retryDatabaseRead("clan-access.permissions", () => supabase
       .from("clan_settings")
       .select("permissions")
       .eq("clan_id", clanId)
-      .maybeSingle(),
+      .maybeSingle().retry(false)),
   ]);
   return {
     membership: membership.error ? null : (membership.data?.[0] ?? null),

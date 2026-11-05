@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 import { loadTestEnv } from "./scripts/test-env.mjs";
+import { pathToFileURL } from "node:url";
+import { resolve } from "node:path";
 
 Object.assign(process.env, loadTestEnv());
 
@@ -47,6 +49,8 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 300_000,
     // Prevent Next.js from loading production management credentials from .env.local.
-    env: { SUPABASE_ACCESS_TOKEN: "", SUPABASE_DB_PASSWORD: "", DISCORD_BOT_TOKEN: "", DISCORD_CLIENT_SECRET: "", DISCORD_CLIENT_ID: "", TZ: "UTC", DEV_GAME_LINK_SIMULATOR: "1", CLANSYNC_E2E: "1" },
+    env: { SUPABASE_ACCESS_TOKEN: "", SUPABASE_DB_PASSWORD: "", DISCORD_BOT_TOKEN: "", DISCORD_CLIENT_SECRET: "", DISCORD_CLIENT_ID: "", TZ: "UTC", DEV_GAME_LINK_SIMULATOR: "1", CLANSYNC_E2E: "1",
+      NODE_OPTIONS: [process.env.NODE_OPTIONS, `--import=${pathToFileURL(resolve("e2e/helpers/supabase-read-fault.mjs")).href}`].filter(Boolean).join(" "),
+    },
   },
 });

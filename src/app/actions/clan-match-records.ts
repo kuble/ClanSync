@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { readClanAccessSnapshot, resolveClanPermission } from "@/lib/clan/clan-access-snapshot";
 import { loadClanStatsArchive } from "@/lib/clan/stats/load-clan-stats";
+import { DatabaseReadError } from "@/lib/supabase/read-query";
 import type { Json } from "@/lib/supabase/database.types";
 
 export type MatchRecordInput = {
@@ -36,9 +37,30 @@ export async function editClanMatchRecord(input: {
   });
   if (error) return { ok: false as const, error: error.code === "PT409" ? input.operation === "create" ? "이미 저장된 기록입니다. 최신 기록을 확인하십시오." : "다른 관리자가 수정한 기록입니다. 최신 기록을 불러온 후 다시 수정하십시오."
     : error.code === "42501" ? "권한 또는 출전자 소속을 확인하십시오." : "기록을 저장하지 못했습니다. 입력 내용을 확인하고 다시 시도하십시오." };
-  // The RPC commits the changed day and every affected summary together.
-  // Return a fresh directory plus the selected day; update the mounted UI in place.
-  const [directory, day] = await Promise.all([loadClanStatsArchive(client, input.clanId), loadClanStatsArchive(client, input.clanId, input.day)]);
-  if (directory?.kind !== "archive" || day?.kind !== "archive") return { ok: false as const, error: "저장은 완료됐지만 기록 조회 권한이 변경됐습니다. 페이지를 새로고침하십시오." };
-  return { ok: true as const, archive: { ...directory.archive, sampleByDate: { ...directory.archive.sampleByDate, [input.day]: day.archive.sampleByDate[input.day] ?? [] } } };
+  // The write committed. A read failure must never offer another mutation.
+  const result = await readSavedArchive(client, input.clanId, input.day);
+  return result.ok ? result : { ...result, saved: true as const };
+}
+
+async function readSavedArchive(client: Awaited<ReturnType<typeof createClient>>, clanId: string, day: string) {
+  try {
+    // One fresh permission snapshot and one selected-day read, including the directory.
+    const result = await loadClanStatsArchive(client, clanId, day, { includeDirectory: true });
+    if (result?.kind !== "archive") return { ok: false as const, error: "기록은 저장됐지만 현재 조회 권한이 없습니다." };
+    return { ok: true as const, archive: result.archive };
+  } catch (error) {
+    console.warn("MATCH_RECORD_READ_PENDING", JSON.stringify(error instanceof DatabaseReadError
+      ? { operation: error.operation, status: error.status } : { operation: "archive" }));
+    return { ok: false as const, error: "기록은 저장되었습니다. 최신 목록을 불러오지 못했습니다. 조회를 다시 시도하십시오." };
+  }
+}
+
+/** Recovery rechecks the current user and permissions; it never writes a record. */
+export async function reloadClanMatchRecordArchive(input: { clanId: string; day: string }) {
+  if (!input || !UUID.test(input.clanId) || !/^\d{4}-\d{2}-\d{2}$/.test(input.day))
+    return { ok: false as const, error: "경기 기록 정보가 올바르지 않습니다." };
+  const client = await createClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return { ok: false as const, error: "기록을 조회하려면 다시 로그인하십시오." };
+  return readSavedArchive(client, input.clanId, input.day);
 }

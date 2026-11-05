@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { assertDatabaseRead, retryDatabaseRead } from "@/lib/supabase/read-query";
 import { OW_HEROES } from "@/lib/balance/ow-hero-ban";
 import type { StatRole } from "./clan-stats-analytics";
 import { EMPTY_INTRA_OVERVIEW, type IntraOverview } from "./intra-overview";
@@ -27,8 +28,9 @@ export const EMPTY_STATS_AGGREGATE: StatsAggregate = {
 /** Call only after a fresh membership/permission check. RPCs are service-only. */
 export async function readStatsSummary(clanId: string, periods: string[]): Promise<StatsSummary> {
   const client: SupabaseClient<Database> = createServiceRoleClient();
-  const { data, error } = await client.rpc("read_clan_stats_summary", { p_clan_id: clanId, p_periods: periods });
-  if (error) throw new Error("통계 요약을 불러오지 못했습니다.", { cause: error });
+  const result = await retryDatabaseRead("clan-stats.summary", () => client.rpc("read_clan_stats_summary", { p_clan_id: clanId, p_periods: periods }).retry(false));
+  assertDatabaseRead("clan-stats.summary", result);
+  const { data } = result;
   const summary = data as unknown as StatsSummary;
   for (const value of Object.values(summary.periods)) {
     const rank = (a: { name: string; value: number }, b: { name: string; value: number }) => b.value - a.value || a.name.localeCompare(b.name, "ko");
@@ -57,10 +59,11 @@ export async function readStatsRecords(clanId: string, filter: { day?: string; u
   const matches: StoredClanMatch[] = [], sessions: CompletedBalanceSession[] = [];
   const revisions = new Map<string, string>();
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.rpc("read_clan_stats_records", {
+    const result = await retryDatabaseRead("clan-stats.records", () => client.rpc("read_clan_stats_records", {
       p_clan_id: clanId, p_day: filter.day, p_user_id: filter.userId, p_offset: offset,
-    });
-    if (error) throw new Error("통계 기록을 불러오지 못했습니다.", { cause: error });
+    }).retry(false));
+    assertDatabaseRead("clan-stats.records", result);
+    const { data } = result;
     for (const row of data ?? []) {
       const payload = row.payload as unknown as { id: string; _revision?: string };
       if (payload._revision) revisions.set(payload.id, payload._revision);

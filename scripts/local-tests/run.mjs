@@ -33,7 +33,8 @@ try {
   await enableDiagnostics();
   if (controller.signal.aborted) throw new Error("검사가 중단되었습니다.");
   const devServer = mode === "e2e" && process.env.LOCAL_TEST_DEV_SERVER === "1";
-  const env = { ...loadTestEnv(), PATH: runtimeEnv.PATH, CLANSYNC_TEST_EVENTS: process.env.CLANSYNC_TEST_EVENTS, CI: devServer ? "" : "1", E2E_SKIP_SEED: "1", PLAYWRIGHT_DEV_PORT: "3010" };
+  const env = { ...loadTestEnv(), PATH: runtimeEnv.PATH, CLANSYNC_TEST_EVENTS: process.env.CLANSYNC_TEST_EVENTS,
+    CLANSYNC_E2E_DB_FAULT_FILE: resolve(dir, "db-fault.json"), CI: devServer ? "" : "1", E2E_SKIP_SEED: "1", PLAYWRIGHT_DEV_PORT: "3010" };
   if (mode === "e2e") {
     phase("로컬 테스트 계정 준비");
     const seed = await run(process.execPath,["scripts/seed-fixtures.mjs"], {env, signal: controller.signal});
