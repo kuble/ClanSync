@@ -48,20 +48,19 @@ npm run test:e2e
 
 ### 통계 1만 경기 검증
 
-`clan-stats-scale.spec.ts`는 기본 실행에서 건너뜁니다. 임시 사용자 10명·클랜에 1만 경기와 출전자 10만 행을 만들고 첫 화면 통계 조회, 결과 정정, 날짜별 조회를 측정한 뒤 삭제합니다. 여러 분이 걸리며 공유 QA 서버의 부하를 고려해 필요할 때 한 번 실행합니다. `STATS_COMPARE_REFERENCE=1`은 기존 전체 조회와 비교하며 기존 경로의 실패 원인도 출력합니다.
+`clan-stats-scale.spec.ts`는 기본 실행에서 건너뜁니다. 전용 로컬 DB에 임시 사용자 10명·클랜, 1만 경기와 출전자 10만 행을 만들고 첫 화면 통계 조회, 결과 정정, 날짜별 조회를 측정한 뒤 정리합니다. 다른 검사와 동시에 실행하지 않습니다. `STATS_COMPARE_REFERENCE=1`은 기존 전체 조회와 비교하며 기존 경로의 실패 원인도 출력합니다. 공유 QA에는 실행하지 않습니다.
 
 ```powershell
-$env:E2E_SKIP_SEED = "1"
 $env:STATS_BENCHMARK = "1"
 $env:STATS_COMPARE_REFERENCE = "1"
 try {
-  npx playwright test e2e/clan-stats-scale.spec.ts --project=chromium
+  npm run test:e2e -- e2e/clan-stats-scale.spec.ts
 } finally {
-  Remove-Item Env:E2E_SKIP_SEED, Env:STATS_BENCHMARK, Env:STATS_COMPARE_REFERENCE
+  Remove-Item Env:STATS_BENCHMARK, Env:STATS_COMPARE_REFERENCE
 }
 ```
 
-기존 QA 명단은 변경하지 않습니다. 원격 작업 중 강제 종료되었다면 해당 실행이 만든 임시 클랜 ID만 확인해 정리해야 합니다. 측정값은 서버 통계 모델 조회와 JSON 크기이며 브라우저 전체 렌더링 시간과 다릅니다.
+기존 QA 명단은 변경하지 않습니다. PC가 강제 종료되면 다음 실행이 전용 로컬 DB의 잔여 데이터를 정리합니다. 측정값은 서버 통계 모델 조회와 JSON 크기이며 브라우저 전체 렌더링 시간과 다릅니다. 개발 전용 화면의 조건부 검사 실행법은 [로컬 검사 안내](../docs/guides/local-test-lab.md)를 따릅니다.
 
 코인 풀은 `npm run test:prediction-pool:db` 또는 전체 `test:db`에서 금액 보존·동시성·RLS·마감·반환·기존 고정 보상 호환을 검증합니다. 공유 TypeScript 픽스처를 직접 읽으며 검증 환경은 Node.js 24.14입니다. `E2E_SKIP_SEED=1`과 `balance-prediction-pool.spec.ts`는 별도 13명 내전에서 편성 중 참여→5분 타이머→마감→배당/공개 순위와 모바일 너비를 검증합니다. 실제 QA 명단을 시드로 초기화하지 않습니다.
 
