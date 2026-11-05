@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { expireClanInvite } from "../scripts/fixtures/clan-invite-expiry.mjs";
+import { execFileSync } from "node:child_process";
 
 test("promotion shares a QR invite and recipients join immediately after login and game registration", async ({ page, browser }, testInfo) => {
   test.setTimeout(150_000);
@@ -47,7 +47,8 @@ test("promotion shares a QR invite and recipients join immediately after login a
     await expect(timer).toHaveText("남은 시간 03:00");
     await expect(timer).toHaveClass(/text-destructive/);
     await page.screenshot({ path: testInfo.outputPath("clan-invite-qr-expiring.png") });
-    expireClanInvite(f.clanId);
+    // Keep the Node-only local DB runtime outside Playwright's CommonJS transform.
+    execFileSync(process.execPath, ["--input-type=module", "-e", "import { expireClanInvite } from './scripts/fixtures/clan-invite-expiry.mjs'; expireClanInvite(process.argv[1]);", f.clanId], { windowsHide: true });
     await page.clock.fastForward(31 * 60 * 1000);
     await expect(urlInput).not.toHaveValue(originalUrl);
     await expect(urlInput).toHaveValue(/\/games\/overwatch\/invite\/[0-9a-f-]{36}$/);
