@@ -19,9 +19,8 @@ select json_build_object(
    select s.queryid::text as id, s.calls, round(s.mean_exec_time::numeric,2) as "meanMs",
      round(s.total_exec_time::numeric,2) as "totalMs",s.shared_blks_read as "readBlocks",
      s.temp_blks_written as "tempBlocks"
-   from extensions.pg_stat_statements s join pg_roles r on r.oid=s.userid
+   from extensions.pg_stat_statements(false) s join pg_roles r on r.oid=s.userid
    where r.rolname in ('authenticator','authenticated','anon','service_role','supabase_auth_admin','supabase_storage_admin')
-     and s.query not like '%clansync_metrics%'
    order by s.total_exec_time desc limit 8
  ) q),'[]'::json)) from pg_stat_database d where datname=current_database();`;
 
