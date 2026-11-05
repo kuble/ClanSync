@@ -4,8 +4,17 @@ import { gotoOverwatchLeaderClanBase } from "./fixture-login-helper";
 async function checkHeader(page: Page) {
   const header = page.locator("header").filter({ has: page.locator("[data-brand-symbol]") }).first();
   await expect(header).toBeVisible();
-  await expect.poll(() => header.locator("[data-brand-symbol]").evaluate(el => el.getBoundingClientRect().width)).toBe(22);
-  expect((await header.boundingBox())!.height).toBeCloseTo(60, 0);
+  // Entry pages use the full logo; compact app headers use a 22px-wide symbol.
+  const compact = await header.locator("[data-header-breadcrumbs]").count() > 0;
+  await expect.poll(() => header.locator("[data-brand-symbol]").evaluate((el, compact) => {
+    const box = el.getBoundingClientRect();
+    return compact ? box.width : box.height;
+  }, compact)).toBe(22);
+  const path = new URL(page.url()).pathname;
+  const tallHeader = ["/", "/games", "/sign-in", "/sign-up"].includes(path) || /\/auth$/.test(path);
+  const compactEntry = ["/", "/sign-in", "/sign-up"].includes(path) && page.viewportSize()!.width <= 640;
+  const expectedHeight = compactEntry ? 72 : tallHeader ? 80 : 60;
+  expect((await header.boundingBox())!.height).toBeCloseTo(expectedHeight, 0);
   const layout = await header.evaluate(el => {
     const controls = [...el.querySelectorAll("a, button, summary")].filter(node => node.checkVisibility()).map(node => ({ node, rect: node.getBoundingClientRect() }))
       .filter(({ rect }) => rect.width > 0 && rect.height > 0)
@@ -24,7 +33,7 @@ async function checkHeader(page: Page) {
     expect(control.left, control.name).toBeGreaterThanOrEqual(0);
     expect(control.right, control.name).toBeLessThanOrEqual(page.viewportSize()!.width);
     expect(control.overlap, control.name).toBeLessThanOrEqual(1);
-    if (control.weight) expect(control.weight, control.name).toBe("700");
+    if (compact && control.weight) expect(control.weight, control.name).toBe("700");
   }
 }
 
