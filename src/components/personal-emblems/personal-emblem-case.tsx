@@ -56,8 +56,10 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
   const target = (accountDisplay ? "account:" : "") + clanId + ":" + userId + ":" + (initial?.viewerId ?? "");
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [attempt, setAttempt] = useState(0);
-  const [savingState, setSavingState] = useState<{ target: string; initial?: PersonalEmblemCollection; pending: boolean }>();
+  const [savingState, setSavingState] = useState<{ target: string; pending: boolean }>();
   const requests = useRef(0), saves = useRef(0), saving = useRef(false);
+  const latestInitial = useRef(initial);
+  useEffect(() => { latestInitial.current = initial; }, [initial]);
   const current = snapshot?.target === target && snapshot.initial === initial ? snapshot : undefined;
   const collection = current?.collection ?? (!current?.error ? initial : undefined);
   const pending = current ? !!current.pending : true;
@@ -65,7 +67,7 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     requests.current++;
     saves.current++;
     saving.current = false;
-    setSavingState({ target, initial, pending: false });
+    setSavingState({ target, pending: false });
     setSnapshot({ target, initial, error });
   }, [target, initial]);
 
@@ -93,7 +95,9 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     return () => { active = false; controller.abort(); };
   }, [clanId, userId, target, initial, attempt, deny, accountDisplay]);
 
-  useEffect(() => () => { saves.current++; saving.current = false; }, [target, initial]);
+  // Revalidation can replace initial props while this target's save is still finishing.
+  // Only a different account/clan invalidates the mutation and releases its lock.
+  useEffect(() => () => { saves.current++; saving.current = false; }, [target]);
 
   function refresh() {
     requests.current++;
@@ -109,7 +113,7 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     if (!collection?.canFeature || saving.current) return false;
     const save = ++saves.current;
     saving.current = true;
-    setSavingState({ target, initial, pending: true });
+    setSavingState({ target, pending: true });
     try {
       const result = await savePersonalEmblemPicksAction(keys, clanId || undefined);
       if (saves.current !== save) return false;
@@ -123,19 +127,19 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
       const next = initial?.sources ? { ...collection, ...(result.collection.sources?.find(source => source.clanId === clanId) ?? {}), sources: result.collection.sources,
         accountFeaturedKeys: result.collection.accountFeaturedKeys }
         : result.collection;
-      setSnapshot({ target, initial, collection: next });
+      setSnapshot({ target, initial: latestInitial.current, collection: next });
       toast.success("대표 엠블럼을 저장했습니다.");
       return true;
     } catch {
       if (saves.current === save) toast.error("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주십시오.");
       return false;
     } finally {
-      if (saves.current === save) { saving.current = false; setSavingState({ target, initial, pending: false }); }
+      if (saves.current === save) { saving.current = false; setSavingState({ target, pending: false }); }
     }
   }
 
   return { target, collection, error: current?.error, pending, refresh, save,
-    savePending: savingState?.target === target && savingState.initial === initial && savingState.pending };
+    savePending: savingState?.target === target && savingState.pending };
 }
 
 export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, variant = "compact", initialAwards, accountWide = false }: {

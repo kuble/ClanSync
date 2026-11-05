@@ -226,6 +226,8 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(star).toBeEnabled();
     await page.keyboard.press("Escape");
     await annualPin.click();
+    await expect(details).toHaveCSS("opacity", "1");
+    await expect(star).toBeEnabled();
     await star.focus();
     await star.click();
     await expect(star).toHaveAttribute("aria-pressed", "true");
@@ -358,6 +360,8 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       quickPage.setDefaultTimeout(15_000);
       await quickPage.goto(isolated.path.replace(/balance$/, "emblems") + "?player=" + user.id);
       const touchStars = quickPage.locator("[data-emblem-feature-key]");
+      await expect(quickPage.getByRole("region", { name: "엠블럼 목록", exact: true })).toHaveAttribute("aria-busy", "false");
+      await expect(touchStars).toHaveCount(6);
       await expect(touchStars.first()).toBeEnabled();
       for (const button of await touchStars.all()) {
         await expect(button).toHaveCSS("opacity", "1");
