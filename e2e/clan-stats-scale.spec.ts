@@ -59,9 +59,10 @@ test("statistics scale benchmark uses an isolated 10,000-match clan", async () =
     }
   } catch (error) { console.error("STATS_SCALE_ERROR", error); throw error;
   } finally {
-    for (let from = 0; from < ids.length; from += 250) {
-      const batch = ids.slice(from, from + 250);
-      // Delete child rows in one statement instead of 250 FK cascade statements.
+    // UUID filters are sent in the URL; keep each cleanup request below proxy limits.
+    for (let from = 0; from < ids.length; from += 100) {
+      const batch = ids.slice(from, from + 100);
+      // Delete child rows together instead of issuing a cascade per match.
       for (const result of [
         await fixture.service.from("match_results").delete().in("match_id", batch),
         await fixture.service.from("match_players").delete().in("match_id", batch),
