@@ -73,11 +73,11 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     await page.getByRole("textbox",{name:"댓글 내용",exact:true}).scrollIntoViewIfNeeded();
     await page.screenshot({path:test.info().outputPath("comment-composer.png"),animations:"disabled"});
     await page.getByRole("button",{name:"댓글 등록",exact:true}).click();
-    const comment=page.locator("#comments li").first();
+    const comment=page.getByRole("region",{name:"게시글 댓글 목록",exact:true}).getByRole("listitem").first();
     await expect(comment.getByRole("img",{name:":응원:",exact:true})).toHaveAttribute("width","48");
     await comment.hover();
     await choose(comment,`${f.users[0].nickname} 댓글 공감 선택`);await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toHaveAttribute("aria-pressed","true");
-    await page.reload();await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
+    await page.reload();await openBoardComments(page);await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await expect.poll(()=>page.locator('img[alt=":응원:"]').evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.screenshot({path:test.info().outputPath("emoji-board.png"),animations:"disabled"});
     const boardComment=(await svc.from("clan_board_comments").select("id").eq("post_id",post.id).single()).data!;
@@ -88,8 +88,8 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     const peerComment=await svc.from("clan_board_comments").insert({post_id:post.id,author_id:f.users[1].id,content:emojiToken(emoji.id)}).select("id").single();
     expect(peerComment.error).toBeNull();
     expect((await svc.from("clan_emoji_reactions").insert({board_comment_id:peerComment.data!.id,emoji_id:emoji.id,user_id:f.users[0].id})).error).toBeNull();
-    await page.reload();
-    const peerRow=page.locator("#comments li").filter({hasText:f.users[1].nickname});
+    await page.reload();await openBoardComments(page);
+    const peerRow=page.getByRole("region",{name:"게시글 댓글 목록",exact:true}).getByRole("listitem").filter({hasText:f.users[1].nickname});
     for(const {row,mine} of [{row:comment,mine:true},{row:peerRow,mine:false}]) {
       const reaction=row.getByRole("button",{name:/응원 공감 \d+명/});
       await reaction.scrollIntoViewIfNeeded();await row.hover();

@@ -24,7 +24,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await ok(f.service.from("clan_board_coaches").insert({clan_id:f.clanId,user_id:f.users[0].id,expertise:"지원 · 아나"}));
     await loginIsolatedBalanceUser(page,f.users[1]);await page.goto(base+"/board");
     await expect(page).toHaveURL(/\/board\/notices$/);
-    await expect(page.getByText("서로 존중하며 플레이합니다.",{exact:true})).toBeVisible();
+    await expect(page.getByRole("list",{name:"클랜 규칙 목록",exact:true}).getByText("서로 존중하며 플레이합니다.",{exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:"공지 작성",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"규칙 저장",exact:true})).toHaveCount(0);
     await page.getByRole("link",{name:"클랜 소식",exact:true}).click();await expect(page.getByText("중요한 약속",{exact:true})).toBeVisible();
@@ -80,7 +80,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     const touchContext=await browser.newContext({baseURL:new URL(page.url()).origin,storageState:await page.context().storageState(),viewport:{width:390,height:844},hasTouch:true});
     try{
       const touchPage=await touchContext.newPage();await touchPage.goto(base+"/board/free/"+freeId+"#comments");
-      const touchComment=touchPage.locator("#comments li").filter({hasText:"좋아요, 같이 합니다!"}),touchDelete=touchComment.getByRole("button",{name:/댓글 삭제$/});
+      const touchComment=touchPage.getByRole("region",{name:"게시글 댓글 목록",exact:true}).getByRole("listitem").filter({hasText:"좋아요, 같이 합니다!"}),touchDelete=touchComment.getByRole("button",{name:/댓글 삭제$/});
       await expect(touchComment).toBeVisible();
       await touchComment.scrollIntoViewIfNeeded();
       await expect(touchComment.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);await expect(touchDelete).toHaveCSS("opacity","1");
