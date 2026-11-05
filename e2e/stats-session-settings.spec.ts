@@ -70,7 +70,7 @@ test("stats: session summary, eligibility rules and settings tabs preserve saved
     await expect(personalSettings).toBeHidden();
     await page.getByRole("tab", { name: "명예의 전당", exact: true }).click();
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "명예의 전당 설정 도움말", exact: true });
+    const settings = page.getByRole("dialog", { name: "명예의 전당 설정", exact: true });
     await settings.getByRole("tab", { name: "순위 공개", exact: true }).click();
     await settings.getByLabel("승률", { exact: true }).selectOption("5");
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();

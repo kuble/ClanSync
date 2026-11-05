@@ -113,7 +113,7 @@ test("management cards, stats switches and lobby remain usable at desktop and mo
     await page.screenshot({ path: test.info().outputPath("subscription-card.png") });
     await page.goto(f.path.replace(/balance$/, "stats"));
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
-    let dialog = page.getByRole("dialog", { name: "명예의 전당 설정 도움말", exact: true });
+    let dialog = page.getByRole("dialog", { name: "명예의 전당 설정", exact: true });
     const toggle = dialog.getByRole("switch", { name: /명예의 전당을 클랜 프로필에 공개/ });
     await expect(toggle).toHaveCount(0);
     await dialog.getByRole("button", { name: "저장", exact: true }).click();
