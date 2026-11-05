@@ -1,3 +1,4 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -9,7 +10,7 @@ test("계정 안내는 제목 툴팁으로 표시하고 네임카드는 모바�
     await page.goto("/profile");
     const tooltip = page.locator('[role="tooltip"][data-open]');
     for (const [name, description] of [["게임 프로필", "한 번 꾸미면"], ["게임별 관리", "게임을 열어"], ["가입 신청", "최근 7일"], ["자동 로그인", "로그인을 계속 유지"]]) {
-      await page.getByRole("tab", { name: name === "게임 프로필" ? "플레이어 소개" : "계정 정보", exact: true }).click();
+      await selectProfileSection(page, name === "게임 프로필" ? "플레이어 소개" : "계정 정보");
       const help = page.getByRole("button", { name: name + " 도움말", exact: true });
       await help.hover();
       await expect(tooltip).toContainText(description);
@@ -26,7 +27,7 @@ test("계정 안내는 제목 툴팁으로 표시하고 네임카드는 모바�
     await page.mouse.move(0, 0);
     await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.locator('[role="tooltip"]')).toHaveCount(0);
-    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
+    await selectProfileSection(page, "플레이어 소개");
     const card = page.getByRole("region", { name: "공통 네임카드", exact: true });
     await page.setViewportSize({ width: 1023, height: 884 });
     await page.getByRole("button", { name: "게임 프로필 도움말", exact: true }).hover();
@@ -42,7 +43,7 @@ test("계정 안내는 제목 툴팁으로 표시하고 네임카드는 모바�
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath("profile-account-public-" + width + ".png"), fullPage: true });
     }
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "계정 정보");
     await help.tap(); await expect(tooltip).toBeVisible();
     await help.tap(); await expect(tooltip).toHaveCount(0);
     const auto = page.getByRole("switch", { name: "자동 로그인", exact: true });

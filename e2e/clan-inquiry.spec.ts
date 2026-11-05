@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { selectProfileSection } from "./section-picker-helper";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test.use({ actionTimeout: 15_000 });
@@ -84,10 +85,9 @@ test("pending applicant can reopen the shared clan room until their request is r
     await page.keyboard.press("Escape");
     await page.goto("/profile");
     await expect(page.getByRole("navigation",{name:"계정 메뉴"}).getByRole("button",{name:"알림",exact:true})).toBeVisible();
-    const accountTab = page.getByRole("tab", {name:"계정 정보"});
     await expect(async () => {
       if (!await room.isVisible()) {
-        await accountTab.click({timeout:2000});
+        await selectProfileSection(page);
         await page.getByRole("tabpanel", {name:"계정 정보"}).getByRole("button", {name:"클랜 문의방"}).click({timeout:2000});
       }
       await expect(room).toBeVisible({timeout:2000});

@@ -12,8 +12,8 @@ function subscribeDesktop(notify: () => void) {
 }
 const desktopSnapshot = () => window.matchMedia("(min-width: 960px)").matches;
 type Item = { label: string; icon?: ReactNode; badge?: ReactNode; href?: string; selected: boolean; onSelect?: () => void };
-export function ClanSectionPicker({label, selectionLabel = label, items, children}: {
-  label: string; selectionLabel?: string; items: Item[]; children: ReactNode;
+export function ClanSectionPicker({label, selectionLabel = label, items, children, disabled = false}: {
+  label: string; selectionLabel?: string; items: Item[]; children: ReactNode; disabled?: boolean;
 }) {
   const tx = useTranslator();
   const desktop = useSyncExternalStore(subscribeDesktop, desktopSnapshot, () => false);
@@ -22,7 +22,7 @@ export function ClanSectionPicker({label, selectionLabel = label, items, childre
   return <>
     <nav aria-label={tx(label)} className="min-w-0 min-[960px]:hidden">
       <DropdownMenu key={desktop ? "desktop" : "mobile"}>
-        <DropdownMenuTrigger render={<Button variant="outline" className="min-h-11 w-full justify-start gap-3 rounded-lg px-3 text-sm"/>} aria-label={`${tx(selectionLabel)}: ${tx(current.label)}`}>
+        <DropdownMenuTrigger disabled={disabled} render={<Button variant="outline" className="min-h-11 w-full justify-start gap-3 rounded-lg px-3 text-sm"/>} aria-label={`${tx(selectionLabel)}: ${tx(current.label)}`}>
           {current.icon}<span>{tx(current.label)}</span><ChevronDown className="ml-auto size-4 text-muted-foreground" aria-hidden/>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" sideOffset={6} aria-label={tx(selectionLabel)} className="max-w-[calc(100vw-1rem)] min-[960px]:hidden">

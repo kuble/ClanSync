@@ -1,3 +1,4 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
@@ -86,9 +87,9 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expect(carousel.getByRole("status", { name: "현재 클랜", exact: true })).toHaveText("2 / 2");
     await cdp.detach();
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "계정 정보");
     await expect(page.getByText("미리보기용 ID입니다.", { exact: false })).toHaveCount(0);
-    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
+    await selectProfileSection(page, "플레이어 소개");
     const namecard = page.getByRole("region", { name: "공통 네임카드", exact: true });
     await expect(identity.getByRole("article").locator("[data-namecard]")).toContainText(riotId);
     await expect(identity.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(1);
@@ -105,8 +106,8 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await page.keyboard.press("Escape");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.goto("/games");
-    await page.locator('summary[aria-label="프로필 메뉴"]:visible').click();
-    await expect(page.locator('summary[aria-label="프로필 메뉴"]:visible').locator("..").getByText("내 계정", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
+    await expect(page.getByRole("menuitem", { name: "프로필", exact: true })).toBeVisible();
     await expect(page.getByText(f.users[0].nickname, { exact: true })).toHaveCount(0);
   } finally {
     if (otherCreated) expect((await f.service.from("clans").delete().eq("id", otherClanId)).error).toBeNull();
