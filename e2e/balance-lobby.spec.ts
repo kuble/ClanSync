@@ -394,15 +394,15 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
     await Promise.all([page.reload(), owner.reload()]);
     await expect(page).toHaveURL(regular.url);
     await expect(owner).toHaveURL(flashUrl);
-    await expect(regularPanel.locator('[data-roster-slot="team1:d0"]')).toContainText(fixture.users[0].nickname);
+    await expect(regularPanel.locator('[data-roster-slot="team1:d0"]')).toHaveAccessibleName(new RegExp(fixture.users[0].nickname));
     await expect(flashPanel.locator('[data-roster-slot="team1:d0"]')).toHaveAccessibleName(`1팀 딜러 1: ${fixture.users[1].nickname}`);
     await visitor.goto(flashUrl);
     const visitorPanel = visitor.getByTestId("clan-balance-session-panel");
-    await expect(visitorPanel.locator('[data-board-slot="team1:d0"]')).toContainText(fixture.users[1].nickname);
+    await expect(visitorPanel.locator('[data-board-slot="team1:d0"]')).toHaveAttribute("title", fixture.users[1].nickname);
     await expect(visitorPanel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
     await expect(visitorPanel.locator("[data-roster-slot]")).toHaveCount(0);
     await owner.goto(regular.url);
-    await expect(flashPanel.locator('[data-board-slot="team1:d0"]')).toContainText(fixture.users[0].nickname);
+    await expect(flashPanel.locator('[data-board-slot="team1:d0"]')).toHaveAttribute("title", fixture.users[0].nickname);
     await expect(flashPanel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
     await owner.goto(flashUrl);
     await expect(flashPanel.getByRole("button", { name: "경기 설정", exact: true })).toBeVisible();

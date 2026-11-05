@@ -70,26 +70,26 @@ test("맵 팝업·배너와 클랜원 목록 네 방향 부착·드래그·되�
     await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
     await expect(picker).toBeHidden();
     await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("부산");
-    await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[1].nickname));
     await expect(member(1)).toHaveCount(0);
     await member(2).dragTo(slot("team2:s1"));
-    await expect(slot("team2:s1")).toContainText(fixture.users[2].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[2].nickname));
     await expect(member(1)).toBeVisible();
     await panel.getByRole("button", { name: "명단 변경 되돌리기", exact: true }).click();
-    await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[1].nickname));
     await expect(member(2)).toBeVisible();
     await member(2).dragTo(slot("team1:d0"));
-    await expect(slot("team1:d0")).toContainText(fixture.users[2].nickname);
+    await expect(slot("team1:d0")).toHaveAccessibleName(new RegExp(fixture.users[2].nickname));
     await slot("team1:d0").dragTo(slot("team2:s1"));
-    await expect(slot("team2:s1")).toContainText(fixture.users[2].nickname);
-    await expect(slot("team1:d0")).toContainText(fixture.users[1].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[2].nickname));
+    await expect(slot("team1:d0")).toHaveAccessibleName(new RegExp(fixture.users[1].nickname));
     await panel.getByRole("button", { name: "명단 변경 되돌리기", exact: true }).click();
-    await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[1].nickname));
     await slot("team1:d0").press("Delete");
     await expect(member(2)).toBeVisible();
     await panel.getByRole("button", { name: "명단 변경 되돌리기", exact: true }).click();
     await member(3).click();
-    await expect(slot("team1:d1")).toContainText(fixture.users[3].nickname);
+    await expect(slot("team1:d1")).toHaveAccessibleName(new RegExp(fixture.users[3].nickname));
     await expect.poll(async () => parseRoster((await fixture.activeRound()).roster)).toMatchObject({
       team1: { dmg: [fixture.users[2].id, fixture.users[3].id] },
       team2: { sup: [null, fixture.users[1].id] },
@@ -97,7 +97,7 @@ test("맵 팝업·배너와 클랜원 목록 네 방향 부착·드래그·되�
     await page.reload();
     await expect(picker).toBeHidden();
     await expect(banner).toContainText("부산");
-    await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[1].nickname));
     await panel.screenshot({ path: test.info().outputPath("roster-left.png") });
     await handle.press("ArrowRight");
     await checkPosition("right");
@@ -111,7 +111,7 @@ test("맵 팝업·배너와 클랜원 목록 네 방향 부착·드래그·되�
     await search.fill(fixture.users[0].nickname);
     await expect(member(0)).toBeVisible();
     await member(0).click();
-    await expect(slot("team1:tank")).toContainText(fixture.users[0].nickname);
+    await expect(slot("team1:tank")).toHaveAccessibleName(new RegExp(fixture.users[0].nickname));
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     await panel.screenshot({ path: test.info().outputPath("roster-mobile.png") });
     await expect.poll(async () => parseRoster((await fixture.activeRound()).roster).team1.tank).toBe(fixture.users[0].id);
@@ -119,11 +119,11 @@ test("맵 팝업·배너와 클랜원 목록 네 방향 부착·드래그·되�
     await search.fill("");
     for (let index = 4; index < 10; index++) await member(index).click();
     await member(10).dragTo(slot("team2:s1"));
-    await expect(slot("team2:s1")).toContainText(fixture.users[10].nickname);
+    await expect(slot("team2:s1")).toHaveAccessibleName(new RegExp(fixture.users[10].nickname));
     await expect(member(1)).toBeVisible();
     await member(1).click();
     await slot("team1:tank").click();
-    await expect(slot("team1:tank")).toContainText(fixture.users[1].nickname);
+    await expect(slot("team1:tank")).toHaveAccessibleName(new RegExp(fixture.users[1].nickname));
     await expect(member(0)).toBeVisible();
     await panel.getByRole("button", { name: "명단 변경 되돌리기", exact: true }).click();
     await expect.poll(async () => {

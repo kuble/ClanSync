@@ -17,7 +17,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await page.reload();
     const panel = page.getByTestId("clan-balance-session-panel");
     const insights = panel.getByRole("complementary", { name: "팀 밸런스 비교" });
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText(/[+-]?\d+(?:\.\d+)?점/);
+    await expect(panel.locator('[data-roster-slot="team1:tank"] [aria-label^="평가 점수"]')).toHaveAttribute("aria-label", /평가 점수 [+-]?\d+(?:\.\d+)?점/);
     const standbyMember = panel.getByRole("button", { name: `${fixture.users[10].nickname} 출전 명단에 추가` });
     await standbyMember.hover();
     await expect(page.getByRole("tooltip").filter({ hasText: fixture.users[10].nickname })).toHaveCount(0);
@@ -110,8 +110,9 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await page.setViewportSize({ width: 1211, height: 1272 });
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     await expect(player).toContainText("0");
-    await expect(panel.getByTestId("team1-score-total")).toContainText("0점");
-    await expect(panel.getByTestId("team2-score-total")).toContainText("0점");
+    await expect(panel.getByTestId("team-comparison-graph")).toHaveAttribute("data-mode", "prediction");
+    await expect(panel.getByLabel("1팀 예측 승률", { exact: true })).toHaveText(/\d+(?:\.\d+)?%/);
+    await expect(panel.getByLabel("2팀 예측 승률", { exact: true })).toHaveText(/\d+(?:\.\d+)?%/);
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await panel.locator('[data-roster-slot="team1:tank"]').click();
     await panel.locator('[data-roster-slot="team2:tank"]').click();
@@ -165,8 +166,12 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.locator('[data-board-slot="team1:d0"]').getByText("딜러 1", { exact: true })).toHaveCount(0);
     const spectator = await fixture.memberClient(10);
     const prediction = { session_id: round.id, user_id: fixture.users[10].id, pick_team: 1 };
-    expect((await spectator.from("balance_session_predictions").insert(prediction)).error).toBeNull();
-    expect((await spectator.from("balance_session_predictions").update({ pick_team: 2 }).eq("session_id", round.id).eq("user_id", prediction.user_id).select()).data).toHaveLength(1);
+    expect((await fixture.service.from("users").update({ coin_balance: 10 }).eq("id", prediction.user_id)).error).toBeNull();
+    expect((await spectator.from("balance_session_predictions").insert(prediction)).error?.code).toBe("42501");
+    for (const pick of [1, 2]) {
+      expect((await spectator.rpc("place_balance_prediction_pool", { p_session_id: round.id, p_pick: pick, p_stake: 1 })).error).toBeNull();
+      expect((await spectator.from("balance_session_predictions").select("pick_team,stake_coins").eq("session_id", round.id).single()).data).toEqual({ pick_team: pick, stake_coins: 1 });
+    }
 
     // Reuse the same fixture to cover the DB-only lifetime/reward boundary.
     const owner = await fixture.memberClient(1);
@@ -187,7 +192,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const started = await fixture.service.from("balance_sessions").update({ phase: "match_live" }).eq("id", flashRound.id);
     expect(started.error).toBeNull();
     expect((await spectator.from("balance_session_predictions").insert({ ...prediction, session_id: flashRound.id })).error?.code).toBe("42501");
-    expect((await spectator.from("balance_session_predictions").update({ session_id: flashRound.id }).eq("session_id", round.id).eq("user_id", prediction.user_id)).error?.message).toBe("immutable_prediction_identity");
+    const moved = await spectator.from("balance_session_predictions").update({ session_id: flashRound.id }).eq("session_id", round.id).eq("user_id", prediction.user_id).select();
+    expect(moved.error).toBeNull(); expect(moved.data).toEqual([]);
     expect((await fixture.service.from("balance_session_predictions").select("session_id").eq("session_id", round.id).eq("user_id", prediction.user_id).single()).data?.session_id).toBe(round.id);
     const legacy = await fixture.service.from("balance_session_predictions").insert({ ...prediction, session_id: flashRound.id });
     expect(legacy.error).toBeNull();

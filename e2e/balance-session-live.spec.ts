@@ -1,3 +1,4 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   createIsolatedBalanceFixture,
@@ -98,7 +99,7 @@ async function applyAndSelectMap(panel: Locator) {
   await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
 }
 
-test("편성 완료·경기 시작 대기 중 보드를 유지하고 블러로 조작을 막는다", async ({ page }) => {
+test("고정 편성의 경기 시작 대기·실패·재시도 중 보드를 유지하고 조작을 막는다", async ({ page }) => {
   test.setTimeout(180_000);
   const fixture = await createIsolatedBalanceFixture(10);
   let tickRequests = 0;
@@ -112,16 +113,16 @@ test("편성 완료·경기 시작 대기 중 보드를 유지하고 블러로 �
     await createAndEnterBalanceRoom(page, fixture.path);
     const panel = page.getByTestId("clan-balance-session-panel");
     await settings(page, panel, "keep");
-    await panel.getByTestId("balance-editor-map").click();
-    const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
-    await mapPicker.getByRole("button", { name: "부산 선택", exact: true }).click();
-    await expect(mapPicker).toBeHidden();
-    await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("부산");
     const candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
     for (const user of fixture.users) {
       await candidates.getByRole("button", { name: `${user.nickname} 출전 명단에 추가`, exact: true }).click();
     }
 
+    await panel.getByTestId("balance-editor-map").click();
+    const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await mapPicker.getByRole("button", { name: "부산 선택", exact: true }).click();
+    await expect(mapPicker).toBeHidden();
+    await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("부산");
     const round = await fixture.activeRound();
     const startBody = JSON.stringify(["overwatch", fixture.clanId, round.id]);
     // Delay both acknowledgements and fail the first match start. The board
@@ -132,13 +133,13 @@ test("편성 완료·경기 시작 대기 중 보드를 유지하고 블러로 �
         await heldTick;
       } else if (route.request().method() === "POST" && route.request().postData() === startBody) {
         startRequests++;
-        if (startRequests === 1) { await route.abort("failed"); return; }
+        if (startRequests === 1) { await heldTick; await route.abort("failed"); return; }
         await heldStart;
       }
       await route.continue();
     });
     await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
-    await expect.poll(() => tickRequests).toBe(1);
+    await expect.poll(() => startRequests).toBe(1);
     await expect(panel).toHaveAttribute("data-formation-transition", "true");
     const overlay = page.getByTestId("balance-preparation-overlay");
     await expect(overlay).toBeVisible();
@@ -164,8 +165,8 @@ test("편성 완료·경기 시작 대기 중 보드를 유지하고 블러로 �
     await page.keyboard.press("Tab");
     await expect.poll(() => overlay.evaluate((element) => element.contains(document.activeElement))).toBe(true);
     const completed = await fixture.activeRound();
-    expect((completed.formation_state as unknown as FormationState).appliedAt).toBeUndefined();
-    expect(tickRequests).toBe(1);
+    expect((completed.formation_state as unknown as FormationState).appliedAt).toEqual(expect.any(Number));
+    expect(tickRequests).toBe(0);
     await page.screenshot({ path: test.info().outputPath("preparation-overlay.png") });
     const viewport = page.viewportSize()!;
     await page.setViewportSize({ width: 490, height: 884 });
@@ -215,7 +216,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await loginIsolatedBalanceUser(member, fixture.users[1]);
     await member.goto("/profile");
-    await member.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(member, "계정 정보");
     await member.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     const profilePreference = member.getByRole("region", {
       name: "게임별 선호 역할",
@@ -274,7 +275,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
           exact: true,
         })
         .click();
-      await expect(slot(orderedSlots[index])).toContainText(selected[index]);
+      await expect(slot(orderedSlots[index])).toHaveAccessibleName(new RegExp(selected[index]));
       await expect(
         candidates.getByRole("button", {
           name: `${selected[index]} 출전 명단에 추가`,
@@ -284,11 +285,11 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     }
     await slot("team1:d1").click({ button: "right" });
     await expect(slot("team1:d1")).toHaveText("빈자리");
-    await expect(slot("team1:tank")).toContainText(selected[2]);
+    await expect(slot("team1:tank")).toHaveAccessibleName(new RegExp(selected[2]));
     await panel.getByRole("button", { name: "명단 변경 되돌리기" }).click();
     await slot("team1:d0").dragTo(slot("team2:d1"));
-    await expect(slot("team1:d0")).toContainText(selected[6]);
-    await expect(slot("team2:d1")).toContainText(selected[0]);
+    await expect(slot("team1:d0")).toHaveAccessibleName(new RegExp(selected[6]));
+    await expect(slot("team2:d1")).toHaveAccessibleName(new RegExp(selected[0]));
     const savedRoster = await readRoster(panel);
     await panel.getByRole("button", { name: "출전 명단 초기화" }).click();
     expect(await readRoster(panel)).toEqual(Array(10).fill("빈자리"));

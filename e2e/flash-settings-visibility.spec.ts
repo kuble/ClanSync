@@ -17,10 +17,11 @@ test("flash rooms hide scores and unavailable settings for member hosts and clan
     const roster = { team1: { tank: ids[0], dmg: ids.slice(2, 4), sup: ids.slice(4, 6) }, team2: { tank: ids[1], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     const seeded = await f.service.from("balance_sessions").update({
       roster, map_ban_enabled: false, hero_ban_enabled: false,
-      ma_snapshot: { [ids[0]]: { m: 9.37, a: null } },
       formation_settings: { ...round.formation_settings as object, showPlayerCardScore: true, showPlayerSessionSummary: true, showTeamComparisonSummary: true },
     }).eq("id", round.id);
     expect(seeded.error).toBeNull();
+    // Roster changes rebuild role-specific score snapshots. Seed the sentinel afterwards.
+    expect((await f.service.from("balance_sessions").update({ ma_snapshot: { [ids[0]]: { m: 9.37, a: null } } }).eq("id", round.id)).error).toBeNull();
     const prepared = await f.activeRound(room.roomId);
     expect(prepared.ma_snapshot).toMatchObject({ [ids[0]]: { m: 9.37, a: null } });
     const before = prepared.formation_settings;

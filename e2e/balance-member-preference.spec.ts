@@ -67,6 +67,7 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
     expect(settings.error).toBeNull();
     expect(settings.data).toBe(true);
     await page.reload();
+    await page.getByRole("dialog", { name: "경기 맵 선택", exact: true }).getByRole("button", { name: "닫기", exact: true }).click();
     await member.goto(`${memberOrigin}${fixture.path}?room=${room.roomId}`);
     const operatorPanel = page.getByTestId("clan-balance-session-panel");
     const memberPanel = member.getByTestId("clan-balance-session-panel");
@@ -148,6 +149,7 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
     expect(preferences).toEqual([]);
     // Both logins survive in the same browser context without sharing cookies.
     await page.reload();
+    await page.getByRole("dialog", { name: "경기 맵 선택", exact: true }).getByRole("button", { name: "닫기", exact: true }).click();
     await expect(
       operatorPanel.getByRole("button", { name: "경기 설정", exact: true }),
     ).toBeVisible();

@@ -58,9 +58,9 @@ test("역할 자동배정 후 팀 조정·저장·공유 확인을 마쳐야 다
     await expect.poll(async () => parseRoster((await fixture.activeRound()).roster)).toEqual(swapped);
     await expect.poll(async () => (await fixture.activeRound()).formation_state).toEqual({ ...state, roster: swapped });
     const redPlayer = fixture.users.find((user) => user.id === swapped.team1.dmg[0])!;
-    await expect(memberPanel.locator('[data-board-slot="team1:d0"]')).toContainText(redPlayer.nickname);
+    await expect(memberPanel.locator('[data-board-slot="team1:d0"]')).toHaveAttribute("title", redPlayer.nickname);
     await page.reload();
-    await expect(blue).toContainText(redPlayer.nickname);
+    await expect(blue).toHaveAccessibleName(new RegExp(redPlayer.nickname));
     await expect(next).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

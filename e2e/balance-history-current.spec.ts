@@ -21,7 +21,7 @@ test("현재 내전 기록: 호버 닫힘·좌측 요약·모바일 순서·좌�
     expect((await fixture.service.from("balance_sessions").update({ round_number: 3, roster }).eq("id", active.id)).error).toBeNull();
     const otherId = randomUUID();
     expect((await fixture.service.from("balance_session_series").insert({
-      id: otherId, clan_id: fixture.clanId, game_id: fixture.gameId, host_user_id: ids[0], closed_at: new Date().toISOString(),
+      id: otherId, clan_id: fixture.clanId, game_id: fixture.gameId, host_user_id: ids[0], opened_at: new Date(Date.now() - 60_000).toISOString(), closed_at: new Date().toISOString(),
     })).error).toBeNull();
     expect((await fixture.service.from("balance_sessions").insert([
       { series_id: active.series_id, round_number: 1, resolved_map_label: "첫 경기", match_outcome: "team1" as const, roster },
@@ -29,7 +29,7 @@ test("현재 내전 기록: 호버 닫힘·좌측 요약·모바일 순서·좌�
       { series_id: otherId, round_number: 1, resolved_map_label: "다른 내전 경기", match_outcome: "team1" as const, roster },
     ].map((record) => ({
       ...record, clan_id: fixture.clanId, game_id: fixture.gameId, host_user_id: ids[0],
-      phase: "match_live" as const, closed_at: new Date().toISOString(),
+      phase: "match_live" as const, opened_at: new Date(Date.now() - 60_000).toISOString(), closed_at: new Date().toISOString(),
     })))).error).toBeNull();
     await page.reload();
     await page.setViewportSize({ width: 1220, height: 884 });

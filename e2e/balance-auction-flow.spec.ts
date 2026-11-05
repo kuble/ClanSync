@@ -115,6 +115,7 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     }).eq("id", initial.id);
     expect(seeded.error).toBeNull();
     await page.reload();
+    await page.getByRole("dialog", { name: "경기 맵 선택", exact: true }).getByRole("button", { name: "닫기", exact: true }).click();
     await member.goto(room.url);
     const draftRequestPromise = formationRequest(page, "start");
     await panel.getByRole("button", { name: "편성 진행", exact: true }).click();
@@ -169,6 +170,7 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     ]).select("id,name,description,cost,enabled");
     expect(catalog.error).toBeNull();
     await page.reload();
+    await page.getByRole("dialog", { name: "경기 맵 선택", exact: true }).getByRole("button", { name: "닫기", exact: true }).click();
     await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("auction");
@@ -314,8 +316,10 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     // Both captains act on the same item selection screen; neither waits for the opponent's refresh.
     await Promise.all([buyButton.click(), skipButton.click()]);
     const [bought, skipped] = await Promise.all([buyResponse, skipResponse]);
-    expect(await bought.text()).toContain('"ok":true');
-    expect(await skipped.text()).toContain('"ok":true');
+    // The phase transition can evict Chromium's response body; verify both HTTP
+    // responses and the committed choices/budgets below instead.
+    expect(bought.status()).toBe(200);
+    expect(skipped.status()).toBe(200);
     await expect.poll(async () => ((await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState).stage, { timeout: 20_000 })
       .toBe("complete");
     const complete = (await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState;
