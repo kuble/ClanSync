@@ -93,7 +93,7 @@ test("successful login preserves the profile, clears failures and keeps the pers
   await expectCookieLifetime(page, 400);
 
   await page.getByLabel("프로필 메뉴", { exact: true }).click();
-  await page.getByRole("button", { name: "로그아웃", exact: true }).click();
+  await page.getByRole("menuitem", { name: "로그아웃", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await fillSignIn(page, authUser);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
