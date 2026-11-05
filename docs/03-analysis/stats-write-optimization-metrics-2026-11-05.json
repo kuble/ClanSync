@@ -1,0 +1,168 @@
+{
+  "workload": {
+    "matches": 10000,
+    "players": 100000,
+    "members": 10,
+    "importBatch": 250,
+    "deleteBatch": 100,
+    "referenceComparison": true
+  },
+  "before": {
+    "id": "2026-11-05T07-01-28-259Z-cfb3f5f4",
+    "status": "pass",
+    "counts": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "start": 0
+    },
+    "cleanup": {
+      "accounts": 0,
+      "clans": 0,
+      "matches": 0
+    },
+    "seconds": 158.761,
+    "database": {
+      "blks_read": 124,
+      "blks_hit": 16279059,
+      "blk_read_time": 1.457,
+      "blk_write_time": 37.043,
+      "tup_inserted": 172270,
+      "tup_updated": 513,
+      "tup_deleted": 167166,
+      "temp_bytes": 6767205029,
+      "deadlocks": 0,
+      "xact_commit": 1028,
+      "xact_rollback": 0
+    },
+    "wal": {
+      "wal_bytes": 166187604,
+      "wal_records": 992693,
+      "wal_buffers_full": 0,
+      "wal_write": 840,
+      "wal_sync": 823,
+      "wal_write_time": 43.775,
+      "wal_sync_time": 955.721
+    },
+    "functions": [
+      {
+        "id": "20010",
+        "name": "private.refresh_clan_stats_without_personal_emblems",
+        "calls": 139,
+        "totalMs": 52560.741,
+        "selfMs": 52560.741
+      },
+      {
+        "id": "20738",
+        "name": "private.refresh_clan_personal_emblem_milestones",
+        "calls": 139,
+        "totalMs": 34793.03,
+        "selfMs": 34793.03
+      },
+      {
+        "id": "20741",
+        "name": "private.refresh_clan_stats",
+        "calls": 139,
+        "totalMs": 87366.414,
+        "selfMs": 12.525
+      }
+    ],
+    "statsQuery": {
+      "id": "-1139741857888127642:16384",
+      "role": "postgres",
+      "objects": [
+        "private.refresh_clan_stats"
+      ],
+      "calls": 142,
+      "totalMs": 87494.439475,
+      "readBlocks": 1,
+      "hitBlocks": 1162430,
+      "writtenBlocks": 165,
+      "readMs": 0.022771,
+      "writeMs": 3.878819,
+      "tempBlocks": 836736,
+      "walBytes": 2011080,
+      "meanMs": 616.158024471831,
+      "lifetimeMaxMs": 1229.783187
+    }
+  },
+  "after": {
+    "id": "2026-11-05T08-26-43-606Z-6aad0522",
+    "status": "pass",
+    "counts": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "start": 0
+    },
+    "cleanup": {
+      "accounts": 0,
+      "clans": 0,
+      "matches": 0
+    },
+    "seconds": 123.256,
+    "database": {
+      "blks_read": 124,
+      "blks_hit": 17650767,
+      "blk_read_time": 1.278,
+      "blk_write_time": 37.638,
+      "tup_inserted": 170483,
+      "tup_updated": 1453,
+      "tup_deleted": 160178,
+      "temp_bytes": 2869276768,
+      "deadlocks": 0,
+      "xact_commit": 980,
+      "xact_rollback": 0
+    },
+    "wal": {
+      "wal_bytes": 165604062,
+      "wal_records": 995529,
+      "wal_buffers_full": 0,
+      "wal_write": 724,
+      "wal_sync": 704,
+      "wal_write_time": 40.278999999999996,
+      "wal_sync_time": 773.92
+    },
+    "functions": [
+      {
+        "id": "20010",
+        "name": "private.refresh_clan_stats_without_personal_emblems",
+        "calls": 135,
+        "totalMs": 53410.319,
+        "selfMs": 53410.319
+      },
+      {
+        "id": "20738",
+        "name": "private.refresh_clan_personal_emblem_milestones",
+        "calls": 135,
+        "totalMs": 200.637,
+        "selfMs": 200.637
+      },
+      {
+        "id": "20741",
+        "name": "private.refresh_clan_stats",
+        "calls": 135,
+        "totalMs": 53623.414,
+        "selfMs": 12.351
+      }
+    ],
+    "statsQuery": {
+      "id": "-1139741857888127642:16384",
+      "role": "postgres",
+      "objects": [
+        "private.refresh_clan_stats"
+      ],
+      "calls": 142,
+      "totalMs": 53904.784646,
+      "readBlocks": 1,
+      "hitBlocks": 2644701,
+      "writtenBlocks": 108,
+      "readMs": 0.012673,
+      "writeMs": 2.245695,
+      "tempBlocks": 368173,
+      "walBytes": 2003955,
+      "meanMs": 379.6111594788732,
+      "lifetimeMaxMs": 830.758303
+    }
+  }
+}
