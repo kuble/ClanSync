@@ -232,8 +232,9 @@ test("member dashboard and statistics retain aggregate totals without historical
   expect(stats?.intra.completed).toBeGreaterThan(0);
   expect(stats?.intra.recent).toEqual([]);
   expect(stats?.intra.scoreGaps).toEqual([]);
-  expect(stats?.personal.people).toEqual([]);
-  expect(stats?.permissions.viewPersonalRecords).toBe(false);
+  expect(stats?.personal.people).toHaveLength(f.users.length);
+  expect(stats?.personal.people.every(person => person.matches.length === 0 && person.scores?.length === 0)).toBe(true);
+  expect(stats?.permissions.viewPersonalRecords).toBe(true);
   expect(stats?.archive.datesKst).toEqual([]);
   expect(stats?.archive.sampleByDate).toEqual({});
   expect(await ok(member.from("balance_sessions").select("*").eq("id", r.id))).toHaveLength(0);
@@ -278,7 +279,9 @@ test("pool prediction picks are private while aggregate totals remain shared", a
   expect(staffManagement?.permissions.viewMscore).toBe(true);
   expect(staffManagement).not.toHaveProperty("hof");
   expect(staffManagement).not.toHaveProperty("personal");
-  expect(myStats?.personal.people).toEqual([]);
+  expect(myStats?.personal.people).toHaveLength(f.users.length);
+  expect(myStats?.personal.people.every(person => person.matches.length === 0 && person.scores?.length === 0)).toBe(true);
+  expect(myStats?.personal.people.filter(person => person.userId !== f.users[10].id).every(person => person.predictionPoints.length === 0)).toBe(true);
   expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[10].id)).toBe(true);
   const selected = staffStats?.personal.people.find((person) => person.userId === f.users[10].id);
@@ -320,21 +323,23 @@ test("statistics use four sections and site usage appears in staff management", 
   await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByText("시너지", { exact: true })).toBeVisible();
   await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=insights`);
-  await expect(page.getByText("클랜 페이지", { exact: true })).toBeVisible();
-  await expect(page.getByText("편성 점수 차이", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "클랜 페이지 도움말", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "편성 점수 차이 도움말", exact: true })).toBeVisible();
   await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
-  await expect(page.getByRole("heading", { name: "클랜 스토어", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "클랜 스토어", exact: true, level: 1 })).toBeVisible();
   const clanBalance = await ok(f.service.from("clans").select("coin_balance").eq("id", f.clanId).single());
   const personalBalance = await ok(f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single());
   const coins = page.getByLabel("보유 코인");
   await expect(coins.getByText("클랜 코인", { exact: true }).locator("..").locator("strong")).toHaveText(clanBalance.coin_balance.toLocaleString("ko-KR"));
+  await page.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
+  await page.getByRole("menuitem", { name: "프로필", exact: true }).click();
   await page.getByRole("link", { name: "개인 상점", exact: true }).click();
   await expect(page).toHaveURL(/\/store$/);
   await expect(coins.getByText("내 코인", { exact: true }).locator("..").locator("strong")).toHaveText(personalBalance.coin_balance.toLocaleString("ko-KR"));
-  await expect(page.getByRole("group", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
+  await expect(page.getByRole("radiogroup", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
 });
 
-test("personal records default to staff and saved minimum role controls member access", async ({ page, browser }) => {
+test("personal records expose only the sections selected by staff to members", async ({ page, browser }) => {
   const memberContext = await browser.newContext();
   const memberPage = await memberContext.newPage();
   try {
@@ -348,7 +353,7 @@ test("personal records default to staff and saved minimum role controls member a
     await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("radiogroup", { name: "기록 공개", exact: true }).getByRole("radio", { name: "멤버", exact: true }).click();
+    await expect(dialog.getByRole("radiogroup", { name: "기록 공개", exact: true })).toHaveCount(0);
     await dialog.getByRole("switch", { name: "경기 전적", exact: false }).check();
     await dialog.getByRole("button", { name: /저장/ }).click();
     await expect(dialog).toBeHidden();
@@ -378,11 +383,13 @@ test("personal records default to staff and saved minimum role controls member a
     await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
     await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
-    await page.getByRole("dialog").getByRole("radiogroup", { name: "기록 공개", exact: true }).getByRole("radio", { name: "운영진", exact: true }).click();
+    await page.getByRole("dialog").getByRole("switch", { name: "경기 전적", exact: true }).uncheck();
     await page.getByRole("dialog").getByRole("button", { name: /저장/ }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
     const disabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
-    expect(disabled?.personal.people).toEqual([]);
+    expect(disabled?.personal.people).toHaveLength(f.users.length);
+    expect(disabled?.personal.people.every(person => person.matches.length === 0 && person.scores?.length === 0)).toBe(true);
+    expect(disabled?.personal.people.every(person => !person.visibleSections?.includes("records"))).toBe(true);
     await memberPage.reload();
     await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toBeVisible();
   } finally { await memberContext.close(); }
@@ -398,17 +405,17 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await ok(otherSpectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 2, p_stake: 5 }));
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
   const current = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
-  // Exercise legacy owner-only grants independently of the previous UI role threshold.
+  // Legacy owner-only settings no longer hide public sections of other members.
   await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), personal_record_min_role: undefined, member_personal_audience: "own", member_personal_records: true } }).eq("clan_id", f.clanId));
   const own = await loadClanStatsPage(spectator, f.users[11].id, f.clanId);
   const paid = await ok(spectator.from("coin_transactions").select("amount").eq("reference_id", r.id).eq("user_id", f.users[11].id));
   expect(paid.length).toBeGreaterThan(0);
-  expect(own?.personal.people).toHaveLength(1);
+  expect(own?.personal.people).toHaveLength(f.users.length);
   const staff = await loadClanStatsPage(leader, f.users[0].id, f.clanId);
   expect(paid.reduce((sum, row) => sum + row.amount, 0)).toBe(5);
   const predictionLedger = await ok(f.service.from("coin_transactions").select("amount").eq("user_id", f.users[11].id).eq("pool_type", "personal").in("reference_type", ["balance_session", "balance_prediction_pool"]));
   const predictionNet = predictionLedger.reduce((sum, row) => sum + row.amount, 0);
-  expect(own?.personal.people[0].predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(predictionNet);
+  expect(own?.personal.people.find(person => person.userId === f.users[11].id)?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(predictionNet);
   expect(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(predictionNet);
   expect((await member.rpc("read_clan_prediction_ledger", { p_clan_id: f.clanId })).error).not.toBeNull();
   expect((await leader.rpc("read_clan_prediction_ledger", { p_clan_id: randomUUID() })).error).not.toBeNull();
@@ -438,12 +445,10 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   const scoreDialog = page.getByRole("dialog", { name: "평가 점수 수정" });
   await scoreDialog.getByRole("combobox", { name: "수정할 경기" }).selectOption(r.id);
   await scoreDialog.getByRole("spinbutton", { name: "평가 점수 입력" }).fill("3.5");
-  const refreshedDetail = page.waitForResponse((response) => response.url().includes(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`));
   await scoreDialog.getByRole("button", { name: "점수 저장" }).click();
   await expect(scoreDialog).toBeHidden();
   const saved = await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single());
   expect((saved.ma_snapshot as Record<string, { m: number; a: number | null }>)[f.users[0].id]).toEqual({ m: 3.5, a: liveSnapshot[f.users[0].id].a });
-  await (await refreshedDetail).finished();
   await expect(chart).toBeVisible();
   await chart.press("End");
   await expect(page.getByRole("status", { name: "점수 변동 이력 그래프 선택 값" })).toContainText("3.5점");
@@ -468,7 +473,9 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   try {
     await loginIsolatedBalanceUser(ownPage, f.users[11]);
     expect((await ownPage.request.get(detailUrl)).status()).toBe(200);
-    expect((await ownPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
+    const otherDetail = await ownPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`);
+    expect(otherDetail.status()).toBe(200);
+    expect((await otherDetail.json()).person).toMatchObject({ matches: [], scores: [], predictionPoints: [] });
     expect((await ownPage.request.get(`/api/clans/${f.clanId}/stats?section=archive`)).status()).toBe(403);
     await ownPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
     await ownPage.getByRole("tab", { name: "개인 기록" }).click();
@@ -476,7 +483,7 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
     await expect(ownPage.getByRole("button", { name: "평가 점수 수정" })).toHaveCount(0);
     await expect(ownPage.getByText(`순수익 ${predictionNet > 0 ? "+" : ""}${predictionNet.toLocaleString()}pt`, { exact: true })).toBeVisible();
     await ok(f.service.from("clan_settings").update({ hof_config: current.hof_config }).eq("clan_id", f.clanId));
-    expect((await ownPage.request.get(detailUrl)).status()).toBe(403);
+    expect((await ownPage.request.get(detailUrl)).status()).toBe(200);
     await ownPage.reload();
     await expect(ownPage.getByRole("tab", { name: "개인 기록" })).toBeVisible();
   } finally { await ownContext.close(); }
