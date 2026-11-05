@@ -53,7 +53,8 @@ test("맵 행 예측 시간: 중앙 제목·초 단위 시간·마감과 드로�
     const finalMinute = new Date(Date.now() + 59_000).toISOString();
     expect((await fixture.service.from("balance_sessions").update({ prediction_deadline_at: finalMinute }).eq("id", round.id)).error).toBeNull();
     await page.reload();
-    await expect.poll(async () => seconds(await countdown.textContent())).toBeLessThanOrEqual(55);
+    // Leave room for polling intervals while the real clock crosses four ticks.
+    await expect.poll(async () => seconds(await countdown.textContent()), { timeout: 10_000 }).toBeLessThanOrEqual(55);
     await expect(countdown).toHaveText(/승부예측 마감까지\s*0:[0-5]\d/);
     await page.screenshot({ path: test.info().outputPath("prediction-countdown-map-row.png") });
     await page.setViewportSize({ width: 320, height: 844 });
