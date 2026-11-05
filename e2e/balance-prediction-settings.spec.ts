@@ -95,9 +95,9 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
     };
     const seeded = await fixture.service.from("balance_sessions").update({
       roster,
-      ma_snapshot: Object.fromEntries(ids.map((id) => [id, { m: 1, a: 2 }])),
     }).eq("id", round.id);
     expect(seeded.error).toBeNull();
+    expect((await fixture.service.from("balance_sessions").update({ ma_snapshot: Object.fromEntries(ids.map((id) => [id, { m: 1, a: 2 }])) }).eq("id", round.id)).error).toBeNull();
 
     await test.step("Free는 잠금, Premium은 설정 저장", async () => {
       expect((await fixture.service.from("clans").update({ subscription_tier: "free" }).eq("id", fixture.clanId)).error).toBeNull();
@@ -106,7 +106,8 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       const freeToggle = settings.getByRole("switch", { name: "승부예측 사용", exact: true });
       await expect(freeToggle).toBeDisabled();
       await expect(freeToggle).not.toBeChecked();
-      await expect(settings).toContainText("Premium");
+      await settings.getByRole("button", { name: "승부예측 사용", exact: true }).hover();
+      await expect(page.getByRole("tooltip", { name: "Premium 클랜 전용", exact: true })).toBeVisible();
       await settings.getByRole("button", { name: "닫기", exact: true }).click();
       expect((await fixture.service.from("clans").update({ subscription_tier: "premium" }).eq("id", fixture.clanId)).error).toBeNull();
       await page.reload();
@@ -149,7 +150,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
         await expect(live.locator('[aria-label="팀 비교 요약 보기"]')).toHaveCount(0);
         const slots = live.locator("[data-board-slot]");
         await expect(slots).toHaveCount(10);
-        for (const user of fixture.users.slice(0, 10)) await expect(slots.filter({ hasText: user.nickname })).toHaveCount(1);
+        for (const user of fixture.users.slice(0, 10)) await expect(slots.filter({ hasText: user.nickname.split("#")[0] })).toHaveCount(1);
         await expect(live.getByRole("button", { name: /평가 점수 수정/ })).toHaveCount(view === page ? 10 : 0);
         await expect(slots.first()).toBeVisible();
         await slots.first().hover({ force: true });
@@ -159,7 +160,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await panel.screenshot({ path: test.info().outputPath("match-live-names-only.png") });
       await page.getByRole("button", { name: "승부예측", exact: true }).click();
       const participantPrediction = page.getByRole("dialog", { name: "승부예측", exact: true });
-      await expect(participantPrediction).toContainText("관전자만 참여할 수 있습니다");
+      await expect(participantPrediction).toContainText("이번 경기 출전 중");
       await expect(participantPrediction.getByRole("button", { name: "블루 승", exact: true })).toBeDisabled();
       await participantPrediction.getByRole("button", { name: "닫기", exact: true }).click();
     });
