@@ -27,7 +27,7 @@ export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
     </SheetTrigger>
     <SheetContent className={styles.sheet} initialFocus={titleRef}><div className={styles.panel}>
       <SheetHeader className="shrink-0 px-5 pb-5 pt-5 pr-12">
-        <SheetTitle tabIndex={-1} ref={titleRef}>{scope === "personal" ? title : <StatHelp title={title}>{description}</StatHelp>}</SheetTitle>
+        <SheetTitle aria-label={title} tabIndex={-1} ref={titleRef}>{scope === "personal" ? title : <StatHelp title={title}>{description}</StatHelp>}</SheetTitle>
         {scope === "personal" && <SheetDescription>{description}</SheetDescription>}
       </SheetHeader>
       {scope === "hof" || scope === "personal" ? <HofSettingsForm scope={scope} gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config}
