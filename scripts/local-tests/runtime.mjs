@@ -94,7 +94,7 @@ export async function setup(onLine = () => {}) {
   writeFileSync(resolve(root, ".env.test-local"), [
     `NEXT_PUBLIC_SUPABASE_URL=${LOCAL_TEST_URL}`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=${status.ANON_KEY}`,
     `SUPABASE_SERVICE_ROLE_KEY=${status.SERVICE_ROLE_KEY}`, `CRON_SECRET=${randomBytes(32).toString("hex")}`,
-    "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3010", "DEV_GAME_LINK_SIMULATOR=1", "",
+    "NEXT_PUBLIC_SITE_URL=http://localhost:3010", "DEV_GAME_LINK_SIMULATOR=1", "",
   ].join("\n"), { mode: 0o600 });
 }
 export async function reset(onLine = () => {}) {

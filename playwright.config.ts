@@ -8,7 +8,9 @@ const E2E_PORT = process.env.PLAYWRIGHT_DEV_PORT ?? "3010";
 if (!/^\d+$/.test(E2E_PORT) || Number(E2E_PORT) < 1 || Number(E2E_PORT) > 65535) {
   throw new Error("PLAYWRIGHT_DEV_PORT must be a valid port number");
 }
-const defaultBase = `http://127.0.0.1:${E2E_PORT}`;
+// Playwright's API request context permits Secure cookies on localhost, but
+// not on a plain-HTTP loopback IP. Match the browser in production-mode tests.
+const defaultBase = `http://localhost:${E2E_PORT}`;
 
 /**
  * 전용 로컬 검사 DB·3010 포트 사용. 사용자의 3011 온라인 QA는 재사용하지 않는다.

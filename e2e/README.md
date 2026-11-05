@@ -4,6 +4,8 @@
 
 자동 검사는 PC 안의 전용 Supabase DB를 사용합니다. `loadTestEnv()`는 `.env.test-local`과 `http://127.0.0.1:55431`만 허용하며 온라인 QA와 운영 주소는 거부합니다. 사용자용 3011 QA는 기존 `.env.e2e.local`과 계정·내전 기록을 유지합니다.
 
+검사 사이트는 `http://localhost:3010`을 사용합니다. Playwright API 요청은 HTTP의 `127.0.0.1`에 보안 쿠키를 보내지 않으므로 프로덕션 모드 검사를 그 주소로 바꾸지 않습니다. `local-session-api.spec.ts`가 브라우저 로그인과 API 인증, 비로그인 요청의 분리를 확인합니다.
+
 ## 준비와 실행
 
 Docker Desktop이 실행 중인 상태에서 최초 한 번 준비합니다.

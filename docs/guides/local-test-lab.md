@@ -13,6 +13,8 @@ npm run test:dashboard
 
 현황은 <http://127.0.0.1:3040>에서 본다. 첫 명령은 저장소의 마이그레이션만으로 새 로컬 DB를 구성하며 온라인 데이터를 복사하지 않는다. API는 `127.0.0.1:55431`, DB는 55432, 테스트 메일함은 55434다. 로컬 연결값은 Git에서 제외되는 `.env.test-local`에 자동 생성된다.
 
+브라우저 검사 사이트는 `http://localhost:3010`이다. 프로덕션 모드의 보안 쿠키를 Playwright의 API 요청에도 전달하기 위해 이 호스트를 사용한다. 앱의 보안 쿠키 정책과 사용자 QA의 3011 주소는 바꾸지 않는다.
+
 Docker 네트워크는 loopback 바인딩 옵션으로 생성한다. Windows Docker Desktop에서 실제 포트가 모든 인터페이스로 표시될 수 있으므로 관리자 PowerShell에서 `scripts/local-tests/protect-windows-ports.ps1`을 실행해 이 세 포트의 외부 접근을 차단한다. 현황 서버 자체는 `127.0.0.1`에만 바인딩하며 읽기 기능만 제공한다.
 
 ## 검사 실행
