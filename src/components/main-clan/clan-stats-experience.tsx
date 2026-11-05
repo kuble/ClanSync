@@ -19,9 +19,9 @@ import { Button } from "@/components/ui/button";
 
 export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: { gameSlug: string; clanId: string; model: ClanStatsPageModel; initialPlayer?: string }) {
   const tx = useTranslator();
-  const requestedPersonId = /^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(initialPlayer ?? "") ? initialPlayer : undefined;
   const showPersonalTab = true;
   const people = model.personal.profilePeople ?? model.personal.people;
+  const requestedPersonId = people.some(person => person.userId === initialPlayer) ? initialPlayer : undefined;
   const defaultPersonId = null;
   const [tab, setTab] = useState(initialPlayer && showPersonalTab ? "personal" : "hof");
   const [personId, setPersonId] = useState<string | null>(requestedPersonId ?? defaultPersonId);

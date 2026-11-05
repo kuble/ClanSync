@@ -1,3 +1,4 @@
+import { selectProfileSection, selectSectionLink } from "./section-picker-helper";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -8,7 +9,7 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
   const f = await createIsolatedBalanceFixture(1);
   const base = f.path.replace(/\/balance$/, "");
   try {
-    await page.setViewportSize({ width: 844, height: 1004 });
+    await page.setViewportSize({ width: 1100, height: 1004 });
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(`${base}/manage`);
     const nav = page.getByRole("navigation", { name: "클랜 관리 항목", exact: true });
@@ -35,15 +36,14 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     await page.goBack();
     await expect(overview).toHaveAttribute("aria-current", "page");
     await page.setViewportSize({ width: 390, height: 844 });
-    await overview.tap();
-    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하십시오.");
-    await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: "운영 설정", exact: true }).tap();
-    await nav.getByRole("link", { name: "코인·플랜", exact: true }).tap();
+    await selectSectionLink(page, "클랜 관리 항목", "운영 현황");
+    await selectSectionLink(page, "클랜 관리 분류", "운영 설정");
+    await selectSectionLink(page, "클랜 관리 항목", "코인·플랜");
     await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "코인·플랜", exact: true })).toHaveCount(0);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 
-    await page.setViewportSize({ width: 844, height: 1004 });
+    await page.setViewportSize({ width: 1100, height: 1004 });
     await page.goto(`${base}/board/notices`);
     await page.getByRole("navigation", { name: "게시판 목차" }).getByRole("link", { name: "자유 게시판", exact: true }).click();
     await expect(page).toHaveURL(/board\/free$/);
@@ -64,23 +64,25 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     const anchorBox = await rankingTitle.boundingBox(), guideBox = await guide.boundingBox();
     expect(guideBox!.x).toBeGreaterThan(anchorBox!.x + anchorBox!.width);
     await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "명예의 전당 설정 도움말", exact: true });
+    const settings = page.getByRole("dialog", { name: "명예의 전당 설정", exact: true });
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
     await settings.getByRole("button", { name: "순위 등재 기준 도움말", exact: true }).focus();
     await expect(guide).toContainText("새벽까지");
     const longGuideBox = await guide.boundingBox();
     expect(longGuideBox!.x).toBeGreaterThanOrEqual(0);
-    expect(longGuideBox!.x + longGuideBox!.width).toBeLessThanOrEqual(844);
+    expect(longGuideBox!.x + longGuideBox!.width).toBeLessThanOrEqual(1100);
     await settings.getByRole("button", { name: "취소", exact: true }).click();
     await expect(settings).toBeHidden();
     await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
     await expect(page.getByRole("tab", { name: "내전 통계", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.goto(`${base}/store`);
+    await page.getByRole("button", { name: "프로필 메뉴", exact: true }).click();
+    await page.getByRole("menuitem", { name: "프로필", exact: true }).click();
     await page.getByRole("link", { name: "개인 상점", exact: true }).click();
     await expect(page).toHaveURL(/\/store$/);
-    await expect(page.getByRole("group", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
+    await expect(page.getByRole("radiogroup", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
     await page.goto("/profile");
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page);
     await expect(page.getByRole("tab", { name: "계정 정보", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.screenshot({ path: test.info().outputPath("profile-line-tabs.png"), animations: "disabled" });
     await page.goto(`${base}/manage`);

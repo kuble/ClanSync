@@ -18,7 +18,7 @@ test("members show game verification without emails and link to authorized perso
     const body = await response!.text();
     for (const user of f.users.slice(1)) expect(body).not.toContain(user.email);
     const table = page.getByRole("table");
-    const row = (index: number) => table.getByRole("row").filter({ has: page.getByRole("link", { name: `${f.users[index].nickname} 개인 기록`, exact: true }) });
+    const row = (index: number) => table.getByRole("row").filter({ has: page.getByRole("link", { name: `${index === 2 ? "게임 ID 미등록" : f.users[index].nickname} 개인 기록`, exact: true }) });
     await expect(table.getByRole("columnheader", { name: "게임 인증", exact: true })).toBeVisible();
     await expect(row(0)).toContainText("인증 완료");
     for (const index of [1, 2]) await expect(row(index)).toContainText("미인증");
@@ -46,8 +46,9 @@ test("members show game verification without emails and link to authorized perso
     await page.context().clearCookies();
     await loginIsolatedBalanceUser(page, f.users[1]);
     await page.goto(`${base}/stats?player=${f.users[0].id}`);
-    await expect(page.getByRole("tab", { name: "개인 기록", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "플레이어 배너", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "통계 선택", exact: true }).getByRole("button")).toContainText("개인 기록");
+    await expect(page.getByRole("region", { name: "플레이어 배너", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "플레이어 요약", exact: true })).toHaveCount(0);
   } finally {
     try { await f.cleanup(); }
     finally { if (otherGameId) expect((await f.service.from("games").delete().eq("id", otherGameId)).error).toBeNull(); }

@@ -26,7 +26,7 @@ test("discovery filters account demographics before pagination and preserves oth
     ];
     const created = await f.service.from("clans").insert(conditions.map((condition,index)=>({
       ...condition, game_id:f.gameId, name:`${prefix}-${index}`, style:index===0?"casual" as const:"social" as const,
-      tier_range:index === 0 ? [] : index === 1 ? ["gold","plat","diamond","master"] : [index === 5 ? "diamond" : "gold"],
+      tier_range:index === 0 ? [] : index === 1 ? ["gold","plat","emerald","diamond","master"] : [index === 5 ? "diamond" : "gold"],
       icon_url:index === 1 ? "/images/overwatch/maps/busan.webp" : null,
     }))).select("id,name");
     expect(created.error).toBeNull(); ids.push(...created.data!.map(row=>row.id));
@@ -98,10 +98,10 @@ test("discovery filters account demographics before pagination and preserves oth
       await expect(page.getByRole("button",{name:"가입 조건 미충족",exact:true})).toHaveCount(0);
     }
     await page.setViewportSize({width:1304,height:884});
-    if ((await page.locator("html").getAttribute("class"))?.includes("dark")) await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
+    if ((await page.locator("html").getAttribute("class"))?.includes("dark")) await toggleAccountTheme(page);
     await expect(page.locator("html")).not.toHaveClass(/dark/);
     await page.screenshot({path:testInfo.outputPath("clan-discovery-filter-light.png"),fullPage:true});
-    await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
+    await toggleAccountTheme(page);
     await expect(page.locator("html")).toHaveClass(/dark/);
     await page.screenshot({path:testInfo.outputPath("clan-discovery-filter-dark.png"),fullPage:true});
     await page.setViewportSize({width:320,height:844});
@@ -117,3 +117,4 @@ test("discovery filters account demographics before pagination and preserves oth
     await f.cleanup();
   }
 });
+import { toggleAccountTheme } from "./account-theme";

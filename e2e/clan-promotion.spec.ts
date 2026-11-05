@@ -119,7 +119,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     expect(eligibility!.y+eligibility!.height).toBeLessThan(contentField!.y);
     expect(audience!.y+audience!.height).toBeLessThan(contentField!.y);
     await page.screenshot({path:testInfo.outputPath("clan-promotion-range.png"),fullPage:true});
-    await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
+    await toggleAccountTheme(page);
     await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-dark.png"),fullPage:true});
     for (const width of [1304,976,744,390]) {
       await page.setViewportSize({width,height:844});
@@ -149,10 +149,10 @@ test("clan promotion appears during clan discovery and accepts applications outs
     }
     await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-mobile.png"),fullPage:true});
     await page.setViewportSize({width:1304,height:884});
-    await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
+    await toggleAccountTheme(page);
     await minimum.press("Home"); await maximum.press("End");
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
-    await expect(maximum).toHaveAttribute("aria-valuenow","7");
+    await expect(maximum).toHaveAttribute("aria-valuenow","8");
     await fromYear.press("Home"); await year.press("End");
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
     await expect.poll(async()=>{
@@ -163,7 +163,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(year).toHaveAttribute("aria-valuetext","제한 없음");
     await expect(fromYear).toHaveAttribute("aria-valuetext","제한 없음");
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
-    await expect(maximum).toHaveAttribute("aria-valuenow","7");
+    await expect(maximum).toHaveAttribute("aria-valuenow","8");
     // Pointer interaction covers the two-thumb control, including a single-tier range.
     await maximum.scrollIntoViewIfNeeded();
     const track=await page.locator("[data-tier-track]").boundingBox();
@@ -172,7 +172,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     if (!thumb) throw new Error("Tier slider thumb is missing");
     await page.mouse.move(thumb.x+thumb.width/2,thumb.y+thumb.height/2);
     await page.mouse.down();
-    await page.mouse.move(track.x+track.width*2/7,thumb.y+thumb.height/2,{steps:10});
+    await page.mouse.move(track.x+track.width*2/8,thumb.y+thumb.height/2,{steps:10});
     await page.mouse.up();
     await expect(maximum).toHaveAttribute("aria-valuetext","골드");
     await minimum.focus(); await minimum.press("ArrowRight"); await minimum.press("ArrowRight");
@@ -321,7 +321,7 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await detail.getByRole("button",{name:"닫기",exact:true}).first().click();
     await page.setViewportSize({width:320,height:844});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
-    await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
+    await toggleAccountTheme(page);
     await expect(page.locator("html")).toHaveClass(/dark/);
     await page.screenshot({path:testInfo.outputPath("clan-discovery-list-mobile.png"),fullPage:true});
     await page.setViewportSize({width:1304,height:884});
