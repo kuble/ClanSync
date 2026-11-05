@@ -47,11 +47,12 @@ type JoinRow = {
   games: { slug: string; name_ko: string } | null;
 };
 
-export default function ProfilePage() {
-  return <AccountShell context="프로필"><Suspense fallback={<ProfileLoading />}><ProfileContent /></Suspense></AccountShell>;
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string | string[] }> }) {
+  const initialTab = (await searchParams).tab === "account" ? "account" : "overview";
+  return <AccountShell context="프로필"><Suspense fallback={<ProfileLoading initialTab={initialTab} />}><ProfileContent initialTab={initialTab} /></Suspense></AccountShell>;
 }
 
-async function ProfileContent() {
+async function ProfileContent({ initialTab }: { initialTab: "overview" | "account" }) {
   const tx = await getTranslator();
   const supabase = await createClient();
   const {
@@ -198,7 +199,7 @@ async function ProfileContent() {
   });
 
   return <main className={styles.page}>
-    <ProfilePanels overview={
+    <ProfilePanels initialTab={initialTab} overview={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
         games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, isVerified: game.isVerified, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick), canManageAlts: !!game.accountId }))}>

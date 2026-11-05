@@ -1,3 +1,4 @@
+import { selectProfileSection } from "./section-picker-helper";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
@@ -9,9 +10,11 @@ test("account language persists across pages, reloads and sign-ins", async ({ pa
     await loginIsolatedBalanceUser(page, user);
     await page.goto("/profile");
     await expect(page.getByRole("link", { name: "게임 ID 수정", exact: true })).toHaveCount(0);
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await selectProfileSection(page, "계정 정보");
     await page.getByLabel("언어", { exact: true }).selectOption("en");
+    await expect(page.locator("#profile-language")).toBeEnabled({ timeout: 20_000 });
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page).toHaveURL("/profile?tab=account");
     await expect(page.getByLabel("Language", { exact: true })).toHaveValue("en");
     await expect(page.getByRole("heading", { name: "My account" })).toBeVisible();
     await page.goto("/games/overwatch/clan/" + fixture.clanId + "/stats");
