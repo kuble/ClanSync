@@ -42,7 +42,7 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     await ownReaction.hover();
     const call = await request, people = page.locator('[role="tooltip"][data-open]');
     await expect(people.getByRole("listitem")).toHaveText(f.users.map(user => user.nickname).sort((a, b) => a.localeCompare(b, "ko")));
-    const args = JSON.parse(call.postData()!), url = page.url();
+    const args = JSON.parse(call.postData()!), url = page.url().split("#")[0];
     const headers = { "next-action": call.headers()["next-action"], "content-type": call.headers()["content-type"], origin: new URL(url).origin };
     // Browser fetch preserves the Secure loopback cookies used by production sessions.
     const replay = (values: unknown[]) => page.evaluate(async ({ url, headers, body }) => {
@@ -75,7 +75,7 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     await expect(people).toContainText("공감한 멤버를 불러오지 못했습니다.");
     await page.unroute(url, fail);
     await page.getByLabel("댓글 내용", { exact: true }).focus();
-    await page.mouse.move(5, 5);
+    await page.getByLabel("댓글 내용", { exact: true }).hover();
     await own.getByRole("button", { name: `${f.users[0].nickname} 댓글 공감 선택`, exact: true }).focus();
     await page.keyboard.press("Shift+Tab");
     await expect(ownReaction).toBeFocused();

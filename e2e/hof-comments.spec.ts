@@ -349,9 +349,9 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(page.getByText(/규정 미달 ·/)).toHaveCount(0);
     await leaderPage.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
     const settings = leaderPage.getByRole("dialog", { name: "명예의 전당 설정" });
-    await expect(settings.getByRole("heading", { name: "프로필 공개", exact: true })).toBeVisible();
+    await expect(settings.getByRole("heading", { name: "프로필 공개", exact: true })).toHaveCount(0);
     await settings.getByRole("tab", { name: "순위 공개", exact: true }).click();
-    for (const name of ["순위 공개 범위", "공개 시점"]) await expect(settings.getByRole("heading", { name, exact: true })).toBeVisible();
+    for (const name of ["멤버 공개 범위", "업데이트 주기"]) await expect(settings.getByRole("heading", { name, exact: true })).toBeVisible();
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
     await expect(settings.getByRole("spinbutton", { name: "기준 전환점", exact: true })).toBeVisible();
     await settings.getByRole("button", { name: "취소", exact: true }).click();

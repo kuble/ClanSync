@@ -27,6 +27,7 @@ test("mixed photo heights pack tightly in posting order across responsive column
     expect((await svc.from("clan_board_posts").insert(rows)).error).toBeNull();
     await loginIsolatedBalanceUser(page,f.users[0]);await page.goto(base+"/board/memories");
     const gallery=page.getByRole("region",{name:"추억 앨범",exact:true}),cards=gallery.getByRole("link");
+    await expect(gallery.getByRole("img")).toHaveCount(dimensions.length);
     for(const [width,height,columns] of [[957,1004,2],[1440,1000,3],[390,844,1],[957,1004,2]]){
       await page.setViewportSize({width,height});
       for(const image of await gallery.getByRole("img").all()){

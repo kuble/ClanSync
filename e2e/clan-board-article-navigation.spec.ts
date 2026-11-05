@@ -32,7 +32,7 @@ test("article metadata precedes its title and footer actions adapt to desktop an
     expect(tools.x).toBeGreaterThanOrEqual(middle.x + middle.width);
     expect(Math.abs(tools.y + tools.height / 2 - middle.y - middle.height / 2)).toBeLessThan(2);
     await expect(article.locator("footer").getByText(/댓글/)).toHaveCount(0);
-    await expect(page.locator("#comments").getByRole("heading", { name: "댓글 0", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "댓글 0", exact: true })).toBeVisible();
     await page.screenshot({ path: test.info().outputPath("article-navigation-desktop.png"), animations: "disabled" });
     await actions.getByRole("button", { name: "편집", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "글 편집", exact: true })).toBeVisible();

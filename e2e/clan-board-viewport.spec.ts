@@ -40,10 +40,20 @@ test("board content fills the available viewport and scrolls the final notice fu
       if (route.includes("/")) await expect(page.getByRole("heading", { name: "높이 확인", exact: true })).toBeVisible();
       else await expect(page.getByRole("region", { name: { free: "자유 게시판", feedback: "피드백 신청 게시판", channels: "방송 채널 홍보방", memories: "추억 열람방" }[route], exact: true })).toBeVisible();
       const g = await viewportGeometry(body);
-      expect(Math.abs(g.bottom - g.availableBottom)).toBeLessThan(2); expect(g.documentHeight).toBeLessThanOrEqual(1005);
+      if (route.includes("/")) {
+        // Article pages deliberately use document scrolling; list pages keep
+        // their own viewport so long notices remain reachable.
+        expect(g.documentHeight).toBeGreaterThan(1004);
+        expect(await page.locator("#main-content").evaluate(el => getComputedStyle(el).overflowY)).toBe("visible");
+      } else {
+        expect(Math.abs(g.bottom - g.availableBottom)).toBeLessThan(2);
+        expect(g.documentHeight).toBeLessThanOrEqual(1005);
+      }
       expect(g.horizontal).toBe(false);
     }
-    await body.evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.locator("article footer").scrollIntoViewIfNeeded();
+    await expect(page.getByRole("link", { name: "목록으로", exact: true })).toBeInViewport();
+    await page.getByRole("button", { name: "댓글 0", exact: true }).press("Enter");
     await expect(page.getByRole("button", { name: "댓글 등록", exact: true })).toBeInViewport();
     await page.goto(base); expect(await page.locator("#main-content").evaluate(el => getComputedStyle(el).overflowY)).toBe("visible");
   } finally { await f.cleanup(); }

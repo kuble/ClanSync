@@ -1,3 +1,4 @@
+import { openBoardComments } from "./comments-helper";
 import { toggleAccountTheme } from "./account-theme";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
@@ -113,7 +114,7 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       await expect(custom).toHaveAttribute("aria-pressed", "true");
       await current.reload();await expect(custom).toBeVisible();
       await custom.hover();await expect(current.locator('[role="tooltip"][data-open]').getByRole("listitem")).toHaveText([f.users[0].nickname]);
-      await input.focus();await current.mouse.move(5, 5);
+      await input.focus();await input.hover();
       await expect(own.getByRole("button", { name: /댓글 공감 선택$/ })).toHaveCSS("opacity", "0");
       await expect(custom).toHaveCSS("opacity", "1");
       await own.hover();
@@ -136,7 +137,7 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       await toggleAccountTheme(current);
       await expect(current.locator("html")).toHaveClass(/\blight\b/);
       if (surface.name === "stats") await current.getByRole("button", { name: "반응", exact: true }).click();
-      if (surface.name === "board") await current.getByRole("button", {name:/^댓글 \d+$/}).click();
+      if (surface.name === "board") await openBoardComments(current);
       for (const row of [own, peer]) await readableConversation(row);
       await peer.hover();
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-light-mobile.png`), animations: "disabled" });

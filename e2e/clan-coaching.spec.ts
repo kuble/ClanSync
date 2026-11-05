@@ -1,3 +1,4 @@
+import { openBoardComments } from "./comments-helper";
 import {expect,test} from '@playwright/test';
 import {createIsolatedBalanceFixture,loginIsolatedBalanceUser} from './isolated-balance-fixture';
 import {isCoachTierRange} from '../src/lib/clan/coaching';
@@ -132,7 +133,7 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await expect(page.getByRole('button',{name:'편집',exact:true})).toHaveCount(0);
     await page.getByLabel('신청 상태',{exact:true}).selectOption('answering');
     await expect.poll(async()=>(await ok(f.service.from('clan_board_posts').select('status').eq('id',postId).single())).status).toBe('answering');
-    await page.getByRole("button",{name:/^댓글 \d+$/}).click();
+    await openBoardComments(page);
     await page.getByLabel('댓글 내용',{exact:true}).fill('왼쪽 기둥 뒤로 이동해 보십시오.');
     await page.getByRole('button',{name:'댓글 등록',exact:true}).click();
     await expect(page.getByRole('listitem').filter({hasText:'왼쪽 기둥 뒤로 이동해 보십시오.'})).toBeVisible();

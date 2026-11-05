@@ -78,7 +78,7 @@ test("symbol colors and ten free frames persist across cards, profiles and comme
     await expect(shared.locator('[data-frame-kind="portrait"]')).toHaveAttribute("data-frame-palette", "rose");
     await expect(shared.locator('[data-frame-kind="frame"]')).toHaveAttribute("data-frame-palette", "amber");
     await expect(shared.locator("[data-symbol-art]")).toHaveAttribute("data-symbol-palette", "blue");
-    await peer.goto(f.path.replace(/balance$/, `board/free/${postId}`));
+    await peer.goto(f.path.replace(/balance$/, `board/free/${postId}#comments`));
     await expect(peer.locator("#comments").getByRole("img", { name: `${f.users[0].nickname} 프로필 심볼`, exact: true })).toHaveAttribute("data-symbol-palette", "blue");
     await expect(peer.locator('#comments [data-frame-design="capsule"]')).toBeVisible();
     await expect(peer.locator('#comments [data-frame-design="capsule"]')).toHaveAttribute("data-frame-palette", "rose");

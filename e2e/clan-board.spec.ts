@@ -1,3 +1,4 @@
+import { openBoardComments } from "./comments-helper";
 import { randomUUID } from "node:crypto";
 import { expect,test } from "@playwright/test";
 import { createIsolatedBalanceFixture,loginIsolatedBalanceUser } from "./isolated-balance-fixture";
@@ -40,7 +41,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     const peerContent="시간과 말풍선 확인을 위한 다른 멤버의 댓글입니다.";
     await ok(f.service.from("clan_board_comments").insert({post_id:freeId,author_id:f.users[2].id,content:peerContent,created_at:"2026-10-28T15:04:00Z"}));
     await page.reload();
-    await page.getByRole("button",{name:/^댓글 \d+$/}).click();
+    await openBoardComments(page);
     const comments=page.locator("#comments"),peerComment=comments.getByRole("listitem").filter({hasText:peerContent});
     await expect(peerComment.locator("time")).toHaveText("00:04");
     await expect(peerComment.locator("time")).toHaveAttribute("title",/2026.*10.*29/);
@@ -123,7 +124,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(page.getByRole("link",{name:"Twitch 방송 채널 열기 ↗",exact:true})).toHaveCount(0);
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,f.users[2]);await page.goto(base+"/board/free/"+freeId);
     await expect(page.getByRole("button",{name:"편집",exact:true})).toHaveCount(0);
-    await page.getByRole("button",{name:/^댓글 \d+$/}).click();
+    await openBoardComments(page);
     await expect(page.locator("#comments li").filter({hasText:peerContent}).locator("[data-comment-row]")).toHaveCSS("flex-direction","row-reverse");
     await expect(page.locator("#comments li").filter({hasText:peerContent}).getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
     await expect(page.locator("#comments li").filter({hasText:peerContent}).getByRole("button",{name:/댓글 삭제$/})).toHaveCount(1);

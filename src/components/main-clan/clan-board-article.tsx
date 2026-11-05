@@ -3,7 +3,7 @@ import { useMovableDrawerTab } from "./use-movable-drawer-tab";
 import { useTranslator } from "#use-translator";
 import Image from "next/image";
 import Link from "next/link";
-import {useRef,useState,useTransition,useSyncExternalStore} from "react";
+import {useEffect,useRef,useState,useTransition} from "react";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
 import {ChevronLeft,ChevronRight,ArrowUpRight,Clock3,Heart,RefreshCw,MessageSquare,Pencil,Trash2} from "lucide-react";
@@ -28,11 +28,7 @@ import { StatsScrollArea } from "./stats-scroll-area";
 import { CardContent } from "@/components/ui/card";
 import articleStyles from "./clan-board-article.module.css";
 
-function subscribeComments(update: () => void) {
-  window.addEventListener("hashchange", update);
-  return () => window.removeEventListener("hashchange", update);
-}
-function changeComments(open: boolean) {
+function writeCommentsHash(open: boolean) {
   const url = new URL(window.location.href);
   url.hash = open ? "comments" : "";
   window.history.replaceState(window.history.state, "", url);
@@ -46,11 +42,23 @@ function PostBodyText({text}:{text:string}) {
 export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[],previousPostId=null,nextPostId=null}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[];previousPostId?:string|null;nextPostId?:string|null}){
   const tx = useTranslator();
   const router=useRouter();
-  const commentsOpen=useSyncExternalStore(subscribeComments,()=>window.location.hash==="#comments",()=>false);
+  const [commentsOpen,setCommentsOpen]=useState(false);
   const dock = useMovableDrawerTab();
   const opener = useRef<HTMLButtonElement>(null);
   const [editing,setEditing]=useState(false),[remove,setRemove]=useState(false),[comment,setComment]=useState("");
   const [pending,start]=useTransition();
+  useEffect(()=>{
+    const sync=()=>setCommentsOpen(window.location.hash==="#comments");
+    sync();
+    window.addEventListener("hashchange",sync);
+    return ()=>window.removeEventListener("hashchange",sync);
+  },[post.id]);
+  // Server-action revalidation can restore the canonical URL without its hash.
+  // Keep the current drawer open, including after a reload of its comments.
+  useEffect(()=>{
+    if(commentsOpen&&!pending&&window.location.hash!=="#comments") writeCommentsHash(true);
+  },[commentsOpen,pending]);
+  function changeComments(open:boolean){setCommentsOpen(open);writeCommentsHash(open);}
   const details=boardDetails(post.details),video=safeBoardUrl(details.video),live=details.isLive===true;
   const photoOffset=kind==="free" && post.image_path ? Math.min(details.photoOffset??0,post.content.length) : 0;
   const photo=memoryStyle(details,cosmeticAccess);

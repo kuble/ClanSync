@@ -14,13 +14,13 @@ test("board comments open in the hall-of-fame drawer and allow replies", async (
     expect((await f.service.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "댓글 스크롤", content: "긴 대화도 같은 영역에서 읽습니다." })).error).toBeNull();
     expect((await f.service.from("clan_board_comments").insert(comments.slice(0, 2))).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);
-    await page.setViewportSize({ width: 914, height: 884 });
+    await page.setViewportSize({ width: 1015, height: 884 });
     await page.goto(`${base}/board/free/${postId}`);
     const tab = page.getByRole("button", {name:"댓글 2",exact:true});
     const bounds = await tab.boundingBox();
     expect(bounds).not.toBeNull();
     expect(bounds!.y + bounds!.height / 2).toBeCloseTo(884 / 2, 0);
-    expect(914 - bounds!.x - bounds!.width).toBeCloseTo(12, 0);
+    expect(1015 - bounds!.x - bounds!.width).toBeCloseTo(12, 0);
     const article = page.locator(".board-article > article");
     const before = await article.boundingBox();
     await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
