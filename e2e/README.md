@@ -87,7 +87,8 @@ try {
 - `navigation-feedback.spec.ts`: 응답 지연 중 이동 표시·서버 재조회 없는 홍보 정렬·브라우저 기록
 - `onboarding.spec.ts`: 무소속 멤버 온보딩
 - `join-request-flow.spec.ts`: 가입 신청·리더 거절
-- `ui-regression.spec.ts`: 클랜·게임 탭, 대진표
+- `ui-regression.spec.ts`: 클랜·게임 이동, 프로필 메뉴·알림 시트, 이벤트 캘린더/투표·구형 주소 처리
+- `clan-line-tabs.spec.ts`·`profile-account-help.spec.ts`: 공용 탭·메뉴·모달·툴팁의 마우스/키보드/터치와 좁은 화면
 - `balance-session-live.spec.ts`: 독립 12명 클랜의 명단 자동 저장·개인 선호·실시간 반영·설정 적용 직후 시작·공유 추첨·주장 지명·경매·결과·기록·다음 라운드·종료
 - `balance-prematch.spec.ts`: 독립 QA 클랜의 편성 후 밴 설정·타이머 변경, 맵 유형 중복 선택, 두 클라이언트 가중 추첨·공유 결과·자동 영웅 밴, 수동 맵 저장, 초상화 선택·팀별 밴·기권·밴 확정과 경기 시작
 - `balance-member-preference.spec.ts`: 같은 브라우저의 localhost 운영진/127.0.0.1 멤버 로그인 분리·선호 없음/순서 변경/새로고침/프로필 복귀·관리 UI 숨김

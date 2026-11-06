@@ -36,9 +36,9 @@ npm run clean:local -- -Apply -IncludeDevBuild
 
 ## 패키지 보안 업데이트
 
-- 실제 업로드의 `sharp`와 Supabase 실시간 통신의 `ws`를 서비스 경로로, shadcn의 JS·MCP/레지스트리와 ESLint·CSS 처리기를 개발·빌드 도구 경로로 구분한다. `shadcn/tailwind.css`는 현재 앱이 사용하므로 패키지를 임의 제거하지 않는다.
-- `package.json`의 제한된 `overrides`는 Supabase CLI의 `tar@7.5.21`, `@ts-morph/common`·`@typescript-eslint/typescript-estree`의 `minimatch@11.0.1`에만 적용한다. 전자는 CLI·컨테이너 버전 변경 없이 설치 압축 해제를 수정하고, 후자는 수정판이 11부터인 패턴 증폭 문제를 차단한다. 전역 minimatch 교체는 기존 3 계열 호출 계약을 깨므로 사용하지 않는다. 상위 패키지가 수정판을 공식 채택하면 해당 override를 제거하고 설치·글롭 호출·린트를 다시 확인한다.
-- 2026-11-06 기준 낮음 3건은 `deepmerge` 한 권고와 `@shadcn/registry`·`shadcn`의 연쇄 경고다. [공식 권고에 수정판이 없으며](https://github.com/advisories/GHSA-gcqx-w48m-w2h4) 앱의 JS 사용 경로는 발견하지 못했다. 외부 레지스트리·설정을 병합하는 CLI 경로의 위험은 남으며, 이를 해소한 것으로 표시하거나 `shadcn@1`로 강제 다운그레이드하지 않는다. [업데이트·검증 기록](TODO_Phase2.md#2026-11-06-잔여-의존성-보안-업데이트)을 따른다.
+- 실제 업로드의 `sharp`와 Supabase 실시간 통신의 `ws`를 서비스 경로로, ESLint·CSS 처리기를 개발·빌드 도구 경로로 구분한다. 공용 UI는 `src/components/ui/`와 Base UI를 유지한다. 기존 shadcn CSS에서 사용하는 상태 규칙 6개·39줄만 [로컬 CSS](../src/styles/ui-variants.css)로 옮기고 [MIT 원문](../licenses/shadcn-MIT.txt)을 보존했다. 규칙의 `:where`·`false` 제외 조건과 탭의 그룹 방향 선택자를 유지한다.
+- `package.json`의 제한된 `overrides`는 Supabase CLI의 `tar@7.5.21`, `@typescript-eslint/typescript-estree`의 `minimatch@11.0.1`에만 적용한다. 전자는 CLI·컨테이너 버전 변경 없이 설치 압축 해제를 수정하고, 후자는 수정판이 11부터인 패턴 증폭 문제를 차단한다. 전역 minimatch 교체는 기존 3 계열 호출 계약을 깨므로 사용하지 않는다. 상위 패키지가 수정판을 공식 채택하면 해당 override를 제거하고 설치·글롭 호출·린트를 다시 확인한다.
+- 2026-11-06 CSS 분리 후 `shadcn`·`@shadcn/registry`·`deepmerge`와 전용 MCP/변환 도구 의존성을 제거해 npm 감사는 0건이다. `@ts-morph/common`이 사라져 그 override도 제거했다. `components.json`은 기존 UI 생성 규약을 보존하는 메타데이터이며 앱·검사·빌드는 CLI를 실행하지 않는다. 패키지를 다시 추가할 때는 도구의 하위 보안 경고까지 검토한다. [분리·검증 기록](TODO_Phase2.md#2026-11-06-shadcn-css-분리와-도구-의존성-제거).
 - 부분 검증과 운영 반영 전 전체 검증은 [기존 기준](guides/agent-validation.md)을 유지한다. 감사의 버전 대조만으로 모든 공격을 재현·차단했다고 판정하지 않는다.
 
 ## SQL과 현재 구조

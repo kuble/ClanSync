@@ -17,6 +17,8 @@ Phase 2 기능 구현 후 품질 점검 단계입니다. M8 종료 감사는 미
 
 Next.js 16.4.5 App Router · React 19.2 · TypeScript · Tailwind CSS 4 · shadcn/ui · Supabase · Playwright.
 
+공용 UI는 프로젝트의 `src/components/ui/` 소스를 사용합니다. 필요한 [상태 CSS](src/styles/ui-variants.css)와 [MIT 라이선스](licenses/shadcn-MIT.txt)는 로컬에 보존하며 `shadcn` CLI 패키지는 설치 의존성에서 제외했습니다. `components.json`은 기존 생성 규약을 보여 주는 메타데이터로 유지합니다.
+
 [Next.js 보안 업데이트·호환성·잔여 감사 범위](docs/03-analysis/next-security-update-2026-11-06.md).
 
 | 경로 | 역할 |

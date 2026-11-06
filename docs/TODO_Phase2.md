@@ -1,6 +1,15 @@
 # Phase 2 — Next.js `src/` · Supabase · RLS
 
+### 2026-11-06 shadcn CSS 분리와 도구 의존성 제거
+
+- 공용 모달·메뉴·툴팁·탭이 사용하는 상태 규칙 6개·39줄을 `src/styles/ui-variants.css`로 옮기고 `globals.css`의 import를 변경했다. `shadcn@4.23.0`의 MIT 원문은 `licenses/shadcn-MIT.txt`로 복사했다. `:where`·`data-*=false` 제외·가로/세로 그룹 선택자와 기존 공용 컴포넌트·Base UI·애니메이션 패키지를 유지한다.
+- `shadcn`과 전용 하위 의존성 131개를 제거하고 사라진 `@ts-morph/common` override만 정리했다. Supabase tar·TypeScript ESLint minimatch의 보안 제한과 모든 실행 명령·기존 테스트 파일은 유지한다. `components.json`은 생성 규약 메타데이터로 남기며 상시 CLI 의존성을 뜻하지 않는다.
+- 이전/이후 소스의 스타일 후보 7,690개를 실제 Tailwind로 컴파일해 비교했다. 미사용 shimmer·scroll-fade의 등록/기본값·레거시 규칙을 제외한 출력이 동일하고 MIT 원문도 일치한다. npm 감사 0건·불필요한 도구 경로 부재·잠금 파일 재설치 미리보기 통과. 이는 설치 그래프의 감사 결과이며 서비스 전체에 알려지지 않은 취약점이 없다는 판정은 아니다.
+- 린트·타입·로직 113개·실행기 3개와 새 프로덕션 빌드·공용 UI 시나리오 8개 통과(`2026-11-06T11-05-43-138Z-93f50860`). `ui-regression`·`clan-line-tabs`·`profile-account-help` 및 라이트 진입/테마 검사를 선택해 탭·메뉴·모달·시트·툴팁의 마우스/키보드/터치와 좁은 화면을 확인했다. 검사 후 전용 계정·클랜·경기는 각각 0건으로 정리됐다. 전체 DB/브라우저 회귀를 반복하지 않았으며 운영 반영 전 `test:all`과 기존 테스트 본문·명령은 유지한다. 온라인 QA·운영 DB·배포·연결 설정은 변경하지 않는다.
+
 ### 2026-11-06 잔여 의존성 보안 업데이트
+
+아래는 의존성 갱신 직후의 이력이다. 현재 낮음 3건의 제거와 CSS 분리 결과는 위 후속 기록을 따른다.
 
 - npm 감사 36건(치명 2·높음 15·중간 17·낮음 2)을 실제 호출 경로에 대조했다. 프로필·홍보 사진·이모티콘은 권한 검사 뒤 사용자 바이트를 `sharp.metadata()`로 읽으며 형식 거절도 그 뒤이므로 수정된 디코더가 필요하다. `sharp`를 `0.35.5`로 통일했다(libvips `8.18.7`). [0.35 호환 변경](https://sharp.pixelplumbing.com/changelog/v0.35.0/)의 Node 20.9 이상·삭제 API·채널 제한을 대조했으며 호스트 Node `24.14.0`과 현재 PNG/JPEG/WebP/GIF 처리 계약은 호환된다.
 - 앱은 shadcn CSS만 가져오며 도구 JS/MCP를 서비스 라우트에서 실행하지 않는다. `shadcn`을 `4.23.0`으로 갱신해 Zod 4·새 MCP 의존성으로 전환하고, 호환 범위 내 Babel·글롭·YAML·소스맵·`ws` 등을 수정판으로 갱신했다. [MCP 내보내기 변경](https://github.com/shadcn-ui/ui/releases/tag/shadcn@4.23.0)은 프로젝트 호출처가 없다. Supabase JS·CLI·Next·React·ESLint의 직접 버전은 유지했다.
