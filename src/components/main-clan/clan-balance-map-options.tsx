@@ -59,7 +59,7 @@ export function MapTypeFilter({
               onChange(
                 value.includes(id)
                   ? value.filter((type) => type !== id)
-                  : [...value, id],
+                  : value.length + 1 === MAP_TYPES.length ? [] : [...value, id],
               )
             }
           />

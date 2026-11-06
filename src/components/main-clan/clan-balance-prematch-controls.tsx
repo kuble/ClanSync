@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   selectBalanceMapAction,
   startMapBanPhaseAction,
@@ -44,6 +45,7 @@ export function ClanBalancePrematchControls({
   const [selectedMap, setSelectedMap] = useOptimistic(session.resolved_map_label);
   const [manualMapOpen, setManualMapOpen] = useState(!session.resolved_map_label);
   const [types, setTypes] = useState(parseBanSettings(session).mapTypes);
+  const [typePickerOpen, setTypePickerOpen] = useState(true);
   const needsMapVote = session.map_ban_enabled && !session.resolved_map_label;
   const needsHeroVote =
     session.hero_ban_enabled && session.banned_heroes === null;
@@ -79,13 +81,34 @@ export function ClanBalancePrematchControls({
     });
   }
 
+  if (needsMapVote) {
+    return (
+      <section aria-label={tx("경기 준비")}>
+        <div className="flex items-center justify-between gap-3">
+          {endSessionControl}
+          {canManage ? <Button onClick={() => setTypePickerOpen(true)}>{tx("맵 유형 선택")}</Button> : (
+            <p className="text-xs text-muted-foreground">{tx("운영진이 경기를 준비하고 있습니다.")}</p>
+          )}
+        </div>
+        {canManage ? <Dialog open={typePickerOpen} onOpenChange={(open) => { if (!pending) setTypePickerOpen(open); }}>
+          <DialogContent className="sm:max-w-2xl" aria-describedby={undefined}>
+            <DialogHeader><DialogTitle>{tx("맵 유형 선택")}</DialogTitle></DialogHeader>
+            <MapTypeFilter value={types} onChange={setTypes} disabled={pending} />
+            <div className="flex justify-end">
+              <Button disabled={pending} onClick={advance}>
+                {pending ? tx("적용 중…") : tx("유형 선택 완료")}
+                <ArrowRight className="size-4" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog> : null}
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-6" aria-label={tx("경기 준비")}>
-      {needsMapVote && canManage ? (
-        <div className="space-y-3">
-          <MapTypeFilter value={types} onChange={setTypes} disabled={pending} />
-        </div>
-      ) : !session.map_ban_enabled && session.phase === "editing" && (editingOnly || manualMapOpen) ? (
+      {!session.map_ban_enabled && session.phase === "editing" && (editingOnly || manualMapOpen) ? (
         <BalanceManualMapPicker
           gameSlug={gameSlug}
           value={selectedMap}

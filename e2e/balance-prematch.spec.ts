@@ -113,9 +113,9 @@ async function openAndForm(
   if (mapBan) {
     // Empty roster slots also occur during the outgoing formation reveal.
     // Wait for the actual map preparation before opening its guide or voting.
-    await expect(panel.getByRole("region", { name: "경기 준비", exact: true })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("dialog", { name: "맵 유형 선택", exact: true })).toBeVisible({ timeout: 20_000 });
   }
-  await expectMapStage(panel);
+  if (!mapBan) await expectMapStage(panel);
   return panel;
 }
 
@@ -159,7 +159,8 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       memberPanel.getByRole("button", { name: "다음 단계", exact: true }),
     ).toHaveCount(0);
     const formed = await fixture.activeRound();
-    await expectGuide(page, panel, "투표할 맵 유형");
+    const typeDialog = page.getByRole("dialog", { name: "맵 유형 선택", exact: true });
+    await expect(typeDialog.getByRole("button", { name: "유형 선택 완료", exact: true })).toBeVisible();
 
     const configured = await fixture.activeRound();
     expect(configured.roster).toEqual(formed.roster);
@@ -171,19 +172,15 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       hero_ban_seconds: 11,
     });
 
-    await expectMapStage(panel);
-    await expectMapStage(memberPanel);
+    await expect(panel.locator("[data-board-slot]").first()).toBeVisible();
+    await expect(memberPanel.locator("[data-board-slot]").first()).toBeVisible();
     const applied = await fixture.activeRound();
     expect(applied.formation_state).toEqual(formed.formation_state);
     await member.reload();
-    await expectMapStage(memberPanel);
+    await expect(memberPanel.locator("[data-board-slot]").first()).toBeVisible();
     await expect(memberPanel.getByRole("region", { name: "경기 준비", exact: true })).toBeVisible();
-    await expectGuide(page, panel, "투표할 맵 유형");
-
-    const preparation = panel.getByRole("region", {
-      name: "경기 준비",
-      exact: true,
-    });
+    await expect(member.getByRole("dialog", { name: "맵 유형 선택", exact: true })).toHaveCount(0);
+    const preparation = typeDialog;
     const all = preparation.getByRole("button", { name: "전체", exact: true });
     const control = preparation.getByRole("button", {
       name: "쟁탈",
@@ -203,6 +200,17 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await expect(all).toHaveAttribute("aria-pressed", "true");
     await expect(control).toHaveAttribute("aria-pressed", "false");
     await expect(escort).toHaveAttribute("aria-pressed", "false");
+    for (const name of ["쟁탈", "밀기", "화물", "혼합", "플래시포인트"]) {
+      await preparation.getByRole("button", { name, exact: true }).click();
+    }
+    await expect(all).toHaveAttribute("aria-pressed", "true");
+    await expect(control).toHaveAttribute("aria-pressed", "false");
+    await preparation.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(typeDialog).toBeHidden();
+    await panel.getByRole("button", { name: "맵 유형 선택", exact: true }).click();
+    await expect(typeDialog).toBeVisible();
+    await expect(typeDialog.getByText("예측 승률", { exact: true })).toHaveCount(0);
+    await expect(typeDialog.getByRole("button", { name: "세션 종료", exact: true })).toHaveCount(0);
     await preparation.getByRole("button", { name: "플래시포인트", exact: true }).click();
     await Promise.all([
       expect(panel.getByTestId("balance-realtime")).toHaveAttribute(

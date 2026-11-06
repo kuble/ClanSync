@@ -221,8 +221,9 @@ export function ClanBalanceSessionPanel({
     presentationNow >= formationRevealEnd,
   );
   const preparingMatch = Boolean(session?.phase === "editing" && mapScreen && session.resolved_map_label);
+  const selectingMapTypes = Boolean(session?.phase === "editing" && mapScreen && session.map_ban_enabled && !session.resolved_map_label);
   const teamAdjustment = formation?.stage === "review" && presentationNow >= formationRevealEnd;
-  const editingScreen = session?.phase === "editing" && (!mapScreen || preparingMatch);
+  const editingScreen = session?.phase === "editing" && (!mapScreen || preparingMatch || selectingMapTypes);
   const settings = parseFormationSettings(session?.formation_settings);
   const showPrediction = Boolean(session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled);
   async function flushRoster() {
@@ -428,7 +429,7 @@ export function ClanBalanceSessionPanel({
                   ? tx("맵 투표")
                   : session?.phase === "hero_ban"
                     ? tx("영웅 밴")
-                    : mapScreen && !preparingMatch
+                    : mapScreen && !preparingMatch && !selectingMapTypes
                       ? session?.resolved_map_label
                         ? tx("경기 준비")
                         : session?.map_ban_enabled
@@ -529,7 +530,7 @@ export function ClanBalanceSessionPanel({
         ) : (
           <div className={cn("px-4 pt-2 sm:px-6", session.phase === "match_live" ? "pb-2 sm:pb-3" : "pb-4 sm:pb-6")}>
             {editorMap && !(canManage && !formation) ? <div data-testid="balance-roster-map" className="mx-auto mb-4 w-full max-w-sm">{editorMap}</div> : null}
-            {editingScreen && !(canManage && !formation) ? (
+            {editingScreen && !selectingMapTypes && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
                 {canManage && formation ? (
@@ -617,7 +618,7 @@ export function ClanBalanceSessionPanel({
                     onPendingChange={setPreferencePending}
                   />
                 ) : null}
-                <ClanBalanceFormation
+                {!selectingMapTypes ? <ClanBalanceFormation
                   endSessionControl={formation && !["complete", "review"].includes(formation.stage) ? null : endSessionControl}
                   serverNow={presentationNow}
                   key={session.id}
@@ -642,7 +643,7 @@ export function ClanBalanceSessionPanel({
                   beforeStart={flushRoster}
                   setupPending={preferencePending || mapSaving}
                   onPendingChange={setBusyFormation}
-                />
+                /> : null}
                 {formation && !["complete", "review"].includes(formation.stage) ? <div className="order-last">{endSessionControl}</div> : null}
               </div>
             ) : null}
