@@ -1,7 +1,7 @@
 "use client";
 import { useMovableDrawerTab } from "./use-movable-drawer-tab";
 import { BalanceAnalysisProvider } from "./balance-analysis-provider";
-import type { PredictionModel } from "@/lib/balance/analysis-prediction";
+import type { BalanceScoreData } from "@/lib/balance/load-balance-score-data";
 import { useTranslator } from "#use-translator";
 import { scoresForRoles } from "@/lib/balance/ma-snapshot";
 import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
@@ -9,7 +9,7 @@ import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
 import type { FormEvent } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
   Settings2,
@@ -79,7 +79,7 @@ import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
 import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } from "./balance-team-insights";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
-import { contextualScores, type AnalysisContext } from "@/lib/balance/analysis-context";
+import { contextualScores } from "@/lib/balance/analysis-context";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import type { PredictionPool } from "@/lib/balance/prediction-pool";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -88,6 +88,7 @@ const ClanBalanceSettings = dynamic(() =>
   import("./clan-balance-settings").then((module) => module.ClanBalanceSettings),
   { loading: () => <p role="status" className="sr-only">경기 설정을 불러오는 중입니다.</p> },
 );
+const EMPTY_SCORES: MaSnapshot = {};
 const ClanBalanceGuide = dynamic(() =>
   import("./clan-balance-guide").then((module) => module.ClanBalanceGuide),
   { loading: () => <p role="status" className="sr-only">내전 안내를 불러오는 중입니다.</p> },
@@ -109,9 +110,8 @@ export function ClanBalanceSessionPanel({
   historyScope,
   flash,
   canViewScores,
-  scores,
-  analysisContext,
-  predictionModel,
+  scoreData,
+  scoreScope,
   hostNickname,
   roomTitle,
   session,
@@ -137,9 +137,8 @@ export function ClanBalanceSessionPanel({
   historyScope: "clan" | "session";
   flash: boolean;
   canViewScores: boolean;
-  scores: MaSnapshot;
-  analysisContext?: AnalysisContext;
-  predictionModel?: PredictionModel;
+  scoreData: Promise<BalanceScoreData>;
+  scoreScope: string;
   hostNickname: string | null;
   roomTitle: string;
   session: BalanceSession | null;
@@ -160,6 +159,18 @@ export function ClanBalanceSessionPanel({
   const tx = useTranslator();
   const dock = useMovableDrawerTab();
   const router = useRouter();
+  const [scoreSnapshot, setScoreSnapshot] = useState<{ scope: string; source: Promise<BalanceScoreData>; value: BalanceScoreData } | null>(null);
+  useEffect(() => {
+    let current = true;
+    const receive = (value: BalanceScoreData) => { if (current) setScoreSnapshot({ scope: scoreScope, source: scoreData, value }); };
+    void scoreData.then(receive, () => receive({ ok: false }));
+    return () => { current = false; };
+  }, [scoreData, scoreScope]);
+  const scoreResult = scoreSnapshot?.scope === scoreScope ? scoreSnapshot.value : undefined;
+  const scoreReady = scoreResult?.ok === true;
+  const scores = scoreResult?.ok ? scoreResult.scores : EMPTY_SCORES;
+  const analysisContext = scoreResult?.ok ? scoreResult.analysisContext : undefined;
+  const predictionModel = scoreResult?.ok ? scoreResult.predictionModel : undefined;
   const [pending, start] = useTransition();
   const rosterRef = useRef<ClanBalanceRosterEditorHandle>(null);
   const [busyFormation, setBusyFormation] = useState(false);
@@ -268,14 +279,14 @@ export function ClanBalanceSessionPanel({
     });
   }
 
-  const rosterData = session ? parseRoster(session.roster) : EMPTY_ROSTER;
+  const rosterData = useMemo(() => session ? parseRoster(session.roster) : EMPTY_ROSTER, [session]);
   const isRosterParticipant =
     rosterAssignedUserIds(rosterData).includes(userId);
   const maForUi = defaultMaForRoster(
     rosterData,
     scores,
   );
-  const renderMatchScore = canViewScores && canEditMscore && session ? (id: string) => <BalancePlayerScoreEditor
+  const renderMatchScore = canViewScores && scoreReady && canEditMscore && session ? (id: string) => <BalancePlayerScoreEditor
     key={`${session.id}:${id}`} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} userId={id}
     nickname={rosterPool.find((member) => member.user_id === id)?.nickname ?? "참여자"} value={maForUi[id]?.m}
   /> : undefined;
@@ -313,12 +324,15 @@ export function ClanBalanceSessionPanel({
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
     title={session.phase !== "editing" && session.match_outcome === "pending" ? tx("경기 결과 또는 무효를 먼저 기록하십시오.") : undefined}
     onClick={() => setConfirmEnd(true)}>{tx("세션 종료")}</Button> : null;
-  const sampleScores = canViewScores && qaPreviewEnabled;
-  const baseScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
-  const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, editorMapLabel, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players);
+  const sampleScores = canViewScores && scoreReady && qaPreviewEnabled;
+  const baseScores = useMemo(() => sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores, [sampleScores, rosterPool, scores]);
+  const displayScores = useMemo(() => analysisContext ? contextualScores(baseScores, analysisContext, rosterData, editorMapLabel, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players), [baseScores, analysisContext, rosterData, editorMapLabel, formation?.players]);
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
-  const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
-  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
+  const scoreControl = canViewScores ? <div className="flex flex-wrap items-center gap-2"><ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} disabled={!scoreReady} />
+    {!scoreReady && <span role={scoreResult?.ok === false ? "alert" : "status"} className="text-xs text-muted-foreground">{tx(scoreResult?.ok === false ? "점수를 불러오지 못했습니다." : "점수를 불러오는 중입니다.")}</span>}
+    {scoreResult?.ok === false && <Button size="sm" variant="outline" onClick={() => router.refresh()}>{tx("다시 불러오기")}</Button>}
+  </div> : null;
+  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext && (roster !== rosterData || map !== editorMapLabel) ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
   const editorMap = editingScreen && session && !session.map_ban_enabled ?
     <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={editorMapLabel}
       onSaved={(label, revision) => setSavedMap({ roundId: session.id, label, revision })}
@@ -330,6 +344,7 @@ export function ClanBalanceSessionPanel({
       className="space-y-5"
       data-testid="clan-balance-session-panel"
       data-balance-phase={session?.phase ?? "none"}
+      data-score-state={scoreReady ? "ready" : scoreResult?.ok === false ? "error" : "loading"}
       data-formation-transition={awaitingFormation || preparingMatch ? "true" : undefined}
     >
       <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
@@ -560,7 +575,7 @@ export function ClanBalanceSessionPanel({
                       teamAdjustment={teamAdjustment}
                       scoreControl={teamAdjustment ? undefined : scoreControl}
                       rosterAside={teamAdjustment ? undefined : editorMap}
-                      scores={canViewScores ? displayScores : undefined}
+                      scores={canViewScores && scoreReady ? displayScores : undefined}
                       analysisContext={analysisContext}
                       analysisMap={editorMapLabel}
                       scoreMode={scoreMode}
@@ -582,7 +597,7 @@ export function ClanBalanceSessionPanel({
                       roster={rosterData}
                       pool={rosterPool}
                       serverNow={presentationNow}
-                      snapshot={canViewScores ? displayScores : undefined}
+                      snapshot={canViewScores && scoreReady ? displayScores : undefined}
                       scoreMode={scoreMode}
                       planPremium={planPremium}
                       playerSessionInfo={playerSessionInfo}
@@ -757,13 +772,13 @@ export function ClanBalanceSessionPanel({
                   {canManage && session.match_outcome === "pending" ? <ClanBalanceMatchOutcomeClient
                     key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
                     roster={rosterData} pool={rosterPool} disabled={false}
-                    snapshot={canViewScores ? maForUi : undefined} renderScore={renderMatchScore}
+                    snapshot={canViewScores && scoreReady ? maForUi : undefined} renderScore={renderMatchScore}
                     endSessionControl={endSessionControl}
                   /> : (
                   <ClanBalanceRosterBoard
                     roster={rosterData}
                     pool={rosterPool}
-                    snapshot={canViewScores ? maForUi : undefined} renderScore={renderMatchScore}
+                    snapshot={canViewScores && scoreReady ? maForUi : undefined} renderScore={renderMatchScore}
                     showPlayerCardScore={canViewScores}
                     showPlayerCardInfo={false}
                     showTeamComparisonSummary={false}

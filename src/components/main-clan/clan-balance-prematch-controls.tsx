@@ -64,8 +64,7 @@ export function ClanBalancePrematchControls({
         session.id,
         label,
       );
-      if (!result.ok) toast.error(result.error);
-      router.refresh();
+      if (!result.ok) { toast.error(result.error); router.refresh(); }
     });
   }
 
@@ -76,8 +75,7 @@ export function ClanBalancePrematchControls({
         : needsHeroVote
           ? await startHeroBanPhaseAction(gameSlug, clanId, session.id)
           : await startBalanceMatchAction(gameSlug, clanId, session.id);
-      if (!result.ok) toast.error(result.error);
-      router.refresh();
+      if (!result.ok) { toast.error(result.error); router.refresh(); }
     });
   }
 

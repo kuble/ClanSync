@@ -35,5 +35,11 @@ export function contextualScores(scores: MaSnapshot, context: AnalysisContext, r
   }
   for (const player of assignedRoles) roles.set(player.id, player.role);
   const ids = new Set([...Object.keys(scores), ...context.map((entry) => entry.userId), ...roles.keys()]);
-  return Object.fromEntries([...ids].map((id) => [id, { ...scores[id], m: scores[id]?.m ?? 0, a: analysisValue(context, id, roles.get(id) ?? null, map) }]));
+  const best = new Map<string, { score: number; priority: number }>();
+  for (const entry of context) {
+    if ((entry.role !== null && entry.role !== (roles.get(entry.userId) ?? null)) || (entry.map !== null && entry.map !== map)) continue;
+    const priority = entry.tierBased ? 4 : (entry.map !== null ? 2 : 0) + (entry.role !== null ? 1 : 0);
+    if (priority > (best.get(entry.userId)?.priority ?? -1)) best.set(entry.userId, { score: entry.score, priority });
+  }
+  return Object.fromEntries([...ids].map((id) => [id, { ...scores[id], m: scores[id]?.m ?? 0, a: best.get(id)?.score ?? null }]));
 }

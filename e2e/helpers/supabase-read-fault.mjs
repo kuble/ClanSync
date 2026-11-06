@@ -31,6 +31,12 @@ if (process.env.CLANSYNC_E2E === "1" && process.env.NEXT_PUBLIC_SUPABASE_URL ===
       return response;
     }
     if (state.armed && url.pathname === `/rest/v1/rpc/${state.target}` && state.remaining > 0) {
+      if (state.mode === "delay") {
+        write({ ...state, remaining: state.remaining - 1, waiting: true });
+        const deadline = Date.now() + 20_000;
+        while (!read()?.resume && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 20));
+        return original(input, init);
+      }
       write({ ...state, remaining: state.remaining - 1, failures: state.failures + 1 });
       console.warn("E2E_READ_FAULT", JSON.stringify({ status: 502, afterCommit: state.writes > 0 }));
       return new Response("<html>502 Bad Gateway</html>", { status: 502, headers: { "Content-Type": "text/html" } });

@@ -1,4 +1,5 @@
 import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
+import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { canManageRound } from "@/lib/balance/room-access";
 import { ClanBalanceSessionPanel } from "@/components/main-clan/clan-balance-session-panel";
@@ -7,9 +8,8 @@ import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
-import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
-import { parseAnalysisContext } from "@/lib/balance/analysis-context";
-import { buildPredictionModel, readPredictionBasis } from "@/lib/balance/analysis-prediction";
+import { parseMaSnapshot } from "@/lib/balance/ma-snapshot";
+import { loadBalanceScoreData } from "@/lib/balance/load-balance-score-data";
 import { parsePredictionPool, type PredictionPool } from "@/lib/balance/prediction-pool";
 import {
   buildPlayerSessionInfo,
@@ -101,30 +101,18 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   if (!session || !series || series.closed_at) redirect(`/games/${gameSlug}/clan/${clanId}/balance`);
   // All reads below depend on the current round, but not on each other.
   // Start them together so every real-time refresh avoids a request waterfall.
+  const linkedAccountsPromise = Promise.resolve(supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null)).then(result => {
+    if (result.error) throw new Error("참가자 연결 정보를 불러오지 못했습니다.");
+    return new Map<string, string>((result.data ?? []).map(row => [row.id, row.user_id!]));
+  });
+  const scoreData = loadBalanceScoreData(supabase, clanId, session, canViewScores, planPremium, linkedAccountsPromise);
   const [
-    canManage, scoredResult, analysisResult,
+    canManage,
     { data: profilePreference }, { data: roundPreference },
     { data: votes }, { data: heroVotes }, { data: balancePredictions },
-    poolResult, { data: rosterPoolRows }, { data: hostRow }, participantLinks,
+    poolResult, { data: rosterPoolRows }, { data: hostRow }, linkedAccounts,
   ] = await Promise.all([
     canManageRound(supabase, user.id, clanId, session.id),
-    canViewScores ? (async () => {
-      const data = [];
-      for (let offset = 0; ; offset += 500) {
-        const result = await supabase.from("balance_sessions")
-      .select("id,ma_snapshot,roster,opened_at,closed_at,predictions_settled_at,match_outcome,resolved_map_label,balance_session_series!inner(balance_rooms!inner(kind))")
-      .eq("clan_id", clanId).eq("balance_session_series.balance_rooms.kind", "regular")
-      .in("match_outcome", ["team1", "team2", "draw"])
-      .order("opened_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
-        if (result.error) return { data: [], error: result.error };
-        data.push(...result.data);
-        if (result.data.length < 500) return { data, error: null };
-      }
-    })()
-      : Promise.resolve({ data: [], error: null }),
-    canViewScores && planPremium && session.phase !== "match_live"
-      ? supabase.rpc("read_balance_analysis_model", { p_round_id: session.id, p_clan_id: clanId })
-      : Promise.resolve({ data: null, error: null }),
     supabase.from("profile_role_preferences").select("ranking")
       .eq("user_id", user.id).eq("game_id", session.game_id).maybeSingle(),
     supabase.from("balance_round_role_preferences").select("ranking")
@@ -143,50 +131,10 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     supabase.rpc("list_balance_roster_pool", { p_clan_id: clanId }),
     loadClanPlayerNames(clanId, [room.delegated_to ?? room.created_by].filter((id): id is string => !!id))
       .then(names => ({ data: { nickname: names.get((room.delegated_to ?? room.created_by)!) ?? null } })),
-    supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null),
+    linkedAccountsPromise,
   ]);
   const canEditMscore = canViewScores && (canManage || scorePermission);
-  const scores: MaSnapshot = {};
-  if (analysisResult.error) throw new Error("분석 점수를 불러오지 못했습니다.");
-  const bundle = analysisResult.data;
-  const analysisBundle = bundle && typeof bundle === "object" && !Array.isArray(bundle) ? bundle : null;
-  const analysisContext = analysisBundle ? parseAnalysisContext(analysisBundle.context) : undefined;
-  if (scoredResult.error) throw new Error("참가자 점수를 불러오지 못했습니다.");
   if (poolResult.error) throw new Error("승부예측 정보를 불러오지 못했습니다.", { cause: poolResult.error });
-  if (participantLinks.error) throw new Error("참가자 연결 정보를 불러오지 못했습니다.");
-  const linkedAccounts = new Map<string, string>((participantLinks.data ?? []).map((p: { id: string; user_id: string | null }) => [p.id, p.user_id!]));
-  if (canViewScores) {
-    for (const round of scoredResult.data ?? []) {
-      const saved = parseMaSnapshot(round.ma_snapshot);
-      const roster = parseRoster(round.roster);
-      for (const team of [roster.team1, roster.team2]) for (const role of ["tank", "dmg", "sup"] as const) {
-        for (const id of role === "tank" ? [team.tank] : team[role]) {
-          if (!id || !saved[id]) continue;
-          const score = saved[id];
-          scores[id] ??= { m: 0, a: null, roles: {} };
-          scores[id].roles![role] ??= score;
-          const account = linkedAccounts.get(id);
-          if (account) {
-            scores[account] ??= { m: 0, a: null, roles: {} };
-            scores[account].roles![role] ??= score;
-          }
-        }
-      }
-    }
-    const currentRoster = parseRoster(session.roster);
-    const currentScores = parseMaSnapshot(session.ma_snapshot);
-    for (const team of [currentRoster.team1, currentRoster.team2]) for (const role of ["tank", "dmg", "sup"] as const) {
-      for (const id of role === "tank" ? [team.tank] : team[role]) {
-        if (!id || !currentScores[id]) continue;
-        scores[id] ??= { m: 0, a: null, roles: {} };
-        scores[id].roles![role] = currentScores[id];
-      }
-    }
-    if (!planPremium) for (const score of Object.values(scores)) {
-      score.a = null;
-      for (const entry of Object.values(score.roles ?? {})) entry.a = null;
-    }
-  }
   const predictionPool: PredictionPool | null = poolResult.data == null ? null : parsePredictionPool(poolResult.data);
   const recency = new Map<string, number>();
   (recentRounds ?? []).forEach((round, index) =>
@@ -220,16 +168,16 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   if (!planPremium) {
     for (const score of Object.values(visibleSessionScores)) score.a = null;
   }
+  const scoreScope = [user.id, clanId, session.id, canViewScores, planPremium, session.phase,
+    createHash("sha256").update(JSON.stringify(visibleSessionScores)).digest("hex")].join(":");
 
   const hostNickname = (room.delegated_to ?? room.created_by)
     ? hostRow?.nickname ?? "게임 ID 미등록"
     : session.operator_name ?? null;
 
   // Request-time clock aligns the initial reveal on this authenticated server page.
+  // eslint-disable-next-line react-hooks/purity -- 인증된 비동기 서버 요청의 현재 시각
   const serverNow = Date.now();
-  const predictionModel = analysisBundle
-    ? buildPredictionModel(scoredResult.data, session.opened_at, Object.fromEntries(linkedAccounts), readPredictionBasis(analysisBundle.basis))
-    : undefined;
   return (
     <ClanBalanceSessionPanel
       key={session.id}
@@ -241,9 +189,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       historyScope={staff ? "clan" : "session"}
       flash={room.kind === "flash"}
       canViewScores={canViewScores}
-      scores={scores}
-      analysisContext={analysisContext}
-      predictionModel={predictionModel}
+      scoreData={scoreData}
+      scoreScope={scoreScope}
       playerSessionInfo={playerSessionInfo}
       hostNickname={hostNickname}
       roomTitle={room.title}

@@ -31,11 +31,11 @@ export function predictionContext(roster: BalanceRoster, scores: MaSnapshot, mod
   const teams = [roster.team1, roster.team2].map((team) => [team.tank, ...team.dmg, ...team.sup].map((id) => [id, id ? scores[id]?.[mode] ?? null : null]));
   return JSON.stringify([teams, mode, map, [...new Set(bannedHeroes)].sort()]);
 }
-export function ScoreModeToggle({ value, onChange, premium }: { value: ScoreMode; onChange: (value: ScoreMode) => void; premium: boolean }) {
+export function ScoreModeToggle({ value, onChange, premium, disabled = false }: { value: ScoreMode; onChange: (value: ScoreMode) => void; premium: boolean; disabled?: boolean }) {
   const tx = useTranslator();
   return <div role="group" aria-label={tx("점수 표시")} className="inline-flex gap-1 rounded-lg bg-muted/50 p-1">
-    <Button size="sm" variant={value === "m" ? "secondary" : "ghost"} aria-pressed={value === "m"} title={tx("운영진이 평가한 점수")} onClick={() => onChange("m")}>{tx(SCORE_LABEL.m)}</Button>
-    {premium ? <Button size="sm" variant={value === "a" ? "secondary" : "ghost"} aria-pressed={value === "a"} title={tx("분석용 추정 점수")} onClick={() => onChange("a")}>{tx(SCORE_LABEL.a)}</Button> : null}
+    <Button size="sm" disabled={disabled} variant={value === "m" ? "secondary" : "ghost"} aria-pressed={value === "m"} title={tx("운영진이 평가한 점수")} onClick={() => onChange("m")}>{tx(SCORE_LABEL.m)}</Button>
+    {premium ? <Button size="sm" disabled={disabled} variant={value === "a" ? "secondary" : "ghost"} aria-pressed={value === "a"} title={tx("분석용 추정 점수")} onClick={() => onChange("a")}>{tx(SCORE_LABEL.a)}</Button> : null}
   </div>;
 }
 
