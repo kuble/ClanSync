@@ -58,7 +58,6 @@ function HofCommentsThread({ clanId, ranking, periodKey, label, drawerOpen, onDr
 
   useEffect(() => {
     let active = true;
-    setLoading(true); setError("");
     listHofCommentsAction({ clanId, ranking, periodKey }).then((result) => {
       if (!active) return;
       if (result.ok) { scrollUpdate.current = "latest"; setComments(result.comments); setCursor(result.nextCursor); }
@@ -119,7 +118,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, label, drawerOpen, onDr
   const chronological = [...comments].reverse();
 
   return (
-    <HofCommentsCard label={tx(label)} disabled={loading || busy} onRefresh={() => setRefresh(value => value + 1)} drawerOpen={drawerOpen} onDrawerOpenChange={onDrawerOpenChange}>
+    <HofCommentsCard label={tx(label)} disabled={loading || busy} onRefresh={() => { setLoading(true); setError(""); setRefresh(value => value + 1); }} drawerOpen={drawerOpen} onDrawerOpenChange={onDrawerOpenChange}>
     <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
       {error && <p role="alert" className="text-sm text-destructive">{tx(error)}</p>}
       <StatsScrollArea label={tx(ranking === "prediction" ? "적중률 댓글 목록" : "순위 댓글 목록")} className="min-h-0 flex-1" viewportRef={viewport}>

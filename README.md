@@ -15,7 +15,9 @@ Phase 2 기능 구현 후 품질 점검 단계입니다. M8 종료 감사는 미
 
 ## 기술과 구조
 
-Next.js 16.2 App Router · React 19.2 · TypeScript · Tailwind CSS 4 · shadcn/ui · Supabase · Playwright.
+Next.js 16.4.5 App Router · React 19.2 · TypeScript · Tailwind CSS 4 · shadcn/ui · Supabase · Playwright.
+
+[Next.js 보안 업데이트·호환성·잔여 감사 범위](docs/03-analysis/next-security-update-2026-11-06.md).
 
 | 경로 | 역할 |
 |------|------|

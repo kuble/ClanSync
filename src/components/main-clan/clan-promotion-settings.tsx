@@ -102,7 +102,8 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
             setCreatedId(targetId);
             if (!hasContent) {
               toast.success("클랜을 만들었습니다.");
-              window.location.assign(`/games/${gameSlug}/clan/${targetId}/welcome`);
+              router.push(`/games/${gameSlug}/clan/${targetId}/welcome`);
+              router.refresh();
               return;
             }
           }
@@ -131,7 +132,8 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
         uploaded.length = 0;
         if (creating) {
           toast.success("클랜을 만들었습니다.");
-          window.location.assign(`/games/${gameSlug}/clan/${targetId}/welcome`);
+          router.push(`/games/${gameSlug}/clan/${targetId}/welcome`);
+          router.refresh();
         } else {
           toast.success("홍보글과 가입 조건을 저장했습니다."); router.refresh();
         }

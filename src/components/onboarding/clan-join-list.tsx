@@ -81,7 +81,6 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         setSentId(selected.id); setSelected(null); setReplaceOpen(false);
         changeTab("pending");
         toast.success(replace ? "기존 신청을 취소하고 새로 신청했습니다." : "가입 신청을 보냈습니다.", { duration: 4800 });
-        router.refresh();
       } else if (result.error.startsWith("PENDING_ELSEWHERE:")) {
         setBlockName(result.error.slice("PENDING_ELSEWHERE:".length)); setReplaceOpen(true);
       } else { setError(result.error); toast.error(result.error); }

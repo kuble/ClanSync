@@ -38,7 +38,11 @@ export function ClanInAppNotificationBell({
   const tx = useTranslator();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [badgeHidden, setBadgeHidden] = useState(false);
+  const [badgeState, setBadgeState] = useState({ count: initialUnreadCount, hidden: false });
+  if (badgeState.count !== initialUnreadCount) {
+    setBadgeState({ count: initialUnreadCount, hidden: false });
+  }
+  const badgeHidden = badgeState.count === initialUnreadCount && badgeState.hidden;
   const signature=initialItems.map(i=>i.id+':'+(i.read_at??'')).join('|');
   useEffect(()=>{
     const client=createClient();let stopped=false,busy=false;
@@ -56,10 +60,6 @@ export function ClanInAppNotificationBell({
     return ()=>{stopped=true;clearInterval(timer);document.removeEventListener('visibilitychange',check);};
   },[clanId,router,signature]);
 
-  useEffect(() => {
-    setBadgeHidden(false);
-  }, [initialUnreadCount]);
-
   const eventsBase = clanId ? `/games/${encodeURIComponent(gameSlug)}/clan/${clanId}/events` : "/games";
 
   /** 열 때 revalidate(읽음 RPC)가 오픈 직후와 겹치면 Dialog 팝업이 뜨지 않을 수 있어, 읽음 처리는 닫을 때만 수행. */
@@ -69,7 +69,7 @@ export function ClanInAppNotificationBell({
       const unreadIds = initialItems
         .filter((i) => i.read_at == null)
         .map((i) => i.id);
-      if (unreadIds.length > 0) setBadgeHidden(true);
+      if (unreadIds.length > 0) setBadgeState({ count: initialUnreadCount, hidden: true });
       return;
     }
     const unreadIds = initialItems
@@ -99,7 +99,7 @@ export function ClanInAppNotificationBell({
         try {
           if (clanId) await markAllClanInAppNotificationsReadAction(gameSlug, clanId);
           else await markInAppNotificationIdsReadAction(gameSlug, clanId, initialItems.filter(item => item.read_at == null).map(item => item.id));
-          setBadgeHidden(true);
+          setBadgeState({ count: initialUnreadCount, hidden: true });
         } finally {
           router.refresh();
         }
