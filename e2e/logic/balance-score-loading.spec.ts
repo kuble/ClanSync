@@ -44,6 +44,30 @@ test("중간 페이지 누락은 일부 점수만 성공한 결과로 공개하�
   expect(await loadBalanceScoreData(historyClient(true).client, "clan", session, true, false, Promise.resolve(new Map()))).toEqual({ ok: false });
 });
 
+test("조회 실패는 개발 오류 대신 안전한 단계·코드·상태만 경고로 남긴다", async () => {
+  const warnings: unknown[][] = [], errors: unknown[][] = [];
+  const warn = console.warn, error = console.error;
+  console.warn = (...args) => { warnings.push(args); };
+  console.error = (...args) => { errors.push(args); };
+  try {
+    for (const stage of ["analysis", "history"] as const) {
+      const failure = { data: null, error: { code: "57014", message: "private-query-sentinel", details: "private-details", hint: "private-hint" }, status: 500 };
+      const query = { select() { return query; }, eq() { return query; }, in() { return query; }, order() { return query; }, range() { return Promise.resolve(failure); } };
+      const client = stage === "analysis" ? historyClient().client : { from() { return query; } } as unknown as SupabaseClient<Database>;
+      client.rpc = (() => Promise.resolve(failure)) as unknown as typeof client.rpc;
+      expect(await loadBalanceScoreData(client, "clan", session, true, stage === "analysis", Promise.resolve(new Map()))).toEqual({ ok: false });
+      expect(warnings.at(-1)).toEqual(["BALANCE_SCORE_READ_FAILED", { stage, code: "57014", status: 500 }]);
+    }
+    expect(await loadBalanceScoreData(historyClient(true).client, "clan", session, true, false, Promise.resolve(new Map()))).toEqual({ ok: false });
+    expect(warnings.at(-1)).toEqual(["BALANCE_SCORE_READ_FAILED", { stage: "history", code: "HISTORY_CHANGED", status: 409 }]);
+    expect(errors).toEqual([]);
+    expect(JSON.stringify(warnings)).not.toContain("private-");
+    const client = { from() { throw new TypeError("private-programming-error"); } } as unknown as SupabaseClient<Database>;
+    expect(await loadBalanceScoreData(client, "clan", session, true, false, Promise.resolve(new Map()))).toEqual({ ok: false });
+    expect(errors).toEqual([["BALANCE_SCORE_READ_FAILED"]]);
+  } finally { console.warn = warn; console.error = error; }
+});
+
 test("완성된 경기의 현재 점수와 비공개 화면은 과거 전체 기록을 다시 조회하지 않는다", async () => {
   const client = { from() { throw new Error("과거 조회 금지"); }, rpc() { throw new Error("분석 재계산 금지"); } } as unknown as SupabaseClient<Database>;
   expect(await loadBalanceScoreData(client, "clan", session, false, true, Promise.resolve(new Map()))).toEqual({ ok: true, scores: {} });

@@ -8,6 +8,10 @@ import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedB
 
 test("점수 조회가 대기 중이어도 맵 유형 창은 열고 선택·재열기를 유지한다", async ({ page }) => {
   test.setTimeout(120_000);
+  const scoreErrors: string[] = [];
+  page.on("console", message => {
+    if (message.type() === "error" && message.text().includes("BALANCE_SCORE_READ_FAILED")) scoreErrors.push(message.text());
+  });
   const file = process.env.CLANSYNC_E2E_DB_FAULT_FILE;
   if (!file || !resolve(file).startsWith(resolve(".local-tests", "runs") + sep) || basename(file) !== "db-fault.json") throw new Error("전용 로컬 검사 실행기가 필요합니다.");
   const fixture = await createIsolatedBalanceFixture(10);
@@ -71,11 +75,14 @@ test("점수 조회가 대기 중이어도 맵 유형 창은 열고 선택·재�
       await page.reload();
       await expect(panel).toHaveAttribute("data-score-state", "error");
       await expect(status.getByRole("alert")).toContainText("점수를 불러오지 못했습니다.");
+      await expect(page.locator("nextjs-portal").getByText("BALANCE_SCORE_READ_FAILED", { exact: true })).toHaveCount(0);
+      expect(scoreErrors).toEqual([]);
       const failed = await layout();
       expect(failed.status.height).toBe(24);
       writeFileSync(file, JSON.stringify({ ...state(), armed: false, remaining: 0 }));
       await status.getByRole("button", { name: "다시 불러오기", exact: true }).click();
       await expect(panel).toHaveAttribute("data-score-state", "ready");
+      expect(scoreErrors).toEqual([]);
       await expect(page.getByRole("tooltip")).toHaveCount(0);
       const recovered = await layout();
       expect(Math.abs(failed.slot.top - recovered.slot.top)).toBeLessThan(2);

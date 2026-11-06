@@ -32,11 +32,11 @@ export async function loadBalanceScoreData(supabase: SupabaseClient<Database>, c
     links,
   ]);
   const scores: MaSnapshot = {};
-  if (analysisResult.error) throw new Error("분석 점수를 불러오지 못했습니다.");
+  if (analysisResult.error) return scoreReadFailure("analysis", analysisResult.error, analysisResult.status);
+  if (scoredResult.error) return scoreReadFailure("history", scoredResult.error, scoredResult.status);
   const bundle = analysisResult.data;
   const analysisBundle = bundle && typeof bundle === "object" && !Array.isArray(bundle) ? bundle : null;
   const analysisContext = analysisBundle ? parseAnalysisContext(analysisBundle.context) : undefined;
-  if (scoredResult.error) throw new Error("참가자 점수를 불러오지 못했습니다.");
   if (canViewScores) {
     for (const round of scoredResult.data ?? []) {
       const saved = parseMaSnapshot(round.ma_snapshot);
@@ -65,6 +65,13 @@ export async function loadBalanceScoreData(supabase: SupabaseClient<Database>, c
   console.error("BALANCE_SCORE_READ_FAILED");
   return { ok: false };
  }
+}
+
+function scoreReadFailure(stage: "analysis" | "history", error: { code?: string }, status: number) {
+  // 응답 본문에는 SQL·개인정보가 포함될 수 있으므로 진단 코드만 기록한다.
+  const code = error.code && /^[A-Za-z0-9_]{1,64}$/.test(error.code) ? error.code : "unknown";
+  console.warn("BALANCE_SCORE_READ_FAILED", { stage, code, status });
+  return { ok: false } as const;
 }
 
 function applyCurrentScores(scores: MaSnapshot, session: Database["public"]["Tables"]["balance_sessions"]["Row"], planPremium: boolean) {
@@ -99,7 +106,7 @@ async function readScoreHistory(supabase: SupabaseClient<Database>, clanId: stri
     let ended = false;
     for (const result of pages) {
       if (result.error) return result;
-      if (ended && result.data.length) throw new Error("점수 이력이 변경되었습니다. 다시 불러오십시오.");
+      if (ended && result.data.length) return { data: null, error: { code: "HISTORY_CHANGED" }, status: 409 };
       data.push(...result.data);
       if (result.data.length < size) ended = true;
     }
