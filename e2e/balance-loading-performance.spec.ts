@@ -87,9 +87,11 @@ test("편성 저장 응답으로 창을 열고 늦은 재조회·멤버 요청�
     expect((await fixture.service.from("balance_rooms").update({ title: "이전 화면 응답 보류" }).eq("id", room.roomId)).error).toBeNull();
     await expect.poll(() => oldResponseBuffered, { timeout: 20_000 }).toBe(true);
     const actionRequest = page.waitForRequest(request => request.method() === "POST" && new URL(request.url()).pathname === new URL(room.url).pathname);
+    await panel.locator('[data-roster-slot="team1:tank"]').evaluate(element => element.setAttribute("data-preserved-editor", "true"));
     await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
     const picker = page.getByRole("dialog", { name: "맵 유형 선택", exact: true });
     await expect(picker).toBeVisible();
+    await expect(panel.locator('[data-preserved-editor="true"]')).toHaveCount(1);
     const request = await actionRequest;
     const response = await request.response();
     if (!response) throw new Error("편성 저장 응답이 없습니다.");

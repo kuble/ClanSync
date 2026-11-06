@@ -109,6 +109,7 @@ async function openAndForm(
       .click();
   }
   // Advancing immediately exercises the roster flush and automatic apply.
+  if (mapBan) await panel.locator('[data-roster-slot="team1:tank"]').evaluate(element => element.setAttribute("data-preserved-editor", "true"));
   await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
   if (mapBan) {
     // Empty roster slots also occur during the outgoing formation reveal.
@@ -172,7 +173,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       hero_ban_seconds: 11,
     });
 
-    await expect(panel.locator("[data-board-slot]").first()).toBeVisible();
+    await expect(panel.locator("[data-roster-slot]").first()).toBeVisible();
     await expect(memberPanel.locator("[data-board-slot]").first()).toBeVisible();
     const applied = await fixture.activeRound();
     expect(applied.formation_state).toEqual(formed.formation_state);
@@ -226,10 +227,12 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await preparation
       .getByRole("button", { name: "유형 선택 완료", exact: true })
       .click();
+    const ballot = page.getByRole("dialog", { name: "맵 투표", exact: true });
+    const memberBallot = member.getByRole("dialog", { name: "맵 투표", exact: true });
     // Both authenticated browsers vote before automatic resolution at the shared deadline.
     await Promise.all([
-      panel.getByRole("button", { name: /MAP 01/ }).click(),
-      memberPanel.getByRole("button", { name: /MAP 02/ }).click(),
+      ballot.getByRole("button", { name: /MAP 01/ }).click(),
+      memberBallot.getByRole("button", { name: /MAP 02/ }).click(),
     ]);
     await expect
       .poll(async () => (await readVotes(fixture, formed.id)).length)
@@ -250,38 +253,37 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       true,
     );
     expect(new Set(voting.map_candidates).size).toBe(3);
-    await expectMapStage(panel);
-    await expectMapStage(memberPanel);
-    for (const number of ["01", "02", "03"]) await expectLoadedMapImage(panel.getByRole("button", { name: new RegExp("MAP " + number) }));
+    await expect(panel.locator("[data-roster-slot]")).toHaveCount(10);
+    await expect(panel.locator('[data-preserved-editor="true"]')).toHaveCount(1);
+    await expect(memberBallot).toBeVisible();
+    for (const number of ["01", "02", "03"]) await expectLoadedMapImage(ballot.getByRole("button", { name: new RegExp("MAP " + number) }));
     await capturePanel(panel, "map-voting-gallery");
-    await expectGuide(page, panel, "원하는 맵에 투표");
+    await expect(ballot.getByRole("heading", { name: "맵 투표", exact: true })).toBeVisible();
     expect(await readVotes(fixture, formed.id)).toEqual(
       fixture.users
         .slice(0, 2)
         .map((user, index) => ({ user_id: user.id, choice_idx: index }))
         .sort((a, b) => a.user_id.localeCompare(b.user_id)),
     );
-    await expect(panel.getByRole("button", { name: "맵 확정하기", exact: true })).toHaveCount(0);
-    await expect(panel.getByText(/명 투표 · 내 선택/)).toHaveCount(0);
-    const oddsBefore = await panel.getByTestId("balance-win-probability").boundingBox();
-    const galleryBefore = await panel.getByTestId("map-vote-gallery").boundingBox();
-    const endBefore = await panel.getByRole("button", { name: "세션 종료", exact: true }).boundingBox();
+    await expect(ballot.getByRole("button", { name: "맵 확정하기", exact: true })).toHaveCount(0);
+    await expect(ballot.getByText(/명 투표 · 내 선택/)).toHaveCount(0);
+    const oddsBefore = await ballot.getByTestId("balance-win-probability").boundingBox();
+    const galleryBefore = await ballot.getByTestId("map-vote-gallery").boundingBox();
     expect(oddsBefore!.y).toBeGreaterThan(galleryBefore!.y + galleryBefore!.height);
-    expect(oddsBefore!.y + oddsBefore!.height).toBeLessThan(endBefore!.y);
-    await expect(panel.locator('[data-map-revealing="true"]')).toBeVisible({ timeout: 20_000 });
-    await expect(panel.locator('[data-vote-excluded="true"]')).toHaveCount(1);
-    await expect(panel.locator('[data-vote-excluded="true"]')).toContainText(voting.map_candidates![2]);
-    await expect(panel.getByRole("button", { name: "경기 도구", exact: true })).toHaveCount(0);
-    await expect(panel.getByRole("button", { name: "영웅 밴 시작", exact: true })).toHaveCount(0);
-    await expect(panel.getByTestId("resolved-map")).toBeVisible();
-    const expectedMap = await panel.getByTestId("resolved-map").innerText();
+    await expect(ballot.locator('[data-map-revealing="true"]')).toBeVisible({ timeout: 20_000 });
+    await expect(ballot.locator('[data-vote-excluded="true"]')).toHaveCount(1);
+    await expect(ballot.locator('[data-vote-excluded="true"]')).toContainText(voting.map_candidates![2]);
+    await expect(ballot.getByRole("button", { name: "경기 도구", exact: true })).toHaveCount(0);
+    await expect(ballot.getByRole("button", { name: "영웅 밴 시작", exact: true })).toHaveCount(0);
+    await expect(ballot.getByTestId("resolved-map")).toBeVisible();
+    const expectedMap = await ballot.getByTestId("resolved-map").innerText();
     expect(voting.map_candidates!.slice(0, 2)).toContain(expectedMap);
-    await expect(panel.getByTestId("map-vote-gallery")).toHaveCount(0);
-    const expanded = await panel.getByTestId("resolved-map-card").boundingBox();
+    await expect(ballot.getByTestId("map-vote-gallery")).toHaveCount(0);
+    const expanded = await ballot.getByTestId("resolved-map-card").boundingBox();
     expect(expanded!.width).toBeGreaterThan(galleryBefore!.width - 2);
     await capturePanel(panel, "map-confirmed-expanded");
-    await expect(panel.getByTestId("balance-win-probability")).toHaveCount(1);
-    await expect(panel.getByTestId("balance-win-probability")).toContainText(expectedMap);
+    await expect(ballot.getByTestId("balance-win-probability")).toHaveCount(1);
+    await expect(ballot.getByTestId("balance-win-probability")).toContainText(expectedMap);
     await Promise.all([panel, memberPanel, mirrorPanel].map(async (view) => {
       await expect(view).toHaveAttribute("data-balance-phase", "hero_ban", { timeout: 20_000 });
       await expect(view.getByText(expectedMap, { exact: true })).toBeVisible();

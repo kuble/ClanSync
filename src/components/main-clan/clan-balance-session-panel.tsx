@@ -247,7 +247,9 @@ export function ClanBalanceSessionPanel({
   const preparingMatch = Boolean(session?.phase === "editing" && mapScreen && session.resolved_map_label);
   const selectingMapTypes = Boolean(session?.phase === "editing" && mapScreen && session.map_ban_enabled && !session.resolved_map_label);
   const teamAdjustment = formation?.stage === "review" && presentationNow >= formationRevealEnd;
-  const editingScreen = session?.phase === "editing" && (!mapScreen || preparingMatch || selectingMapTypes);
+  const mapPreparation = selectingMapTypes || session?.phase === "map_ban";
+  const preparationRoster = mapPreparation && (formation?.mode === "keep" || formation?.draw?.roleMode === "lottery");
+  const editingScreen = mapPreparation || session?.phase === "editing" && (!mapScreen || preparingMatch);
   const settings = parseFormationSettings(session?.formation_settings);
   const showPrediction = Boolean(session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled);
   async function flushRoster() {
@@ -454,7 +456,7 @@ export function ClanBalanceSessionPanel({
               {session?.phase === "match_live"
                 ? tx("경기 현황")
                 : session?.phase === "map_ban"
-                  ? tx("맵 투표")
+                  ? tx(canManage ? "밸런스 편집" : "팀 편성")
                   : session?.phase === "hero_ban"
                     ? tx("영웅 밴")
                     : mapScreen && !preparingMatch && !selectingMapTypes
@@ -558,7 +560,7 @@ export function ClanBalanceSessionPanel({
         ) : (
           <div className={cn("px-4 pt-2 sm:px-6", session.phase === "match_live" ? "pb-2 sm:pb-3" : "pb-4 sm:pb-6")}>
             {editorMap && !(canManage && !formation) ? <div data-testid="balance-roster-map" className="mx-auto mb-4 w-full max-w-sm">{editorMap}</div> : null}
-            {editingScreen && !selectingMapTypes && !(canManage && !formation) ? (
+            {editingScreen && !mapPreparation && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
                 {canManage && formation ? (
@@ -574,7 +576,7 @@ export function ClanBalanceSessionPanel({
             {editingScreen ? (
               <div className="flex flex-col gap-3">
                 <div data-balance-guide="board" className="order-2">
-                  {canManage && (!formation || teamAdjustment) ? (
+                  {canManage && (!formation || teamAdjustment || preparationRoster) ? (
                     <ClanBalanceRosterEditor
                       ref={rosterRef}
                       key={session.id + (teamAdjustment ? ":team-adjustment" : ":roster")}
@@ -584,8 +586,8 @@ export function ClanBalanceSessionPanel({
                       revision={session.formation_revision}
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
-                      canEdit={!busyFormation && !pending}
-                      teamAdjustment={teamAdjustment}
+                      canEdit={!mapPreparation && !busyFormation && !pending}
+                      teamAdjustment={teamAdjustment || Boolean(preparationRoster && settings.roles === "lottery")}
                       scoreControl={teamAdjustment ? undefined : scoreControl}
                       rosterAside={teamAdjustment ? undefined : editorMap}
                       scores={canViewScores && scoreReady ? displayScores : undefined}
@@ -646,7 +648,7 @@ export function ClanBalanceSessionPanel({
                     onPendingChange={setPreferencePending}
                   />
                 ) : null}
-                {!selectingMapTypes ? <ClanBalanceFormation
+                {!mapPreparation ? <ClanBalanceFormation
                   endSessionControl={formation && !["complete", "review"].includes(formation.stage) ? null : endSessionControl}
                   serverNow={presentationNow}
                   key={session.id}
@@ -679,23 +681,12 @@ export function ClanBalanceSessionPanel({
 
             {(mapScreen && !preparingMatch) || session.phase === "match_live" ? <div className="my-4"><AuctionPurchases state={formation} /></div> : null}
 
-            {session.phase === "editing" && mapScreen ? (
-              session.resolved_map_label ? (
+            {(session.phase === "editing" && mapScreen) || session.phase === "map_ban" ? (
+              session.phase === "editing" && session.resolved_map_label ? (
                 canManage ? <BalanceAutoStartMatch key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} heroBan={session.hero_ban_enabled && session.banned_heroes === null} /> : <BalancePreparationOverlay />
               ) : (
               <ClanBalancePrematchControls
-                endSessionControl={endSessionControl}
-                renderInsights={(map) => renderInsights(map, rosterData, true)}
-                key={`${session.id}:${JSON.stringify(session.map_types)}`}
-                gameSlug={gameSlug}
-                clanId={clanId}
-                session={session}
-                canManage={canManage}
-              />
-              )
-            ) : null}
-            {session.phase === "map_ban" ? (
-              <div className="space-y-6">
+                mapVoteControl={session.phase === "map_ban" ? (<div className="space-y-6">
                 {triple ? (
                   <ClanBalanceMapBanClient
                     gameSlug={gameSlug}
@@ -719,9 +710,17 @@ export function ClanBalanceSessionPanel({
                     {tx("맵 후보를 불러오지 못했습니다. 페이지를 새로고침해 주십시오.")}
                   </p>
                 )}
-              </div>
+              </div>) : null}
+                endSessionControl={endSessionControl}
+                renderInsights={(map) => renderInsights(map, rosterData, true)}
+                key={session.id}
+                gameSlug={gameSlug}
+                clanId={clanId}
+                session={session}
+                canManage={canManage}
+              />
+              )
             ) : null}
-
             {session.phase === "hero_ban" ? (
               <div className="space-y-6" data-balance-guide="hero-vote">
                 {session.resolved_map_label ? (
