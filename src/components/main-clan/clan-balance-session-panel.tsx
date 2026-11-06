@@ -9,7 +9,7 @@ import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
 import type { FormEvent } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
   Settings2,
@@ -64,6 +64,7 @@ import {
   parseFormationSettings,
   type Role,
   type FormationState,
+  type ConfirmedFormation,
 } from "@/lib/balance/formation";
 import { Button } from "@/components/ui/button";
 import { defaultMaForRoster } from "@/lib/balance/ma-snapshot";
@@ -74,7 +75,7 @@ import {
   rosterAssignedUserIds,
 } from "@/lib/balance/roster-schema";
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
 import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } from "./balance-team-insights";
@@ -114,7 +115,7 @@ export function ClanBalanceSessionPanel({
   scoreScope,
   hostNickname,
   roomTitle,
-  session,
+  session: serverSession,
   series,
   profileRanking,
   roundRanking,
@@ -159,6 +160,18 @@ export function ClanBalanceSessionPanel({
   const tx = useTranslator();
   const dock = useMovableDrawerTab();
   const router = useRouter();
+  const formationScope = `${userId}:${clanId}`;
+  const [confirmedFormation, setConfirmedFormation] = useState<(ConfirmedFormation & { scope: string }) | null>(null);
+  const onConfirmed = useCallback((confirmed: ConfirmedFormation) => {
+    setConfirmedFormation(current => current?.scope === formationScope && current.roundId === confirmed.roundId && current.revision >= confirmed.revision
+      ? current : { ...confirmed, scope: formationScope });
+  }, [formationScope]);
+  // 저장 성공 후 오래된 재조회에 되돌아가지 않고 같은 버전 이후의 서버 상태를 따른다.
+  const session = useMemo(() => serverSession && serverSession.phase === "editing" && confirmedFormation?.scope === formationScope &&
+    confirmedFormation.roundId === serverSession.id && confirmedFormation.revision > serverSession.formation_revision
+    ? { ...serverSession, formation_state: confirmedFormation.state as unknown as Json,
+      roster: confirmedFormation.state.roster as unknown as Json, formation_revision: confirmedFormation.revision }
+    : serverSession, [serverSession, confirmedFormation, formationScope]);
   const [scoreSnapshot, setScoreSnapshot] = useState<{ scope: string; source: Promise<BalanceScoreData>; value: BalanceScoreData } | null>(null);
   useEffect(() => {
     let current = true;
@@ -658,6 +671,7 @@ export function ClanBalanceSessionPanel({
                   beforeStart={flushRoster}
                   setupPending={preferencePending || mapSaving}
                   onPendingChange={setBusyFormation}
+                  onConfirmed={onConfirmed}
                 /> : null}
                 {formation && !["complete", "review"].includes(formation.stage) ? <div className="order-last">{endSessionControl}</div> : null}
               </div>

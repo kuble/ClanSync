@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
 import {
   ROLE_LABEL, TEAM_LABEL, canFit, canControlTeam, canBidForTeam, draftTurn, getFormationDeadline,
-  type FormationSettings, type Team, type FormationState, type FormationCommand,
+  type FormationSettings, type Team, type FormationState, type FormationCommand, type ConfirmedFormation,
 } from "@/lib/balance/formation";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 export function ClanBalanceFormation({
   gameSlug, clanId, roundId, revision, drawHistoryLength, state, settings, bans,
-  pool, userId, canManage, readOnly = false, beforeStart, onPendingChange,
+  pool, userId, canManage, readOnly = false, beforeStart, onPendingChange, onConfirmed,
   serverNow, setupPending = false, endSessionControl,
 }: {
   serverNow: number; setupPending?: boolean; endSessionControl?: ReactNode;
@@ -29,6 +29,7 @@ export function ClanBalanceFormation({
   userId: string; canManage: boolean; readOnly?: boolean;
   beforeStart?: () => Promise<{ ok: true; revision: number; roster: BalanceRoster } | { ok: false }>;
   onPendingChange?: (pending: boolean) => void;
+  onConfirmed: (formation: ConfirmedFormation) => void;
 }) {
   const tx = useTranslator();
   const router = useRouter();
@@ -61,14 +62,15 @@ export function ClanBalanceFormation({
         try {
           const result = await updateFormationAction(gameSlug, clanId, roundId, revision, { type: "tick" });
           setProgressError(result.ok ? null : result.error);
-          router.refresh();
+          if (result.ok && result.confirmedFormation) onConfirmed(result.confirmedFormation);
+          else router.refresh();
         } catch {
           setProgressError("연결을 확인하고 있습니다. 복구되면 자동으로 이어집니다.");
         }
       });
     }, delay);
     return () => clearTimeout(timer);
-  }, [due, pending, gameSlug, clanId, roundId, revision, deadline, router, retry]);
+  }, [due, pending, gameSlug, clanId, roundId, revision, deadline, router, retry, onConfirmed]);
 
   function run(command: FormationCommand) {
     start(async () => {
@@ -82,7 +84,7 @@ export function ClanBalanceFormation({
         if (!result.ok) {
           toast.error(result.error);
           router.refresh();
-        }
+        } else if (result.confirmedFormation) onConfirmed(result.confirmedFormation);
       } catch {
         toast.error("연결을 확인한 뒤 다시 시도하십시오.");
       } finally {

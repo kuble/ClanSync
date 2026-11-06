@@ -197,6 +197,12 @@ export type FormationState = {
   pausedAt: number | null;
   log: { text: string; player?: string; team?: Team; amount?: number }[];
 };
+export type ConfirmedFormation = {
+  roundId: string;
+  revision: number;
+  state: FormationState;
+};
+
 export type FormationCommand =
   | {
       type: "start";

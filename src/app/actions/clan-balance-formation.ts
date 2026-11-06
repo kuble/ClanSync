@@ -12,6 +12,7 @@ import {
   type Role,
   type FormationCommand,
   type FormationState,
+  type ConfirmedFormation,
 } from "@/lib/balance/formation";
 import { parseRoster } from "@/lib/balance/roster-schema";
 import { ROLE_DRAW_DURATION_MS } from "@/lib/balance/draw-presentation";
@@ -27,13 +28,17 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/database.types";
 
+type FormationActionResult =
+  | { ok: true; confirmedFormation?: ConfirmedFormation }
+  | { ok: false; error: string };
+
 export async function updateFormationAction(
   gameSlug: string,
   clanId: string,
   roundId: string,
   revision: number,
   command: FormationCommand,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<FormationActionResult> {
   try {
     const client = await createClient();
     const {
@@ -204,6 +209,9 @@ export async function updateFormationAction(
       throw new Error(
         "경기가 변경되었습니다. 최신 화면에서 다시 시도하십시오.",
       );
+    if (saved && round.map_ban_enabled && !round.resolved_map_label && next?.stage === "complete" && next.appliedAt !== undefined) {
+      return { ok: true, confirmedFormation: { roundId, revision: commitRevision + 1, state: next } };
+    }
     revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
     return { ok: true };
   } catch (error) {
