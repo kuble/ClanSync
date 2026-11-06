@@ -89,11 +89,21 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     await expect(dialog.getByRole("radio", { name: "일요일 오후 8시", exact: true })).toBeChecked();
     // Another operator closes the poll after this viewer started editing.
     await ok(f.service.from("clan_polls").update({ closed_at: new Date().toISOString() }).eq("id", single.id));
-    await dialog.getByRole("radio", { name: "금요일 오후 9시", exact: true }).press("Space");
-    await dialog.getByRole("button", { name: "변경 저장", exact: true }).click();
-    await expect(dialog.getByRole("alert")).toContainText("종료된 투표입니다.");
-    await expect(dialog.getByRole("radio", { name: "금요일 오후 9시", exact: true })).toBeChecked();
-    expect(await readVote()).toEqual([{ option_id: single.options[2].id }]);
+    for (const [current, next] of [[2, 0], [0, 1]]) {
+      // 선택된 라디오에서 화살표로 이동하고 실제 전송 값까지 확인한다.
+      await dialog.getByRole("radio", { name: single.options[current].label, exact: true }).press("ArrowRight");
+      const choice = dialog.getByRole("radio", { name: single.options[next].label, exact: true });
+      await expect(choice).toBeChecked();
+      const rejected = page.waitForResponse(response => response.request().method() === "POST" &&
+        Boolean(response.request().headers()["next-action"]) &&
+        Boolean(response.request().postData()?.includes(single.options[next].id)));
+      await dialog.getByRole("button", { name: "변경 저장", exact: true }).click();
+      expect((await rejected).ok()).toBe(true);
+      await expect(dialog.getByRole("alert")).toContainText("종료된 투표입니다.");
+      await expect(dialog.getByRole("button", { name: "변경 저장", exact: true })).toBeEnabled();
+      await expect(choice).toBeChecked();
+      expect(await readVote()).toEqual([{ option_id: single.options[2].id }]);
+    }
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
     await expect(page.getByRole("button", { name: "이번 주 내전은 언제 하시겠습니까? 내 투표 보기", exact: true })).toBeFocused();
