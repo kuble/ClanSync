@@ -14,6 +14,11 @@ export async function loadBalanceScoreData(supabase: SupabaseClient<Database>, c
   if (!canViewScores) return { ok: true, scores: {} };
   const ids = rosterAssignedUserIds(parseRoster(session.roster));
   const current = parseMaSnapshot(session.ma_snapshot);
+  if (session.phase === "map_ban") {
+    const scores: MaSnapshot = {};
+    applyCurrentScores(scores, session, planPremium);
+    return { ok: true, scores };
+  }
   if (session.phase === "match_live" && ids.length === 10 && ids.every(id => current[id])) {
     const scores: MaSnapshot = {};
     applyCurrentScores(scores, session, planPremium);

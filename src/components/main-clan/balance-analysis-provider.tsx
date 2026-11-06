@@ -12,8 +12,8 @@ export function BalanceAnalysisProvider({ model, map, children }: { model?: Pred
 }
 
 // undefined means this view has no analysis model; null means an incomplete lineup.
-export function useAnalysisPrediction(roster: BalanceRoster, mode: ScoreMode, map?: string | null) {
+export function useAnalysisPrediction(roster: BalanceRoster, mode: ScoreMode, map?: string | null, enabled = true) {
   const context = useContext(ModelContext);
-  if (!context || mode !== "a") return undefined;
+  if (!enabled || !context || mode !== "a") return undefined;
   return analysisWinPercent(context.model, roster, map === undefined ? context.map : map);
 }

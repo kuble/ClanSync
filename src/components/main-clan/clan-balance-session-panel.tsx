@@ -375,7 +375,7 @@ export function ClanBalanceSessionPanel({
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
     title={session.phase !== "editing" && session.match_outcome === "pending" ? tx("경기 결과 또는 무효를 먼저 기록하십시오.") : undefined}
     onClick={() => setConfirmEnd(true)}>{tx("세션 종료")}</Button> : null;
-  const sampleScores = canViewScores && scoreReady && qaPreviewEnabled;
+  const sampleScores = canViewScores && scoreReady && qaPreviewEnabled && session?.phase !== "map_ban";
   const baseScores = useMemo(() => sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores, [sampleScores, rosterPool, scores]);
   const displayScores = useMemo(() => analysisContext ? contextualScores(baseScores, analysisContext, rosterData, editorMapLabel, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players), [baseScores, analysisContext, rosterData, editorMapLabel, formation?.players]);
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
@@ -390,7 +390,7 @@ export function ClanBalanceSessionPanel({
       saving={mapSaving} onSavingChange={setMapSaving} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
 
   return (
-    <BalanceAnalysisProvider model={predictionModel} map={editorMapLabel}>
+    <BalanceAnalysisProvider model={session?.phase === "map_ban" ? undefined : predictionModel} map={editorMapLabel}>
     <BalanceNamecardMode hide={Boolean(canManage && editingScreen)} profileLinks={!canManage} nicknameOnly={settings.nicknameOnly}><div
       className="space-y-5"
       data-testid="clan-balance-session-panel"
@@ -634,7 +634,7 @@ export function ClanBalanceSessionPanel({
                       playerSessionInfo={playerSessionInfo}
                       samplePlayerIds={samplePlayerIds}
                       samplePrediction={sampleScores}
-                      showPrediction={!flash && planPremium}
+                      showPrediction={!flash && planPremium && session.phase !== "map_ban"}
                       showPlayerCardScore={settings.showPlayerCardScore}
                       showPlayerCardInfo={settings.showPlayerCardInfo}
                       showTeamComparisonSummary={settings.showTeamComparisonSummary}
@@ -654,7 +654,7 @@ export function ClanBalanceSessionPanel({
                       playerSessionInfo={playerSessionInfo}
                       samplePlayerIds={samplePlayerIds}
                       samplePrediction={sampleScores}
-                      showPrediction={!flash && planPremium}
+                      showPrediction={!flash && planPremium && session.phase !== "map_ban"}
                       showPlayerCardScore={settings.showPlayerCardScore}
                       showPlayerCardInfo={settings.showPlayerCardInfo}
                       showTeamComparisonSummary={settings.showTeamComparisonSummary}
@@ -741,7 +741,6 @@ export function ClanBalanceSessionPanel({
                     tallies={tallyMapVotes(votes)}
                     canResolve={canManage}
                     heroBanEnabled={session.hero_ban_enabled}
-                    renderInsights={(map) => renderInsights(map, rosterData, true)}
                   />
                 ) : (
                   <p

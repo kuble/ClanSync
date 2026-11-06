@@ -42,10 +42,11 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
   };
   const ids = [roster.team1.tank, ...roster.team1.dmg, ...roster.team1.sup, roster.team2.tank, ...roster.team2.dmg, ...roster.team2.sup];
   const complete = ids.every(Boolean) && new Set(ids).size === 10;
-  const context = predictionContext(roster, scores, mode, null);
-  const analysis = useAnalysisPrediction(roster, mode);
-  const resolvedEstimate = analysis === undefined && samplePrediction ? sampleBalanceEstimate(context) : estimate;
-  const validEstimate = isValidBalanceEstimate(resolvedEstimate, context, complete);
+  const wantsPrediction = premium && showPrediction;
+  const context = wantsPrediction ? predictionContext(roster, scores, mode, null) : "";
+  const analysis = useAnalysisPrediction(roster, mode, undefined, wantsPrediction);
+  const resolvedEstimate = wantsPrediction && analysis === undefined && samplePrediction ? sampleBalanceEstimate(context) : estimate;
+  const validEstimate = wantsPrediction && isValidBalanceEstimate(resolvedEstimate, context, complete);
   const predictedTeam1 = analysis !== undefined ? analysis : validEstimate ? resolvedEstimate!.team1 : null;
   let predictionStatus = complete ? "예측 준비 중" : "10명 편성 후 확인";
   if (typeof analysis === "number") predictionStatus = "조합·맵·상대 전적 반영";

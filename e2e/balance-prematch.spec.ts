@@ -268,9 +268,9 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     );
     await expect(ballot.getByRole("button", { name: "맵 확정하기", exact: true })).toHaveCount(0);
     await expect(ballot.getByText(/명 투표 · 내 선택/)).toHaveCount(0);
-    const oddsBefore = await ballot.getByTestId("balance-win-probability").boundingBox();
+    await expect(page.getByTestId("balance-win-probability")).toHaveCount(0);
+    await expect(panel.locator('[data-mode="prediction"]')).toHaveCount(0);
     const galleryBefore = await ballot.getByTestId("map-vote-gallery").boundingBox();
-    expect(oddsBefore!.y).toBeGreaterThan(galleryBefore!.y + galleryBefore!.height);
     await expect(ballot.locator('[data-map-revealing="true"]')).toBeVisible({ timeout: 20_000 });
     await expect(ballot.locator('[data-vote-excluded="true"]')).toHaveCount(1);
     await expect(ballot.locator('[data-vote-excluded="true"]')).toContainText(voting.map_candidates![2]);
@@ -283,8 +283,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     const expanded = await ballot.getByTestId("resolved-map-card").boundingBox();
     expect(expanded!.width).toBeGreaterThan(galleryBefore!.width - 2);
     await capturePanel(panel, "map-confirmed-expanded");
-    await expect(ballot.getByTestId("balance-win-probability")).toHaveCount(1);
-    await expect(ballot.getByTestId("balance-win-probability")).toContainText(expectedMap);
+    await expect(page.getByTestId("balance-win-probability")).toHaveCount(0);
     await Promise.all([panel, memberPanel, mirrorPanel].map(async (view) => {
       await expect(view).toHaveAttribute("data-balance-phase", "hero_ban", { timeout: 20_000 });
       await expect(view.getByText(expectedMap, { exact: true })).toBeVisible();

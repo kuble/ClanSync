@@ -2,7 +2,7 @@
 
 import { useTranslator } from "#use-translator";
 import { formatPercent } from "@/lib/format-percent";
-import { useEffect, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Map, Timer } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ export function ClanBalanceMapBanClient({
   canResolve,
   resolvedMap = null,
   heroBanEnabled,
-  renderInsights,
   serverNow,
 }: {
   gameSlug: string;
@@ -42,7 +41,6 @@ export function ClanBalanceMapBanClient({
   canResolve: boolean;
   resolvedMap?: string | null;
   heroBanEnabled: boolean;
-  renderInsights?: (map: string | null) => ReactNode;
   serverNow?: number;
 }) {
   const tx = useTranslator();
@@ -247,7 +245,6 @@ export function ClanBalanceMapBanClient({
           <Button variant="outline" onClick={() => setAdvanceError(null)}>{tx("다음 단계 다시 시도")}</Button>
         </div>
       ) : null}
-      {renderInsights?.(displayedMap)}
     </div>
   );
 }
