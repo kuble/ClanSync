@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
+test.use({ actionTimeout: 20_000 });
+
 test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하고 적중률만 공개", async ({ page }) => {
   test.setTimeout(90_000);
   const f = await createIsolatedBalanceFixture(12);
@@ -15,7 +17,7 @@ test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하�
       formation_settings: { roles: "manual", teams: "keep", predictionEnabled: true } }).eq("id", round.id)).error).toBeNull();
     await page.reload();
     await page.getByRole("dialog", { name: "경기 맵 선택", exact: true }).getByRole("button", { name: "부산 선택", exact: true }).click();
-    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await page.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
     const drawer = page.getByRole("dialog", { name: "승부예측", exact: true });
     await expect(drawer).toContainText("개설자 · 예측만 참여");
     await drawer.getByRole("button", { name: "가이드", exact: true }).click();
@@ -42,7 +44,7 @@ test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하�
     await page.getByTestId("clan-balance-session-panel").getByRole("button", { name: "다음 단계", exact: true }).click();
     await expect(page.getByTestId("clan-balance-session-panel")).toHaveAttribute("data-balance-phase", "match_live");
     await page.reload();
-    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await page.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
     await expect(drawer).toContainText("블루 승 · 코인 참여 없음");
     const spectator = await f.memberClient(11);
     expect((await spectator.rpc("place_balance_prediction_pool", { p_session_id: round.id, p_pick: 1, p_stake: 10 })).error).toBeNull();
@@ -51,7 +53,7 @@ test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하�
     await drawer.getByRole("button", { name: "닫기", exact: true }).click();
     await page.getByRole("button", { name: "1팀 승리 선택", exact: true }).click();
     await page.getByRole("dialog", { name: /로 확정하시겠습니까\?/ }).getByRole("button", { name: "확정", exact: true }).click();
-    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await page.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
     await expect(drawer).toContainText("적중 · 코인 참여 없음");
     const ranking = drawer.getByRole("table").getByRole("row").filter({ hasText: f.users[0].nickname });
     await expect(ranking).toContainText("100.0%");
@@ -75,8 +77,16 @@ test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·�
     const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     expect((await f.service.from("balance_sessions").update({ roster, map_ban_enabled: false, hero_ban_enabled: false, formation_settings: { roles: "manual", teams: "keep", predictionEnabled: true } }).eq("id", round.id)).error).toBeNull();
     await spectator.goto(room.url);
-    await spectator.getByRole("button", { name: "승부예측", exact: true }).click();
+    await spectator.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
     const drawer = spectator.getByRole("dialog", { name: "승부예측", exact: true });
+    // 창이 열리면 접근 버튼이 숨겨지므로 닫힘을 확인한 뒤 키보드로 재진입한다.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await expect(drawer).toBeVisible();
+      await expect(spectator.getByRole("button", { name: "승부예측", exact: true })).toHaveCount(0);
+      await drawer.getByRole("button", { name: "닫기", exact: true }).click();
+      await expect(drawer).toBeHidden();
+      await spectator.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
+    }
     await expect(drawer).toContainText("경기 시작 후 2분");
     await expect(drawer).toContainText("사용 가능 100");
     await drawer.getByRole("button", { name: "블루 승", exact: true }).click();
@@ -117,12 +127,12 @@ test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·�
     await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
     await page.getByTestId("clan-balance-session-panel").getByRole("button", { name: "다음 단계", exact: true }).click();
     await expect(page.getByTestId("clan-balance-session-panel")).toHaveAttribute("data-balance-phase", "match_live");
-    if (!(await drawer.isVisible())) await spectator.getByRole("button", { name: "승부예측", exact: true }).click();
+    await expect(drawer).toBeVisible();
     await drawer.getByRole("heading", { name: "승부예측", exact: true }).hover();
     await expect(drawer).toContainText(/(?:1:[0-5]\d|2:00)/);
     const deadline = (await f.activeRound(room.roomId)).prediction_deadline_at;
     await spectator.reload();
-    await spectator.getByRole("button", { name: "승부예측", exact: true }).click();
+    await spectator.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
     await expect(drawer).toContainText("블루 승 · 10코인 참여");
     expect((await f.activeRound(room.roomId)).prediction_deadline_at).toBe(deadline);
     expect((await f.service.from("balance_sessions").update({ prediction_deadline_at: new Date(Date.now() - 1000).toISOString() }).eq("id", round.id)).error).toBeNull();
@@ -142,11 +152,10 @@ test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·�
     expect(await spectator.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await spectator.screenshot({ path: test.info().outputPath("prediction-pool-settled-mobile.png"), fullPage: true });
     await drawer.getByRole("button", { name: "닫기", exact: true }).click();
-    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await page.getByRole("button", { name: "승부예측", exact: true }).press("Enter");
     const participant = page.getByRole("dialog", { name: "승부예측", exact: true });
     await expect(participant.getByRole("table")).toContainText(f.users[11].nickname);
   } finally {
-    await context.close();
-    await f.cleanup();
+    try { await context.close(); } finally { await f.cleanup(); }
   }
 });
