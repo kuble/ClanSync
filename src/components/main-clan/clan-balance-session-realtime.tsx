@@ -39,7 +39,6 @@ export function ClanBalanceSessionRealtime({
     // Starting a fresh request every two seconds can starve a slow transition.
     if (!refreshPending && queuedRefreshRef.current) {
       queuedRefreshRef.current = false;
-      refreshingRef.current = true;
       startRefresh(() => router.refresh());
     }
   }, [refreshPending, router]);
@@ -57,7 +56,8 @@ export function ClanBalanceSessionRealtime({
       if (refreshTimer) return;
       refreshTimer = setTimeout(() => {
         refreshTimer = undefined;
-        refreshingRef.current = true;
+        // Only React's committed transition state may hold the refresh lock.
+        // A refresh coalesced with a Server Action may never commit pending=true.
         startRefresh(() => router.refresh());
       }, 120);
     };

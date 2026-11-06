@@ -87,13 +87,16 @@ async function finishRemainingLots(fixture: Fixture, roomId: string) {
   throw new Error("Auction did not reach item selection after all lot deadlines");
 }
 
-test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후 편성 완료", async ({ page, browser }) => {
+for (const revisionFallback of [false, true]) {
+test(`주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후 편성 완료${revisionFallback ? " (실시간 연결 없이 재조회)" : ""}`, async ({ page, browser }) => {
   test.setTimeout(360_000);
   const fixture = await createIsolatedBalanceFixture(10);
   const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL });
   memberContext.setDefaultTimeout(20_000);
   const member = await memberContext.newPage();
   try {
+    // A missed socket event must still reach every stage without reloading.
+    if (revisionFallback) await member.routeWebSocket(/\/realtime\/v1\/websocket/, (socket) => socket.close());
     await Promise.all([
       loginIsolatedBalanceUser(page, fixture.users[0]),
       loginIsolatedBalanceUser(member, fixture.users[1]),
@@ -333,8 +336,19 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
       .toContainText(selectedItem.name);
     await expect(memberPanel.getByRole("complementary", { name: "구매한 전략 아이템", exact: true }))
       .toContainText(selectedItem.name);
+  } catch (error) {
+    await test.info().attach("auction-before-cleanup", {
+      body: JSON.stringify({
+        leader: { url: page.url(), visibility: await page.evaluate(() => document.visibilityState), text: await page.locator("body").innerText() },
+        member: { url: member.url(), visibility: await member.evaluate(() => document.visibilityState), text: await member.locator("body").innerText() },
+        round: await fixture.activeRound().catch(() => null),
+      }, null, 2),
+      contentType: "application/json",
+    });
+    throw error;
   } finally {
     await memberContext.close();
     await fixture.cleanup();
   }
 });
+}
