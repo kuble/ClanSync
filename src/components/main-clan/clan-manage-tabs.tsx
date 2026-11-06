@@ -1,8 +1,7 @@
 "use client";
 
 import { useTranslator } from "#use-translator";
-import { useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Bell, BarChart3, CreditCard, ImageIcon, LayoutDashboard, Megaphone, Swords, UserRoundPlus, Users } from "lucide-react";
 import { MANAGE_SECTIONS, type ManageTab } from "@/lib/clan/manage-sections";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
@@ -10,8 +9,6 @@ import { ClanSectionLinks } from "./clan-section-links";
 
 const icons = { overview: LayoutDashboard, promotion: Megaphone, notices: Megaphone, appearance: ImageIcon, requests: UserRoundPlus, members: Users, balance: Swords, notifications: Bell, insights: BarChart3, subscription: CreditCard };
 const visibleSections = MANAGE_SECTIONS.filter(section => section.key !== "notices");
-// Query changes can remount the page; convert each legacy link once per document.
-const convertedLegacyLinks = new Set<string>();
 
 /** Server navigation loads only the selected section, including on refresh/back. */
 export function ClanManageNavigation({ selected, pendingCount, basePath }: {
@@ -20,19 +17,20 @@ export function ClanManageNavigation({ selected, pendingCount, basePath }: {
   basePath: string;
 }) {
   const tx = useTranslator();
-  const router = useRouter();
-  const [, start] = useTransition();
   useEffect(() => {
-    // Preserve old plan links saved before query-based navigation.
-    if (window.location.hash === "#subscription") {
-      const firstVisit = !convertedLegacyLinks.has(basePath);
-      convertedLegacyLinks.add(basePath);
+    const convertLegacyLink = () => {
+      if (window.location.hash !== "#subscription") return;
       const current = new URL(window.location.href);
       current.hash = "";
-      window.history.replaceState(window.history.state, "", current);
-      if (firstVisit && selected !== "subscription") start(() => router.replace(`${basePath}?tab=subscription`, { scroll: false }));
-    }
-  }, [basePath, router, selected]);
+      current.searchParams.set("tab", "subscription");
+      // Next can learn the initial hash in its route cache; reload the normalized entry.
+      window.history.replaceState(window.history.state, "", `${basePath}${current.search}`);
+      window.location.reload();
+    };
+    convertLegacyLink();
+    window.addEventListener("hashchange", convertLegacyLink);
+    return () => window.removeEventListener("hashchange", convertLegacyLink);
+  }, [basePath]);
 
   const group = visibleSections.find((section) => section.key === selected)?.group;
   const groups = [...new Set(visibleSections.map((section) => section.group))];

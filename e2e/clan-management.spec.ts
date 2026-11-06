@@ -188,15 +188,7 @@ test("management sections preserve navigation, pending counts and officer/member
       const group = ["overview", "appearance", "insights"].includes(key) ? "클랜 운영" : ["requests", "members"].includes(key) ? "구성원 관리" : "운영 설정";
       const label = { overview: "운영 현황", appearance: "클랜 꾸미기", requests: "가입 요청", members: "구성원", balance: "내전", notifications: "알림·연동", insights: "운영 통계", subscription: "코인·플랜" }[key]!;
       for (const [menu, target] of [["클랜 관리 분류", group], ["클랜 관리 항목", label]]) {
-        const navigation = page.getByRole("navigation", { name: menu, exact: true });
-        const trigger = navigation.getByRole("button");
-        const name = new RegExp(`^${target}`);
-        if (await trigger.isVisible()) {
-          await trigger.click();
-          await page.getByRole("menuitem", { name }).click();
-        } else {
-          await navigation.getByRole("link", { name }).click();
-        }
+        await selectSectionLink(page, menu, target);
       }
     }
     await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: /^구성원 관리/ }).click();
@@ -366,5 +358,33 @@ test("management sections preserve navigation, pending counts and officer/member
     await selectSection("subscription");
     await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "테스트 플랜 전환", exact: true })).toHaveCount(0);
+  } finally { await f.cleanup(); }
+});
+
+test("구형 플랜 주소를 정규화하고 탭 이동·뒤로가기에서 해시를 남기지 않는다", async ({ page }) => {
+  const f = await createIsolatedBalanceFixture(1);
+  const manage = f.path.replace(/\/balance$/, "/manage");
+  try {
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(`${manage}#subscription`);
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=subscription$`));
+      await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
+      await selectSectionLink(page, "클랜 관리 분류", "클랜 운영");
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=overview$`));
+      await page.goBack();
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=subscription$`));
+      await page.goForward();
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=overview$`));
+      // A same-document legacy fragment must also convert on repeated visits.
+      await page.goto(`${manage}?tab=overview#subscription`);
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=subscription$`));
+      await page.reload();
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=subscription$`));
+      await page.goto(`${manage}?tab=subscription#subscription`);
+      await expect(page).toHaveURL(new RegExp(`${manage}\\?tab=subscription$`));
+      await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
+    }
   } finally { await f.cleanup(); }
 });
