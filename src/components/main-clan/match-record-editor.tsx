@@ -5,8 +5,8 @@ import { useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import type { ClanArchiveMatch, ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
-import { editClanMatchRecord, reloadClanMatchRecordArchive, type MatchRecordInput } from "@/app/actions/clan-match-records";
+import type { ClanArchiveMatch, ClanStatsDetail, ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
+import { editClanMatchRecord, type MatchRecordInput } from "@/app/actions/clan-match-records";
 import { MatchRecordMapPicker } from "./match-record-map-picker";
 
 type Role = MatchRecordInput["players"][number]["role"];
@@ -48,8 +48,13 @@ export function MatchRecordEditor({ gameSlug, clanId, match, day, members, mode,
         if (savedDay) {
           startTransition(async () => {
             try {
-              const result = await reloadClanMatchRecordArchive({ clanId, day: savedDay });
-              if (result.ok) onSaved(result.archive, savedDay); else setError(result.error);
+              const response = await fetch(`/api/clans/${clanId}/stats?section=archive&day=${savedDay}&directory=1`, { cache: "no-store" });
+              const result = await response.json() as ClanStatsDetail;
+              if (response.status === 401) { setError("기록을 조회하려면 다시 로그인하십시오."); return; }
+              if (response.status === 403) { setError("기록은 저장됐지만 현재 조회 권한이 없습니다."); return; }
+              if (!response.ok) throw new Error("기록 조회 실패");
+              if (result.kind !== "archive") throw new Error("잘못된 기록 응답");
+              onSaved(result.archive, savedDay);
             } catch { setError("기록은 저장되었습니다. 최신 목록을 불러오지 못했습니다. 조회를 다시 시도하십시오."); }
           });
           return;

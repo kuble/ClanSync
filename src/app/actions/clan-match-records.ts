@@ -54,13 +54,3 @@ async function readSavedArchive(client: Awaited<ReturnType<typeof createClient>>
     return { ok: false as const, error: "기록은 저장되었습니다. 최신 목록을 불러오지 못했습니다. 조회를 다시 시도하십시오." };
   }
 }
-
-/** Recovery rechecks the current user and permissions; it never writes a record. */
-export async function reloadClanMatchRecordArchive(input: { clanId: string; day: string }) {
-  if (!input || !UUID.test(input.clanId) || !/^\d{4}-\d{2}-\d{2}$/.test(input.day))
-    return { ok: false as const, error: "경기 기록 정보가 올바르지 않습니다." };
-  const client = await createClient();
-  const { data: { user } } = await client.auth.getUser();
-  if (!user) return { ok: false as const, error: "기록을 조회하려면 다시 로그인하십시오." };
-  return readSavedArchive(client, input.clanId, input.day);
-}

@@ -79,12 +79,12 @@ test("read-only recovery respects permission revocation after commit and restora
     changeFault({ resume: true });
     await expect(dialog.getByRole("alert")).toHaveText("기록은 저장됐지만 현재 조회 권한이 없습니다.");
     const [denied] = await Promise.all([
-      page.waitForResponse(response => response.request().method() === "POST" && !!response.request().headers()["next-action"]),
+      page.waitForResponse(response => response.request().method() === "GET" && response.url().includes(`/api/clans/${f.clanId}/stats?section=archive&day=2026-01-10&directory=1`)),
       dialog.getByRole("button", { name: "기록 다시 불러오기", exact: true }).click(),
     ]);
     await expect(dialog.getByRole("alert")).toHaveText("기록은 저장됐지만 현재 조회 권한이 없습니다.");
     const deniedBody = await denied.text();
-    expect(deniedBody).toContain('"ok":false');
+    expect(denied.status()).toBe(403);
     expect(deniedBody).not.toContain("sampleByDate");
     await expect(dialog.getByRole("button", { name: "기록 다시 불러오기", exact: true })).toBeEnabled();
     const restored = await f.service.from("clan_settings").update({ permissions: settings.data!.permissions }).eq("clan_id", f.clanId);
@@ -132,4 +132,13 @@ test("read-only recovery refuses an expired login without repeating the committe
     await expect(dialog.getByRole("alert")).toHaveText("기록을 조회하려면 다시 로그인하십시오.");
     expect(state()).toMatchObject({ writes: 1, mutationRequests: 1, failures: 2 });
   } finally { clearFault(); await f.cleanup(); }
+});
+
+test("기록 재조회 API는 로그인과 목록 요청 형식을 검사한다", async ({ request }) => {
+  const base = `/api/clans/${crypto.randomUUID()}/stats`;
+  const denied = await request.get(`${base}?section=archive&day=2026-01-10&directory=1`);
+  expect(denied.status()).toBe(401);
+  expect(await denied.json()).toEqual({ error: "로그인이 필요합니다." });
+  for (const query of ["section=archive&directory=all", "section=period&period=all&directory=1", "section=archive&day=2026-02-30&directory=1"])
+    expect((await request.get(`${base}?${query}`)).status()).toBe(400);
 });

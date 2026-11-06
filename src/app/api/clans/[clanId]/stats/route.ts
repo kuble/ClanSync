@@ -9,6 +9,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ clan
   const query = new URL(request.url).searchParams;
   const section = query.get("section"), personId = query.get("userId");
   const period = query.get("period"), day = query.get("day");
+  const directory = query.get("directory");
+  if (directory !== null && (section !== "archive" || directory !== "1")) {
+    return Response.json({ error: "잘못된 기록 목록 요청입니다." }, { status: 400, headers });
+  }
   const role = query.get("role");
   if (role !== null && (section !== "period" || (role !== "tank" && role !== "dmg" && role !== "sup"))) {
     return Response.json({ error: "잘못된 역할입니다." }, { status: 400, headers });
@@ -22,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ clan
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "로그인이 필요합니다." }, { status: 401, headers });
   const detail = section === "period" ? await loadClanStatsPeriod(supabase, clanId, period!, undefined, role)
-    : section === "archive" ? await loadClanStatsArchive(supabase, clanId, day ?? undefined)
+    : section === "archive" ? await loadClanStatsArchive(supabase, clanId, day ?? undefined, { includeDirectory: directory === "1" })
       : await loadClanStatsDetail(supabase, user.id, clanId, personId!);
   if (!detail) return Response.json({ error: "기록을 볼 수 있는 권한이 없습니다." }, { status: 403, headers });
   return Response.json(detail, { headers });
