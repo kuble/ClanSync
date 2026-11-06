@@ -34,6 +34,8 @@ npm ci
 
 `.env.example`을 참고해 `.env.local`에 개발용 Supabase URL·공개 키·서버 전용 서비스 키를 설정합니다. 비밀값은 커밋하지 않습니다.
 
+QA 픽스처의 공통 비밀번호는 [공통 픽스처 정의](scripts/fixtures/qa-fixtures.mjs)를 사용하며 별도 비밀번호 환경 변수를 설정하지 않습니다. 기존 QA 명단을 다시 시드하지 않습니다.
+
 ```sh
 npm run dev
 ```
