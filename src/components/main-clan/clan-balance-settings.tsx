@@ -115,6 +115,7 @@ export function ClanBalanceSettings({
     heroBan,
     banSettings,
     onOpenChange,
+    tx,
   ]);
   const baseRules = JSON.stringify([
     initialRules.settings,
