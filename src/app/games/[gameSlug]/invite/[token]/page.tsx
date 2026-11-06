@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ClanInviteJoin } from "@/components/onboarding/clan-invite-join";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { uuidPattern } from "@/lib/clan/board";
 import { buttonVariants } from "@/components/ui/button-variants";
 
@@ -15,8 +15,8 @@ export async function generateMetadata() {
 export default async function ClanInvitePage({ params }: { params: Promise<{ gameSlug: string; token: string }> }) {
   const tx = await getTranslator();
   const { gameSlug, token } = await params;
-  const client = await createClient();
-  const { data: { user } } = await client.auth.getUser();
+  const client = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/games/${gameSlug}/invite/${token}`)}`);
   const result = uuidPattern.test(token) ? await client.rpc("read_clan_join_invite", { p_token: token }) : null;
   if (result?.error) throw new Error("초대 링크를 확인하지 못했습니다. 다시 시도해 주십시오.");

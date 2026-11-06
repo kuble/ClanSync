@@ -12,7 +12,7 @@ import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { ProfileIdentity, type ProfileMembership } from "@/components/profile/profile-identity";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
@@ -54,10 +54,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
 async function ProfileContent({ initialTab }: { initialTab: "overview" | "account" }) {
   const tx = await getTranslator();
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect("/sign-in?next=/profile");
 
   // 요청 시각 기준 7일 전 필터 (Async Server Component; 시계 기준값)

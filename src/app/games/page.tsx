@@ -8,7 +8,7 @@ import { EntryBrand } from "@/components/entry/entry-brand";
 import { HeaderActions } from "@/components/ui/header-actions";
 import { AccountNotifications } from "@/components/onboarding/account-notifications";
 import type { ClanStatus, GameCardState } from "@/lib/routing/game-card-router";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import styles from "@/components/entry/entry.module.css";
 
@@ -21,8 +21,8 @@ export async function generateMetadata() {
 
 export default async function GamesPage() {
   const tx = await getTranslator();
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect("/sign-in?next=/games");
 
   const [

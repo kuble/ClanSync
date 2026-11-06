@@ -4,7 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { loadBoardPostDetail } from "@/lib/main-game/load-main-game-hub";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { formatCommunityDate } from "@/lib/main-game/format-community-date";
 import { cn } from "@/lib/utils";
@@ -23,10 +23,8 @@ export default async function BoardPostDetailPage({
   const tx = await getTranslator();
   const { gameSlug, postId } = await params;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect("/sign-in");
 
   const state = await loadGameOnboarding(supabase, user.id, gameSlug);

@@ -1,6 +1,6 @@
 import { getTranslator } from "@/lib/i18n/server";
 import { forbidden, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { loadOwnedPersonalEmblemCase } from "@/lib/personal-emblems/load-owned-case";
 import { PersonalEmblemCase } from "@/components/personal-emblems/personal-emblem-case";
 import { AccountShell } from "@/components/onboarding/account-shell";
@@ -14,8 +14,8 @@ export default async function MyEmblemsPage({ searchParams }: { searchParams: Pr
   const tx = await getTranslator();
   const query = await searchParams;
   if (query.clan !== undefined && (typeof query.clan !== "string" || !uuidPattern.test(query.clan))) forbidden();
-  const client = await createClient();
-  const { data: { user } } = await client.auth.getUser();
+  const client = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect("/sign-in?next=/profile/emblems");
   const collection = await loadOwnedPersonalEmblemCase(client, query.clan);
   if (!collection) forbidden();

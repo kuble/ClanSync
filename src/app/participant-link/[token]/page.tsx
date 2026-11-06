@@ -1,7 +1,7 @@
 import { getTranslator } from "@/lib/i18n/server";
 import { redirect } from "next/navigation";
 import { AccountShell } from "@/components/onboarding/account-shell";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { ClanParticipantClaim } from "@/components/main-clan/clan-participant-claim";
 
 export async function generateMetadata() {
@@ -12,8 +12,8 @@ export default async function ParticipantLinkPage({ params }: { params: Promise<
   const tx = await getTranslator();
   const { token } = await params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)) return <AccountShell><main className="mx-auto w-full max-w-lg space-y-4 break-words px-5 py-10"><h1 className="text-lg font-bold">{tx("참가자 기록 연결")}</h1><p className="text-sm text-muted-foreground">{tx("사용할 수 없는 연결 링크입니다.")}</p></main></AccountShell>;
-  const client = await createClient();
-  const { data: { user } } = await client.auth.getUser();
+  const client = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/participant-link/${token}`)}`);
   const { data, error } = await client.rpc("read_clan_participant_invite", { p_token: token });
   if (error) throw new Error("연결 링크를 확인하지 못했습니다.");

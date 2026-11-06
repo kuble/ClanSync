@@ -34,28 +34,21 @@ export async function loadGameOnboarding(
   userId: string,
   gameSlug: string,
 ): Promise<GameOnboardingState | null> {
-  const { data: game, error: gErr } = await supabase
-    .from("games")
-    .select("id, slug")
-    .eq("slug", gameSlug)
-    .maybeSingle();
-
-  if (gErr || !game) return null;
-
-  const [{ data: ugp }, { data: myClanRows }] = await Promise.all([
+  const [{ data: game, error: gErr }, { data: profiles }, { data: myClanRows }] = await Promise.all([
+    supabase.from("games").select("id, slug").eq("slug", gameSlug).maybeSingle(),
     supabase
       .from("user_game_profiles")
-      .select("is_verified,battle_tag,riot_id,game_uid")
-      .eq("user_id", userId)
-      .eq("game_id", game.id)
-      .maybeSingle(),
-    supabase.rpc("my_active_clan_for_game", { p_game_id: game.id }),
+      .select("game_id,is_verified,battle_tag,riot_id,game_uid")
+      .eq("user_id", userId),
+    supabase.rpc("my_active_clans_by_game"),
   ]);
+  if (gErr || !game) return null;
+  const ugp = profiles?.find(profile => profile.game_id === game.id);
 
   const authVerified = ugp?.is_verified === true;
   const identityRegistered = gameProfileIdentity(game.slug, ugp) !== null;
 
-  const myClan = myClanRows?.[0];
+  const myClan = myClanRows?.find(clan => clan.game_id === game.id);
   if (myClan?.clan_id) {
     return {
       gameId: game.id,

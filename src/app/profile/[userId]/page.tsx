@@ -1,6 +1,6 @@
 import { getTranslator } from "@/lib/i18n/server";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { PlayerProfileVisit } from "@/lib/profile/visibility";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +13,8 @@ export async function generateMetadata() {
 export default async function PlayerProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
   if (!/^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(userId)) notFound();
-  const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
+  const db = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/profile/${userId}`)}`);
   const [{ data, error }, memberships] = await Promise.all([
     db.rpc("read_player_profile", { p_user_id: userId }),
