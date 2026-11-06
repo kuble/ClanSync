@@ -4,7 +4,23 @@
   "copiedWithoutImageEdits": true,
   "assets": [
     {
-      "file": "01-regular/01.png",
+      "file": "04-first-regular/01.png",
+      "sourceFile": "exec-9f828bb2-0cec-41f5-b7dd-fb34587eb3de.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2255036,
+      "sha256": "5FB5896C4CB62C4F343EA4CD9510F614E77223788A428FC066BACF3B977D4930",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "archivedAssets": [
+    {
+      "conceptId": "01-regular/01",
       "sourceFile": "exec-f67d655f-6146-4b7a-a211-9eca423c8135.png",
       "width": 1942,
       "height": 809,
@@ -18,7 +34,7 @@
       ]
     },
     {
-      "file": "01-regular/02.png",
+      "conceptId": "01-regular/02",
       "sourceFile": "exec-8141cf85-b94e-45bb-9a0a-bd4e0dd99941.png",
       "width": 1942,
       "height": 809,
@@ -32,7 +48,7 @@
       ]
     },
     {
-      "file": "01-regular/03.png",
+      "conceptId": "01-regular/03",
       "sourceFile": "exec-21fa79d2-0593-49b5-9ffd-9d750020dbe8.png",
       "width": 1942,
       "height": 809,
@@ -46,7 +62,7 @@
       ]
     },
     {
-      "file": "01-regular/04.png",
+      "conceptId": "01-regular/04",
       "sourceFile": "exec-e2d4d867-15f8-4a22-b38e-6fa54f9908b2.png",
       "width": 1942,
       "height": 809,
@@ -60,7 +76,7 @@
       ]
     },
     {
-      "file": "01-regular/05.png",
+      "conceptId": "01-regular/05",
       "sourceFile": "exec-03c2d175-3423-4e1f-9fc9-cabd017a6e72.png",
       "width": 1942,
       "height": 809,
@@ -74,7 +90,7 @@
       ]
     },
     {
-      "file": "02-flash/01.png",
+      "conceptId": "02-flash/01",
       "sourceFile": "exec-ee3b6f15-f762-41c8-809a-39fa4d1d9a56.png",
       "width": 1942,
       "height": 809,
@@ -88,7 +104,7 @@
       ]
     },
     {
-      "file": "02-flash/02.png",
+      "conceptId": "02-flash/02",
       "sourceFile": "exec-deaf59fa-a484-4c87-955c-e52bb932d1c0.png",
       "width": 1942,
       "height": 809,
@@ -102,7 +118,7 @@
       ]
     },
     {
-      "file": "02-flash/03.png",
+      "conceptId": "02-flash/03",
       "sourceFile": "exec-da397a3f-8370-437f-8587-d715f3410680.png",
       "width": 1942,
       "height": 809,
@@ -116,7 +132,7 @@
       ]
     },
     {
-      "file": "02-flash/04.png",
+      "conceptId": "02-flash/04",
       "sourceFile": "exec-e0e7907c-7f41-4bed-8c4e-722fe8cb6aeb.png",
       "width": 1942,
       "height": 809,
@@ -130,7 +146,7 @@
       ]
     },
     {
-      "file": "02-flash/05.png",
+      "conceptId": "02-flash/05",
       "sourceFile": "exec-12057f09-3ac6-415f-9d4b-8a2aff09c176.png",
       "width": 1942,
       "height": 809,
@@ -144,7 +160,7 @@
       ]
     },
     {
-      "file": "03-tenure/01.png",
+      "conceptId": "03-tenure/01",
       "sourceFile": "exec-d774b990-6033-4e0f-8ed6-05c36e7865c2.png",
       "width": 1942,
       "height": 809,
@@ -158,7 +174,7 @@
       ]
     },
     {
-      "file": "03-tenure/02.png",
+      "conceptId": "03-tenure/02",
       "sourceFile": "exec-60b5d9f0-5478-4fcd-91d7-dc158a6d548a.png",
       "width": 1942,
       "height": 809,
@@ -172,7 +188,7 @@
       ]
     },
     {
-      "file": "03-tenure/03.png",
+      "conceptId": "03-tenure/03",
       "sourceFile": "exec-d1e33c7f-2339-45fa-9fc5-2c1e76939312.png",
       "width": 1942,
       "height": 809,
@@ -186,7 +202,7 @@
       ]
     },
     {
-      "file": "03-tenure/04.png",
+      "conceptId": "03-tenure/04",
       "sourceFile": "exec-b8c32d21-e777-4382-8e8f-36b5b426ce03.png",
       "width": 1942,
       "height": 809,
@@ -200,7 +216,7 @@
       ]
     },
     {
-      "file": "03-tenure/05.png",
+      "conceptId": "03-tenure/05",
       "sourceFile": "exec-791bd15e-59e7-4360-ba5b-efc29eae190c.png",
       "width": 1942,
       "height": 809,
@@ -214,21 +230,7 @@
       ]
     },
     {
-      "file": "04-first-regular/01.png",
-      "sourceFile": "exec-9f828bb2-0cec-41f5-b7dd-fb34587eb3de.png",
-      "width": 1254,
-      "height": 1254,
-      "bytes": 2255036,
-      "sha256": "5FB5896C4CB62C4F343EA4CD9510F614E77223788A428FC066BACF3B977D4930",
-      "cornerAlpha": [
-        0,
-        0,
-        0,
-        0
-      ]
-    },
-    {
-      "file": "04-first-regular/02.png",
+      "conceptId": "04-first-regular/02",
       "sourceFile": "exec-d3d045e3-53e1-420d-8ee4-95a359697437.png",
       "width": 1254,
       "height": 1254,
@@ -242,7 +244,7 @@
       ]
     },
     {
-      "file": "04-first-regular/03.png",
+      "conceptId": "04-first-regular/03",
       "sourceFile": "exec-273a3e0c-89d7-4635-8062-a083c7b752ec.png",
       "width": 1254,
       "height": 1254,
@@ -256,7 +258,7 @@
       ]
     },
     {
-      "file": "04-first-regular/04.png",
+      "conceptId": "04-first-regular/04",
       "sourceFile": "exec-8fdc8097-4938-418f-a684-5030fbb317e5.png",
       "width": 1254,
       "height": 1254,
@@ -270,7 +272,7 @@
       ]
     },
     {
-      "file": "04-first-regular/05.png",
+      "conceptId": "04-first-regular/05",
       "sourceFile": "exec-de8eaee4-9926-4d50-9573-65f79a6d8ce4.png",
       "width": 1254,
       "height": 1254,
@@ -284,7 +286,7 @@
       ]
     },
     {
-      "file": "05-coaching/01.png",
+      "conceptId": "05-coaching/01",
       "sourceFile": "exec-bece2352-f53e-4063-8076-5b3b21cb0fc8.png",
       "width": 1942,
       "height": 809,
@@ -298,7 +300,7 @@
       ]
     },
     {
-      "file": "05-coaching/02.png",
+      "conceptId": "05-coaching/02",
       "sourceFile": "exec-9628207d-7295-479b-a827-f372108ec90c.png",
       "width": 1942,
       "height": 809,
@@ -312,7 +314,7 @@
       ]
     },
     {
-      "file": "05-coaching/03.png",
+      "conceptId": "05-coaching/03",
       "sourceFile": "exec-98f66ec2-35d4-4a94-a498-a28f5c252c0e.png",
       "width": 1942,
       "height": 809,
@@ -326,7 +328,7 @@
       ]
     },
     {
-      "file": "05-coaching/04.png",
+      "conceptId": "05-coaching/04",
       "sourceFile": "exec-de13b763-0e57-411c-9cbe-679d0ebba2d8.png",
       "width": 1942,
       "height": 809,
@@ -340,7 +342,7 @@
       ]
     },
     {
-      "file": "05-coaching/05.png",
+      "conceptId": "05-coaching/05",
       "sourceFile": "exec-0e368a0a-91ff-4721-ba96-2c9a5a854d84.png",
       "width": 1942,
       "height": 809,
@@ -354,7 +356,7 @@
       ]
     },
     {
-      "file": "06-posts/01.png",
+      "conceptId": "06-posts/01",
       "sourceFile": "exec-849f948e-7bd9-449e-8b88-7462462aecd7.png",
       "width": 1942,
       "height": 809,
@@ -368,7 +370,7 @@
       ]
     },
     {
-      "file": "06-posts/02.png",
+      "conceptId": "06-posts/02",
       "sourceFile": "exec-73c84421-4fe3-49a0-9b4d-f20550a2be26.png",
       "width": 1942,
       "height": 809,
@@ -382,7 +384,7 @@
       ]
     },
     {
-      "file": "06-posts/03.png",
+      "conceptId": "06-posts/03",
       "sourceFile": "exec-7a9fdf94-ecac-4f81-8391-f2e6f84d5aec.png",
       "width": 1942,
       "height": 809,
@@ -396,7 +398,7 @@
       ]
     },
     {
-      "file": "06-posts/04.png",
+      "conceptId": "06-posts/04",
       "sourceFile": "exec-c65288d0-81f8-4d6d-8b70-d88cf869242e.png",
       "width": 1942,
       "height": 809,
@@ -410,7 +412,7 @@
       ]
     },
     {
-      "file": "06-posts/05.png",
+      "conceptId": "06-posts/05",
       "sourceFile": "exec-ddd71a53-90af-4ae7-9f5a-01daa7b8da3f.png",
       "width": 1942,
       "height": 809,
@@ -423,5 +425,9 @@
         255
       ]
     }
-  ]
+  ],
+  "status": "comparison-images-archived",
+  "productionAssets": "production-v1/prompts-and-assets.json",
+  "comparisonImagesRemovedAt": "2026-11-06",
+  "comparisonArchiveNote": "2026-11-06 비교 시안 이미지를 제거했다. 이름·선택·제작 요청은 이력으로 유지하며 제거된 원본은 Git 이력에서 확인한다."
 }

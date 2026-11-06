@@ -1,6 +1,6 @@
-# 디자인 자료의 적용 상태와 정리 후보
+# 디자인 자료의 적용 상태와 정리 결과
 
-2026-11-06 저장소 코드·카탈로그·로컬 파일을 대조했다. 이 문서는 현재 적용 경로와 과거 시안을 구분하는 색인이다. 이번 점검에서 이미지를 삭제하거나 QA·운영 DB를 변경하지 않았다. 운영 DB 적용과 배포 보류도 유지한다.
+2026-11-06 저장소 코드·카탈로그·로컬 파일을 대조했다. 이 문서는 현재 적용 경로와 과거 시안을 구분하는 색인이다. 초기 점검 뒤 사용자 요청으로 비교 시안 이미지 46장을 제거했다. 현재 적용 원본·검증 자료와 QA·운영 DB는 유지했다. 운영 DB 적용과 배포 보류도 유지한다.
 
 ## 현재 사용하는 디자인
 
@@ -16,17 +16,19 @@
 
 위 이미지 경로 100개에는 누락이 없었다. `docs/design` 이미지와 `public` 이미지의 SHA-256 완전 중복도 발견되지 않았다. 시안 이미지는 제품용 개별 핀과 형태·해상도·배치가 달라, 같은 디자인이라는 이유만으로 중복 사본으로 취급하지 않는다.
 
-## 정리 후보 — 아직 삭제하지 않음
+## 정리 결과 — 비교 이미지 46장 제거
 
-| 범위 | 이미지 수·용량 | 후보인 이유·보존 조건 |
+| 제거 범위 | 이미지 수·용량 | 보존한 자료 |
 |---|---|---|
-| `clan-badges/expansion-v1/01-regular` ~ `06-posts`의 비교 PNG | 29장·60.28MiB | 선택이 끝난 5안 비교표다. 실제 앱은 `public/clan-badges/expansion-v1`의 확정 개별 핀 21장을 사용한다. 비교 PNG를 제거할 때 계열별 README와 `assets.json`의 참조를 함께 정리한다. `production-v1` 제작 기록·검증 캡처는 유지한다. |
-| `clan-badges/founding-v1`의 `01-first-light.png`, `03-one-name.png`, `04-first-chapter.png`, `05-putting-down-roots.png` | 4장·6.36MiB | 미선택 창단 후보다. 확정 첫 깃발은 `public/clan-badges/founding-first-banner.png`에 있다. 비교 HTML·README·제작 요청의 후보 링크도 정리해야 한다. |
-| `clan-badges/members-v1`의 비교 PNG | 5장·9.88MiB | 선택 완료된 멤버 성장 5안 비교표다. 확정 성채의 개별 단계 4장은 `public/clan-badges`에 있으며 앱에서 사용한다. 선택 근거와 현재 원본 연결은 유지한다. |
-| `clan-badges/anniversary-v1`과 `metal-alternatives-v1`의 비교 PNG | 7장·13.36MiB | V3로 교체된 초기 주년·금속 마감 후보다. V3와 연결되는 제작 이력은 남기되 비교 PNG는 Git 이력 보관 후보로 분류한다. |
-| `personal-emblems/proposal-v1/concept-sheet-v1.png` | 1장·2.29MiB | 채택 전 전체 구성 비교표다. 실제 50장·제작 기록·공통 케이스는 `production-v1`과 `public/personal-emblems/v1`에 있다. 제안서와 제작 JSON의 비교표 참조 정리가 필요하다. |
+| `clan-badges/expansion-v1/01-regular` ~ `06-posts`의 비교 PNG | 29장·60.28MiB | 확정 개별 핀 21장과 `production-v1` 제작 기록·검증 캡처를 유지했다. 계열별 README·제작 요청의 이미지 경로를 제거하고 `assets.json`은 보관 이력과 현재 제작 목록을 구분했다. |
+| `clan-badges/founding-v1`의 `01-first-light.png`, `03-one-name.png`, `04-first-chapter.png`, `05-putting-down-roots.png` | 4장·6.36MiB | 확정 첫 깃발과 선택·제작 기록을 유지했다. HTML은 확정 원본을 보여주도록 정리하고 미선택 링크를 제거했다. |
+| `clan-badges/members-v1`의 비교 PNG | 5장·9.88MiB | 확정 성채의 개별 단계 4장과 제작 요청·발급 규칙을 유지했다. 비교 이미지 링크만 제거했다. |
+| `clan-badges/anniversary-v1`과 `metal-alternatives-v1`의 비교 PNG | 7장·13.36MiB | V3 원본·V2 재사용 근거·초기 제작 요청을 유지하고 삭제한 비교 이미지 경로는 현재 파일 목록에서 분리했다. |
+| `personal-emblems/proposal-v1/concept-sheet-v1.png` | 1장·2.29MiB | 실제 엠블럼 50장과 `production-v1`의 제작·검증 기록을 유지했다. 제안서·제작 JSON에서 삭제한 비교표 경로를 제거했다. |
 
-합계는 46장·약 92.17MiB다. 실제로 재생성이 필요한 원본·선택 근거를 보관할지 결정한 뒤 제거한다. `anniversary-growth-v2`는 작은 제작 이력이고 일부 V3 원본의 재사용 근거이므로 폴더명만 보고 함께 삭제하지 않는다.
+제거한 비교 이미지는 46장·약 92.17MiB다. 비교 이미지 원본과 과거 제작 목록은 Git 이력에서 확인한다. `anniversary-growth-v2`는 작은 제작 이력이고 일부 V3 원본의 재사용 근거이므로 이번 정리에서도 유지했다.
+
+삭제 전후 공개 파일·나머지 디자인 이미지 266개의 SHA-256이 동일함을 확인했다. 제작 JSON 25개 파싱과 문서·HTML 링크 197개 확인을 통과했으며 삭제 이미지로 향하는 활성 링크·제작 경로는 남지 않았다.
 
 ## 완료된 구현과 남은 작업의 구분
 

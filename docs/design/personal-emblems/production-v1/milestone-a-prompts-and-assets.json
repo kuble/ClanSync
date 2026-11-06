@@ -7,7 +7,6 @@
     "matches": "전장의 수호자: 10·50·100·500경기",
     "wins": "승리의 결정: 10·50·100·300승"
   },
-  "conceptReference": "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
   "generatedSeparately": true,
   "imageEditing": "None. Each selected generated PNG was copied byte-for-byte; no CLI/Python image editing.",
   "validation": {
@@ -23,9 +22,7 @@
       "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nSubject: STAGE 1 of 'The Companion Path', concept 06 (bottom-left on sheet). A modest beginning: ONE broad low ivory stepping stone inside a simple low gold-edged emerald winding-path loop. Behind it, a small low emerald horizon arc with a fine mint inlay. One small pointed emerald leaf on each side, contained in the outline. Keep this first stage visibly simple and compact with a large readable stone. The visual theme is walking together toward a horizon. No star needed at this first stage.",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-819a42f0-7d86-4b08-b1a7-66fd667a38f5.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png",
-      "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png"
-      ],
+      "references": [],
       "transparentBackground": true,
       "width": 1254,
       "height": 1254,
@@ -48,9 +45,7 @@
       "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nSubject: STAGE 1 of 'Battlefield Guardian', concept 07 (second item of bottom row). ONE bold upright sword as the entire pin silhouette, blade pointing down. The broad ivory enamel blade has a polished gold edge and a narrow jade center ridge; a compact champagne-gold crossguard and dark emerald handle end in one small mint/emerald diamond gemstone at the top. No shield, wings or laurel at this early stage. Elegant, friendly fantasy collectible; retain the exact gold/emerald/ivory craft style of concept 07.",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-c5d2a67b-a4d4-4495-a06f-f639caf591fe.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png",
-      "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png"
-      ],
+      "references": [],
       "transparentBackground": true,
       "width": 1254,
       "height": 1254,
@@ -73,9 +68,7 @@
       "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nSubject: STAGE 1 of 'Victory Crystals', concept 08 (middle item of bottom row). ONE substantial pointed emerald crystal in the center, with three broad geometric emerald and mint enamel facets separated by raised gold ridges. It rests in a tiny warm ivory low rocky cradle outlined in gold. The actual silhouette follows the crystal and its small base. Keep this beginning stage simple with one crystal only; no star, surrounding leaves or extra crystal at this stage. Calm jewel-like luminosity, no glow.",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-754786e0-6a6e-401b-9c3d-06d6a6f7e715.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png",
-      "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png"
-      ],
+      "references": [],
       "transparentBackground": true,
       "width": 1254,
       "height": 1254,
@@ -99,7 +92,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-41b6def8-df6e-4de2-8cae-7707a63ee062.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-2.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png"
       ],
       "transparentBackground": true,
@@ -125,7 +117,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-7ea76ab3-3844-4fb4-a30b-0d0b0885d24f.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-2.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png"
       ],
       "transparentBackground": true,
@@ -151,7 +142,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-e25c439c-c356-4be0-bc9d-d8904763d30b.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-2.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png"
       ],
       "transparentBackground": true,
@@ -177,7 +167,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-d7505bff-d88a-44fe-b28f-e26e6cefa6d6.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-3.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png"
       ],
       "transparentBackground": true,
@@ -203,7 +192,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-8caa0729-7a0d-41ef-b2bc-def5bb51485f.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-3.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png"
       ],
       "transparentBackground": true,
@@ -229,7 +217,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-03c5d476-f053-41e4-be7f-169d510f5a5e.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-3.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png"
       ],
       "transparentBackground": true,
@@ -255,7 +242,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-9799c37c-c2db-4c0b-9b29-8d88c65e4577.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-4.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-3.png"
       ],
@@ -282,7 +268,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-a19dabbd-cbca-4dd3-bd18-bcc4b238b4dd.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-4.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-3.png"
       ],
@@ -309,7 +294,6 @@
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-f40a7f8d-1f3b-4c31-b35f-6a889ca3e4f8.png",
       "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-4.png",
       "references": [
-        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png",
         "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-3.png"
       ],
@@ -328,6 +312,8 @@
       "sha256": "838C4A7E5AECA97E7E075ECC863BAEBF7DFA5B06A5562B57062B88DB786B65E3",
       "matchesSource": true
     }
-  ]
+  ],
+  "archivedComparisonReferences": 1,
+  "comparisonImagesRemovedAt": "2026-11-06",
+  "comparisonArchiveNote": "2026-11-06 비교 시안 이미지를 제거했다. 이름·선택·제작 요청은 이력으로 유지하며 제거된 원본은 Git 이력에서 확인한다."
 }
-

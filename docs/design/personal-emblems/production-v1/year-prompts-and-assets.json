@@ -14,7 +14,6 @@
       "period": "year",
       "rank": "gold",
       "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 01, victory star: a two-handled trophy cup with one bold five-point star on its jade front and a small cup foot. Preserve this recognisable cup silhouette and emerald/ivory centre, with the thicker annual laurels framing it.",
-      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-a988421f-d97e-4379-9b21-fdcbba294c27.png",
       "destination": "public/personal-emblems/v1/awards/year/victory-gold.png",
       "transparent_background": true,
@@ -35,7 +34,8 @@
           1176
         ],
         "alpha_present": true
-      }
+      },
+      "archivedComparisonReferences": 1
     },
     {
       "family": "victory",
@@ -98,7 +98,6 @@
       "period": "year",
       "rank": "gold",
       "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 02, participation sun: a compact rounded shield shaped calendar with THREE top calendar rings, an emerald face and a bold radiating sun disc. Preserve this centre. Add the thick annual laurels outside its sides.",
-      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-328b6b92-2d61-43d0-abfe-8badebc9fe19.png",
       "destination": "public/personal-emblems/v1/awards/year/participation-gold.png",
       "transparent_background": true,
@@ -119,7 +118,8 @@
           1187
         ],
         "alpha_present": true
-      }
+      },
+      "archivedComparisonReferences": 1
     },
     {
       "family": "participation",
@@ -182,7 +182,6 @@
       "period": "year",
       "rank": "gold",
       "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 03, crossed swords: two bold crossed ivory-bladed swords with emerald grips across a compact angular jade shield; keep only this central motif. Tiny star above the short ribbon should be a FIVE-point star, annual laurels symmetrically wrap both sides. Framing requirement: full pin should occupy only 74 percent of canvas height and no more than 74 percent width, with generous 13 percent empty transparent margin ABOVE star and BELOW medal. Scale down the emblem; do not crop any decoration.",
-      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-03a54a3a-781c-46f1-b164-93965e04971d.png",
       "destination": "public/personal-emblems/v1/awards/year/appearances-gold.png",
       "transparent_background": true,
@@ -203,7 +202,8 @@
           1126
         ],
         "alpha_present": true
-      }
+      },
+      "archivedComparisonReferences": 1
     },
     {
       "family": "appearances",
@@ -266,7 +266,6 @@
       "period": "year",
       "rank": "gold",
       "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 04, phoenix: an elegant ivory phoenix with upward flaring emerald-and-ivory flame wings outlined in gold, distinct bird head and beak, wide symmetrical flowing tail. Keep the bird shape, add the short top ribbon and FIVE-point small star, annual laurel branches outside both wings. Framing requirement: full pin should occupy only 74 percent of canvas height and no more than 74 percent width, with generous 13 percent empty transparent margin ABOVE star and BELOW medal. Scale down the emblem; do not crop any decoration.",
-      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-5ead7621-bcdd-45ef-87af-f1ba38da9f49.png",
       "destination": "public/personal-emblems/v1/awards/year/streak-gold.png",
       "transparent_background": true,
@@ -287,7 +286,8 @@
           1105
         ],
         "alpha_present": true
-      }
+      },
+      "archivedComparisonReferences": 1
     },
     {
       "family": "streak",
@@ -350,7 +350,6 @@
       "period": "year",
       "rank": "gold",
       "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 05, compass: a round jade-and-ivory compass rose with a diamond emerald gemstone at its centre, four bold spearpoint cardinal directions, small diamond accents. Preserve compass silhouette, add FIVE-point star above the short top ribbon and thick annual laurels framing sides. Framing requirement: full pin should occupy only 74 percent of canvas height and no more than 74 percent width, with generous 13 percent empty transparent margin ABOVE star and BELOW medal. Scale down the emblem; do not crop any decoration.",
-      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
       "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-40df2093-0d78-47b0-9e5f-5512c7ff6d35.png",
       "destination": "public/personal-emblems/v1/awards/year/prediction-gold.png",
       "transparent_background": true,
@@ -371,7 +370,8 @@
           1121
         ],
         "alpha_present": true
-      }
+      },
+      "archivedComparisonReferences": 1
     },
     {
       "family": "prediction",
@@ -429,5 +429,7 @@
         "alpha_present": true
       }
     }
-  ]
+  ],
+  "comparisonImagesRemovedAt": "2026-11-06",
+  "comparisonArchiveNote": "2026-11-06 비교 시안 이미지를 제거했다. 이름·선택·제작 요청은 이력으로 유지하며 제거된 원본은 Git 이력에서 확인한다."
 }

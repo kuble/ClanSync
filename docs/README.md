@@ -97,7 +97,7 @@
 | 수동 시연·재현 | [QA_시나리오.md](QA_시나리오.md) |
 | 테스트 실행·픽스처 | [E2E 안내](../e2e/README.md) · [debug-and-fixtures.md](01-plan/debug-and-fixtures.md) |
 | 배포 연동 복구 | [VERCEL_PRODUCTION_SYNC.md](VERCEL_PRODUCTION_SYNC.md) |
-| 디자인·용어 확인 | [디자인 적용 상태·정리 후보](design/README.md) · [theme-modes.md](02-design/theme-modes.md) · [glossary.md](01-plan/glossary.md) |
+| 디자인·용어 확인 | [디자인 적용 상태·정리 결과](design/README.md) · [theme-modes.md](02-design/theme-modes.md) · [glossary.md](01-plan/glossary.md) |
 
 ## 중복을 늘리지 않는 갱신 규칙
 

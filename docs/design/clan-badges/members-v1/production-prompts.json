@@ -2,9 +2,7 @@
   "createdAt": "2026-10-14",
   "tool": "image_gen.imagegen",
   "transparent_background": true,
-  "referenced_image_paths": [
-    "docs/design/clan-badges/members-v1/04-shared-citadel.png"
-  ],
+  "referenced_image_paths": [],
   "outputs": [
     {
       "activeMembers": 10,
@@ -26,5 +24,7 @@
       "file": "public/clan-badges/members-shared-citadel-100.png",
       "prompt": "Use case: background-extraction / precise-object-edit.\nInput image: the approved four-column \"Our Citadel\" member milestone badge sheet. Extract ONLY the FOURTH / far-right badge, the 100-member stage with 7 towers, as ONE isolated production PNG.\nPreserve the selected badge EXACTLY: the arched outline and flat rounded bottom, continuous champagne-gold rim, ivory tower(s), mint enamel roof(s), emerald field and doorway, gold star, architecture, proportions, lighting and every relief detail. Do not redesign, add or remove towers. The 100-member stage has exactly 7 separately visible tower roof tips.\nOutput one upright front-facing badge centered on a square canvas, full silhouette visible with a small even transparent safety margin; badge uses about 90 percent of canvas height. No other stages, labels, member counts, text, backdrop, rectangular background, checkerboard or outside shadow. Genuine transparent alpha background. Premium hard-enamel jewelry finish with sharp clear borders."
     }
-  ]
+  ],
+  "comparisonImagesRemovedAt": "2026-11-06",
+  "comparisonArchiveNote": "2026-11-06 비교 시안 이미지를 제거했다. 이름·선택·제작 요청은 이력으로 유지하며 제거된 원본은 Git 이력에서 확인한다."
 }

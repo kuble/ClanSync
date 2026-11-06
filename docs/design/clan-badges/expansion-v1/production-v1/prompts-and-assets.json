@@ -27,9 +27,9 @@
       "value": 50,
       "name": "교차하는 검",
       "sourceFile": "exec-e13c557b-7fef-4b81-832d-248868442095.png",
-      "reference": "01-regular/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"교차하는 검\".\nPrimary request: extract ONLY the leftmost badge (50회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts one upright sword.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "regular-100-v1.png",
@@ -48,9 +48,9 @@
       "value": 100,
       "name": "교차하는 검",
       "sourceFile": "exec-bc7f0e93-96cc-4a1d-a973-71641c4b65b4.png",
-      "reference": "01-regular/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"교차하는 검\".\nPrimary request: extract ONLY the second from the left badge (100회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts two crossed swords.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "regular-1000-v1.png",
@@ -69,9 +69,9 @@
       "value": 1000,
       "name": "교차하는 검",
       "sourceFile": "exec-a4fc1d04-2e2b-45c0-96d5-beae11e3bce1.png",
-      "reference": "01-regular/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"교차하는 검\".\nPrimary request: extract ONLY the third from the left badge (1000회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts three swords in a balanced fan with a green ribbon.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "regular-10000-v1.png",
@@ -90,9 +90,9 @@
       "value": 10000,
       "name": "교차하는 검",
       "sourceFile": "exec-e24a58b3-4aa9-4f9b-a667-744c956662d8.png",
-      "reference": "01-regular/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"교차하는 검\".\nPrimary request: extract ONLY the rightmost badge (10000회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts five swords in a grand readable fan with a fuller ribbon.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "flash-10-v1.png",
@@ -111,9 +111,9 @@
       "value": 10,
       "name": "모여든 번개",
       "sourceFile": "exec-fdc01ef5-d4a5-457a-bcea-5c711696e511.png",
-      "reference": "02-flash/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"모여든 번개\".\nPrimary request: extract ONLY the leftmost badge (10회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts one lightning bolt.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "flash-50-v1.png",
@@ -132,9 +132,9 @@
       "value": 50,
       "name": "모여든 번개",
       "sourceFile": "exec-a9fa339c-0eab-44d8-adab-99af4c9deae5.png",
-      "reference": "02-flash/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"모여든 번개\".\nPrimary request: extract ONLY the second from the left badge (50회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts two converging lightning bolts.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "flash-100-v1.png",
@@ -153,9 +153,9 @@
       "value": 100,
       "name": "모여든 번개",
       "sourceFile": "exec-77b0377c-a64f-4cda-9a0a-20ea8bc7decf.png",
-      "reference": "02-flash/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"모여든 번개\".\nPrimary request: extract ONLY the third from the left badge (100회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts three lightning bolts meeting at a small gold core.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "flash-1000-v1.png",
@@ -174,9 +174,9 @@
       "value": 1000,
       "name": "모여든 번개",
       "sourceFile": "exec-9db7066e-e506-44b4-a620-d375609e29ef.png",
-      "reference": "02-flash/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"모여든 번개\".\nPrimary request: extract ONLY the rightmost badge (1000회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts five lightning bolts forming a complete starburst.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "tenure-1-v1.png",
@@ -195,9 +195,9 @@
       "value": 1,
       "name": "같은 항로",
       "sourceFile": "exec-a6d7d850-764b-4a35-906d-9becd8f5c69e.png",
-      "reference": "03-tenure/05.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"같은 항로\".\nPrimary request: extract ONLY the leftmost badge (1년) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts a small one-mast sailboat.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "tenure-3-v1.png",
@@ -216,9 +216,9 @@
       "value": 3,
       "name": "같은 항로",
       "sourceFile": "exec-61be29c1-aa47-4f5f-bd5e-8d4833141bea.png",
-      "reference": "03-tenure/05.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"같은 항로\".\nPrimary request: extract ONLY the second from the left badge (3년) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts a larger two-mast sailboat.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "tenure-5-v1.png",
@@ -237,9 +237,9 @@
       "value": 5,
       "name": "같은 항로",
       "sourceFile": "exec-0887e780-3080-4609-b321-8a63cab94803.png",
-      "reference": "03-tenure/05.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"같은 항로\".\nPrimary request: extract ONLY the third from the left badge (5년) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts a three-mast ship with layered sails.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "tenure-10-v1.png",
@@ -258,9 +258,9 @@
       "value": 10,
       "name": "같은 항로",
       "sourceFile": "exec-97e61ab2-ddb1-41d5-af2d-5ff23dd0f0f5.png",
-      "reference": "03-tenure/05.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"같은 항로\".\nPrimary request: extract ONLY the rightmost badge (10년) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts a mature grand three-mast sailing ship with full sails and a larger hull.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "coaching-5-v1.png",
@@ -279,9 +279,9 @@
       "value": 5,
       "name": "열린 배움",
       "sourceFile": "exec-832e2e34-821c-4310-b837-f32a52b6ee78.png",
-      "reference": "05-coaching/02.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"열린 배움\".\nPrimary request: extract ONLY the leftmost badge (5회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts one open ivory book.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "coaching-10-v1.png",
@@ -300,9 +300,9 @@
       "value": 10,
       "name": "열린 배움",
       "sourceFile": "exec-de98bdaf-7ba5-4bd3-8a71-d82ed675e29b.png",
-      "reference": "05-coaching/02.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"열린 배움\".\nPrimary request: extract ONLY the second from the left badge (10회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts an open ivory book with a gold quill.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "coaching-100-v1.png",
@@ -321,9 +321,9 @@
       "value": 100,
       "name": "열린 배움",
       "sourceFile": "exec-9c964065-bbbd-48e0-8c35-0dfd6ea0bac6.png",
-      "reference": "05-coaching/02.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"열린 배움\".\nPrimary request: extract ONLY the third from the left badge (100회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts an open book and quill above two closed emerald books.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "coaching-1000-v1.png",
@@ -342,9 +342,9 @@
       "value": 1000,
       "name": "열린 배움",
       "sourceFile": "exec-df389c41-318b-4f93-acde-12018b846143.png",
-      "reference": "05-coaching/02.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"열린 배움\".\nPrimary request: extract ONLY the rightmost badge (1000회) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts an open book and quill above a fuller stack of books with an emerald ribbon.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "posts-50-v1.png",
@@ -363,9 +363,9 @@
       "value": 50,
       "name": "우리의 문장",
       "sourceFile": "exec-b9dda9ba-5d28-4984-957d-0a0d72440e84.png",
-      "reference": "06-posts/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"우리의 문장\".\nPrimary request: extract ONLY the leftmost badge (50개) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts one simple ivory quill.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "posts-100-v1.png",
@@ -384,9 +384,9 @@
       "value": 100,
       "name": "우리의 문장",
       "sourceFile": "exec-4e65db29-8b09-4e0d-9fe8-c931e2e59ad2.png",
-      "reference": "06-posts/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"우리의 문장\".\nPrimary request: extract ONLY the second from the left badge (100개) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts an ivory quill with a small ink vessel.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "posts-1000-v1.png",
@@ -405,9 +405,9 @@
       "value": 1000,
       "name": "우리의 문장",
       "sourceFile": "exec-17f81200-0d45-41dc-b845-69491eb0aba9.png",
-      "reference": "06-posts/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"우리의 문장\".\nPrimary request: extract ONLY the third from the left badge (1000개) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts a quill above one broad ivory scroll.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "posts-10000-v1.png",
@@ -426,9 +426,9 @@
       "value": 10000,
       "name": "우리의 문장",
       "sourceFile": "exec-e09b1912-22e2-4c14-bd2b-6dca58f49a96.png",
-      "reference": "06-posts/01.png",
       "prompt": "Use case: background-extraction.\nAsset type: production transparent PNG enamel badge for a dark collectible pin case.\nInput image: edit target containing four approved stages of \"우리의 문장\".\nPrimary request: extract ONLY the rightmost badge (10000개) from the reference sheet and show that ONE badge by itself, centered on a square transparent canvas. Keep its exact approved shape, subject, gold rim, emerald/mint/ivory enamel colors, dimensional metal, lighting, and front-facing perspective. The chosen pin depicts a mature quill and two layered ivory scrolls with a small gold seal.\nRemove the other three pins, all numbers and captions, and the charcoal sheet background. Preserve internal green enamel, ivory and gold materials. True alpha transparency outside the outline. Occupy about 88-92% of the square canvas with a modest clear margin on all sides. Do not crop any part of the pin, do not introduce any new elements or lettering, no extra shadows outside the outline, no scene, no watermark. This is the selected design, do not redesign it.",
-      "reused": false
+      "reused": false,
+      "archivedComparisonReferences": 1
     },
     {
       "file": "first-regular-1-v1.png",
@@ -449,5 +449,7 @@
       "sourceFile": "01.png",
       "reused": true
     }
-  ]
+  ],
+  "comparisonImagesRemovedAt": "2026-11-06",
+  "comparisonArchiveNote": "2026-11-06 비교 시안 이미지를 제거했다. 이름·선택·제작 요청은 이력으로 유지하며 제거된 원본은 Git 이력에서 확인한다."
 }
