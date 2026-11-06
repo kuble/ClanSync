@@ -58,13 +58,15 @@ test('선생님 캐러셀과 우측 하단 작성 메뉴는 좁은 화면에서�
     const ownCard=page.getByRole('button',{name:f.users[0].nickname+' 선생님 소개 보기',exact:true});
     await ownCard.click();
     const detail=page.getByRole('dialog');
+    // 열림 확대 애니메이션의 95% 크기를 모달의 기준 높이로 기록하지 않는다.
+    await expect.poll(()=>detail.evaluate(el=>Math.abs(el.getBoundingClientRect().height-(el as HTMLElement).offsetHeight))).toBeLessThan(1);
     const modalHeight=(await detail.boundingBox())!.height;
     await detail.getByRole('tab',{name:'코칭 내용'}).click();
     const panel=detail.getByRole('tabpanel',{name:'코칭 내용'});
     await expect(panel).toBeVisible();
     expect(await panel.evaluate(el=>(el as HTMLElement).offsetWidth-el.clientWidth)).toBe(0);
     await detail.getByRole('button',{name:'다음 선생님'}).click();
-    expect((await detail.boundingBox())!.height).toBe(modalHeight);
+    await expect.poll(async()=>(await detail.boundingBox())!.height).toBe(modalHeight);
     await expect(detail.getByRole('heading',{name:f.users[0].nickname,exact:true})).toHaveCount(0);
     await detail.getByRole('button',{name:'이전 선생님'}).click();
     await expect(detail.getByText(bio,{exact:true})).toBeVisible();
