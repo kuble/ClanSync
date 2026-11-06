@@ -33,8 +33,15 @@ test("participation dots ignore visits and refresh the preserved member list eve
     await page.clock.install();
     await page.reload();
     await page.getByRole("textbox", { name: "구성원 검색", exact: true }).fill(f.users[0].nickname);
+    // 서버 HTML 입력 완료가 아니라 필터 반영으로 화면 초기화를 확인한다.
+    await expect(row(0)).toBeVisible();
+    await expect(row(1)).toHaveCount(0);
+    await expect(row(2)).toHaveCount(0);
     expect((await f.service.from("clan_members").update({ participation_status: "active" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id)).error).toBeNull();
+    const refreshed = page.waitForResponse(response => response.request().method() === "GET" &&
+      response.url().includes("/manage?tab=members") && response.request().headers().rsc === "1");
     await page.clock.fastForward(5 * 60_000);
+    expect((await refreshed).ok()).toBe(true);
     await expect(dot(0, "활성")).toBeVisible();
     await expect(page.getByRole("textbox", { name: "구성원 검색", exact: true })).toHaveValue(f.users[0].nickname);
   } finally { await f.cleanup(); }
