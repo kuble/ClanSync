@@ -34,6 +34,13 @@ npm run clean:local -- -Apply -IncludeDevBuild
 - 재사용 가능성이 있는 샘플 보정 도구는 [QA 샘플 보관 폴더](../scripts/archive/qa-samples/README.md)에 둔다. 일반 개발·회귀 과정에서는 실행하지 않는다. 작업이 끝난 예시 꾸미기·프로필 사진 정리 도구와 전용 SQL은 제거했으며 과거 실행 내용은 Git 이력에서 확인한다.
 - 로컬 사본을 지워 Git의 과거 이미지 용량까지 줄일 수는 없다. Git 이력 재작성은 별도 작업이며 이 정리에는 포함하지 않는다.
 
+## 패키지 보안 업데이트
+
+- 실제 업로드의 `sharp`와 Supabase 실시간 통신의 `ws`를 서비스 경로로, shadcn의 JS·MCP/레지스트리와 ESLint·CSS 처리기를 개발·빌드 도구 경로로 구분한다. `shadcn/tailwind.css`는 현재 앱이 사용하므로 패키지를 임의 제거하지 않는다.
+- `package.json`의 제한된 `overrides`는 Supabase CLI의 `tar@7.5.21`, `@ts-morph/common`·`@typescript-eslint/typescript-estree`의 `minimatch@11.0.1`에만 적용한다. 전자는 CLI·컨테이너 버전 변경 없이 설치 압축 해제를 수정하고, 후자는 수정판이 11부터인 패턴 증폭 문제를 차단한다. 전역 minimatch 교체는 기존 3 계열 호출 계약을 깨므로 사용하지 않는다. 상위 패키지가 수정판을 공식 채택하면 해당 override를 제거하고 설치·글롭 호출·린트를 다시 확인한다.
+- 2026-11-06 기준 낮음 3건은 `deepmerge` 한 권고와 `@shadcn/registry`·`shadcn`의 연쇄 경고다. [공식 권고에 수정판이 없으며](https://github.com/advisories/GHSA-gcqx-w48m-w2h4) 앱의 JS 사용 경로는 발견하지 못했다. 외부 레지스트리·설정을 병합하는 CLI 경로의 위험은 남으며, 이를 해소한 것으로 표시하거나 `shadcn@1`로 강제 다운그레이드하지 않는다. [업데이트·검증 기록](TODO_Phase2.md#2026-11-06-잔여-의존성-보안-업데이트)을 따른다.
+- 부분 검증과 운영 반영 전 전체 검증은 [기존 기준](guides/agent-validation.md)을 유지한다. 감사의 버전 대조만으로 모든 공격을 재현·차단했다고 판정하지 않는다.
+
 ## SQL과 현재 구조
 
 SQL 마이그레이션은 변경 이력이다. 현재 사용하지 않는 테이블을 생성했던 파일도 이후 제거 이력과 함께 유지한다. QA·운영의 적용 이력이 다르므로 적용된 파일을 삭제·재번호·임의 병합하지 않는다.

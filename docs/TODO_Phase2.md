@@ -1,5 +1,14 @@
 # Phase 2 — Next.js `src/` · Supabase · RLS
 
+### 2026-11-06 잔여 의존성 보안 업데이트
+
+- npm 감사 36건(치명 2·높음 15·중간 17·낮음 2)을 실제 호출 경로에 대조했다. 프로필·홍보 사진·이모티콘은 권한 검사 뒤 사용자 바이트를 `sharp.metadata()`로 읽으며 형식 거절도 그 뒤이므로 수정된 디코더가 필요하다. `sharp`를 `0.35.5`로 통일했다(libvips `8.18.7`). [0.35 호환 변경](https://sharp.pixelplumbing.com/changelog/v0.35.0/)의 Node 20.9 이상·삭제 API·채널 제한을 대조했으며 호스트 Node `24.14.0`과 현재 PNG/JPEG/WebP/GIF 처리 계약은 호환된다.
+- 앱은 shadcn CSS만 가져오며 도구 JS/MCP를 서비스 라우트에서 실행하지 않는다. `shadcn`을 `4.23.0`으로 갱신해 Zod 4·새 MCP 의존성으로 전환하고, 호환 범위 내 Babel·글롭·YAML·소스맵·`ws` 등을 수정판으로 갱신했다. [MCP 내보내기 변경](https://github.com/shadcn-ui/ui/releases/tag/shadcn@4.23.0)은 프로젝트 호출처가 없다. Supabase JS·CLI·Next·React·ESLint의 직접 버전은 유지했다.
+- Supabase `tar`는 공식 CLI 다운로드 파일을 추출하는 설치 경로다. CLI/컨테이너 변경 없이 `7.5.21`로 제한했다. [minimatch 수정판](https://github.com/advisories/GHSA-g3hv-75wg-m249)은 11부터이므로 호출 API를 확인한 두 도구에만 `11.0.1`을 적용했다. `ts-morph` 포함/제외 검색, 두 호출처의 일반·숨김 파일 패턴과 `optimizationLevel: 2`의 반복 `**/../` 입력 처리가 통과했다. [유지보수 기준](maintenance.md#패키지-보안-업데이트).
+- 최종 감사는 치명·높음·중간 0, 낮음 3이다. `deepmerge` 한 문제와 `@shadcn/registry`·`shadcn`의 연쇄 경고가 남는다. 수정판 부재와 CLI 입력 경로를 기록하고 경고 숨김·구버전 강제 다운그레이드를 하지 않았다. 네이티브 라이브러리 권고별 악성 파일 공격을 모두 재현하지는 않았으며 버전 대조·잘못된 형식/자르기·권한 거절과 정상 이미지 처리 회귀로 확인했다.
+- `npm rebuild supabase --foreground-scripts`로 동일 CLI의 공식 다운로드·새 tar 압축 해제·체크섬·설치를 확인했고 `supabase --version`/시작·정지 도움말과 `shadcn info --json`의 프로젝트 인식도 통과했다. `npm ci --dry-run --ignore-scripts --no-fund --no-audit`로 잠금 파일 일치를 확인했다. 보안 감사 원본은 보안 도구의 영구 증거 저장소에 별도 보관한다.
+- 전체 린트·타입, 로직 113개·실행기 3개, 프로덕션 빌드와 기존 이미지 관련 시나리오 4개 통과(`2026-11-06T10-29-41-393Z-46652f3e`). 프로필 정상/비로그인·권한·출처·잘못된 이미지 거절, 홍보 사진 편집/저장, 이모티콘 자르기·GIF 차단/허용·본문/반응을 확인했다. 기존 테스트·검사 명령·`test:all`은 유지하고 전체 DB/브라우저 회귀를 반복하지 않았다. 전용 임시 데이터 정리 완료, 사용자 QA·운영 DB·배포 설정·연결 정보는 유지한다.
+
 ### 2026-11-06 전체 페이지 성능 조사와 맵 선택 대기 해소
 
 - 37개 `page.tsx`와 58개 진입 상태를 대조하고 변경 전 2회·변경 후 2회 브라우저 측정을 남겼다. 만료 토큰·없는 커뮤니티 글·외부 초대 경로를 정상 콘텐츠 측정과 구분한다. 측정 도구와 전체 CSV·개발 모드 수치의 한계는 [보고서](03-analysis/page-performance-audit-2026-11-06.md)에 둔다.
