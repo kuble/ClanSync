@@ -7,6 +7,6 @@ export function OverwatchRoleIcon({ role, className }: { role: "tank" | "damage"
 }
 
 /** Redrawn from user-provided references; original design rights are not cleared. */
-export function OverwatchMapIcon({ type, className }: { type: MapType | "assault"; className?: string }) {
+export function OverwatchMapIcon({ type, className }: { type: MapType; className?: string }) {
   return <span aria-hidden="true" className={cn("inline-block size-5 shrink-0 bg-current", className)} style={{ mask: `url(/images/overwatch/icons/mode-${type}.svg) center / contain no-repeat` }} />;
 }

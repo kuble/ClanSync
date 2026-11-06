@@ -10,11 +10,10 @@
   },
   "mapModes": {
     "createdAt": "2026-09-26",
-    "reference": "Six images supplied by the user, described as copied from NamuWiki's Overwatch maps page. The external page and original authorship could not be verified.",
+    "reference": "Six reference images (five retained mode assets) supplied by the user, described as copied from NamuWiki's Overwatch maps page. The external page and original authorship could not be verified.",
     "processing": "Manually redrawn SVG geometry based on the supplied silhouettes. Rendered with a CSS mask; no source raster files are bundled.",
     "rights": "Redrawing does not clear rights in the reference designs. These files are not claimed to be original ClanSync designs or verified official downloads.",
     "files": {
-      "assault": "mode-assault.svg",
       "control": "mode-control.svg",
       "escort": "mode-escort.svg",
       "hybrid": "mode-hybrid.svg",

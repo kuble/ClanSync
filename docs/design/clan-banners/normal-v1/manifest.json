@@ -1,7 +1,7 @@
 {
   "collection": "clan-banners-normal-v1",
   "createdAt": "2026-10-29",
-  "status": "assets-ready",
+  "status": "archived-preview-assets",
   "generator": "built-in image_gen",
   "encoding": "Sharp WebP quality 92",
   "commonPrompt": "Use case: stylized-concept. Asset type: entry-tier NORMAL clan banner background for a dark gaming community app. Create ONE finished static banner, full bleed, exactly 3:1 panoramic width-to-height. This is a genuinely basic understated two-color repeating pattern, not an illustration or concept art. Flat solid dark base with one restrained slightly lighter pattern color, clearly visible but low contrast so a white clan name overlaid later stays readable anywhere. Uniform pattern across the whole rectangle. No text, numbers, typography, logos, emblems, icons, characters, recognizable game IP, scenery, featured geometric objects, border, mockup, 3D, metallic shine, animation, dramatic lighting, vignette or gradients. Clean straight-on digital graphic, carefully aligned repeated marks. ",
@@ -20,7 +20,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "가느다란 세로줄",
-      "assetUrl": "/clan-banners/normal-v1/01-graphite-hairline.webp",
       "width": 2172,
       "height": 724,
       "bytes": 30894,
@@ -29,7 +28,8 @@
         "#20242c",
         "#343a45"
       ],
-      "variantPrompt": "Graphite charcoal field with evenly spaced, very thin vertical pinstripes in slightly lighter graphite. Extremely restrained, crisp, flat, elegant."
+      "variantPrompt": "Graphite charcoal field with evenly spaced, very thin vertical pinstripes in slightly lighter graphite. Extremely restrained, crisp, flat, elegant.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/01-graphite-hairline.webp"
     },
     {
       "id": "clan-banner-normal-navy-horizontal",
@@ -38,7 +38,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "얇은 가로줄",
-      "assetUrl": "/clan-banners/normal-v1/02-navy-horizontal.webp",
       "width": 2172,
       "height": 724,
       "bytes": 24838,
@@ -47,7 +46,8 @@
         "#15243b",
         "#304563"
       ],
-      "variantPrompt": "Deep navy blue field with sparse evenly spaced thin horizontal lines in muted slate blue. Calm, clean and unmistakably horizontal."
+      "variantPrompt": "Deep navy blue field with sparse evenly spaced thin horizontal lines in muted slate blue. Calm, clean and unmistakably horizontal.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/02-navy-horizontal.webp"
     },
     {
       "id": "clan-banner-normal-forest-diagonal",
@@ -56,7 +56,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "반복 사선",
-      "assetUrl": "/clan-banners/normal-v1/03-forest-diagonal.webp",
       "width": 2172,
       "height": 724,
       "bytes": 55406,
@@ -65,7 +64,8 @@
         "#173c32",
         "#2f5a49"
       ],
-      "variantPrompt": "Deep forest green field with uniform slender diagonal stripes running bottom left to upper right, generous spacing and muted lighter green lines."
+      "variantPrompt": "Deep forest green field with uniform slender diagonal stripes running bottom left to upper right, generous spacing and muted lighter green lines.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/03-forest-diagonal.webp"
     },
     {
       "id": "clan-banner-normal-burgundy-dots",
@@ -74,7 +74,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "작은 점",
-      "assetUrl": "/clan-banners/normal-v1/04-burgundy-dots.webp",
       "width": 2172,
       "height": 724,
       "bytes": 52574,
@@ -83,7 +82,8 @@
         "#442932",
         "#73505b"
       ],
-      "variantPrompt": "Dark burgundy wine field with tiny muted dusty rose dots in an evenly spaced offset repeating pattern. Dots small and subtle, not circles as focal objects."
+      "variantPrompt": "Dark burgundy wine field with tiny muted dusty rose dots in an evenly spaced offset repeating pattern. Dots small and subtle, not circles as focal objects.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/04-burgundy-dots.webp"
     },
     {
       "id": "clan-banner-normal-indigo-grid",
@@ -92,7 +92,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "얇은 격자",
-      "assetUrl": "/clan-banners/normal-v1/05-indigo-grid.webp",
       "width": 2172,
       "height": 724,
       "bytes": 21444,
@@ -101,7 +100,8 @@
         "#292d50",
         "#464b72"
       ],
-      "variantPrompt": "Deep muted indigo field with a simple regular fine square grid of thin lighter desaturated indigo lines, roughly 14 columns across the width. Uniform tiny grid, no large featured shapes."
+      "variantPrompt": "Deep muted indigo field with a simple regular fine square grid of thin lighter desaturated indigo lines, roughly 14 columns across the width. Uniform tiny grid, no large featured shapes.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/05-indigo-grid.webp"
     },
     {
       "id": "clan-banner-normal-copper-crosshatch",
@@ -110,7 +110,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "성긴 교차선",
-      "assetUrl": "/clan-banners/normal-v1/06-copper-crosshatch.webp",
       "width": 2172,
       "height": 724,
       "bytes": 120946,
@@ -119,7 +118,8 @@
         "#49352b",
         "#705342"
       ],
-      "variantPrompt": "Dark warm copper brown field with two sparse sets of fine diagonal lines crossing in a uniform diamond crosshatch. Entire surface flat, only two matte colors, no metallic effect."
+      "variantPrompt": "Dark warm copper brown field with two sparse sets of fine diagonal lines crossing in a uniform diamond crosshatch. Entire surface flat, only two matte colors, no metallic effect.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/06-copper-crosshatch.webp"
     },
     {
       "id": "clan-banner-normal-teal-ripple",
@@ -128,7 +128,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "완만한 물결선",
-      "assetUrl": "/clan-banners/normal-v1/07-teal-ripple.webp",
       "width": 2172,
       "height": 724,
       "bytes": 41282,
@@ -137,7 +136,8 @@
         "#193c42",
         "#356069"
       ],
-      "variantPrompt": "Deep desaturated teal field with a handful of very simple evenly spaced smooth horizontal sine wave lines. All waves identical and parallel, gentle shallow amplitude, one thin lighter teal line color."
+      "variantPrompt": "Deep desaturated teal field with a handful of very simple evenly spaced smooth horizontal sine wave lines. All waves identical and parallel, gentle shallow amplitude, one thin lighter teal line color.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/07-teal-ripple.webp"
     },
     {
       "id": "clan-banner-normal-plum-herringbone",
@@ -146,7 +146,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "작은 헤링본",
-      "assetUrl": "/clan-banners/normal-v1/08-plum-herringbone.webp",
       "width": 2172,
       "height": 724,
       "bytes": 161322,
@@ -155,7 +154,8 @@
         "#3d2b44",
         "#604569"
       ],
-      "variantPrompt": "Dark muted plum field with a very small scale simple repeating herringbone pattern made only of short thin diagonal strokes in slightly lighter plum. Precise flat pattern, no actual fabric, no photographed texture."
+      "variantPrompt": "Dark muted plum field with a very small scale simple repeating herringbone pattern made only of short thin diagonal strokes in slightly lighter plum. Precise flat pattern, no actual fabric, no photographed texture.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/08-plum-herringbone.webp"
     },
     {
       "id": "clan-banner-normal-slate-dash",
@@ -164,7 +164,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "짧은 점선",
-      "assetUrl": "/clan-banners/normal-v1/09-slate-dash.webp",
       "width": 2172,
       "height": 724,
       "bytes": 52862,
@@ -173,7 +172,8 @@
         "#283944",
         "#4b6574"
       ],
-      "variantPrompt": "Dark cool slate blue gray field with orderly rows of tiny short horizontal dashes. Alternate rows offset by half a step. Spacious clean repeated dash marks, a simple two tone graphic."
+      "variantPrompt": "Dark cool slate blue gray field with orderly rows of tiny short horizontal dashes. Alternate rows offset by half a step. Spacious clean repeated dash marks, a simple two tone graphic.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/09-slate-dash.webp"
     },
     {
       "id": "clan-banner-normal-olive-weave",
@@ -182,7 +182,6 @@
       "rarity": "normal",
       "animated": false,
       "pattern": "잔잔한 직조선",
-      "assetUrl": "/clan-banners/normal-v1/10-olive-weave.webp",
       "width": 2172,
       "height": 724,
       "bytes": 65040,
@@ -191,7 +190,8 @@
         "#363c2b",
         "#586345"
       ],
-      "variantPrompt": "Dark muted olive field with an extremely simple small scale basket weave line pattern, tiny alternating horizontal and vertical double strokes. Flat two color print, no fabric photo, no depth."
+      "variantPrompt": "Dark muted olive field with an extremely simple small scale basket weave line pattern, tiny alternating horizontal and vertical double strokes. Flat two color print, no fabric photo, no depth.",
+      "archivePath": "docs/design/archive/public-assets/clan-banners/normal-v1/10-olive-weave.webp"
     }
   ]
 }

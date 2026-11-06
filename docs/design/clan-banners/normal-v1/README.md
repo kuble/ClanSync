@@ -17,16 +17,16 @@
 
 | 번호 | 이름 | 패턴 | 이미지 |
 | --- | --- | --- | --- |
-| 01 | 그래파이트 | 가느다란 세로줄 | [WebP](../../../../public/clan-banners/normal-v1/01-graphite-hairline.webp) |
-| 02 | 네이비 스트라이프 | 얇은 가로줄 | [WebP](../../../../public/clan-banners/normal-v1/02-navy-horizontal.webp) |
-| 03 | 포레스트 사선 | 반복 사선 | [WebP](../../../../public/clan-banners/normal-v1/03-forest-diagonal.webp) |
-| 04 | 버건디 도트 | 작은 점 | [WebP](../../../../public/clan-banners/normal-v1/04-burgundy-dots.webp) |
-| 05 | 인디고 체크 | 얇은 격자 | [WebP](../../../../public/clan-banners/normal-v1/05-indigo-grid.webp) |
-| 06 | 코퍼 크로스 | 성긴 교차선 | [WebP](../../../../public/clan-banners/normal-v1/06-copper-crosshatch.webp) |
-| 07 | 틸 리플 | 완만한 물결선 | [WebP](../../../../public/clan-banners/normal-v1/07-teal-ripple.webp) |
-| 08 | 플럼 헤링본 | 작은 헤링본 | [WebP](../../../../public/clan-banners/normal-v1/08-plum-herringbone.webp) |
-| 09 | 슬레이트 대시 | 짧은 점선 | [WebP](../../../../public/clan-banners/normal-v1/09-slate-dash.webp) |
-| 10 | 올리브 위브 | 잔잔한 직조선 | [WebP](../../../../public/clan-banners/normal-v1/10-olive-weave.webp) |
+| 01 | 그래파이트 | 가느다란 세로줄 | [WebP](../../archive/public-assets/clan-banners/normal-v1/01-graphite-hairline.webp) |
+| 02 | 네이비 스트라이프 | 얇은 가로줄 | [WebP](../../archive/public-assets/clan-banners/normal-v1/02-navy-horizontal.webp) |
+| 03 | 포레스트 사선 | 반복 사선 | [WebP](../../archive/public-assets/clan-banners/normal-v1/03-forest-diagonal.webp) |
+| 04 | 버건디 도트 | 작은 점 | [WebP](../../archive/public-assets/clan-banners/normal-v1/04-burgundy-dots.webp) |
+| 05 | 인디고 체크 | 얇은 격자 | [WebP](../../archive/public-assets/clan-banners/normal-v1/05-indigo-grid.webp) |
+| 06 | 코퍼 크로스 | 성긴 교차선 | [WebP](../../archive/public-assets/clan-banners/normal-v1/06-copper-crosshatch.webp) |
+| 07 | 틸 리플 | 완만한 물결선 | [WebP](../../archive/public-assets/clan-banners/normal-v1/07-teal-ripple.webp) |
+| 08 | 플럼 헤링본 | 작은 헤링본 | [WebP](../../archive/public-assets/clan-banners/normal-v1/08-plum-herringbone.webp) |
+| 09 | 슬레이트 대시 | 짧은 점선 | [WebP](../../archive/public-assets/clan-banners/normal-v1/09-slate-dash.webp) |
+| 10 | 올리브 위브 | 잔잔한 직조선 | [WebP](../../archive/public-assets/clan-banners/normal-v1/10-olive-weave.webp) |
 
 ![노말 배너 10종 비교](contact-sheet.png)
 
@@ -42,7 +42,7 @@
 
 [배너 스튜디오](http://localhost:3011/dev/clan-banners)는 `npm run dev:qa` 실행 중 사용할 수 있다. 패턴 10종과 그래파이트·블루·그린·퍼플·로즈·앰버 6색을 조합하며 원형 색상 버튼은 키보드와 터치로도 선택한다. 주소의 `design`·`palette` 값으로 미리보기를 복원한다. 개발 모드에서만 열리고 프로덕션 빌드에서는 404다. 로그인·DB 쓰기·기존 QA 명단 시드는 필요 없다.
 
-위 WebP는 초기 이미지 시안으로 보관한다. 개발 렌더러는 같은 10가지 패턴을 규칙적인 [SVG 마스크](../../../../public/clan-banners/normal-v1/masks)로 다시 정의했다. 상품명은 색과 독립적인 핀스트라이프·사선·리플 등의 패턴명으로 표시한다. 마스크 10개는 총 3,168 bytes이며 색상별 이미지 파일은 만들지 않는다.
+위 WebP는 초기 이미지 시안으로 [보관 폴더](../../archive/public-assets/README.md)에 유지하며 제품 공개 경로에서는 제공하지 않는다. 개발 렌더러는 같은 10가지 패턴을 규칙적인 [SVG 마스크](../../../../public/clan-banners/normal-v1/masks)로 다시 정의했다. 상품명은 색과 독립적인 핀스트라이프·사선·리플 등의 패턴명으로 표시한다. 마스크 10개는 총 3,168 bytes이며 색상별 이미지 파일은 만들지 않는다.
 
 - [공통 색상 프리셋](../../../../src/lib/cosmetics/color-presets.ts): `background`(바탕)·`pattern`(무늬)·`swatch`(선택 버튼). 고정 ID로 참조한다.
 - [공통 색상 선택기](../../../../src/components/cosmetics/cosmetic-color-picker.tsx): `<CosmeticColorPicker value={selection.paletteId} onChange={...} />`.

@@ -34,13 +34,13 @@
 | 주년 | 적용 원본 |
 |---|---|
 | 1주년 · 동 | [bronze PNG](../../../../public/clan-badges/anniversary-growing-history-bronze.png) |
-| 3주년 · 은 | [silver PNG](../../../../public/clan-badges/anniversary-growing-history-silver.png) |
-| 5주년 · 금 | [gold PNG](../../../../public/clan-badges/anniversary-growing-history-gold.png) |
+| 3주년 · 은 | 미사용 이미지 제거 — Git `391d5512`에서 확인 |
+| 5주년 · 금 | 미사용 이미지 제거 — Git `391d5512`에서 확인 |
 | 10주년 · 블랙 루테늄 | [black ruthenium PNG](../../../../public/clan-badges/anniversary-growing-history-black-ruthenium.png) |
 
 동 배지를 비교 시안에서 투명 배경으로 분리한 뒤 그 원본의 테두리를 편집해 은·금·플래티넘 3종을 제작했다. 내장 `image_gen.imagegen`을 사용했으며 전체 제작 요청은 [production-prompts.json](production-prompts.json)에 보관했다. 각 PNG는 1254 × 1254px RGBA이며 생성 원본의 알파를 유지해 복사했다.
 
-10주년 테두리는 후속 요청으로 [마감 후보 3종](metal-alternatives-v1/README.md)을 비교한 뒤 **3번 블랙 루테늄**으로 확정·교체했다. 이후 성장형 V2에서는 첫 깃발·성채와 같은 금빛 테두리로 다시 통일했다. 초기 개별 원본·플래티넘 원본과 제작 요청은 비교 이력으로 보존한다.
+10주년 테두리는 후속 요청으로 [마감 후보 3종](metal-alternatives-v1/README.md)을 비교한 뒤 **3번 블랙 루테늄**으로 확정·교체했다. 이후 성장형 V2에서는 첫 깃발·성채와 같은 금빛 테두리로 다시 통일했다. 후속 제작의 입력 원본인 동·블랙 루테늄은 유지한다. 미사용 은·금·플래티넘 원본은 2026-11-06 제거했으며 삭제 전 파일은 Git `391d5512`, 제작 요청은 `production-prompts.json`의 `removedOutputs`에서 확인한다.
 
 ## 원본과 검증
 

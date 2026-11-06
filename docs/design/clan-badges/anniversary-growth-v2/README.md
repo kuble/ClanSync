@@ -10,12 +10,14 @@
 |---|---|---|
 | 1주년 | 잎 3개·가는 줄기·작은 뿌리의 묘목 | [1주년 PNG](../../../../public/clan-badges/anniversary-growing-history-3y-gold-v3.png) |
 | 3주년 | 잎 5개·가지가 뻗는 어린 나무 | [3주년 PNG](../../../../public/clan-badges/anniversary-growing-history-5y-gold-v3.png) |
-| 5주년 | 잎 7개·굵어진 줄기와 넓어진 뿌리 | [5주년 PNG](../../../../public/clan-badges/anniversary-growing-history-5y-gold-v2.png) |
+| 5주년 | 잎 7개·굵어진 줄기와 넓어진 뿌리 | 미사용 이미지 제거 — Git `391d5512`에서 확인 |
 | 10주년 | 잎 9개·풍성한 수관과 깊은 뿌리의 큰 나무 | [10주년 PNG](../../../../public/clan-badges/anniversary-growing-history-10y-gold-v2.png) |
 
 잎의 수는 성장 단계를 표현하며 실제 연차와 일대일 대응하지 않는다. 이름·획득 방식·획득일은 케이스 바깥에서 읽는다. 기존 배지 키와 창단 시각에 해당 UTC 연도를 더한 획득일, 발급/대표/확인 기록과 권한은 유지한다.
 
 ## 제작·검증 기록
+
+2026-11-06 미사용 5주년 V2 이미지를 제거했다. 과거 제작 요청은 두 JSON의 `removedOutputs`에 분리했다. 현재 V3 제작의 입력 원본인 10주년 V2와 V3에서 재사용한 이미지는 유지한다.
 
 내장 `image_gen.imagegen`으로 기존 자라는 역사 배지를 참조해 개별 성장 PNG 4종을 생성한 뒤, 성채의 금빛 마감을 참고해 바깥 테두리만 편집했다. 1254 × 1254px RGBA 원본을 수정 없이 복사하고 해시·크기·투명 모서리를 확인했다. [나무 제작 요청](prompts.json)과 [금빛 마감 요청](finishing-prompts.json)을 보관한다. 각 단계의 잎·줄기·뿌리 차이와 같은 제작 질감을 육안으로 검토했다.
 
