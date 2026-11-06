@@ -411,10 +411,11 @@ export function ClanBalanceSessionPanel({
   const baseScores = useMemo(() => sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores, [sampleScores, rosterPool, scores]);
   const displayScores = useMemo(() => analysisContext ? contextualScores(baseScores, analysisContext, rosterData, editorMapLabel, formation?.players) : scoresForRoles(baseScores, rosterData, formation?.players), [baseScores, analysisContext, rosterData, editorMapLabel, formation?.players]);
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
-  const scoreControl = canViewScores ? <div className="flex flex-wrap items-center gap-2"><ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} disabled={!scoreReady} />
-    {!scoreReady && <span role={scoreResult?.ok === false ? "alert" : "status"} className="text-xs text-muted-foreground">{tx(scoreResult?.ok === false ? "점수를 불러오지 못했습니다." : "점수를 불러오는 중입니다.")}</span>}
-    {scoreResult?.ok === false && <Button size="sm" variant="outline" onClick={() => router.refresh()}>{tx("다시 불러오기")}</Button>}
-  </div> : null;
+  const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} disabled={!scoreReady} /> : null;
+  const scoreStatus = canViewScores && !scoreReady ? <>
+    <span role={scoreResult?.ok === false ? "alert" : "status"} className="min-w-0">{tx(scoreResult?.ok === false ? "점수를 불러오지 못했습니다." : "점수를 불러오는 중입니다.")}</span>
+    {scoreResult?.ok === false && <Button size="sm" variant="ghost" className="h-5 shrink-0 px-1.5 text-[10px]" onClick={() => router.refresh()}>{tx("다시 불러오기")}</Button>}
+  </> : undefined;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext && (roster !== rosterData || map !== editorMapLabel) ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
   const editorMap = editingScreen && session && !session.map_ban_enabled ?
     <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={editorMapLabel}
@@ -657,6 +658,7 @@ export function ClanBalanceSessionPanel({
                       canEdit={!selectingMapTypes && session.phase === "editing" && !busyFormation && !pending}
                       teamAdjustment={teamAdjustment || Boolean(preparationRoster && settings.roles === "lottery")}
                       scoreControl={teamAdjustment ? undefined : scoreControl}
+                      scoreStatus={scoreStatus}
                       rosterAside={teamAdjustment ? undefined : editorMap}
                       scores={canViewScores && scoreReady ? displayScores : undefined}
                       analysisContext={analysisContext}
@@ -681,6 +683,7 @@ export function ClanBalanceSessionPanel({
                       pool={rosterPool}
                       serverNow={presentationNow}
                       snapshot={canViewScores && scoreReady ? displayScores : undefined}
+                      scoreStatus={scoreStatus}
                       scoreMode={scoreMode}
                       planPremium={planPremium}
                       playerSessionInfo={playerSessionInfo}

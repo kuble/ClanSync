@@ -49,9 +49,9 @@ export function balanceTeamHeadingResult(outcome?: TeamHeadingOutcome) {
   } as const;
 }
 
-export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome, onTeamSelect, selectionDisabled }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome; onTeamSelect?: (team: "team1" | "team2") => void; selectionDisabled?: boolean }) {
+export function BalanceTeamHeading({ roster, scores, scoreStatus, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome, onTeamSelect, selectionDisabled }: { roster?: BalanceRoster; scores?: MaSnapshot; scoreStatus?: ReactNode; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome; onTeamSelect?: (team: "team1" | "team2") => void; selectionDisabled?: boolean }) {
   const tx = useTranslator();
-  if (roster && scores && !onTeamSelect && (!outcome || outcome === "pending")) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
+  if (roster && (scores || scoreStatus) && !onTeamSelect && (!outcome || outcome === "pending")) return <BalanceTeamSummary roster={roster} scores={scores} scoreStatus={scoreStatus} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
   const result = balanceTeamHeadingResult(outcome);
   const Label = onTeamSelect ? "button" : "span";
   return (
@@ -75,6 +75,7 @@ export function ClanBalanceRosterBoard({
   roster,
   pool,
   snapshot,
+  scoreStatus,
   planPremium = false,
   scoreMode = "m",
   highlightPlayer,
@@ -96,6 +97,7 @@ export function ClanBalanceRosterBoard({
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   snapshot?: MaSnapshot;
+  scoreStatus?: ReactNode;
   planPremium?: boolean;
   scoreMode?: "m" | "a";
   highlightPlayer?: string;
@@ -119,7 +121,7 @@ export function ClanBalanceRosterBoard({
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
     <div aria-label={tx("출전 라인업")}>
-      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} onTeamSelect={onTeamSelect} selectionDisabled={selectionDisabled} />
+      <BalanceTeamHeading roster={roster} scores={snapshot} scoreStatus={scoreStatus} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} onTeamSelect={onTeamSelect} selectionDisabled={selectionDisabled} />
       <div className="grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] gap-2 rounded-xl bg-muted/35 p-2 sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] sm:p-3">
         {(["team1", "team2"] as const).map((team, idx) => <div key={team} className="contents">
           {idx === 1 ? <div className="grid grid-rows-5 gap-2">{BALANCE_SLOTS.map((slot) => <BalanceRoleIcon key={slot.key} slot={slot} />)}</div> : null}

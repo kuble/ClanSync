@@ -24,9 +24,10 @@ function TeamLabels({ comparison }: { comparison: ReactNode }) {
   </>;
 }
 
-export function BalanceTeamSummary({ roster, scores, mode, premium, showPrediction = false, samplePrediction = false, estimate, enabled = true, comparisonMode = "score" }: {
+export function BalanceTeamSummary({ roster, scores, scoreStatus, mode, premium, showPrediction = false, samplePrediction = false, estimate, enabled = true, comparisonMode = "score" }: {
   roster: BalanceRoster;
-  scores: MaSnapshot;
+  scores?: MaSnapshot;
+  scoreStatus?: ReactNode;
   mode: ScoreMode;
   premium: boolean;
   showPrediction?: boolean;
@@ -37,41 +38,43 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
 }) {
   const tx = useTranslator();
   const totals = {
-    m: [teamScoreTotal(roster.team1, scores, "m"), teamScoreTotal(roster.team2, scores, "m")] as const,
-    a: [teamScoreTotal(roster.team1, scores, "a"), teamScoreTotal(roster.team2, scores, "a")] as const,
+    m: [scores ? teamScoreTotal(roster.team1, scores, "m") : null, scores ? teamScoreTotal(roster.team2, scores, "m") : null] as const,
+    a: [scores ? teamScoreTotal(roster.team1, scores, "a") : null, scores ? teamScoreTotal(roster.team2, scores, "a") : null] as const,
   };
   const ids = [roster.team1.tank, ...roster.team1.dmg, ...roster.team1.sup, roster.team2.tank, ...roster.team2.dmg, ...roster.team2.sup];
   const complete = ids.every(Boolean) && new Set(ids).size === 10;
-  const wantsPrediction = premium && showPrediction;
-  const context = wantsPrediction ? predictionContext(roster, scores, mode, null) : "";
+  const wantsPrediction = Boolean(scores && premium && showPrediction);
+  const context = wantsPrediction && scores ? predictionContext(roster, scores, mode, null) : "";
   const analysis = useAnalysisPrediction(roster, mode, undefined, wantsPrediction);
   const resolvedEstimate = wantsPrediction && analysis === undefined && samplePrediction ? sampleBalanceEstimate(context) : estimate;
   const validEstimate = wantsPrediction && isValidBalanceEstimate(resolvedEstimate, context, complete);
   const predictedTeam1 = analysis !== undefined ? analysis : validEstimate ? resolvedEstimate!.team1 : null;
   let predictionStatus = complete ? "예측 준비 중" : "10명 편성 후 확인";
-  if (typeof analysis === "number") predictionStatus = "조합·맵·상대 전적 반영";
+  if (typeof analysis === "number") predictionStatus = "";
   else if (analysis === null) predictionStatus = "10명 편성 후 확인";
   else if (validEstimate) predictionStatus = samplePrediction ? "샘플" : `신뢰도 ${resolvedEstimate!.confidence} · ${resolvedEstimate!.sampleSize}경기`;
   const prediction = (analysis !== undefined || comparisonMode === "prediction") && premium && showPrediction;
   const share = prediction ? predictedTeam1 : scoreComparisonShare(totals[mode][0], totals[mode][1]);
   const title = prediction ? tx("예측 승률") : tx("{0} 합계", tx(SCORE_LABEL[mode]));
   const labels = prediction ? [predictedTeam1 == null ? "—" : formatPercent(predictedTeam1), predictedTeam1 == null ? "—" : formatPercent(100 - predictedTeam1)] : totals[mode].map(value => formatBalanceScore(value).replace(/점$/, tx("점")));
-  const comparison = <div data-testid="team-comparison-graph" data-mode={prediction ? "prediction" : mode} data-score-mode={mode} aria-label={tx("{0}: 1팀 {1}, 2팀 {2}{3}", title, labels[0], labels[1], prediction ? `, ${predictionStatus}` : "")} aria-live="polite" className="w-[clamp(110px,32cqw,220px)] min-w-0 justify-self-center space-y-0.5">
-    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 text-[11px] font-bold tabular-nums">
+  const comparison = <div data-testid="team-comparison-graph" data-mode={prediction ? "prediction" : mode} data-score-mode={mode} aria-label={tx("{0}: 1팀 {1}, 2팀 {2}{3}", title, labels[0], labels[1], prediction && predictionStatus ? `, ${predictionStatus}` : "")} aria-live="polite" className="w-[clamp(110px,32cqw,220px)] min-w-0 justify-self-center space-y-0.5">
+    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 text-[11px] leading-4 font-bold tabular-nums">
       <span data-testid={prediction ? undefined : "team1-score-total"} aria-label={tx("1팀 {0}", title)} className="text-left text-team-blue">{tx(labels[0])}</span>
-      <p className="text-center text-[10px] font-medium leading-tight text-muted-foreground">{title}</p>
+      <p className="truncate text-center text-[10px] leading-3 font-medium text-muted-foreground">{title}</p>
       <span data-testid={prediction ? undefined : "team2-score-total"} aria-label={tx("2팀 {0}", title)} className="text-right text-team-red">{tx(labels[1])}</span>
     </div>
     <div className="flex h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">{share == null ? null : <><span data-testid="team-comparison-blue-bar" className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
-    {prediction && !(validEstimate && samplePrediction) ? <p className="text-[9px] leading-3 text-muted-foreground">{tx(predictionStatus)}</p> : null}
   </div>;
-  const headingClass = "mb-1 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 rounded-lg px-2 text-center [container-type:inline-size] sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] sm:px-3";
+  const headingClass = "grid h-6 grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-x-2 rounded-lg px-2 text-center [container-type:inline-size] sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] sm:px-3";
   const content = <TeamLabels comparison={comparison} />;
-  const heading = <div className={headingClass}>{content}</div>;
+  const status = <div data-testid="balance-score-status" className="flex h-6 min-w-0 items-center justify-center gap-2 px-2 text-center text-[10px] leading-3 text-muted-foreground sm:px-3">
+    {scoreStatus ?? (prediction && predictionStatus && !(validEstimate && samplePrediction) ? <span>{tx(predictionStatus)}</span> : null)}
+  </div>;
+  const heading = <div className="mb-1"><div className={headingClass}>{content}</div>{status}</div>;
 
   if (!enabled) return heading;
 
-  return <Tooltip disableHoverablePopup>
+  return <div className="mb-1"><Tooltip disableHoverablePopup>
     <TooltipTrigger
       delay={300}
       render={<div tabIndex={0} aria-label={tx("팀 비교 요약 보기")} className={`${headingClass} cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring`}>{content}</div>}
@@ -89,5 +92,5 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
         {premium ? <BalanceComparisonBar compact title={tx("{0} 합계", tx(SCORE_LABEL.a))} team1Label={formatBalanceScore(totals.a[0])} team2Label={formatBalanceScore(totals.a[1])} team1Share={scoreComparisonShare(totals.a[0], totals.a[1])} testId="team-summary-analysis" /> : null}
       </div>
     </TooltipContent>
-  </Tooltip>;
+  </Tooltip>{status}</div>;
 }

@@ -26,6 +26,7 @@ export function ClanBalanceRevealBoard({
   pool,
   serverNow,
   snapshot,
+  scoreStatus,
   scoreMode,
   planPremium,
   playerSessionInfo,
@@ -44,6 +45,7 @@ export function ClanBalanceRevealBoard({
   pool: readonly { user_id: string; nickname: string }[];
   serverNow: number;
   snapshot?: MaSnapshot;
+  scoreStatus?: ReactNode;
   scoreMode?: "m" | "a";
   planPremium?: boolean;
   playerSessionInfo?: PlayerSessionInfoMap;
@@ -91,6 +93,7 @@ export function ClanBalanceRevealBoard({
           pool={pool}
           highlightPlayer={latest}
           snapshot={snapshot}
+          scoreStatus={scoreStatus}
           scoreMode={scoreMode}
           planPremium={planPremium}
           playerSessionInfo={playerSessionInfo}

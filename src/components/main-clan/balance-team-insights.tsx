@@ -91,7 +91,7 @@ export function BalanceTeamInsights({ roster, scores, mode, map, premium, overal
   return <aside aria-label={tx("팀 밸런스 비교")} className={compact ? "mb-3 space-y-2 rounded-xl bg-muted/25 px-3 py-3 sm:px-4" : "space-y-4 rounded-xl border bg-muted/15 p-4"} aria-live="polite">
       {analysis !== undefined ? <BalanceComparisonBar title={selectedMap ? tx("예측 승률 · {0} 반영", selectedMap) : tx("예측 승률")}
         team1Label={formatPercent(analysis)} team2Label={formatPercent(analysis === null ? null : 100 - analysis)}
-        team1Share={analysis} status={analysis === null ? tx("10명 편성 후 확인") : tx("조합·맵·상대 전적 반영")} testId="balance-win-probability" />
+        team1Share={analysis} status={analysis === null ? tx("10명 편성 후 확인") : undefined} testId="balance-win-probability" />
         : <EstimateRow title={bannedHeroes ? tx("예측 승률 · 맵·영웅 밴 반영") : selectedMap ? tx("예측 승률 · {0} 반영", selectedMap) : tx("예측 승률")} context={context} estimate={sample ? sampleBalanceEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? bannedHeroes ? "밴·포지션 영향 모델 준비 중" : "예측 준비 중" : "10명 편성 후 확인"} />}
   </aside>;
 }

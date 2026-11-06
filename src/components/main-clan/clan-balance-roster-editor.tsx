@@ -86,6 +86,7 @@ export function ClanBalanceRosterEditor({
   analysisMap = null,
   scoreMode = "m",
   scoreControl,
+  scoreStatus,
   rosterAside,
   playerSessionInfo,
   planPremium = false,
@@ -115,6 +116,7 @@ export function ClanBalanceRosterEditor({
   analysisMap?: string | null;
   scoreMode?: ScoreMode;
   scoreControl?: ReactNode;
+  scoreStatus?: ReactNode;
   rosterAside?: ReactNode;
   playerSessionInfo?: PlayerSessionInfoMap;
   planPremium?: boolean;
@@ -372,7 +374,7 @@ export function ClanBalanceRosterEditor({
       )}>
       <div aria-label={tx("출전 명단 편집")} aria-describedby={helpId} className="rounded-xl bg-muted/35">
         {toolbar}
-        <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} />
+        <BalanceTeamHeading roster={roster} scores={displayScores} scoreStatus={scoreStatus} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} />
         <div className="space-y-2 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
