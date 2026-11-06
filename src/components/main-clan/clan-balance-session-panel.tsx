@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import {
   closeBalanceSessionAction,
   openBalanceSessionAction,
+  setBalanceMatchOutcomeAction,
   skipHeroBanPhaseAction,
   type BalanceSessionActionResult,
 } from "@/app/actions/clan-balance-session";
@@ -96,6 +97,10 @@ const ClanBalanceGuide = dynamic(() =>
 );
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
+type ResultConfirmation = {
+  scope: string; roundId: string; outcome: Exclude<BalanceSession["match_outcome"], "pending">;
+  startedAt: number; status: "saving" | "saved" | "error"; error?: string;
+};
 type MapVote = Database["public"]["Tables"]["balance_session_map_votes"]["Row"];
 type HeroVote =
   Database["public"]["Tables"]["balance_session_hero_votes"]["Row"];
@@ -172,6 +177,25 @@ export function ClanBalanceSessionPanel({
     ? { ...serverSession, formation_state: confirmedFormation.state as unknown as Json,
       roster: confirmedFormation.state.roster as unknown as Json, formation_revision: confirmedFormation.revision }
     : serverSession, [serverSession, confirmedFormation, formationScope]);
+  const [resultConfirmation, setResultConfirmation] = useState<ResultConfirmation | null>(null);
+  const localResult = resultConfirmation?.scope === formationScope && resultConfirmation.roundId === session?.id &&
+    (session.match_outcome === "pending" || session.match_outcome === resultConfirmation.outcome) ? resultConfirmation : null;
+  const displayedOutcome = session?.match_outcome === "pending" && localResult ? localResult.outcome : session?.match_outcome ?? "pending";
+  const resultSaved = session?.match_outcome !== "pending" || localResult?.status === "saved";
+  const [savingResult, startResultSave] = useTransition();
+  function saveResult(confirmation: ResultConfirmation) {
+    setResultConfirmation({ ...confirmation, status: "saving", error: undefined });
+    startResultSave(async () => {
+      let error: string | undefined;
+      try {
+        const result = await setBalanceMatchOutcomeAction(gameSlug, clanId, confirmation.roundId, confirmation.outcome);
+        if (!result.ok) error = result.error;
+      } catch { error = "결과를 저장하지 못했습니다. 다시 시도하십시오."; }
+      setResultConfirmation(current => current?.scope === confirmation.scope && current.roundId === confirmation.roundId && current.startedAt === confirmation.startedAt
+        ? { ...current, status: error ? "error" : "saved", error } : current);
+      if (error) router.refresh();
+    });
+  }
   const [scoreSnapshot, setScoreSnapshot] = useState<{ scope: string; source: Promise<BalanceScoreData>; value: BalanceScoreData } | null>(null);
   useEffect(() => {
     let current = true;
@@ -364,13 +388,13 @@ export function ClanBalanceSessionPanel({
           ? 3
         : null;
   const outcomeLabel =
-    session?.match_outcome === "void"
+    displayedOutcome === "void"
       ? "무효 · 재경기"
-      : session?.match_outcome === "team1"
+      : displayedOutcome === "team1"
         ? "블루 팀 승리"
-        : session?.match_outcome === "team2"
+        : displayedOutcome === "team2"
           ? "레드 팀 승리"
-          : session?.match_outcome === "draw" ? "무승부" : null;
+          : displayedOutcome === "draw" ? "무승부" : null;
   const endSessionControl = session && canManage ? <Button variant="destructive" size="sm"
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
     title={session.phase !== "editing" && session.match_outcome === "pending" ? tx("경기 결과 또는 무효를 먼저 기록하십시오.") : undefined}
@@ -447,7 +471,7 @@ export function ClanBalanceSessionPanel({
           gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
           myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
           deadlineIso={session.prediction_deadline_at}
-          outcome={session.match_outcome} isParticipant={isRosterParticipant}
+          outcome={displayedOutcome} isParticipant={isRosterParticipant}
           pool={predictionPool} serverNow={serverNow} phase={session.phase}
           predictionMinutes={settings.predictionMinutes}
         /> : null}
@@ -794,12 +818,12 @@ export function ClanBalanceSessionPanel({
                   <span
                     className={cn(
                       "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-                      session.match_outcome === "void"
+                      displayedOutcome === "void"
                         ? "bg-muted text-muted-foreground"
                         : "bg-amber-500/10 text-amber-700 dark:text-amber-300",
                     )}
                   >
-                    {session.match_outcome === "draw" ? <Equal className="size-3.5" aria-hidden="true" /> : session.match_outcome === "void" ? <RotateCcw className="size-3.5" aria-hidden="true" /> : (
+                    {displayedOutcome === "draw" ? <Equal className="size-3.5" aria-hidden="true" /> : displayedOutcome === "void" ? <RotateCcw className="size-3.5" aria-hidden="true" /> : (
                       <Crown className="size-3.5" aria-hidden="true" />
                     )}
                     {outcomeLabel}
@@ -822,9 +846,9 @@ export function ClanBalanceSessionPanel({
                   </div>
                 ) : null}
                 <div className="space-y-4">
-                  {canManage && session.match_outcome === "pending" ? <ClanBalanceMatchOutcomeClient
-                    key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
-                    roster={rosterData} pool={rosterPool} disabled={false}
+                  {canManage && displayedOutcome === "pending" ? <ClanBalanceMatchOutcomeClient
+                    key={session.id} roster={rosterData} pool={rosterPool} disabled={savingResult}
+                    onConfirm={outcome => saveResult({ scope: formationScope, roundId: session.id, outcome, startedAt: Date.now(), status: "saving" })}
                     snapshot={canViewScores && scoreReady ? maForUi : undefined} renderScore={renderMatchScore}
                     endSessionControl={endSessionControl}
                   /> : (
@@ -836,14 +860,16 @@ export function ClanBalanceSessionPanel({
                     showPlayerCardInfo={false}
                     showTeamComparisonSummary={false}
                     showPlayerSessionSummary={false}
-                    outcome={session.match_outcome}
+                    outcome={displayedOutcome}
                   />
                   )}
-                  {session.match_outcome !== "pending" && !session.closed_at && !series?.closed_at ? <div className="flex flex-wrap items-center justify-between gap-2">
+                  {displayedOutcome !== "pending" && !session.closed_at && !series?.closed_at ? <div className="flex flex-wrap items-center justify-between gap-2">
                     {endSessionControl}
                     <BalanceNextRoundCountdown key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
                       settledAt={session.predictions_settled_at} serverNow={serverNow} canManage={canManage}
-                      paused={confirmEnd || pending} />
+                      startedAt={localResult?.startedAt} saved={resultSaved}
+                      saveError={!resultSaved ? localResult?.error : undefined} saving={savingResult}
+                      onSaveRetry={() => { if (localResult) saveResult(localResult); }} paused={confirmEnd || pending} />
                   </div> : null}
                   {flash ? <p className="text-xs text-muted-foreground">{tx("깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.")}</p> : null}
                 </div>

@@ -7,22 +7,24 @@ import { useTranslator } from "#use-translator";
 import { nextBalanceRoundAction } from "@/app/actions/clan-balance-session";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { Button } from "@/components/ui/button";
+import { BalancePreparationOverlay } from "./balance-preparation-overlay";
 
-export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settledAt, serverNow, canManage, paused }: {
+export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settledAt, serverNow, canManage, paused, startedAt, saved, saveError, saving, onSaveRetry }: {
   gameSlug: string; clanId: string; sessionId: string; settledAt: string | null;
   serverNow: number; canManage: boolean; paused: boolean;
+  startedAt?: number; saved: boolean; saveError?: string; saving: boolean; onSaveRetry: () => void;
 }) {
   const tx = useTranslator();
   const router = useRouter();
-  const deadline = (settledAt ? Date.parse(settledAt) : serverNow) + 5000;
-  const now = useServerClock(serverNow, deadline);
+  const deadline = (startedAt ?? (settledAt ? Date.parse(settledAt) : serverNow)) + 5000;
+  const now = useServerClock(startedAt ?? serverNow, deadline);
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000));
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const attempt = useRef<string | null>(null);
   useEffect(() => {
-    if (remaining > 0 || !canManage || paused) return;
+    if (remaining > 0 || !canManage || paused || !saved) return;
     const key = `${sessionId}:${retry}`;
     if (attempt.current === key) return;
     attempt.current = key;
@@ -34,12 +36,14 @@ export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settled
         router.refresh();
       } catch { setError("다음 경기를 열지 못했습니다. 연결을 확인하고 다시 시도하십시오."); }
     });
-  }, [remaining, canManage, paused, sessionId, retry, gameSlug, clanId, router]);
+  }, [remaining, canManage, paused, saved, sessionId, retry, gameSlug, clanId, router]);
   return <div className="flex flex-wrap items-center justify-end gap-2" data-testid="balance-next-round-countdown" data-remaining={remaining}>
-    <p role={error ? "alert" : "status"} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+    {remaining === 0 && !saved && saving && !saveError ? <BalancePreparationOverlay savingResult /> : null}
+    <p role={saveError || error ? "alert" : "status"} className="flex items-center gap-1.5 text-sm text-muted-foreground">
       <Timer className="size-4 shrink-0" aria-hidden="true" />
-      {error ? tx(error) : remaining > 0 ? tx("{0}초 후 다음 경기로 이동합니다.", remaining) : tx("다음 경기 준비 중…")}
+      {saveError || error ? tx(saveError || error) : remaining > 0 ? tx("{0}초 후 다음 경기로 이동합니다.", remaining) : tx("다음 경기 준비 중…")}
     </p>
-    {error && canManage ? <Button variant="outline" size="sm" disabled={pending} onClick={() => { setError(null); setRetry(value => value + 1); }}>{tx("다시 시도")}</Button> : null}
+    {saveError && canManage ? <Button variant="outline" size="sm" disabled={saving} onClick={onSaveRetry}>{tx("결과 저장 다시 시도")}</Button>
+      : error && canManage ? <Button variant="outline" size="sm" disabled={pending} onClick={() => { setError(null); setRetry(value => value + 1); }}>{tx("다시 시도")}</Button> : null}
   </div>;
 }

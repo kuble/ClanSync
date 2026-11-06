@@ -126,35 +126,57 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
         await page.setViewportSize({ width: 390, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       }
+      let releaseSave: (() => void) | undefined;
+      let confirmedAt = 0;
+      const actionPath = "**/balance?room=*";
+      const countdown = panel.getByTestId("balance-next-round-countdown");
       if (outcome === "team1") {
-        const actionPath = "**/balance?room=*";
+        const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
         await page.route(actionPath, async (route) => {
-          if (route.request().method() === "POST" && route.request().postData()?.includes(active.id) && route.request().postData()?.includes('"team1"')) await route.abort("failed");
+          if (route.request().method() === "POST" && route.request().postData()?.includes(active.id) && route.request().postData()?.includes('"team1"')) {
+            await saveGate;
+            await route.abort("failed");
+          } else await route.continue();
+        });
+        confirmedAt = Date.now();
+        await confirm.click();
+        await expect(dialog).toBeHidden();
+        await expect(countdown).toContainText(/초 후 다음 경기로 이동/);
+        await expect(panel.getByTestId("balance-match-result")).toHaveCount(0);
+        expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
+        await expect(countdown).toHaveAttribute("data-remaining", "0", { timeout: 8000 });
+        await expect(countdown).toContainText("다음 경기 준비 중");
+        const savingOverlay = page.getByTestId("balance-result-saving-overlay");
+        await expect(savingOverlay).toContainText("결과 저장 중");
+        await expect(savingOverlay.locator("svg.lucide-triangle-alert")).toHaveClass(/animate-pulse/);
+        await expect(savingOverlay.locator("svg.lucide-loader-circle")).toHaveClass(/animate-spin/);
+        await page.screenshot({ path: test.info().outputPath("slow-result-saving.png") });
+        expect((await fixture.activeRound(room.roomId)).id).toBe(active.id);
+        expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
+        releaseSave!();
+        await expect(savingOverlay).toBeHidden();
+        await expect(countdown.getByRole("alert")).toContainText("결과를 저장하지 못했습니다");
+        await expect(panel.getByLabel("1팀 승리", { exact: true })).toBeVisible();
+        await page.unroute(actionPath);
+        await page.route(actionPath, async route => {
+          if (route.request().method() === "POST" && route.request().postData()?.includes(active.id) && !route.request().postData()?.includes('"team1"')) await route.abort("failed");
           else await route.continue();
         });
+        await countdown.getByRole("button", { name: "결과 저장 다시 시도", exact: true }).click();
+      } else {
+        confirmedAt = Date.now();
         await confirm.click();
-        await expect(page.locator('[data-sonner-toast][data-type="error"]').filter({ hasText: "결과를 저장하지 못했습니다" })).toBeVisible();
-        expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
-        await expect(panel.getByTestId("balance-next-round-countdown")).toHaveCount(0);
-        await expect(result.locator("svg.lucide-crown")).toHaveCount(1);
-        await page.unroute(actionPath);
+        await expect(dialog).toBeHidden();
+        await expect(countdown).toContainText(/초 후 다음 경기로 이동/);
       }
-      await confirm.click();
       await expect.poll(async () => (await fixture.activeRound(room.roomId)).match_outcome).toBe(outcome);
       await expect(panel.getByTestId("balance-match-result")).toHaveCount(0);
       if (outcome === "team1" || outcome === "team2") await expect(panel.getByLabel(outcome === "team1" ? "1팀 승리" : "2팀 승리", { exact: true })).toBeVisible();
       await expect(panel.getByRole("button", { name: "다음 경기", exact: true })).toHaveCount(0);
-      const countdown = panel.getByTestId("balance-next-round-countdown");
-      await expect(countdown).toContainText(/초 후 다음 경기로 이동/);
       await expect(memberPanel.getByTestId("balance-next-round-countdown")).toBeVisible();
       const completed = await fixture.activeRound(room.roomId);
       expect(completed.id).toBe(active.id);
       if (outcome === "team1") {
-        const actionPath = "**/balance?room=*";
-        await page.route(actionPath, async route => {
-          if (route.request().method() === "POST" && route.request().postData()?.includes(active.id)) await route.abort("failed");
-          else await route.continue();
-        });
         await expect(countdown.getByRole("alert")).toContainText("다음 경기를 열지 못했습니다", { timeout: 15_000 });
         expect((await fixture.activeRound(room.roomId)).id).toBe(active.id);
         await page.unroute(actionPath);
@@ -172,7 +194,8 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       await expect(panel).toHaveAttribute("data-balance-phase", "editing", { timeout: 20_000 });
       const next = await fixture.activeRound(room.roomId);
       expect(next.round_number).toBe(active.round_number + 1);
-      expect(Date.parse(next.opened_at) - Date.parse(completed.predictions_settled_at!)).toBeGreaterThanOrEqual(5000);
+      expect(Date.parse(next.opened_at) - confirmedAt).toBeGreaterThanOrEqual(5000);
+      if (outcome === "team1") expect(Date.parse(next.opened_at) - Date.parse(completed.predictions_settled_at!)).toBeLessThan(5000);
       await expect(memberPanel).toHaveAttribute("data-balance-phase", "editing", { timeout: 20_000 });
       const nextPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
       await expect(nextPicker).toBeVisible();

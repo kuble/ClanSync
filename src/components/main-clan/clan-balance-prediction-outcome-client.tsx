@@ -6,7 +6,6 @@ import { useEffect, useState, useTransition } from "react";
 import { Check, Crown, Equal, RotateCcw, Timer, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
-  setBalanceMatchOutcomeAction,
   submitBalancePredictionAction,
 } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
@@ -137,46 +136,38 @@ export function ClanBalancePredictionClient({
   );
 }
 
-export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, roster, pool, disabled, snapshot, renderScore, endSessionControl }: {
-  gameSlug: string; clanId: string; sessionId: string; roster: BalanceRoster;
+export function ClanBalanceMatchOutcomeClient({ roster, pool, disabled, snapshot, renderScore, endSessionControl, onConfirm }: {
+  roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   disabled: boolean; snapshot?: import("@/lib/balance/ma-snapshot").MaSnapshot; renderScore?: (userId: string) => import("react").ReactNode;
   endSessionControl?: import("react").ReactNode;
+  onConfirm: (outcome: Exclude<MatchOutcome, "pending">) => void;
 }) {
   const tx = useTranslator();
-  const router = useRouter();
-  const [pending, start] = useTransition();
   const [outcome, setOutcome] = useState<Exclude<MatchOutcome, "pending"> | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const label = outcome === "team1" ? "블루 팀 승리" : outcome === "team2" ? "레드 팀 승리" : outcome === "draw" ? "무승부" : outcome === "void" ? "무효 · 재경기" : null;
   function confirm() {
-    if (!outcome || pending || disabled) return;
-    start(async () => {
-      try {
-        const result = await setBalanceMatchOutcomeAction(gameSlug, clanId, sessionId, outcome);
-        if (!result.ok) { toast.error(result.error); return; }
-        toast.success(label + "로 확정했습니다.");
-        setConfirmOpen(false);
-        router.refresh();
-      } catch { toast.error("결과를 저장하지 못했습니다. 다시 시도하십시오."); }
-    });
+    if (!outcome || disabled) return;
+    setConfirmOpen(false);
+    onConfirm(outcome);
   }
   function choose(value: Exclude<MatchOutcome, "pending">) { setOutcome(value); setConfirmOpen(true); }
   return <div className="space-y-3" data-testid="balance-match-result">
     <ClanBalanceRosterBoard roster={roster} pool={pool} outcome={outcome ?? "pending"}
-      onTeamSelect={choose} selectionDisabled={pending || disabled} snapshot={snapshot} renderScore={renderScore}
+      onTeamSelect={choose} selectionDisabled={disabled} snapshot={snapshot} renderScore={renderScore}
       showPlayerCardScore={Boolean(snapshot)} showPlayerCardInfo={false} showTeamComparisonSummary={false} showPlayerSessionSummary={false} />
     <section className="flex flex-wrap items-center justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]" aria-label={tx("경기 결과와 세션 종료")}>
       <div className="justify-self-start">{endSessionControl}</div>
       <div className="flex items-center gap-2">
-      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("draw")}><Equal className="size-4" aria-hidden="true" />{tx("무승부")}</Button>
-      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("void")}><RotateCcw className="size-4" aria-hidden="true" />{tx("무효 · 재경기")}</Button>
+      <Button variant="ghost" size="sm" disabled={disabled} onClick={() => choose("draw")}><Equal className="size-4" aria-hidden="true" />{tx("무승부")}</Button>
+      <Button variant="ghost" size="sm" disabled={disabled} onClick={() => choose("void")}><RotateCcw className="size-4" aria-hidden="true" />{tx("무효 · 재경기")}</Button>
       </div>
       <span className="hidden sm:block" aria-hidden="true" />
     </section>
-    <Dialog open={confirmOpen} onOpenChange={(open) => { if (!pending) { setConfirmOpen(open); if (!open) setOutcome(null); } }}>
+    <Dialog open={confirmOpen} onOpenChange={(open) => { setConfirmOpen(open); if (!open) setOutcome(null); }}>
       <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{tx(label)}{tx("로 확정하시겠습니까?")}</DialogTitle><DialogDescription>{outcome === "void" ? tx("전적·예측 보상에서 제외됩니다.") : tx("확정한 결과는 변경할 수 없습니다.")}</DialogDescription></DialogHeader>
-        <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => { setConfirmOpen(false); setOutcome(null); }}>{tx("취소")}</Button><Button disabled={pending || disabled} onClick={confirm}>{pending ? tx("확정 중…") : tx("확정")}</Button></div>
+        <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => { setConfirmOpen(false); setOutcome(null); }}>{tx("취소")}</Button><Button disabled={disabled} onClick={confirm}>{tx("확정")}</Button></div>
       </DialogContent>
     </Dialog>
   </div>;
