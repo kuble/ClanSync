@@ -27,7 +27,6 @@ import { toast } from "sonner";
 import {
   closeBalanceSessionAction,
   openBalanceSessionAction,
-  nextBalanceRoundAction,
   skipHeroBanPhaseAction,
   type BalanceSessionActionResult,
 } from "@/app/actions/clan-balance-session";
@@ -37,6 +36,7 @@ import {
 } from "./clan-balance-prediction-outcome-client";
 import { ClanBalancePredictionDrawer } from "./clan-balance-match-drawers";
 import { BalancePredictionCountdown } from "./balance-prediction-countdown";
+import { BalanceNextRoundCountdown } from "./balance-next-round-countdown";
 import { BalancePlayerScoreEditor } from "./balance-player-score-editor";
 import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
@@ -839,22 +839,11 @@ export function ClanBalanceSessionPanel({
                     outcome={session.match_outcome}
                   />
                   )}
-                  {canManage && session.match_outcome !== "pending" ? <div className="flex items-center justify-between gap-2">
+                  {session.match_outcome !== "pending" && !session.closed_at && !series?.closed_at ? <div className="flex flex-wrap items-center justify-between gap-2">
                     {endSessionControl}
-                    <Button
-                      disabled={pending}
-                      onClick={() =>
-                        runAction("다음 경기를 열었습니다.", () =>
-                          nextBalanceRoundAction(
-                            gameSlug,
-                            clanId,
-                            session.id,
-                          ),
-                        )
-                      }
-                    >
-                      {tx("다음 경기")}
-                    </Button>
+                    <BalanceNextRoundCountdown key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
+                      settledAt={session.predictions_settled_at} serverNow={serverNow} canManage={canManage}
+                      paused={confirmEnd || pending} />
                   </div> : null}
                   {flash ? <p className="text-xs text-muted-foreground">{tx("깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.")}</p> : null}
                 </div>

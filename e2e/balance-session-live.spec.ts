@@ -82,8 +82,8 @@ async function confirmResult(
     .click();
   await panel.page().getByRole("dialog", { name: /로 확정하시겠습니까\?/ }).getByRole("button", { name: "확정", exact: true }).click();
   await expect(
-    panel.getByRole("button", { name: "다음 경기", exact: true }),
-  ).toBeEnabled({ timeout: 20_000 });
+    panel.getByTestId("balance-next-round-countdown"),
+  ).toBeVisible({ timeout: 20_000 });
 }
 
 async function applyAndSelectMap(panel: Locator) {
@@ -312,9 +312,6 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       timeout: 20_000,
     });
     await confirmResult(panel, "win");
-    await panel
-      .getByRole("button", { name: "다음 경기", exact: true })
-      .click();
     // A new match opens its map picker, which hides the underlying panel from
     // the accessibility tree until the host chooses a map or closes the picker.
     const nextMapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
@@ -467,6 +464,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       timeout: 20_000,
     });
     await confirmResult(panel, "void");
+    const finalMapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await expect(finalMapPicker).toBeVisible({ timeout: 20_000 });
+    await finalMapPicker.getByRole("button", { name: "닫기", exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
     const history = page.getByRole("dialog", {
