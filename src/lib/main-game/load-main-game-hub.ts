@@ -31,66 +31,6 @@ function normalizeClanRow(
   return one;
 }
 
-async function memberCountMap(
-  supabase: SupabaseClient<Database>,
-  clanIds: string[],
-): Promise<Map<string, number>> {
-  const out = new Map<string, number>();
-  if (!clanIds.length) return out;
-  const { data, error } = await supabase.rpc("clan_active_member_counts", {
-    p_clan_ids: clanIds,
-  });
-  if (error) return out;
-  for (const row of data ?? []) {
-    out.set(row.clan_id, Number(row.n));
-  }
-  return out;
-}
-
-export async function loadPromotionFeed(
-  supabase: SupabaseClient<Database>,
-  gameId: string,
-  sort: PromoSort,
-): Promise<PromoRow[]> {
-  const { data: posts, error } = await supabase
-    .from("board_posts")
-    .select(
-      "id, title, content, created_at, clan_id, clans!inner ( id, name, max_members, birth_year_from, min_birth_year, gender_policy, tier_range )",
-    )
-    .eq("game_id", gameId)
-    .eq("post_type", "promotion")
-    .eq("clans.promotion_public", true)
-    .order("created_at", { ascending: false })
-    .limit(48);
-
-  if (error || !posts?.length) return [];
-
-  const clanIds = [...new Set(posts.map((p) => p.clan_id))];
-  const counts = await memberCountMap(supabase, clanIds);
-
-  const rows: PromoRow[] = posts.map((p) => {
-    const c = normalizeClanRow(p.clans);
-    const name = c?.name ?? "클랜";
-    const max = c?.max_members ?? 200;
-    const act = counts.get(p.clan_id) ?? 0;
-    return {
-      id: p.id,
-      title: p.title,
-      content: p.content,
-      created_at: p.created_at,
-      clan_id: p.clan_id,
-      clan_name: name,
-      max_members: max,
-      active_members: act,
-      space_remaining: Math.max(0, max - act),
-      recruitment: { birth_year_from: c?.birth_year_from ?? null, min_birth_year: c?.min_birth_year ?? null, gender_policy: c?.gender_policy ?? "all", tier_range: c?.tier_range ?? [] },
-    };
-  });
-
-  if (sort === "newest") return rows;
-  return [...rows].sort((a, b) => b.space_remaining - a.space_remaining);
-}
-
 /** MainGame 게시판 상세 — URL의 게임과 글 게임 정합 검증 포함 */
 export type BoardPostDetailRow = {
   id: string;
@@ -278,33 +218,6 @@ export type RankClanRow = {
   last_activity_at: string | null;
 };
 
-export async function loadClanRankPreview(
-  supabase: SupabaseClient<Database>,
-  gameId: string,
-  limit = 30,
-): Promise<RankClanRow[]> {
-  const { data: clans, error } = await supabase
-    .from("clans")
-    .select("id, name, max_members, last_activity_at")
-    .eq("game_id", gameId)
-    .eq("lifecycle_status", "active")
-    .order("last_activity_at", { ascending: false, nullsFirst: false })
-    .limit(limit);
-
-  if (error || !clans?.length) return [];
-
-  const ids = clans.map((c) => c.id);
-  const counts = await memberCountMap(supabase, ids);
-
-  return clans.map((c) => ({
-    id: c.id,
-    name: c.name,
-    max_members: c.max_members,
-    active_members: counts.get(c.id) ?? 0,
-    last_activity_at: c.last_activity_at,
-  }));
-}
-
 export type ScrimRoomRowOut = {
   id: string;
   clan_a_id: string;
@@ -326,22 +239,6 @@ export type ScrimRoomRowOut = {
 
 /** 스크림 상대 지정용 — 같은 게임 클랜 전체(순위 미리보기보다 넓음). */
 export type ScrimGuestClanOption = { id: string; name: string };
-
-export async function loadScrimGuestClanOptions(
-  supabase: SupabaseClient<Database>,
-  gameId: string,
-  limit = 200,
-): Promise<ScrimGuestClanOption[]> {
-  const { data, error } = await supabase
-    .from("clans")
-    .select("id, name")
-    .eq("game_id", gameId)
-    .order("name", { ascending: true })
-    .limit(limit);
-
-  if (error) return [];
-  return (data ?? []).map((r) => ({ id: r.id, name: r.name }));
-}
 
 /** 같은 게임 클랜이 참여하는 스크림방 목록 (MainGame 스크림 탭). */
 export async function loadScrimRoomsForGame(

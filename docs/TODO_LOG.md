@@ -1,5 +1,7 @@
 # 구현 진행도 — 작업 세션 로그
 
+- 2026-11-06 호출처가 없는 커뮤니티 조회 함수 3개·전용 인원 집계 보조 함수와 미사용 UI 컴포넌트 10개·스타일 함수의 외부 내보내기 2개를 제거했다. 보류 화면의 참조 타입·배지/탭 내부 스타일과 기존 조회·권한 검증은 유지하고 [커뮤니티 명세](01-plan/pages/08-MainGame.md)의 재개 조건·참조를 정리했다. 변경 소스 린트·타입 검사 통과, 유지 구현 19개 동일·관련 검사 18개 수집 확인. 실행 중인 전체 검사와 충돌하지 않도록 DB·브라우저 실행은 생략했다.
+
 - 2026-11-06 보류 커뮤니티 6개를 별도 목록으로 옮기고 로직 검사 18개 파일을 서버·DB·시드 없는 전용 설정으로 분리했다. `test:unit`과 린트·타입·로직·DB·프로덕션 E2E를 잇는 `test:all`을 추가했으며, 활성 브라우저 검사와 조건부 개발/대용량 검사는 유지한다. [로직 실행](../e2e/logic/README.md) · [보류 목록](qa/deferred-community-scenarios.md).
 
 - 2026-11-06 맵 유형 선택을 편성 결과 위 모달로 변경하고 모든 유형 선택 시 `전체`로 합쳤다. 린트·타입·내장 브라우저 확인 완료, 투표 전환 자동 검사는 전체 로컬 검사 잠금으로 미실행이다. [상세](TODO_Phase2.md#2026-11-06-맵-유형-선택-모달).
@@ -1815,7 +1817,7 @@
 
 ### 2026-05-11 — MainGame 스크림: 취소·호스트 수정·상대 목록(게임 전체 클랜)
 
-- [x] **앱** — `cancelScrimRoomAction` · `updateScrimRoomDetailsAction` · `loadScrimGuestClanOptions` · 스크림 탭 UI · `ScrimRoomActionResult.needReconfirm`.
+- [x] **앱(당시 구현)** — `cancelScrimRoomAction` · `updateScrimRoomDetailsAction` · 스크림 상대 클랜 목록 조회(2026-11-06 미사용 함수 제거) · 스크림 탭 UI · `ScrimRoomActionResult.needReconfirm`.
 - [x] **문서** — `08-MainGame.md` · `QA_시나리오.md` · `TODO.md` · `TODO_Phase2.md` · 본 로그.
 
 ### 2026-05-11 — MainGame 스크림 탭 (개설·상대 지정·양측 확정 UI)
