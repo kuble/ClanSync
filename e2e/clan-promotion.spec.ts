@@ -191,9 +191,19 @@ test("clan promotion appears during clan discovery and accepts applications outs
     },{url:`/api/games/overwatch/clans/${f.clanId}/promotion-images`,id:draftId});
     expect(invalidImage).toBe(400);
     await page.getByLabel("내용",{exact:true}).fill("금요일 저녁, 내전과 자유 게임을 함께합니다.\n처음 오시는 분도 환영합니다.");
-    await page.getByLabel("내용",{exact:true}).press("Control+Home");
+    await page.getByLabel("내용",{exact:true}).locator("p").first().click();
     await page.getByLabel("내용",{exact:true}).press("End");
-    await page.getByLabel("홍보 사진 선택",{exact:true}).setInputFiles("public/images/overwatch/maps/busan.webp");
+    await expect.poll(() => page.getByLabel("내용",{exact:true}).evaluate(element => {
+      const selection = window.getSelection();
+      if (!selection?.anchorNode) return null;
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.setEnd(selection.anchorNode, selection.anchorOffset);
+      return range.toString();
+    })).toBe("금요일 저녁, 내전과 자유 게임을 함께합니다.");
+    const photoChooser = page.waitForEvent("filechooser");
+    await page.getByRole("button",{name:"사진 넣기",exact:true}).click();
+    await (await photoChooser).setFiles("public/images/overwatch/maps/busan.webp");
     await page.locator("#promotion-content img[data-promotion-key]").click();
     await page.getByPlaceholder("사진 설명 (선택)",{exact:true}).fill("함께하는 금요일 내전");
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
@@ -236,9 +246,19 @@ test("clan promotion appears during clan discovery and accepts applications outs
     await expect(page.getByLabel("제목",{exact:true})).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
     await page.screenshot({path:testInfo.outputPath("clan-promotion-mobile.png"),fullPage:true});
-    await toggleAccountTheme(page);
-    await page.setViewportSize({width:320,height:844});
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await page.setViewportSize({width:390,height:844});
+      await toggleAccountTheme(page);
+      await page.setViewportSize({width:320,height:844});
+      const narrowLayout = await page.evaluate(() => ({
+        width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
+        overflowing: [...document.querySelectorAll("body *")].flatMap(element => {
+          const box = element.getBoundingClientRect();
+          return box.width && box.right > innerWidth + 1 ? [{ tag: element.tagName, class: element.className, right: box.right }] : [];
+        }).slice(0, 15),
+      }));
+      expect(narrowLayout.scrollWidth, JSON.stringify(narrowLayout)).toBeLessThanOrEqual(narrowLayout.width + 1);
+    }
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).scrollIntoViewIfNeeded();
     await expect(page.getByRole("button",{name:"변경사항 저장",exact:true})).toBeVisible();
     expect(formWarnings).toEqual([]);
