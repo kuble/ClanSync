@@ -30,6 +30,6 @@
 - 한 PR/세션에서는 **한 슬라이스 ID**를 우선한다.
 - 토큰 절약: `@docs/01-plan/FEATURE_INDEX.md` + **본 파일 또는 작업 중 슬라이스 하나**.
 
-## 목업
+## 과거 목업 (2026-11-06 제거, Git 이력 참조)
 
 - 플랜 전환: `mockup/_hub.html` (Free / Premium)

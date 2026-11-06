@@ -2,6 +2,8 @@
 
 기준일: 2026-09-26. 상태: **사용 허락 확인 전 / 문의 미발송**.
 
+2026-11-06 경로 정리 반영: 준비용 점령 SVG는 제거했고 배너는 외부 URL 입력에서 제공 패턴 선택으로 바뀌었다. 아래 파일 수는 현재 첨부 CSV와 대조했으며 권리 확인·문의 상태를 변경한 것은 아니다.
+
 게임사 문의에 첨부할 개발 자산 목록이다. 아래 우선순위는 원본 게임 이미지 사용, 제3자 경유, 유사 도안 재작성, 허락 근거 부재를 기준으로 정했다. 법적 침해 여부나 발생 확률을 확정한 표가 아니다. 사용자는 권리 문의를 후속으로 진행하기로 했으며, 이번 작업은 조사·문서화까지다.
 
 ## 1. 문의 대상과 서비스 설명
@@ -15,15 +17,15 @@
 
 | ID / 우선순위 | 대상·수량 | 현재 사용·가공 | 출처 / 파일·코드 | 문의할 핵심 |
 |---|---|---|---|---|
-| A01 / 최우선 | 맵 유형 SVG 6종 | 사용자 첨부 실루엣을 직접 SVG로 재작성. CSS mask로 색상·크기 변경. 통계 필터·내전 맵 유형. 점령은 준비 파일이며 현재 필터 미노출 | [모드 출처 기록](../../public/images/overwatch/icons/SOURCES.json), `mode-{assault,control,escort,hybrid,push,flashpoint}.svg`, [공통 아이콘](../../src/components/ui/overwatch-icons.tsx) | 유사하게 재작성한 게임 UI 도안을 독립 서비스에 사용할 수 있는지. 재작성 자체가 권리 해소 근거는 아님 |
+| A01 / 최우선 | 맵 유형 SVG 5종 | 사용자 첨부 실루엣을 직접 SVG로 재작성. CSS mask로 색상·크기 변경. 통계 필터·내전 맵 유형에 사용하며 준비용 점령 파일은 제거 | [모드 출처 기록](../../public/images/overwatch/icons/SOURCES.json), `mode-{control,escort,hybrid,push,flashpoint}.svg`, [공통 아이콘](../../src/components/ui/overwatch-icons.tsx) | 유사하게 재작성한 게임 UI 도안을 독립 서비스에 사용할 수 있는지. 재작성 자체가 권리 해소 근거는 아님 |
 | A02 / 최우선 | Nexon CDN 영웅 초상화 11개 | 외부 PNG 직접 표시, 잘라 채우는 썸네일·원형 도넛 중앙 이미지. 영웅 선택·밴·통계 | [초상화 URL 전체](../../src/lib/balance/ow-hero-portraits.ts), 아래 개별 목록 | 외부 핫링크·로컬 저장·이미지 변환, 비상업/상업 서비스별 조건. 원본 권리자에게 별도 허락이 필요한지 |
 | A03 / 높음 | CloudFront 영웅 초상화 42개 | A02와 같은 UI 사용. 코드에는 공식 오버워치 페이지 출처로 기록되어 있으나 이미지별 취득 페이지·일자는 없음 | [초상화 URL 전체](../../src/lib/balance/ow-hero-portraits.ts), `d15f34w2p8l1cc.cloudfront.net/overwatch/` | 개별 원본 페이지 확인, 외부 표시·변환·상업 기능 내 사용 조건 |
 | A04 / 높음 | OverFast 경유 맵 이미지 13개 | 원본 게임 스크린샷을 960×600 WebP로 변환. 맵 선택 카드·통계 썸네일·도넛 | [맵별 취득 정보](../../public/images/overwatch/maps/SOURCES.json), `public/images/overwatch/maps/*.webp` | 배포 출처·허락 범위, Blizzard 원본 이미지 권리, 크롭/리사이즈/변환/자체 호스팅 허용 |
 | A05 / 높음 | Blizzard 출처 맵 이미지 18개 | 맵 선택·통계에 같은 방식으로 표시 | [맵별 원본 URL·페이지·가공 정보](../../public/images/overwatch/maps/SOURCES.json) | 공식 미디어 다운로드와 외부 서비스 이용 허락의 차이, 유료 기능과 함께 표시할 때의 조건 |
 | A06 / 높음 | 공식 역할 SVG 3종 | 돌격·공격·지원. 공식 CDN SVG를 로컬 저장하고 CSS mask로 색상 변경. 편성·통계 역할 표시 | [역할 출처 기록](../../public/images/overwatch/icons/SOURCES.json), `tank.svg`, `damage.svg`, `support.svg` | 아이콘 복제·색상 변경·필터 사용 및 권리 고지 방식 |
-| A07 / 별도 확인 | 클랜 배너 URL 입력 | 클랜 관리자가 외부 이미지 주소를 지정할 수 있음. 사용자별 실제 에셋은 이번 저장소 조사에 포함하지 않음 | [배너 설정](../../src/components/main-clan/clan-banner-settings-form.tsx), [저장 액션](../../src/app/actions/clan-banner-settings.ts) | 입력자 권리 확인·신고/삭제 절차. 실제 운영 DB 이미지는 별도 승인된 조사로 확인 |
+| A07 / 별도 확인 | 과거 클랜 배너 URL 입력 | 현재는 제공 패턴·색상만 선택하며 외부 이미지 주소 입력은 제공하지 않음. 과거 저장된 운영 DB 이미지는 이번 점검 범위에 포함하지 않음 | [현재 꾸미기 설정](../../src/components/main-clan/clan-appearance-settings.tsx), [저장 액션](../../src/app/actions/clan-banner-settings.ts) | 과거 저장된 이미지의 권리·신고/삭제 절차는 별도 조사 대상으로 유지 |
 
-6 + 11 + 42 + 13 + 18 + 3 = **정적 파일·고정 URL 93개**. 개별 경로·원본 URL은 [문의 첨부용 CSV](game-assets-inventory.csv)에 수록한다. 파일 또는 URL이 존재한다는 것과 실제 모든 화면에서 노출된다는 것은 구분한다.
+5 + 11 + 42 + 13 + 18 + 3 = **정적 파일·고정 URL 92개**. 개별 경로·원본 URL은 [문의 첨부용 CSV](game-assets-inventory.csv)에 수록한다. 파일 또는 URL이 존재한다는 것과 실제 모든 화면에서 노출된다는 것은 구분한다.
 
 ### Nexon CDN 11개 키
 

@@ -159,8 +159,8 @@ ClanMember ──< CoinTransaction
 - 비소속·타 클랜: SELECT 차단.
 
 ### clans
-> **D-CLAN-04** (DECIDED 2026-04-20) — 폼·DB 정합. [decisions.md §D-CLAN-04](./decisions.md#d-clan-04--클랜-만들기-폼-payload-스키마-정합).
-> **D-CLAN-03** (DECIDED 2026-04-20) — 라이프사이클·검토 상태. [decisions.md §D-CLAN-03](./decisions.md#d-clan-03--클랜-라이프사이클--정책-위반·휴면·부실-처리).
+> **D-CLAN-04** (DECIDED 2026-04-20) — 폼·DB 정합. [decisions.md §D-CLAN-04](./decisions.md#d-clan-04--클랜-만들기-폼-payload스키마-정합).
+> **D-CLAN-03** (DECIDED 2026-04-20) — 라이프사이클·검토 상태. [decisions.md §D-CLAN-03](./decisions.md#d-clan-03--클랜-라이프사이클--정책-위반휴면부실-처리).
 > **D-CLAN-06** (DECIDED 2026-04-20) — 인원 200 유지, Free·Premium 동일. [decisions.md §D-CLAN-06](./decisions.md#d-clan-06--인원-상한-200-유지-premium-인원-차별화-없음).
 
 | 컬럼 | 타입 | 설명 |
@@ -319,7 +319,7 @@ ClanMember ──< CoinTransaction
 - 휴면 멤버가 어떤 활동이든 1건 발생 시 자동 활성 복귀 (`last_activity_at` 갱신 → 분류 자동 변경).
 
 ### clan_reports (신고)
-> **D-CLAN-03** (DECIDED 2026-04-20) — 사용자 신고 → 운영진 큐. 자동 임계 없음, 운영진 직접 판단. [decisions.md §D-CLAN-03](./decisions.md#d-clan-03--클랜-라이프사이클--정책-위반·휴면·부실-처리).
+> **D-CLAN-03** (DECIDED 2026-04-20) — 사용자 신고 → 운영진 큐. 자동 임계 없음, 운영진 직접 판단. [decisions.md §D-CLAN-03](./decisions.md#d-clan-03--클랜-라이프사이클--정책-위반휴면부실-처리).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|

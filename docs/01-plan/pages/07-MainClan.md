@@ -315,7 +315,7 @@ Phase 1 범위는 **예고 배너 한 줄**만. 드로워 최상단(제목 바�
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/main-clan.html`, `mockup/_hub.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/main-clan.html`, `mockup/_hub.html`
 - 핵심 스크립트: `mockup/scripts/clan-mock.js`, `mockup/scripts/app.js`
 - 뷰 매핑: `CLAN_VIEW_MAP` (`dash`→`view-dash`, `events`→`view-events`, …)
 - 배너 숨김 뷰 목록: `CLAN_BANNER_HIDE_VIEWS` (`balance`, `stats`, `events`, `manage`)

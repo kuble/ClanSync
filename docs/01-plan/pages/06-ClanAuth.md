@@ -298,7 +298,7 @@ none ──► pending ──── (클랜장 승인) ────► approved 
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/clan-auth.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/clan-auth.html`
 - 클랜 데이터: `CLANS` 객체 (키 `phoenix`, `bluestorm` 등 7개)
 - 배지 정의: `BADGE_DEFS`
 - 핵심 함수:

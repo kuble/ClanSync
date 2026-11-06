@@ -113,7 +113,7 @@
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/sign-up.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/sign-up.html`
 - 핵심 함수: `handleSignUp(e)` (D-AUTH-03 strong 정규식 검증 포함), `togglePwd`, `validatePasswordStrong(v)`, 강도 계산은 인라인
 - 데드 코드: `checkPwdMatch` (대상 필드 없음, Phase 2에서 복구 검토)
 - 출생 연도 select 초기화: `populateYears` — `(currentYear-10)` ~ `1950`

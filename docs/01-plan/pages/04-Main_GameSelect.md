@@ -113,7 +113,7 @@
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/games.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/games.html`
 - 카드 컨테이너: `#gamesGrid`
 - 검색 핸들러: `filterGames(input)` — `.game-name` 부분 일치
 - 카드 클릭 라우터: `routeFromGameCard(card)` — `data-game / data-auth / data-clan-status / data-clan-id / data-clan-name`을 읽어 D-AUTH-01 매트릭스 6칸으로 분기. `data-disabled="true"`(출시 예정)는 무반응.

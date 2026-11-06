@@ -22,7 +22,7 @@
 - [x] 스토어 카드에 Free/Premium 잠금이 시각적으로 구분 (`pro` 카드·disabled `Premium` 버튼)
 - [x] 이벤트 **대진표 생성기**가 PRD Premium 전용임을 탭·Free 플랜 안내로 구분
 
-## 목업
+## 과거 목업 (2026-11-06 제거, Git 이력 참조)
 
 - `mockup/pages/main-clan.html` — `view-events` · `view-manage` · `view-store`
 - 현재 화면·권한: [이벤트](../pages/11-Clan-Events.md) · [관리](../pages/12-Clan-Manage.md) · [상점](../pages/13-Clan-Store.md). 정적 목업 계획은 Git 이력에서 확인한다.

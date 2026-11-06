@@ -134,7 +134,7 @@
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/game-auth.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/game-auth.html`
 - 핵심 매핑: `GAME_AUTH_PROVIDERS = { overwatch, valorant, lol, pubg }` — 제목·아이콘·CTA·안내 카피·활성 여부
 - 핵심 함수: `applyGameAuthConfig()` (부트스트랩 — `?game=` 파싱, `?reauth=1` 안내 배지 토글), `handleBattleNetAuth()`(이름은 유지, 모든 제공자 공용 시뮬레이터), `retryAuth()`
 - 데드 슬롯: `#authError` (트리거 없음)

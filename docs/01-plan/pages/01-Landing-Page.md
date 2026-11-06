@@ -116,7 +116,7 @@
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/index.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/index.html`
 - 캐러셀 함수: `setPreviewSlide(index)`, 자동 전환 3500ms
 - 기능 슬라이더 페이지네이션: `#feature-pagination` (반응형 페이지 크기 3 / 2 / 1)
 - 게임 슬라이더: `#games-pagination`

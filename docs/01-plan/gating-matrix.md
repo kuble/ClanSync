@@ -113,7 +113,7 @@
 
 > **2026-11-02 변경:** 대진표 생성기는 폐기했다. 캘린더·투표 권한은 유지한다.
 >
-> **D-EVENTS-01~05** (DECIDED 2026-04-20) 전면 반영. 상세 근거는 [decisions.md §D-EVENTS-01](./decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화), [§D-EVENTS-02](./decisions.md#d-events-02--일정-반복-종료-조건), [§D-EVENTS-03](./decisions.md#d-events-03--일정투표-알림-채널정책), [§D-EVENTS-04](./decisions.md#d-events-04--투표-알림과-마감일-일관성-검증), [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).
+> **D-EVENTS-01~05** (DECIDED 2026-04-20) 전면 반영. 상세 근거는 [decisions.md §D-EVENTS-01](./decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화), [§D-EVENTS-02](./decisions.md#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21), [§D-EVENTS-03](./decisions.md#d-events-03--일정투표-알림-채널정책), [§D-EVENTS-04](./decisions.md#d-events-04--투표-알림과-마감일-일관성-검증), [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).
 
 | 항목 | leader | officer | member | free | premium |
 |------|:------:|:-------:|:------:|:----:|:-------:|

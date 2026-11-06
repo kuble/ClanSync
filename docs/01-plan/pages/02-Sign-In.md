@@ -115,7 +115,7 @@
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/sign-in.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/sign-in.html`
 - 핵심 함수: `handleSignIn(e)` (이메일 빈 값만 alert), `togglePwd(btn)`, `showForgotAlert()`(D-AUTH-04 시뮬레이션), `showDiscordScopeAlert()`(D-AUTH-05)
 - 빈 에러 슬롯: `.error-msg` (CSS만 정의, 마크업 미사용)
 - 과거 정적 목업의 `#autoLogin` 안내는 폐기된 30일 정책이다. 현재 정책·문구는 실제 로그인 폼과 [상세 설계](../../02-design/entry-experience/01-sign-in.md)를 기준으로 한다.

@@ -346,7 +346,7 @@ draft ──► matched ──► confirmed ──► finished
 
 ## 구현 참고 (개발자용)
 
-- 목업 파일: `mockup/pages/main-game.html`
+- 과거 목업 파일(2026-11-06 제거, Git 이력 참조): `mockup/pages/main-game.html`
 - 섹션 식별: `#sec-home`, `#sec-promo`, `#sec-lfg`, `#sec-scrim`, `#sec-ranking`
 - 탭 전환: `navTo(id)` — `SECTIONS = ['home','lfg','scrim','promo','ranking']`
 - 사이드바 항목: `#nav-home`, `#nav-promo`, `#nav-scrim`, `#nav-lfg`, `#nav-ranking`

@@ -17,7 +17,7 @@
 - [x] `_hub.html`에서 iframe으로 `main-clan.html` 로드 시 플랜·권한이 `sessionStorage` / `?role=`·`?plan=` 와 맞물림 (`hubBuildMainClanUrl` → `applyRoleBodyClass` / `applyPlanBodyClass`)
 - [x] Premium 전용 블록은 Free에서 숨김(`mock-hide-on-free`) + 안내(`mock-balance-free-note` 등) — §3.1·밸런스·이벤트·스토어 패턴 통일
 
-## 목업
+## 과거 목업 (2026-11-06 제거, Git 이력 참조)
 
 | 경로 |
 |------|

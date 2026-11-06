@@ -26,6 +26,6 @@
 
 - [../pages/10-Clan-Stats.md](../pages/10-Clan-Stats.md)
 
-## 목업
+## 과거 목업 (2026-11-06 제거, Git 이력 참조)
 
 - `mockup/pages/main-clan.html` — 이전 통계 탭 구조의 참고 자료. D-STATS-05 구현 상태는 별도 확인한다.

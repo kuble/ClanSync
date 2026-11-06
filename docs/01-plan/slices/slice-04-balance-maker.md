@@ -36,7 +36,7 @@
 
 - [../pages/09-BalanceMaker.md](../pages/09-BalanceMaker.md)
 
-## 목업
+## 과거 목업 (2026-11-06 제거, Git 이력 참조)
 
 - `mockup/pages/main-clan.html` (밸런스 서브뷰)
 - `mockup/scripts/clan-mock.js` (`mockBalance*` 등)

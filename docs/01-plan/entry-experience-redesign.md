@@ -25,10 +25,12 @@
 
 ## 2. 현재 화면에서 확인한 근거
 
+아래 표는 기획 작성 시점의 관찰이다. 당시 랜딩 미리보기·기능 레일 원본은 Git `c709c33`에서 확인하고, 현재 랜딩 코드는 [현행 구성](../../src/components/entry/landing/landing-page.tsx)에서 확인한다.
+
 | 확인 사항 | 현재 구현과 영향 | 근거 |
 | --- | --- | --- |
 | 시각 기준 | 클랜은 배너·아이콘·이름·소수 정보와 주요 행동, 프로필은 게임 ID·클랜·소개·대표 엠블럼과 표현 공간을 나눔 | [클랜 셸](../../src/components/main-clan/main-clan-shell.tsx), [프로필 정체성](../../src/components/profile/profile-identity.tsx) |
-| 랜딩 | 영어 중심 히어로, 헤더/본문의 로그인·가입 반복, 오래된 SVG 화면 예시, 기능 6개 가로 레일, Free/Premium 큰 카드 | [랜딩](../../src/app/page.tsx), [미리보기](../../src/components/entry/landing-preview.tsx), [기능 레일](../../src/components/entry/landing-features.tsx) |
+| 랜딩 | 영어 중심 히어로, 헤더/본문의 로그인·가입 반복, 오래된 SVG 화면 예시, 기능 6개 가로 레일, Free/Premium 큰 카드 | [랜딩 진입점](../../src/app/page.tsx), 당시 미리보기·기능 레일은 Git `c709c33` 참조 |
 | 인증 | 고정 폭 640px 폼 영역과 큰 소개 패널. 가입 순서는 이메일 → 출생연도·성별 → 비밀번호 → 동의 | [인증 셸](../../src/components/entry/auth-shell.tsx), [가입 폼](../../src/app/sign-up/sign-up-form.tsx), [로그인 폼](../../src/app/sign-in/sign-in-form.tsx) |
 | 게임 선택 | 현재 QA에는 이용 가능한 게임과 출시 예정 게임이 같은 크기로 섞임. 카드에는 상태만 있고 이동 행동은 명시하지 않음 | [카드](../../src/components/games/game-card-grid.tsx), [조회](../../src/app/games/page.tsx) |
 | 게임 인증 | QA용 ID 입력과 운영 신규 연동 미제공 상태가 같은 연결 셸 안에 있음. `next` 기반 돌아가기·프로필 재연동 진입은 복귀 규칙 확인 필요 | [연동 페이지](../../src/app/games/[gameSlug]/auth/page.tsx), [연결 폼](../../src/components/onboarding/game-auth-connect.tsx) |

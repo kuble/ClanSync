@@ -58,8 +58,8 @@
 |------|------|------|------------------|
 | D-CLAN-01 | DECIDED (2026-04-20) | 클랜 검색·필터의 서버/클라 분담 + 페이지 사이즈 | 페이지 사이즈 5 유지. Phase 1 = 클라 필터링, Phase 2+ = 서버 페이징·인덱스. [§D-CLAN-01](#d-clan-01--클랜-목록-검색필터페이지네이션-분담) |
 | D-CLAN-02 | DECIDED (2026-04-20) | 가입 신청 상태 머신, 중복 신청 정책, 취소 가능 시점 | 분리 테이블 `clan_join_requests` 신설. 게임당 단일 신청. pending 동안 항상 취소 + 거절 후 즉시 재신청. [§D-CLAN-02](#d-clan-02--가입-신청-상태-머신과-중복정책) |
-| D-CLAN-03 | DECIDED (2026-04-20) | 클랜 라이프사이클 — 정책 위반·휴면·부실 분류와 처리 | 3분류(`violating/dormant/stale`). 신고는 자동 임계 없이 운영진 직접 판단. 휴면 60d→숨김·+90d→삭제. 부실 30d→삭제. [§D-CLAN-03](#d-clan-03--클랜-라이프사이클--정책-위반·휴면·부실-처리) |
-| D-CLAN-04 | DECIDED (2026-04-20) | 클랜 만들기 폼 제출 payload | 클랜명 24자, `style` enum, `tier_range text[]` (8티어), `min_birth_year int`, age_range 제거, 클랜 자유 태그 입력. [§D-CLAN-04](#d-clan-04--클랜-만들기-폼-payload-스키마-정합) |
+| D-CLAN-03 | DECIDED (2026-04-20) | 클랜 라이프사이클 — 정책 위반·휴면·부실 분류와 처리 | 3분류(`violating/dormant/stale`). 신고는 자동 임계 없이 운영진 직접 판단. 휴면 60d→숨김·+90d→삭제. 부실 30d→삭제. [§D-CLAN-03](#d-clan-03--클랜-라이프사이클--정책-위반휴면부실-처리) |
+| D-CLAN-04 | DECIDED (2026-04-20) | 클랜 만들기 폼 제출 payload | 클랜명 24자, `style` enum, `tier_range text[]` (8티어), `min_birth_year int`, age_range 제거, 클랜 자유 태그 입력. [§D-CLAN-04](#d-clan-04--클랜-만들기-폼-payload스키마-정합) |
 | D-CLAN-05 | DECIDED (2026-04-20) | 지향 단일 칩 "다시 누르면 해제" 동작 | 해제 허용 — 지향은 선택 사항. `style` nullable. [§D-CLAN-05](#d-clan-05--지향-단일-칩-해제-허용) |
 | D-CLAN-06 | DECIDED (2026-04-20) | 클랜 인원 상한 / Premium 인원 차별 여부 | 200명 유지 (Free·Premium 동일). 인원 차별화 없음, Premium은 기능으로만 차별화. [§D-CLAN-06](#d-clan-06--인원-상한-200-유지-premium-인원-차별화-없음) |
 | D-CLAN-07 | DECIDED (2026-04-20) | 클랜 멤버 활성도 분류와 휴면 멤버 처리 | 2026-10-30 변경: 확정 내전 출전 28/56일 기준, KST 자정 저장·색상 점. 방문은 별도 5분 갱신. 자동 탈퇴 없음; 정원·알림·일괄 정리는 후속. [§D-CLAN-07](#d-clan-07--클랜-멤버-활성도-분류와-휴면-멤버-처리) |
@@ -1106,7 +1106,7 @@ ORDER BY r.created_at DESC;
 **연관 문서**
 
 - [pages/14-Profile-Customization.md §가입 신청 대기 목록](./pages/14-Profile-Customization.md#계정-정보와-공통-네임카드)
-- [decisions.md §D-CLAN-02](#d-clan-02--클랜-가입-신청-플로우)
+- [decisions.md §D-CLAN-02](#d-clan-02--가입-신청-상태-머신과-중복정책)
 
 ### D-PROFILE-03 — 뱃지 케이스 ↔ 프로필 스트립 동기화
 
@@ -1311,7 +1311,7 @@ ORDER BY r.created_at DESC;
 
 **연관 문서**
 
-- [pages/13-Clan-Store.md §Free / Premium 분기](./pages/13-Clan-Store.md#free--premium-분기)
+- [pages/13-Clan-Store.md §Free / Premium 분기](./pages/13-Clan-Store.md#free--premium-분기-d-store-02)
 - [decisions.md §D-MANAGE-01](#d-manage-01--구독결제-탭-접근-권한) (구독·결제 탭 권한)
 - [gating-matrix.md](./gating-matrix.md) §8 (스토어 권한)
 
@@ -1501,7 +1501,7 @@ ORDER BY r.created_at DESC;
 **연관 문서**
 
 - [pages/09-BalanceMaker.md §특이사항 태그](./pages/09-BalanceMaker.md#특이사항-태그)
-- [schema.md `matches`·`match_players`](./schema.md#matches) (신설 `match_tags` 테이블)
+- [schema.md `matches`·`match_players`](./schema.md#matches-경기-기록--내전에서는-라운드) (신설 `match_tags` 테이블)
 - [decisions.md §D-ECON-02](#d-econ-02--코인-세탁-방지-정책) (악용 감지 체계 공유)
 
 ---
@@ -2254,7 +2254,7 @@ CREATE UNIQUE INDEX lfg_app_one_active_per_user
 
 - [pages/08-MainGame.md §탭 3 — LFG](./pages/08-MainGame.md)
 - [schema.md](./schema.md) — `lfg_posts` · `lfg_applications` 신설 (이 결정과 함께 추가)
-- [D-EVENTS-03](#d-events-03--이벤트-알림-채널과-발송-정책) — 알림 채널 (LFG는 in-app만 사용)
+- [D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) — 알림 채널 (LFG는 in-app만 사용)
 
 ---
 
