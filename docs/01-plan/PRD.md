@@ -111,4 +111,4 @@
 | [pages.md](./pages.md) | 라우트·페이지별 컴포넌트 요약 |
 | [schema.md](./schema.md) | DB |
 | [FEATURE_INDEX.md](./FEATURE_INDEX.md) | 슬라이스 목록 |
-| [../02-design/mockup-spec.md](../02-design/mockup-spec.md) | 목업·디자인 토큰 |
+| [테마 토큰](../02-design/theme-modes.md) | 디자인 토큰 기준 |

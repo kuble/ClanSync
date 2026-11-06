@@ -25,7 +25,7 @@
 ## 목업
 
 - `mockup/pages/main-clan.html` — `view-events` · `view-manage` · `view-store`
-- 정적 목업 IA·권한: [non-page/clan-main-static-mockup-plan.md](../non-page/clan-main-static-mockup-plan.md) §4.4–4.6
+- 현재 화면·권한: [이벤트](../pages/11-Clan-Events.md) · [관리](../pages/12-Clan-Manage.md) · [상점](../pages/13-Clan-Store.md). 정적 목업 계획은 Git 이력에서 확인한다.
 
 ## 스키마
 

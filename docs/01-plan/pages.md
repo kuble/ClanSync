@@ -94,7 +94,7 @@
 
 ## 정적 목업 HTML ↔ 제품 경로 (Phase 1)
 
-S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로 대응한다. `main-clan`·`main-game` 등은 해시·탭으로 하위 경로를 흉내 낸다([non-page/clan-main-static-mockup-plan.md](./non-page/clan-main-static-mockup-plan.md) §2.1).
+S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로 대응한다. `main-clan`·`main-game` 등은 해시·탭으로 하위 경로를 흉내 냈다. 해당 정적 목업 계획은 Git 이력에서 확인한다.
 
 | 제품 경로(개념) | 목업 파일 |
 |-----------------|-----------|
@@ -140,7 +140,7 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 
 ### GameAuth (/games/[gameSlug]/auth)
 - 게임별 인증 방식 (오버워치: 배틀넷 API)
-- **목업** (`game-auth.html`): 상단 스텝(게임 선택 → 계정 연동 → 클랜 입장). `handleBattleNetAuth()` — 버튼 **연동 중…** 비활성 → 약 1.5초 후 `clan-auth.html`로 이동(연동 완료 가정). `#authError`는 실패·재시도 UI(데모에서 수동 표시 가능). 수동 배틀태그·관리자 검토 등 **추가 시나리오**는 [mockup-spec §Game Auth](../02-design/mockup-spec.md) 검토 항목이며, 현재 HTML은 OAuth 시뮬레이션 위주다.
+- **목업** (`game-auth.html`): 상단 스텝(게임 선택 → 계정 연동 → 클랜 입장). `handleBattleNetAuth()` — 버튼 **연동 중…** 비활성 → 약 1.5초 후 `clan-auth.html`로 이동(연동 완료 가정). `#authError`는 실패·재시도 UI(데모에서 수동 표시 가능). 이는 삭제된 목업의 과거 흐름이며, 현재 직접 ID 입력·인증 상태는 [게임 인증 명세](pages/05-GameAuth.md)를 따른다.
 
 ### ClanAuth (/games/[gameSlug]/clan)
 - 클랜 가입 탭: 검색, 추천, 홍보글 열람

@@ -1,5 +1,7 @@
 # 구현 진행도 — 작업 세션 로그
 
+- 2026-11-06 종료된 목업·시연 보조 문서 5개를 제거하고 방송 수동 상태·네임카드 기본 이미지 안내를 게시판·프로필 명세에 통합한 뒤 별도 문서 2개를 제거했다. 현재 심벌 전용 아바타·기본 심벌 기준으로 오래된 사진/방패 설명을 정리하고 연결 문서의 링크·참조를 갱신했다. 과거 기록은 Git 이력으로 확인하며 앱 코드·데이터는 변경하지 않았다.
+
 - 2026-11-06 홍보 편집 실패는 검사 커서·파일 선택 경로, 320px 실패는 닫히던 프로필 메뉴의 이전 위치 측정으로 재현·구분했다. 실제 사진 버튼 사용과 메뉴 제거 확인으로 검사를 보정하고 프로덕션 관련 4개·직렬화 단위 3개·타입·린트·빌드를 통과했다. 제품·DB 변경과 전체 회귀 재실행은 없으며 기존 QA 데이터·운영 보류를 유지한다. [원인·검증](TODO_Phase2.md#2026-11-06-홍보-편집320px-실패-검사-보정).
 
 - 2026-11-06 사용하지 않는 Phase 1 정적 목업 폴더와 아이콘 원본 예외·린트 제외 설정을 제거했다. 삭제 파일로 향하는 링크와 현재 개발 안내를 정리하고, 과거 설계·결정·완료 기록은 Git 이력 참조용으로 구분했다. 실제 앱의 개발 미리보기·검증 자료는 유지한다.
@@ -2239,7 +2241,7 @@
 - [x] **라우팅** — `src/lib/routing/game-card-router.ts`(`buildGameCardHref`).
 - [x] **기타** — `button-variants.ts` 분리(서버에서 `buttonVariants` 호출 가능) · `scripts/seed-fixtures.mjs` + `package.json` `db:seed` · `.env.example` 시드용 `QA_SEED_PASSWORD`.
 - [x] **검증** — `npm run build` 통과 · `npx eslint src` 통과.
-- [x] **문서** — [TODO_Phase2.md](./TODO_Phase2.md) M2·라우트 표·산출물 지도 · [TODO.md](./TODO.md) · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) 라이브 4행 🟩.
+- [x] **문서** — [TODO_Phase2.md](./TODO_Phase2.md) M2·라우트 표·산출물 지도 · [TODO.md](./TODO.md) · 과거 시연 보조 문서 (과거 기록·Git 이력 참조) 라이브 4행 🟩.
 - **다음**: **M3** — OAuth 게임 인증 · 클랜 온보딩 · RLS(가입 요청). 스텁 페이지 교체.
 
 ### 2026-04-21 — Phase 2 M1 인프라 베이스라인 착지
@@ -2268,7 +2270,7 @@
 
 - [x] **문제 제기**: "마일스톤대로 진행했을 때 내가 명확히 무엇이 바뀌고 있는지 체감이 어렵다. 초반 백엔드 구간에 UI/UX 감이 안 잡힌다." — 체감 장치 필요.
 - [x] **설계 원칙**: 사람용 체감 콘텐츠(별명·데모 시나리오·라이브 상태 표·집중 폴리시)를 **별도 파일로 분리**해 에이전트 토큰 부담 억제. 운영 문서([TODO_Phase2.md](./TODO_Phase2.md))에는 링크 1줄 + **운영성 있는 항목만** 추가.
-- [x] **신규 `docs/PHASE2_EXPERIENCE.md`** — 사람용 보조 트랙. 별명 표(11행: M0 "지도 펴는 날" ~ M8 "한 바퀴 돈 날") · 마일스톤별 30초 데모 시나리오(M1~M8, 두 계정 시나리오 포함) · 라우트 라이브 상태 표 16행(🟥/🟧/🟩/🟦) · 집중 폴리시 구간 메모(M5, M8) · 미리보기 URL 운영 가이드. 에이전트는 시연·리뷰·릴리즈 시점에만 열면 됨을 상단 명시.
+- [x] **신규 `과거 시연 보조 문서`** — 사람용 보조 트랙. 별명 표(11행: M0 "지도 펴는 날" ~ M8 "한 바퀴 돈 날") · 마일스톤별 30초 데모 시나리오(M1~M8, 두 계정 시나리오 포함) · 라우트 라이브 상태 표 16행(🟥/🟧/🟩/🟦) · 집중 폴리시 구간 메모(M5, M8) · 미리보기 URL 운영 가이드. 에이전트는 시연·리뷰·릴리즈 시점에만 열면 됨을 상단 명시.
 - [x] **`TODO_Phase2.md` 운영성 추가 3개**:
   - 상단 머릿말에 **체감 로드맵 링크 1줄** + "에이전트는 시연 시점에만" 주석.
   - **공통 게이트 이원화**: 기존 5개를 "기술 게이트 5"로 유지하고, **UI/UX 게이트 3** 신설(키보드 온리 플로우 / 375·768·1280px 반응형 / 로딩·에러·빈 상태 3종). 인프라만 있는 마일스톤(M1)은 면제.
@@ -2986,7 +2988,7 @@
 - [x] `/todo` 커맨드: 없는 `TODO_Phase2.md` 직접 참조 → "현재 페이즈 진행도"로 일반화.
 - [x] 목업 보완 피드백 카탈로그화: A(즉시 코드 보완 가능 7건), B(결정 필요 8건), C(에셋 교체 3건), D(구조적 한계). `decisions.md` OPEN 38건 기준. 다음 세션 후보 3개로 좁힘.
 
-- [x] `TODO_Phase1.md`: 종료(2026-03-28)·S00 Phase 2 항목을 Phase2 문서로 이관·요약표 S00 완료
+- [x] `종료된 Phase 1 체크리스트`: 종료(2026-03-28)·S00 Phase 2 항목을 Phase2 문서로 이관·요약표 S00 완료
 - [x] `TODO_Phase2.md`: 참조표·종료조건·체크 A~E·슬라이스 매핑·`pages.md` 전 경로+MainClan 하위·메모
 - [x] 허브·`FEATURE_INDEX`·`README`·`project-context`·`todo`·`session-handoff`: 현재 단계 Phase 2
 
@@ -3004,7 +3006,7 @@
 - [x] `TODO_LOG.md` 신설, `TODO.md`에서 히스토리 제거(토큰 절약)
 
 ### 2026-03-28 — 진행도 문서 페이즈 분리
-- [x] `TODO_Phase1.md`·`TODO_Phase2.md` 신설, 본 파일은 허브·세션 로그 전용
+- [x] `종료된 Phase 1 체크리스트`·`TODO_Phase2.md` 신설, 본 파일은 허브·세션 로그 전용
 
 ### 2026-03-28 — 랜딩·온보딩 미결 BACKLOG 대조
 - [x] `BACKLOG.md`: PRD·`pages.md`와 항목 매칭·랜딩/온보딩 표·경제·통계 그룹 분리
@@ -3017,7 +3019,7 @@
 - [x] 라우팅 맵에 `/profile`·게시글 상세(목업 미작성) 명시, 미들웨어에 프로필·게임 하위 분리, Phase 1 목업 대응표·`slice-01` 수용 기준
 
 ### 2026-03-28 — mockup-spec 정합 (공통 목업)
-- [x] `mockup-spec.md`: 트리(`_hub`·`profile`·`clan-mock`·`partials`)·MainGame 레이아웃·Premium 목업 클래스·MainClan 탭·Profile·MainGame 필터/플레이스홀더·`data/` 메모
+- [x] `과거 목업 명세`: 트리(`_hub`·`profile`·`clan-mock`·`partials`)·MainGame 레이아웃·Premium 목업 클래스·MainClan 탭·Profile·MainGame 필터/플레이스홀더·`data/` 메모
 - [x] **공통 목업** `mockup-spec` 대비 항목 완료 (S00은 Phase 2 섹션 추가 시까지 표상 **진행 중** 유지)
 
 ### 2026-03-28 — S08 프로필·꾸미기 ↔ 밸런스 정책 정합
@@ -3028,11 +3030,11 @@
 - [x] `pages.md` MainGame 목업 요약, `BACKLOG.md`·`slice-07` 수용 기준, 진행도·요약표 S07 **완료**
 
 ### 2026-03-28 — S03 MainClan 쉘 문서·플랜 경계 정합
-- [x] `non-page/clan-main-static-mockup-plan.md` §2.1 해시·뷰 매핑, §3 권한·§3.1 플랜·§8 현재 네비 정책 반영
+- [x] `과거 정적 목업 계획` §2.1 해시·뷰 매핑, §3 권한·§3.1 플랜·§8 현재 네비 정책 반영
 - [x] `slice-03` 수용 기준 완료, 진행도·요약표 S03 폴리시 열 **완료**
 
 ### 2026-03-28 — S06 이벤트·관리·스토어 문서·목업 정합
-- [x] `pages.md`에 통계·관리·스토어 섹션 추가, `non-page/clan-main-static-mockup-plan.md` §4.3–4.6 목업 ID·권한 반영
+- [x] `pages.md`에 통계·관리·스토어 섹션 추가, `과거 정적 목업 계획` §4.3–4.6 목업 ID·권한 반영
 - [x] 이벤트 대진표: Premium 탭 배지 + Free 플랜 시 본문 숨김(`mock-hide-on-free`)·안내 문구
 - [x] `slice-06` 수용 기준·진행도·요약표
 
@@ -3070,7 +3072,7 @@
 - [x] **M-1** `main-game.html` LFG 헤더 「내 신청 N건」pill · 모집자 카드/드로어 「신청자 N명」·`lfgAppCount` 연동 · **m-4** 미사용 `.ranking-insight-placeholder` CSS 제거
 - [x] **Minor 목업** `_hub.html` 프로필 링크 · 전 페이지 `<meta description>` · `#mock-match-correction-request-modal` `aria-modal="true"`
 - [x] **Minor 문서** `10-Clan-Stats` 결정 현황 중복 제거 · `schema.md` games/maps/player_scores/medals/board_posts D- 교차 링크 · **m-8/m-9** `slice-00` 역할 용어·`Phase 2+` 표기 규약
-- [x] `TODO.md`·`TODO_Phase1.md` 메타 갱신
+- [x] `TODO.md`·`종료된 Phase 1 체크리스트` 메타 갱신
 
 ### 템플릿 (복사 후 사용)
 

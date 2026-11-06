@@ -27,4 +27,4 @@
 
 ## 참고
 
-- [../non-page/clan-main-static-mockup-plan.md](../non-page/clan-main-static-mockup-plan.md) — 정적 목업 반영 메모
+- [클랜 메인 명세](../pages/07-MainClan.md) — 현재 화면·권한 기준. 과거 정적 목업 반영 메모는 Git 이력에서 확인한다.

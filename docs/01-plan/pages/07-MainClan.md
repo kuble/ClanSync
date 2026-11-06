@@ -336,7 +336,7 @@ Phase 1 범위는 **예고 배너 한 줄**만. 드로워 최상단(제목 바�
 ## 연관 문서
 - [pages.md](../pages.md)
 - [slices/slice-03-main-clan-shell.md](../slices/slice-03-main-clan-shell.md)
-- [non-page/clan-main-static-mockup-plan.md](../non-page/clan-main-static-mockup-plan.md)
+- 과거 정적 목업 계획은 Git 이력에서 확인한다.
 - [gating-matrix.md](../gating-matrix.md)
 - [decisions.md](../decisions.md)
 - 하위 뷰 문서: [09-BalanceMaker.md](./09-BalanceMaker.md), [10-Clan-Stats.md](./10-Clan-Stats.md), [11-Clan-Events.md](./11-Clan-Events.md), [12-Clan-Manage.md](./12-Clan-Manage.md), [13-Clan-Store.md](./13-Clan-Store.md)

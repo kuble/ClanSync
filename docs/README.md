@@ -36,7 +36,7 @@
 | 클랜 게시판·사진 앨범 | [모바일 목차](../src/components/main-clan/clan-board-navigation.tsx) · [목록/입력 규칙](../src/lib/clan/board.ts) · [저장 액션](../src/app/actions/clan-board.ts) · [기본 댓글 공감](../src/app/actions/board-comment-reactions.ts) · [화면](../src/components/main-clan/clan-board-posts.tsx) · [통계와 공통 댓글 UI](../src/components/main-clan/clan-comments.tsx) · [명세](01-plan/pages/15-Clan-Board.md) | [본문 높이/하단](../e2e/clan-board-viewport.spec.ts) · [모바일 선택/뒤로가기](../e2e/clan-board-mobile-navigation.spec.ts) · [작성·상태·사진·권한](../e2e/clan-board.spec.ts) · [두 댓글 화면·이모티콘 비교](../e2e/clan-comment-parity.spec.ts) · [기본 댓글 공감 RLS](../e2e/board-comment-reactions.spec.ts) · [댓글 공감자 조회·권한](../e2e/clan-board-reaction-people.spec.ts) · [목록 전송량·배치](../e2e/clan-board-list.spec.ts) · [DB/RLS](../scripts/clan-boards-db.test.mjs) · [공지 이동](../e2e/clan-management.spec.ts) |
 | 내전 회차·클랜 배지 케이스 | [회차](../src/lib/clan/load-clan-history.ts) · [배지 로더](../src/lib/clan/load-clan-badges.ts) · [핀 케이스](../src/components/main-clan/clan-badges.tsx) | [회차·획득·대시보드](../e2e/clan-management-overview.spec.ts) · [분류/N·멤버 판정/회수·상세](../e2e/clan-badge-growth.spec.ts) · [계열별 진열·주년 상세](../e2e/clan-badge-series.spec.ts) · [새 획득 보존·확인 격리](../e2e/clan-badge-read-state.spec.ts) · [발급/진열 권한](../scripts/clan-boards-db.test.mjs) |
 | 코칭 선생님·신청 알림 | [선생님 UI](../src/components/main-clan/clan-coach-directory.tsx) · [선생님 조회](../src/lib/clan/load-clan-coaches.ts) · [알림 벨](../src/components/main-clan/clan-inapp-notification-bell.tsx) | [등록·신청·댓글 알림](../e2e/clan-coaching.spec.ts) · [담당 권한·수신자 DB](../scripts/clan-coaching-db.test.mjs) |
-| 방송 링크·수동 생방송 표시 | [채널 UI](../src/components/main-clan/clan-channel-links.tsx) · [저장 액션](../src/app/actions/clan-board.ts) · [표시 방식](guides/clan-channel-live.md) | [작성자 권한·상태 보존·입력 스타일](../e2e/clan-channel-manual-live.spec.ts) |
+| 방송 링크·수동 생방송 표시 | [채널 UI](../src/components/main-clan/clan-channel-links.tsx) · [저장 액션](../src/app/actions/clan-board.ts) · [표시 방식](01-plan/pages/15-Clan-Board.md) | [작성자 권한·상태 보존·입력 스타일](../e2e/clan-channel-manual-live.spec.ts) |
 | 내전 로비·예약·참석 응답 | [로비](../src/components/main-clan/clan-balance-lobby.tsx) · [방 액션](../src/app/actions/clan-balance-rooms.ts) · [방 권한](../src/lib/balance/room-access.ts) | [로비 통합](../e2e/balance-lobby.spec.ts) · [방 DB](../scripts/balance-rooms-db.test.mjs) |
 | 설정 On/Off 토글 | [공통 Switch](../src/components/ui/switch.tsx) — 하위 설정은 왼쪽 연결선과 들여쓰기로 표현한다. 복수 항목 선택·동의는 체크박스 유지 | [경기 설정](../e2e/formation-settings-preview.spec.ts) · [알림 설정](../e2e/clan-discord-notifications.spec.ts) · [폼 저장](../e2e/auction-catalog.spec.ts) |
 | 명단 입력·자동 저장 | [명단 편집](../src/components/main-clan/clan-balance-roster-editor.tsx) · [자동 저장](../src/lib/balance/roster-autosave.ts) | [목록 배치·드래그](../e2e/balance-roster-dock.spec.ts) · [roster-autosave](../e2e/roster-autosave.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) |
@@ -113,13 +113,9 @@
 
 아래 문서는 과거 결정과 디자인 이력으로 보존합니다. 정적 목업 파일은 2026-11-06 제거했으며, 문서 안의 옛 파일 경로는 Git 이력에 있는 원본을 뜻합니다. 현재 기능 상태의 기준이나 실행 경로로 사용하지 않습니다.
 
-- [TODO_Phase1.md](TODO_Phase1.md): 종료된 정적 목업 체크리스트.
-- [AUDIT-Phase1-2026-04-21.md](AUDIT-Phase1-2026-04-21.md): 당시 감사와 후속 정리 기록.
 - [TODO_LOG.md](TODO_LOG.md): 개발 작업 이력.
-- [정적 목업 플랜](01-plan/non-page/clan-main-static-mockup-plan.md): 목업의 화면·권한 표현 의도.
-- [과거 목업 명세](02-design/mockup-spec.md): 당시 디자인 토큰과 화면 구조 기록.
 
-`PHASE2_EXPERIENCE.md`의 중복 상태표·옛 데모는 제거하고 진행도·QA 문서로 연결했습니다. 페이지 명세·정책 결정·법무 검토는 고유한 요구사항을 담으므로 유지합니다.
+종료된 목업의 체크리스트·감사·명세·계획과 과거 시연 보조 문서는 제거했습니다. 필요하면 Git 이력에서 확인하고, 현재 구현은 [Phase 2 진행도](TODO_Phase2.md), 직접 검수는 [QA 시나리오](QA_시나리오.md)를 따릅니다. 페이지 명세·정책 결정·법무 검토는 고유한 요구사항을 담으므로 유지합니다.
 
 구독 표시 용어는 **Free / Premium**으로 통일합니다. 기존 `pro-*` 코드 식별자는 별도입니다.
 

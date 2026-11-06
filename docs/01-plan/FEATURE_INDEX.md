@@ -1,7 +1,7 @@
 # 기능 슬라이스 인덱스
 
 > 구현·목업 작업 시 **이 표에서 슬라이스 하나만** 골라 `docs/01-plan/slices/slice-XX-*.md`를 연다.  
-> 진행도: [허브](../TODO.md) · Phase 2 [체크·라우트](../TODO_Phase2.md) · Phase 1 [요약(종료)](../TODO_Phase1.md) · [세션 로그](../TODO_LOG.md)
+> 진행도: [허브](../TODO.md) · Phase 2 [체크·라우트](../TODO_Phase2.md) · [세션 로그](../TODO_LOG.md)
 
 | ID | 슬라이스 | 한 줄 | 상세 문서 |
 |----|----------|-------|-----------|
@@ -19,6 +19,5 @@
 
 - 밸런스 UI 카피·플로우: [pages/09-BalanceMaker.md](./pages/09-BalanceMaker.md)
 - 밸런스 M/A 점수·슬롯: [pages/09-BalanceMaker.md](./pages/09-BalanceMaker.md)
-- 클랜 메인 정적 목업 계획: [non-page/clan-main-static-mockup-plan.md](./non-page/clan-main-static-mockup-plan.md)
 - 통계 탭 상세: [pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md)
 - 법무: [non-page/legal-review.md](./non-page/legal-review.md)
