@@ -828,11 +828,11 @@ function selectSingleChip(el, group) {
 - UI 레이어에서 `role=leader` 쿼리를 우회해 leader 버튼을 렌더해도, Server Action·API 호출 시 Supabase RLS가 `auth.uid()` 기준 실제 권한으로 403 반환.
 - 따라서 **데이터 무결성은 RLS로 보장**, **UI 혼란 방지는 미들웨어 쿼리 정화로 보장**. 두 층은 독립적.
 
-**`/mockup/*` 경로 처리**
+**과거 `/mockup/*` 경로 처리 (2026-11-06 파일 제거)**
 
 - Phase 2 Next.js 빌드에서 `mockup/` 디렉터리는 **`app/` 트리 밖**이므로 라우트로 노출되지 않음. `public/` 복사 대상에서도 제외.
-- **Staging 이하 환경에서만** `/mockup/index.html` 공개 배포 여부는 Phase 2+ 결정(기본: 비공개). 공개하더라도 `robots.txt`·`noindex` 메타 필수.
-- Phase 1 목업 현재 구동은 `npx http-server mockup -p 8788` 로컬 전용으로 지속(운영 도메인과 분리).
+- 목업 공개 배포 검토는 파일 제거에 따라 종료했다. 현재 앱에 목업 경로를 추가하지 않는다.
+- Phase 1 목업은 당시 로컬 전용으로 운영 도메인과 분리했다. 정적 목업 파일·서버는 2026-11-06 폐기했으며 현재 개발은 `AGENTS.md`의 QA 시작 절차를 따른다.
 
 **감사·모니터링**
 
@@ -841,9 +841,9 @@ function selectSingleChip(el, group) {
   - RLS: INSERT는 서비스 롤만, SELECT는 admin만.
 - 운영자 대시보드(Phase 2+): 30일 내 디버그 쿼리 사용 건수·상위 path 리스트. 과도한 사용 감지 시 환경 변수 off.
 
-**Phase 1 목업 영역 (변경 없음)**
+**Phase 1 목업 영역 (당시 결정 이력 — 2026-11-06 파일 제거)**
 
-- 목업은 현재 규칙을 그대로 유지한다. `?role=`·`?plan=`·`?hubDebug=1` 등은 허브·스크린샷·QA 미리보기 목적으로 **유효**. `_hub.html`의 `hubClanMainSrc()` 쿼리 조립 로직도 유지.
+- 당시 목업에서는 `?role=`·`?plan=`·`?hubDebug=1`을 허브·스크린샷·QA 미리보기 목적으로 사용했다. 이는 제거된 정적 목업의 이력이며 현재 앱의 인증·권한 우회를 허용하지 않는다.
 - 본 결정은 **Phase 2 운영 빌드의 미들웨어·환경 변수·감사**에 대한 선언. Phase 1 목업 코드 변경 없음.
 
 **연관 문서**

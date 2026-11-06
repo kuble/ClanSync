@@ -97,7 +97,7 @@
 | 수동 시연·재현 | [QA_시나리오.md](QA_시나리오.md) |
 | 테스트 실행·픽스처 | [E2E 안내](../e2e/README.md) · [debug-and-fixtures.md](01-plan/debug-and-fixtures.md) |
 | 배포 연동 복구 | [VERCEL_PRODUCTION_SYNC.md](VERCEL_PRODUCTION_SYNC.md) |
-| 디자인·용어 확인 | [mockup-spec.md](02-design/mockup-spec.md) · [theme-modes.md](02-design/theme-modes.md) · [glossary.md](01-plan/glossary.md) |
+| 디자인·용어 확인 | [theme-modes.md](02-design/theme-modes.md) · [glossary.md](01-plan/glossary.md) |
 
 ## 중복을 늘리지 않는 갱신 규칙
 
@@ -111,12 +111,13 @@
 
 ## 필요할 때만 보는 과거 기록
 
-아래 문서는 과거 결정과 목업 유지보수에 필요하므로 보존합니다. 현재 기능 상태의 기준으로 사용하지 않습니다.
+아래 문서는 과거 결정과 디자인 이력으로 보존합니다. 정적 목업 파일은 2026-11-06 제거했으며, 문서 안의 옛 파일 경로는 Git 이력에 있는 원본을 뜻합니다. 현재 기능 상태의 기준이나 실행 경로로 사용하지 않습니다.
 
 - [TODO_Phase1.md](TODO_Phase1.md): 종료된 정적 목업 체크리스트.
 - [AUDIT-Phase1-2026-04-21.md](AUDIT-Phase1-2026-04-21.md): 당시 감사와 후속 정리 기록.
 - [TODO_LOG.md](TODO_LOG.md): 개발 작업 이력.
 - [정적 목업 플랜](01-plan/non-page/clan-main-static-mockup-plan.md): 목업의 화면·권한 표현 의도.
+- [과거 목업 명세](02-design/mockup-spec.md): 당시 디자인 토큰과 화면 구조 기록.
 
 `PHASE2_EXPERIENCE.md`의 중복 상태표·옛 데모는 제거하고 진행도·QA 문서로 연결했습니다. 페이지 명세·정책 결정·법무 검토는 고유한 요구사항을 담으므로 유지합니다.
 

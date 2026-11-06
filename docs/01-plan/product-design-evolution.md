@@ -352,7 +352,7 @@
 - 노트북 화면에서 스크롤 없이 함께 보여야 하는 영역은 어디까지일까?
 - 글자 크기·텍스트 대비·키보드 초점·터치 영역을 어떤 기준으로 검증할까?
 
-**관련 기준:** `D-SHELL-01` / [클랜 홈](./pages/07-MainClan.md), [밸런스메이커](./pages/09-BalanceMaker.md), [목업 기준](../02-design/mockup-spec.md), [목업](../../mockup/pages/main-clan.html).
+**관련 기준:** `D-SHELL-01` / [클랜 홈](./pages/07-MainClan.md), [밸런스메이커](./pages/09-BalanceMaker.md), [과거 목업 기준](../02-design/mockup-spec.md). 정적 목업 원본은 Git 이력에서 확인한다.
 
 핵심 조작과 고급 설정을 구분하는 참고 원칙: [NN/g — Progressive Disclosure](https://www.nngroup.com/articles/progressive-disclosure/). 구체적인 배치는 실제 작업 흐름으로 검증한다.
 

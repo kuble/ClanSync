@@ -24,7 +24,6 @@ Next.js 16.2 App Router · React 19.2 · TypeScript · Tailwind CSS 4 · shadcn/
 | `src/lib/` | 인증·권한·도메인 로직·Supabase 클라이언트 |
 | `supabase/migrations/` | 실제 DB 변경 이력 |
 | `e2e/` | Playwright 시나리오 |
-| `mockup/` | 완료된 Phase 1 정적 목업·디자인 참조 |
 | `docs/` | 기획·진행도·검증 기록 |
 
 ## 로컬 실행
@@ -82,6 +81,6 @@ QA_01_Clan의 통계용 과거 데이터는 `node scripts/add-qa-stats-history.m
 
 명령과 시드 조건은 [E2E 안내](e2e/README.md), 코드·테스트 선택은 [기능별 진입점](docs/README.md)을 따릅니다. 사용자 QA가 진행 중이면 `E2E_SKIP_SEED=1`과 별도 임시 픽스처를 사용합니다. QA 스키마는 `db:test:push`·`db:test:types`를 사용하며 `db:push`·`db:sync`는 연결된 DB를 변경합니다.
 
-최신 검증 근거는 [구현·검증 현황](docs/TODO_Phase2.md)을 참조합니다. ESLint는 앱·테스트·스크립트를 검사하며 완료된 정적 목업·생성 디렉터리는 제외합니다.
+최신 검증 근거는 [구현·검증 현황](docs/TODO_Phase2.md)을 참조합니다. ESLint는 앱·테스트·스크립트를 검사하며 생성 디렉터리는 제외합니다. Phase 1 정적 목업 파일은 제거했으며 과거 원본은 Git 이력에서 확인합니다.
 
 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다. 변경은 의미별 커밋 후 자동 푸시합니다. 별도 수동 배포는 명시 요청 시에만 진행합니다.

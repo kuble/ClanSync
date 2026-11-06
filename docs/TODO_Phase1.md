@@ -1,5 +1,7 @@
 # Phase 1 — 정적 목업 (`mockup/`, `_hub.html`)
 
+> 완료 이력 보관용이다. 정적 목업 파일은 2026-11-06 제거했으며 아래 경로는 Git 이력에서만 확인한다. 현재 작업 기준은 [TODO](TODO.md)와 [Phase 2](TODO_Phase2.md)다.
+
 > **상태: 종료** (2026-03-28) — 유지보수·카피 수정 시에만 본 체크를 갱신한다.  
 > **허브**: [TODO.md](./TODO.md) · **세션 로그**: [TODO_LOG.md](./TODO_LOG.md) · **Phase 2**: [TODO_Phase2.md](./TODO_Phase2.md)  
 > **감사 후속**: [AUDIT-Phase1-2026-04-21.md](./AUDIT-Phase1-2026-04-21.md) (Critical/Major/Minor 정리 완료 2026-04-21)

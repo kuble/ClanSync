@@ -104,7 +104,7 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 
 | 패턴 | Production | Preview | 로컬 |
 |------|------------|---------|------|
-| `?role=`·`?plan=` 로 권한 위조 | 금지 (정화) | 금지 (정화) | 금지 권장 — 목업은 `mockup/` 별도 서버 |
+| `?role=`·`?plan=` 로 권한 위조 | 금지 (정화) | 금지 (정화) | 실제 QA 계정으로 검증. 구형 정적 목업 서버는 폐기 |
 | `NEXT_PUBLIC_DEBUG_QUERY=1` + admin + D-SHELL-02 디버그 키 | 선택(기본 off) | 보통 off | 로컬만 on 가능 |
 | **환경변수 `AUTH_DEV_BYPASS`** (가칭) — 고정 UUID로 세션 주입 | **빌드에서 제거 또는 무시** | 사용 안 함 | 선택: `next dev` 전용, 코드 분기 `process.env.NODE_ENV === 'development'` |
 
