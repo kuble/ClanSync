@@ -7,9 +7,11 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
   test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(10);
   const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+  let roomId: string | undefined;
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     const room = await createAndEnterBalanceRoom(page, fixture.path, "결과 선택 검증");
+    roomId = room.roomId;
     const ids = fixture.users.map((user) => user.id);
     const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     const member = await memberContext.newPage();
@@ -131,6 +133,19 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       const actionPath = "**/balance?room=*";
       const countdown = panel.getByTestId("balance-next-round-countdown");
       await page.bringToFront();
+      let releaseNext: (() => void) | undefined;
+      let releaseRefresh: (() => void) | undefined;
+      let holdRefresh = false;
+      if (outcome === "team2") {
+        const nextGate = new Promise<void>(resolve => { releaseNext = resolve; });
+        const refreshGate = new Promise<void>(resolve => { releaseRefresh = resolve; });
+        await page.route(actionPath, async route => {
+          const request = route.request();
+          if (request.method() === "POST" && request.postData()?.includes(active.id) && !request.postData()?.includes('"team2"')) await nextGate;
+          if (holdRefresh && request.method() === "GET" && request.headers().rsc === "1") await refreshGate;
+          await route.continue();
+        });
+      }
       if (outcome === "team1") {
         const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
         await page.route(actionPath, async (route) => {
@@ -152,7 +167,7 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
         await expect(panel.getByTestId("balance-match-result")).toHaveCount(0);
         expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
         for (const value of [4, 3, 2, 1]) {
-          await expect(seconds).toHaveText(String(value), { timeout: 2500 });
+          await expect.poll(() => seconds.evaluateAll(nodes => nodes[0]?.textContent), { timeout: 2500, intervals: [50] }).toBe(String(value));
           if (value === 4) await page.screenshot({ path: test.info().outputPath("result-countdown-center.png") });
         }
         await expect(countdown).toHaveAttribute("data-remaining", "0", { timeout: 8000 });
@@ -188,6 +203,22 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       await expect(memberPanel.getByTestId("balance-next-round-countdown")).toBeVisible();
       const completed = await fixture.activeRound(room.roomId);
       expect(completed.id).toBe(active.id);
+      if (outcome === "team2") {
+        holdRefresh = true;
+        const prepared = page.getByTestId("balance-prepared-round");
+        await expect(prepared).toBeVisible({ timeout: 8000 });
+        await expect(prepared).toHaveAttribute("inert", "");
+        await expect(prepared.locator("[data-roster-slot]")).toHaveCount(10);
+        expect((await fixture.activeRound(room.roomId)).id).toBe(active.id);
+        await page.screenshot({ path: test.info().outputPath("cached-next-round.png") });
+        const responsePromise = page.waitForResponse(response => response.request().method() === "POST" && Boolean(response.request().postData()?.includes(active.id)) && !response.request().postData()?.includes('"team2"'));
+        releaseNext!();
+        expect((await responsePromise).status()).toBe(200);
+        await expect(panel).toHaveAttribute("data-balance-phase", "editing", { timeout: 8000 });
+        await expect(page.getByRole("dialog", { name: "경기 맵 선택", exact: true })).toBeVisible();
+        releaseRefresh!();
+        await page.unrouteAll({ behavior: "wait" });
+      }
       if (outcome === "team1") {
         await expect(countdown.getByRole("alert")).toContainText("다음 경기를 열지 못했습니다", { timeout: 15_000 });
         expect((await fixture.activeRound(room.roomId)).id).toBe(active.id);
@@ -226,6 +257,11 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       }
     }
   } catch (error) {
+    if (roomId) {
+      const round = await fixture.activeRound(roomId);
+      const formation = round.formation_state as { stage?: string; appliedAt?: number } | null;
+      console.log("결과 검사 실패 직전 DB 상태", { phase: round.phase, revision: round.formation_revision, stage: formation?.stage, applied: formation?.appliedAt !== undefined });
+    }
     await page.screenshot({ path: test.info().outputPath("before-fixture-cleanup.png") });
     await test.info().attach("before-fixture-cleanup", { body: await page.locator("body").innerText(), contentType: "text/plain" });
     throw error;

@@ -928,22 +928,32 @@ export async function closeBalanceSessionAction(
 
 /** Keep the session date and roster while starting a distinct, empty round. */
 export async function nextBalanceRoundAction(
-  gameSlug: string,
+  _gameSlug: string,
   clanId: string,
   currentRoundId: string,
-): Promise<BalanceSessionActionResult> {
+): Promise<{ ok: true; round: BalanceRound } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { error } = await supabase.rpc("next_balance_round", {
+  const { data, error } = await supabase.rpc("next_balance_round", {
     p_clan_id: clanId,
     p_round_id: currentRoundId,
   });
-  if (error) return { ok: false, error: error.message };
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
+  if (error && error.message !== "이미 다음 라운드로 이동했습니다.") return { ok: false, error: error.message };
+  const payload = data as { round_id?: string } | null;
+  let roundId = payload?.round_id;
+  if (!roundId) {
+    const { data: old } = await supabase.from("balance_sessions").select("series_id").eq("id", currentRoundId).eq("clan_id", clanId).maybeSingle();
+    if (!old?.series_id) return { ok: false, error: "다음 경기를 확인하지 못했습니다." };
+    const { data: active } = await supabase.from("balance_sessions").select("id").eq("series_id", old.series_id).eq("clan_id", clanId).is("closed_at", null).maybeSingle();
+    roundId = active?.id;
+  }
+  if (!roundId) return { ok: false, error: "다음 경기를 확인하지 못했습니다." };
+  const { data: round, error: readError } = await supabase.from("balance_sessions").select("*").eq("id", roundId).eq("clan_id", clanId).maybeSingle();
+  if (readError || !round) return { ok: false, error: "다음 경기를 불러오지 못했습니다. 다시 시도하십시오." };
+  // 점수는 화면의 권한별 조회로 갱신하며 개설 응답에는 포함하지 않는다.
+  return { ok: true, round: { ...round, ma_snapshot: {} } };
 }

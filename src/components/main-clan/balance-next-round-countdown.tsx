@@ -8,11 +8,13 @@ import { nextBalanceRoundAction } from "@/app/actions/clan-balance-session";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { Button } from "@/components/ui/button";
 import { BalancePreparationOverlay } from "./balance-preparation-overlay";
+import type { Database } from "@/lib/supabase/database.types";
 
-export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settledAt, serverNow, canManage, paused, startedAt, saved, saveError, saving, onSaveRetry }: {
+export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settledAt, serverNow, canManage, paused, startedAt, saved, saveError, saving, onSaveRetry, onNextStart, onNextReady, onNextError }: {
   gameSlug: string; clanId: string; sessionId: string; settledAt: string | null;
   serverNow: number; canManage: boolean; paused: boolean;
   startedAt?: number; saved: boolean; saveError?: string; saving: boolean; onSaveRetry: () => void;
+  onNextStart?: () => void; onNextReady?: (round: Database["public"]["Tables"]["balance_sessions"]["Row"]) => void; onNextError?: () => void;
 }) {
   const tx = useTranslator();
   const router = useRouter();
@@ -24,19 +26,21 @@ export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settled
   const [retry, setRetry] = useState(0);
   const attempt = useRef<string | null>(null);
   useEffect(() => {
-    if (remaining > 0 || !canManage || paused || !saved) return;
+    if (remaining > 0 || paused || !saved) return;
+    if (!canManage) { onNextStart?.(); return; }
     const key = `${sessionId}:${retry}`;
     if (attempt.current === key) return;
     attempt.current = key;
+    onNextStart?.();
     start(async () => {
       try {
         const result = await nextBalanceRoundAction(gameSlug, clanId, sessionId);
-        // 다른 운영진의 타이머가 먼저 열었어도 같은 다음 경기를 조회한다.
-        if (!result.ok && result.error !== "이미 다음 라운드로 이동했습니다.") setError(result.error);
+        if (!result.ok) { setError(result.error); onNextError?.(); }
+        else onNextReady?.(result.round);
         router.refresh();
-      } catch { setError("다음 경기를 열지 못했습니다. 연결을 확인하고 다시 시도하십시오."); }
+      } catch { setError("다음 경기를 열지 못했습니다. 연결을 확인하고 다시 시도하십시오."); onNextError?.(); }
     });
-  }, [remaining, canManage, paused, saved, sessionId, retry, gameSlug, clanId, router]);
+  }, [remaining, canManage, paused, saved, sessionId, retry, gameSlug, clanId, router, onNextStart, onNextReady, onNextError]);
   return <div className="flex flex-wrap items-center justify-end gap-2" data-testid="balance-next-round-countdown" data-remaining={remaining}>
     {remaining > 0 && !saveError && !error && !paused ? <div data-testid="balance-next-round-timer" aria-hidden="true"
       className="pointer-events-none fixed top-1/2 left-1/2 z-40 grid w-60 max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 justify-items-center gap-2 rounded-2xl border border-primary/30 bg-card/95 p-5 text-center shadow-xl">

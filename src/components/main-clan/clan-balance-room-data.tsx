@@ -2,7 +2,7 @@ import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { canManageRound } from "@/lib/balance/room-access";
-import { ClanBalanceSessionPanel } from "@/components/main-clan/clan-balance-session-panel";
+import { ClanBalanceRoundTransition } from "@/components/main-clan/clan-balance-round-transition";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
@@ -179,8 +179,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   // eslint-disable-next-line react-hooks/purity -- 인증된 비동기 서버 요청의 현재 시각
   const serverNow = Date.now();
   return (
-    <ClanBalanceSessionPanel
-      key={session.id}
+    <ClanBalanceRoundTransition
+      key={series.id}
       gameSlug={gameSlug}
       clanId={clanId}
       userId={user.id}

@@ -326,6 +326,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await settings(page, panel, "random", true);
     await member.goto(room.url);
     const memberPanel = member.getByTestId("clan-balance-session-panel");
+    await expect(memberPanel).toHaveCount(1);
     await expect(memberPanel.getByTestId("balance-realtime")).toHaveAttribute(
       "data-connection-status",
       "READY",

@@ -134,6 +134,10 @@ export function ClanBalanceSessionPanel({
   planPremium,
   qaPreviewEnabled = false,
   playerSessionInfo,
+  preview = false,
+  onNextStart,
+  onNextReady,
+  onNextError,
 }: {
   gameSlug: string;
   clanId: string;
@@ -161,6 +165,10 @@ export function ClanBalanceSessionPanel({
   planPremium: boolean;
   qaPreviewEnabled?: boolean;
   playerSessionInfo?: PlayerSessionInfoMap;
+  preview?: boolean;
+  onNextStart?: () => void;
+  onNextReady?: (round: BalanceSession) => void;
+  onNextError?: () => void;
 }) {
   const tx = useTranslator();
   const dock = useMovableDrawerTab();
@@ -411,13 +419,13 @@ export function ClanBalanceSessionPanel({
   const editorMap = editingScreen && session && !session.map_ban_enabled ?
     <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={editorMapLabel}
       onSaved={(label, revision) => setSavedMap({ roundId: session.id, label, revision })}
-      saving={mapSaving} onSavingChange={setMapSaving} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
+      saving={mapSaving} onSavingChange={setMapSaving} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation && !preview} /> : null;
 
   return (
     <BalanceAnalysisProvider model={session?.phase === "map_ban" ? undefined : predictionModel} map={editorMapLabel}>
     <BalanceNamecardMode hide={Boolean(canManage && editingScreen)} profileLinks={!canManage} nicknameOnly={settings.nicknameOnly}><div
       className="space-y-5"
-      data-testid="clan-balance-session-panel"
+      data-testid={preview ? "clan-balance-session-preview" : "clan-balance-session-panel"}
       data-balance-phase={session?.phase ?? "none"}
       data-score-state={scoreReady ? "ready" : scoreResult?.ok === false ? "error" : "loading"}
       data-formation-transition={awaitingFormation || preparingMatch ? "true" : undefined}
@@ -436,7 +444,7 @@ export function ClanBalanceSessionPanel({
           }}>{tx("종료 확정")}</Button></div>
         </DialogContent>
       </Dialog>
-      <ClanBalanceSessionRealtime
+      {!preview ? <ClanBalanceSessionRealtime
         seriesId={series?.id ?? null}
         sessionId={session?.id ?? null}
         clanId={clanId}
@@ -445,7 +453,7 @@ export function ClanBalanceSessionPanel({
             ? `${session.id}:${session.formation_revision}:${session.phase}:${session.match_outcome}`
             : "none"
         }
-      />
+      /> : null}
       {canManage && guideOpen ? (
         <ClanBalanceGuide
           open={guideOpen}
@@ -455,7 +463,7 @@ export function ClanBalanceSessionPanel({
           canEditMscore={canEditMscore}
         />
       ) : null}
-      <div {...dock.handlers} className={`${dock.className} fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-stretch gap-2`} data-testid="balance-drawer-shortcuts">
+      {!preview ? <div {...dock.handlers} className={`${dock.className} fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-stretch gap-2`} data-testid="balance-drawer-shortcuts">
         {canViewHistory ? <ClanBalanceHistoryDrawer
           docked
           scope={historyScope}
@@ -475,7 +483,7 @@ export function ClanBalanceSessionPanel({
           pool={predictionPool} serverNow={serverNow} phase={session.phase}
           predictionMinutes={settings.predictionMinutes}
         /> : null}
-      </div>
+      </div> : null}
       {session && canManage && settingsOpen ? (
         <ClanBalanceSettings
           key={session.id}
@@ -869,7 +877,8 @@ export function ClanBalanceSessionPanel({
                       settledAt={session.predictions_settled_at} serverNow={serverNow} canManage={canManage}
                       startedAt={localResult?.startedAt} saved={resultSaved}
                       saveError={!resultSaved ? localResult?.error : undefined} saving={savingResult}
-                      onSaveRetry={() => { if (localResult) saveResult(localResult); }} paused={confirmEnd || pending} />
+                      onSaveRetry={() => { if (localResult) saveResult(localResult); }} paused={confirmEnd || pending}
+                      onNextStart={onNextStart} onNextReady={onNextReady} onNextError={onNextError} />
                   </div> : null}
                   {flash ? <p className="text-xs text-muted-foreground">{tx("깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.")}</p> : null}
                 </div>
