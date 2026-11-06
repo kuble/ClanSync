@@ -24,14 +24,24 @@ Docker 네트워크는 loopback 바인딩 옵션으로 생성한다. Windows Doc
 npm run test:db -- scripts/role-preferences-db.test.mjs
 npm run test:e2e -- e2e/auth-performance.spec.ts:66
 
+# 빌드·보안 쿠키 등 프로덕션 동작을 확인할 선택 검사
+npm run test:e2e -- e2e/auth-performance.spec.ts:66 --production
+
+# 실패 재현에 trace가 필요할 때
+npm run test:e2e -- e2e/clan-banner-studio.spec.ts --trace
+
 # 전체 DB / 전체 브라우저 검사
 npm run test:db
 npm run test:e2e
 ```
 
-브라우저 검사는 프로덕션 빌드 후 전용 3010 서버·worker 1·재시도 0으로 실행한다. 파일 또는 `파일:줄번호`만 인수로 받는다. 로컬 테스트 계정은 새로 만들며 온라인 QA의 동명 계정과 무관하다. 실행 중인 다른 로컬 검사나 정리가 있으면 중복 실행을 거부한다.
+파일 또는 `파일:줄번호`를 지정한 브라우저 검사는 기본적으로 빌드 없이 개발 서버를 사용한다. 파일을 지정하지 않은 전체 검사와 CI에서는 항상 프로덕션 빌드 후 실행한다. 선택 검사도 `--production`으로 빌드를 강제한다. 인증·권한·보안 쿠키·공통 라우팅 등 프로덕션 동작이 중요한 변경에는 이 옵션을 사용한다. 전용 3010 서버·worker 1·재시도 0과 로컬 데이터 격리는 동일하다. 로컬 테스트 계정은 새로 만들며 온라인 QA의 동명 계정과 무관하다. 실행 중인 다른 로컬 검사나 정리가 있으면 중복 실행을 거부한다.
 
-개발 화면만 검사할 때는 PowerShell에서 `$env:LOCAL_TEST_DEV_SERVER="1"`을 지정하고 `npm run test:e2e -- e2e/clan-banner-studio.spec.ts`를 실행한다. 같은 전용 DB·3010·검사 후 정리 절차를 유지하며 개발 서버를 사용한다. 종료 후 `Remove-Item Env:LOCAL_TEST_DEV_SERVER`로 해제한다.
+기존 `LOCAL_TEST_DEV_SERVER=1` 없이도 선택 검사는 개발 서버를 사용한다. 이 환경 변수가 남아 있어도 전체 검사·CI·`--production`은 빌드 경로를 우선한다. `LOCAL_TEST_DEV_SERVER=0`은 선택 검사에도 빌드를 강제한다.
+
+터미널에는 준비·정리 단계와 통과/실패/건너뜀/미완료 수, 최대 5개 실패의 위치·원인을 표시한다. 전체 검사 출력은 실행 폴더의 `output.log`, 계정 준비 출력은 `seed.log`, 상세 결과와 대시보드 진행 정보는 `events.jsonl`에 남긴다. 준비·프로세스·정리 오류도 실패 종료 코드와 요약으로 전달한다. 로그의 인증값은 기존처럼 가린다.
+
+운영 반영 전에는 `npm run lint` → `npx tsc --noEmit` → `npm run test:db` → `npm run test:e2e`로 전체 검증한다. 마지막 명령에 프로덕션 빌드가 포함되므로 같은 빌드를 직전에 중복 실행하지 않는다. 선택 검사 통과는 전체 회귀 통과를 의미하지 않는다.
 
 대용량 통계 검사는 `$env:STATS_BENCHMARK="1"`과 `npm run test:e2e -- e2e/clan-stats-scale.spec.ts`로 별도 실행한다. 1만 경기·10만 출전 행을 전용 로컬 DB에만 생성한다. 비교가 필요하면 `STATS_COMPARE_REFERENCE=1`도 지정하며, 종료 후 지정한 환경 변수를 해제한다. 다른 검사와 동시에 실행하지 않는다.
 
@@ -67,7 +77,7 @@ PC 강제 종료처럼 종료 처리가 불가능한 경우 다음 실행의 시
 
 화면의 실행 중 요청·최장 실행 시간은 일반 클라이언트 연결만 센다. 실시간 전송을 위해 계속 열려 있는 `walsender`를 느린 화면 요청으로 해석하지 않는다. 과거 이력의 `timingScope=new-connections-v1`은 이미 열린 연결의 I/O 시간이 빠질 수 있으며 WAL 시간도 없으므로, `server-reload-v2`와 동일한 측정 범위로 비교하지 않는다.
 
-브라우저 검사 실패에는 재시도 없이도 Playwright trace를 보관한다. trace는 로컬 테스트 계정의 요청 정보를 포함할 수 있으므로 Git에서 제외되는 실행 폴더에만 보관하고 공개하지 않는다.
+선택 개발 검사는 trace 수집을 기본으로 끄고 실패 스크린샷은 유지한다. `--trace`로 재현하면 실패 trace를 보관한다. 전체·CI·`--production` 검사는 기존처럼 재시도 없이도 실패 trace를 보관한다. trace는 로컬 테스트 계정의 요청 정보를 포함할 수 있으므로 Git에서 제외되는 실행 폴더에만 보관하고 공개하지 않는다. 실행기 자체 검증은 DB 없이 `node --test scripts/local-tests/execution.test.mjs`로 수행한다.
 
 `.local-tests/metrics/YYYY-MM-DD.jsonl`에 측정 시각과 당시 실행 ID·단계·검사 파일을 함께 저장한다. 속도는 직전 측정부터의 평균이므로 짧은 검사 여러 개가 한 구간에 포함될 수 있다. 화면에는 최근 로컬 20분·온라인 2시간을 표시하며, 원본 측정 이력은 DB 정리 후에도 유지한다. 과거 검사 이력을 선택해도 자원 패널은 **현재 상태**다.
 

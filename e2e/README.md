@@ -22,12 +22,14 @@ npm run test:dashboard
 ```powershell
 npm run test:e2e -- e2e/balance-session-live.spec.ts
 npm run test:e2e -- e2e/auth-performance.spec.ts:66
+npm run test:e2e -- e2e/auth-performance.spec.ts:66 --production
+npm run test:e2e -- e2e/balance-session-live.spec.ts --trace
 npm run test:db -- scripts/role-preferences-db.test.mjs
 ```
 
 실행기는 검사 전후 전용 로컬 DB와 Storage 데이터를 정리하고, 브라우저 검사 전에 로컬 QA 계정만 생성합니다. 실패해도 정리하며 계정·클랜·경기 0건 확인을 별도로 기록합니다. 강제 종료 뒤 잔여 데이터는 다음 실행 시작 시 정리합니다. 실행 잠금으로 중복 검사와 동시 초기화를 막습니다. `npm run test:local:clean`으로 수동 정리할 수 있습니다.
 
-브라우저는 프로덕션 빌드·전용 3010 서버·worker 1·재시도 0입니다. 기존 3011 서버를 재사용하지 않습니다. Next는 UTC·`CLANSYNC_E2E=1`·로컬 게임 연결 시뮬레이터로 실행하며 관리 토큰과 Discord 발송 키는 비웁니다. 결과는 `.local-tests/runs/`에 남겨 DB 정리 뒤에도 원인을 추적합니다.
+선택 브라우저 검사는 기본적으로 개발 서버를 사용합니다. 파일 미지정 전체 검사·CI·`--production`은 프로덕션 빌드를 유지합니다. 인증·권한·보안 쿠키·공통 라우팅 변경에는 선택 검사도 `--production`으로 확인합니다. 전용 3010 서버·worker 1·재시도 0이며 기존 3011 서버를 재사용하지 않습니다. Next는 UTC·`CLANSYNC_E2E=1`·로컬 게임 연결 시뮬레이터로 실행하며 관리 토큰과 Discord 발송 키는 비웁니다. 터미널은 요약·실패 원인만 표시하고 상세 로그와 대시보드 기록은 `.local-tests/runs/`에 남깁니다. 선택 개발 검사의 trace는 기본 OFF이며 `--trace`로 수집합니다. 전체·CI·운영 모드에서는 기존 실패 trace 보관을 유지합니다.
 
 Playwright는 `tsconfig.playwright.json`을 사용합니다. Node에서 서버 조회 함수를 직접 검증할 때 `server-only`를 Next 내장 빈 모듈로 해석하며, 앱 코드의 서버/클라이언트 경계는 유지합니다.
 
