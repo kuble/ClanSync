@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
   gotoOverwatchLeaderClanBase,
-  loginAsFixtureRole,
 } from "./fixture-login-helper";
 
 test.use({ viewport: { width: 1280, height: 800 } });
@@ -46,39 +45,4 @@ test("clan navigation acknowledges the click before a delayed page response", as
     page.getByRole("heading", { name: "클랜 통계", exact: true }),
   ).toBeVisible();
   await expect(page.locator('[data-navigation-pending="true"]')).toHaveCount(0);
-});
-
-test("promotion sorting preserves filters and browser history without refetching the hub", async ({
-  page,
-}) => {
-  test.skip(true,"커뮤니티 홍보 정렬은 보류하며 클랜 찾기 연동은 clan-promotion.spec.ts에서 검증합니다.");
-  await loginAsFixtureRole(page, "Leader");
-  await page.goto("/games/overwatch?tab=promo&promoSort=newest");
-  const panel = page.getByTestId("main-game-tab-promo");
-  await expect(panel).toBeVisible();
-  const search = page.getByRole("textbox", {
-    name: "클랜 홍보 검색",
-    exact: true,
-  });
-  await search.fill("navigation-filter");
-  const requests: string[] = [];
-  page.on("request", (request) => {
-    if (
-      request.headers().rsc === "1" &&
-      new URL(request.url()).pathname === "/games/overwatch"
-    )
-      requests.push(request.url());
-  });
-  const sort = page.getByLabel("정렬", { exact: true });
-  await sort.selectOption("space");
-  await expect(page).toHaveURL(/promoSort=space/);
-  await expect(sort).toHaveValue("space");
-  await expect(search).toHaveValue("navigation-filter");
-  await page.goBack();
-  await expect(page).toHaveURL(/promoSort=newest/);
-  await expect(sort).toHaveValue("newest");
-  await expect(search).toHaveValue("navigation-filter");
-  await page.goForward();
-  await expect(sort).toHaveValue("space");
-  expect(requests).toEqual([]);
 });

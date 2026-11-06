@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loadDashboardRows } from "../src/lib/clan/load-dashboard-rows";
+import { loadDashboardRows } from "../../src/lib/clan/load-dashboard-rows";
 
 test("rankings load every row beyond the API cap", async () => {
   const all = Array.from({ length: 1304 }, (_, id) => ({ id }));

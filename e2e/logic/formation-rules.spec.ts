@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { computeBalancePredictionDeadlineIso } from "../src/lib/balance/prediction-deadline";
-import { effectiveAuctionItems, validateRoundAuctionCatalog } from "../src/lib/balance/auction-items";
+import { computeBalancePredictionDeadlineIso } from "../../src/lib/balance/prediction-deadline";
+import { effectiveAuctionItems, validateRoundAuctionCatalog } from "../../src/lib/balance/auction-items";
 import {
   advanceFormation,
   AUCTION_AWARD_DURATION_MS,
@@ -16,11 +16,11 @@ import {
   type FormationState,
   type Role,
   type Team,
-} from "../src/lib/balance/formation";
+} from "../../src/lib/balance/formation";
 import {
   rosterAssignedUserIds,
   type BalanceRoster,
-} from "../src/lib/balance/roster-schema";
+} from "../../src/lib/balance/roster-schema";
 
 const roster: BalanceRoster = {
   team1: { dmg: ["d1", "d2"], tank: "t1", sup: ["s1", "s2"] },

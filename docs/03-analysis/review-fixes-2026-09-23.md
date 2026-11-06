@@ -31,13 +31,13 @@
 
 - DB: `20260923095344_review_security_boundaries.sql`, `20260923100248_review_transaction_and_loading_fixes.sql`, 생성 타입. QA 마이그레이션 **80개**, 운영 **50개**.
 - 주요 코드: `safe-next-path.ts`, `discord-webhook.ts`, 일정/투표/내전 액션과 설정 폼, `load-main-game-hub.ts`, `load-clan-dashboard.ts`, `load-clan-stats.ts`, 반복 일정 계산·달력, 로비·경매 UI.
-- 새 검증: `e2e/security-fix-boundaries.spec.ts`, `e2e/security-fix-rules.spec.ts`.
+- 새 검증: `e2e/security-fix-boundaries.spec.ts`, `e2e/logic/security-fix-rules.spec.ts`.
 
 실행 순서와 결과:
 
 1. `npm run db:test:push` → `npm run db:test:types`, 생성 타입 동기화: 통과. 운영 대상 명령은 사용하지 않았다.
 2. `npx tsc --noEmit`, `npm run lint`: 통과.
-3. `E2E_SKIP_SEED=1 npx playwright test e2e/security-fix-rules.spec.ts e2e/security-fix-boundaries.spec.ts e2e/review-rules.spec.ts` 및 변경 후 해당 테스트 재실행: 총 **19개 고유 시나리오 통과**. 최초 1건의 기대값을 실제 권한 거절 응답에 맞춰 수정 후 재검증했다.
+3. `E2E_SKIP_SEED=1 npx playwright test e2e/logic/security-fix-rules.spec.ts e2e/security-fix-boundaries.spec.ts e2e/logic/review-rules.spec.ts` 및 변경 후 해당 테스트 재실행: 총 **19개 고유 시나리오 통과**. 최초 1건의 기대값을 실제 권한 거절 응답에 맞춰 수정 후 재검증했다.
 4. `node --test --test-concurrency=1 scripts/session-round-db.test.mjs scripts/prematch-db.test.mjs scripts/prediction-settings-db.test.mjs`: **20개 통과**.
 5. QA 환경변수, `CLANSYNC_E2E=1`, `TZ=UTC`로 `next build`: 최종 통과. 독립 읽기 전용 검토에서 확인한 회귀를 수정하고 관련 검증을 재실행했다.
 

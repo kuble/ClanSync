@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { awardEmblems, getAwardHistory, getAwardRepresentatives, milestoneEmblems, resolveFeaturedKeys, resolveAccountFeaturedKeys } from "../src/lib/personal-emblems/catalog";
+import { awardEmblems, getAwardHistory, getAwardRepresentatives, milestoneEmblems, resolveFeaturedKeys, resolveAccountFeaturedKeys } from "../../src/lib/personal-emblems/catalog";
 const history = (...keys: string[]) => new Map(keys.map((key) => [key, "2025-07-01T15:30:00Z"]));
 
 test("마감 수상은 기간·금속에 맞는 원본으로 변환하고 기존 수상키를 보존한다", () => {

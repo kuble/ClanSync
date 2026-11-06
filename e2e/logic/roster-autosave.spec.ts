@@ -3,11 +3,11 @@ import {
   RosterAutosave,
   type RosterSaveResult,
   type RosterVersion,
-} from "../src/lib/balance/roster-autosave";
+} from "../../src/lib/balance/roster-autosave";
 import {
   EMPTY_ROSTER,
   type BalanceRoster,
-} from "../src/lib/balance/roster-schema";
+} from "../../src/lib/balance/roster-schema";
 
 function roster(...members: string[]): BalanceRoster {
   const value = structuredClone(EMPTY_ROSTER);

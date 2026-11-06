@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { buildHofPeriod } from "../src/lib/clan/stats/load-clan-stats";
-import { HOF_CONFIG_DEFAULTS, minGamesToQualify } from "../src/lib/clan/stats/hof-config";
+import { buildHofPeriod } from "../../src/lib/clan/stats/load-clan-stats";
+import { HOF_CONFIG_DEFAULTS, minGamesToQualify } from "../../src/lib/clan/stats/hof-config";
 import {
   normalizeClanMatchRecords,
   type CompletedBalanceSession,
   type StoredClanMatch,
-} from "../src/lib/clan/stats/normalize-clan-match-records";
+} from "../../src/lib/clan/stats/normalize-clan-match-records";
 
 function session(
   overrides: Partial<CompletedBalanceSession> = {},

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { buildDiscordBotMessage, type DiscordNotificationRow } from "../src/lib/notifications/discord-message";
-import { postDiscordBotMessage } from "../src/lib/notifications/discord-bot";
+import { buildDiscordBotMessage, type DiscordNotificationRow } from "../../src/lib/notifications/discord-message";
+import { postDiscordBotMessage } from "../../src/lib/notifications/discord-bot";
 
 const channel = "234567890123456789";
 const base: DiscordNotificationRow = { log_id: "example", event_id: null, poll_id: null, title: "", slot_kind: "", start_at: null, deadline_at: null, game_slug: "overwatch", clan_id: "clan", channel_id: channel };

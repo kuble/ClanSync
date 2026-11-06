@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { safeNextPath } from "../src/lib/auth/safe-next-path";
-import { dispatchDiscordBotNotifications } from "../src/lib/notifications/dispatch-discord-bot-notifications";
-import { expandClanEventsForMonth, expandClanEventsForLocalCalendarMonth, isOccurrenceValidForTemplate, type ClanEventRecord } from "../src/lib/clan/expand-clan-event-occurrences";
-import { activeLobbyRooms } from "../src/lib/balance/lobby-rooms";
+import { safeNextPath } from "../../src/lib/auth/safe-next-path";
+import { dispatchDiscordBotNotifications } from "../../src/lib/notifications/dispatch-discord-bot-notifications";
+import { expandClanEventsForMonth, expandClanEventsForLocalCalendarMonth, isOccurrenceValidForTemplate, type ClanEventRecord } from "../../src/lib/clan/expand-clan-event-occurrences";
+import { activeLobbyRooms } from "../../src/lib/balance/lobby-rooms";
 
 test("redirects reject authority confusion and preserve internal links", () => {
   for (const path of ["//evil.test", "/\\evil.test", "/%5cevil.test", "/%2fevil.test", "/\tevil.test", "https://evil.test", "/a/..//evil.test", "/%0aevil.test", "/sign-in?next=/games", "/sign-up"]) expect(safeNextPath(path)).toBe("/games");

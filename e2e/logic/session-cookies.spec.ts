@@ -6,7 +6,7 @@ import {
   getSessionMaxAge,
   REMEMBERED_SESSION_SECONDS,
   SESSION_CHOICE_COOKIE,
-} from "../src/lib/supabase/session-cookies";
+} from "../../src/lib/supabase/session-cookies";
 
 type StoredCookie = Parameters<SetAllCookies>[0][number];
 const authCookie = /^sb-.+-auth-token(?:\.\d+)?$/;

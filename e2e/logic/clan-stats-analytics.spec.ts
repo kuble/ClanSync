@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { buildIntraStats, buildPersonalMatches, currentStreak, recordTotals, relationRows } from "../src/lib/clan/stats/clan-stats-analytics";
-import { normalizeClanMatchRecords, type CompletedBalanceSession } from "../src/lib/clan/stats/normalize-clan-match-records";
-import { summarizeVisits } from "../src/lib/clan/stats/clan-site-usage";
-import { predictionTotals, personalPredictions, predictionPointHistory, type PredictionRecord } from "../src/lib/clan/stats/clan-prediction-stats";
-import { buildIntraOverviewPeriods, intraTrendPoints } from "../src/lib/clan/stats/intra-overview";
+import { buildIntraStats, buildPersonalMatches, currentStreak, recordTotals, relationRows } from "../../src/lib/clan/stats/clan-stats-analytics";
+import { normalizeClanMatchRecords, type CompletedBalanceSession } from "../../src/lib/clan/stats/normalize-clan-match-records";
+import { summarizeVisits } from "../../src/lib/clan/stats/clan-site-usage";
+import { predictionTotals, personalPredictions, predictionPointHistory, type PredictionRecord } from "../../src/lib/clan/stats/clan-prediction-stats";
+import { buildIntraOverviewPeriods, intraTrendPoints } from "../../src/lib/clan/stats/intra-overview";
 
 function round(id: string, seriesId: string, result: "team1" | "team2" | "draw" | "void", swapped = false): CompletedBalanceSession {
   return {

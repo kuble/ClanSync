@@ -16,6 +16,8 @@ for (const file of requested) {
   const prefix = mode === "db" ? "scripts/" : "e2e/";
   if (!clean.startsWith(prefix) || clean.includes("..") || !/\.(test\.mjs|spec\.ts)$/.test(clean) || !existsSync(resolve(root,clean)))
     throw new Error(`허용되지 않은 검사 파일 ${file}`);
+  if (mode === "e2e" && clean.startsWith("e2e/logic/"))
+    throw new Error("로직 검사는 npm run test:unit -- 파일[:줄번호]로 실행하십시오.");
 }
 const release = acquireLock();
 const id = `${new Date().toISOString().replace(/[:.]/g,"-")}-${randomUUID().slice(0,8)}`;

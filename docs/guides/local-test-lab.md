@@ -1,6 +1,6 @@
 # 로컬 자동 검사와 실시간 현황
 
-사용자가 직접 확인하는 3011 QA는 기존 온라인 DB와 계정·내전 기록을 유지한다. 자동 검사는 이 데이터에 연결하지 않고 PC의 별도 Supabase 프로젝트 `clansync-automated-tests`를 사용한다. 운영 DB도 연결하지 않는다.
+사용자가 직접 확인하는 3011 QA는 기존 온라인 DB와 계정·내전 기록을 유지한다. DB·브라우저 검사는 이 데이터에 연결하지 않고 PC의 별도 Supabase 프로젝트 `clansync-automated-tests`를 사용한다. 운영 DB도 연결하지 않는다.
 
 ## 한 번 준비하기
 
@@ -19,7 +19,13 @@ Docker 네트워크는 loopback 바인딩 옵션으로 생성한다. Windows Doc
 
 ## 검사 실행
 
+로직 검사 18개 파일은 서버·DB 준비 없이 실행한다. Docker가 꺼져 있거나 다른 로컬 DB 검사가 진행 중이어도 `npm run test:unit`을 사용할 수 있다. [검사 범위와 파일 목록](../../e2e/logic/README.md).
+
 ```powershell
+# 로직 전체 또는 필요한 파일만 (DB·브라우저 준비 없음)
+npm run test:unit
+npm run test:unit -- e2e/logic/formation-rules.spec.ts
+
 # 필요한 파일만 선택
 npm run test:db -- scripts/role-preferences-db.test.mjs
 npm run test:e2e -- e2e/auth-performance.spec.ts:66
@@ -41,7 +47,7 @@ npm run test:e2e
 
 터미널에는 준비·정리 단계와 통과/실패/건너뜀/미완료 수, 최대 5개 실패의 위치·원인을 표시한다. 전체 검사 출력은 실행 폴더의 `output.log`, 계정 준비 출력은 `seed.log`, 상세 결과와 대시보드 진행 정보는 `events.jsonl`에 남긴다. 준비·프로세스·정리 오류도 실패 종료 코드와 요약으로 전달한다. 로그의 인증값은 기존처럼 가린다.
 
-운영 반영 전에는 `npm run lint` → `npx tsc --noEmit` → `npm run test:db` → `npm run test:e2e`로 전체 검증한다. 마지막 명령에 프로덕션 빌드가 포함되므로 같은 빌드를 직전에 중복 실행하지 않는다. 선택 검사 통과는 전체 회귀 통과를 의미하지 않는다.
+운영 반영 전에는 `npm run test:all`로 린트 → 타입 → 로직 → 전체 DB → 전체 E2E를 순서대로 검증한다. 마지막 E2E에 프로덕션 빌드가 포함되므로 같은 빌드를 직전에 중복 실행하지 않는다. `test:e2e`는 브라우저·통합 검사만 실행하며 분리한 로직 검사를 포함하지 않는다. 선택 검사 통과는 전체 회귀 통과를 의미하지 않는다. 보류된 커뮤니티 6개는 [별도 목록](../qa/deferred-community-scenarios.md)에서 관리하며 통과 수에 포함하지 않는다.
 
 대용량 통계 검사는 `$env:STATS_BENCHMARK="1"`과 `npm run test:e2e -- e2e/clan-stats-scale.spec.ts`로 별도 실행한다. 1만 경기·10만 출전 행을 전용 로컬 DB에만 생성한다. 비교가 필요하면 `STATS_COMPARE_REFERENCE=1`도 지정하며, 종료 후 지정한 환경 변수를 해제한다. 다른 검사와 동시에 실행하지 않는다.
 

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../src/lib/supabase/database.types";
-import { hasClanPermission } from "../src/lib/clan/has-clan-permission";
-import { allowDevGameLink } from "../src/lib/auth/allow-dev-game-link";
-import { parseEventStart } from "../src/lib/clan/parse-event-start";
+import type { Database } from "../../src/lib/supabase/database.types";
+import { hasClanPermission } from "../../src/lib/clan/has-clan-permission";
+import { allowDevGameLink } from "../../src/lib/auth/allow-dev-game-link";
+import { parseEventStart } from "../../src/lib/clan/parse-event-start";
 
 test("R04 permission errors and missing settings fail closed", async () => {
   function client(role: string, settings: unknown, error: unknown = null, membershipError: unknown = null) {

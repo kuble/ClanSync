@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { formatBalanceScore, scoreComparisonShare, teamScoreTotal } from "../src/lib/balance/score-display";
-import type { TeamRoster } from "../src/lib/balance/roster-schema";
+import { formatBalanceScore, scoreComparisonShare, teamScoreTotal } from "../../src/lib/balance/score-display";
+import type { TeamRoster } from "../../src/lib/balance/roster-schema";
 
 test("점수 합계는 소수·음수·미등록을 구분한다", () => {
   const team: TeamRoster = { tank: "a", dmg: ["b", null], sup: [null, null] };

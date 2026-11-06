@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { defaultMaForRoster, parseMaSnapshot, parseMaSnapshotForEdit, validateMaSnapshot } from "../src/lib/balance/ma-snapshot";
-import { EMPTY_ROSTER } from "../src/lib/balance/roster-schema";
+import { defaultMaForRoster, parseMaSnapshot, parseMaSnapshotForEdit, validateMaSnapshot } from "../../src/lib/balance/ma-snapshot";
+import { EMPTY_ROSTER } from "../../src/lib/balance/roster-schema";
 
 const roster = { ...EMPTY_ROSTER, team1: { ...EMPTY_ROSTER.team1, tank: "player" } };
 

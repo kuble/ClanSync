@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { buildArchiveDayStats, sortArchiveDayStats } from "../src/lib/clan/stats/archive-day-stats";
-import type { ClanArchiveMatch } from "../src/lib/clan/stats/load-clan-stats";
+import { buildArchiveDayStats, sortArchiveDayStats } from "../../src/lib/clan/stats/archive-day-stats";
+import type { ClanArchiveMatch } from "../../src/lib/clan/stats/load-clan-stats";
 
 function match(index: number, outcome: ClanArchiveMatch["outcome"], players = ["blue", "red"]): ClanArchiveMatch {
   return {

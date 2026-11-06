@@ -2,11 +2,13 @@
 
 ## 테스트 환경
 
-자동 검사는 PC 안의 전용 Supabase DB를 사용합니다. `loadTestEnv()`는 `.env.test-local`과 `http://127.0.0.1:55431`만 허용하며 온라인 QA와 운영 주소는 거부합니다. 사용자용 3011 QA는 기존 `.env.e2e.local`과 계정·내전 기록을 유지합니다.
+DB·브라우저 검사는 PC 안의 전용 Supabase DB를 사용합니다. `loadTestEnv()`는 `.env.test-local`과 `http://127.0.0.1:55431`만 허용하며 온라인 QA와 운영 주소는 거부합니다. 사용자용 3011 QA는 기존 `.env.e2e.local`과 계정·내전 기록을 유지합니다.
 
 검사 사이트는 `http://localhost:3010`을 사용합니다. Playwright API 요청은 HTTP의 `127.0.0.1`에 보안 쿠키를 보내지 않으므로 프로덕션 모드 검사를 그 주소로 바꾸지 않습니다. `local-session-api.spec.ts`가 브라우저 로그인과 API 인증, 비로그인 요청의 분리를 확인합니다.
 
 ## 준비와 실행
+
+로직 검사 18개 파일은 [logic 안내](logic/README.md)의 별도 설정으로 실행합니다. `npm run test:unit`은 Docker·DB·서버·시드 없이 실행하며, 필요한 파일은 `npm run test:unit -- e2e/logic/formation-rules.spec.ts`처럼 선택합니다. 다음 준비 절차는 DB·브라우저 검사에만 필요합니다.
 
 Docker Desktop이 실행 중인 상태에서 최초 한 번 준비합니다.
 
@@ -25,13 +27,18 @@ npm run test:e2e -- e2e/auth-performance.spec.ts:66
 npm run test:e2e -- e2e/auth-performance.spec.ts:66 --production
 npm run test:e2e -- e2e/balance-session-live.spec.ts --trace
 npm run test:db -- scripts/role-preferences-db.test.mjs
+
+# 운영 반영 전 전체: 린트 → 타입 → 로직 → DB → 프로덕션 브라우저
+npm run test:all
 ```
 
 실행기는 검사 전후 전용 로컬 DB와 Storage 데이터를 정리하고, 브라우저 검사 전에 로컬 QA 계정만 생성합니다. 실패해도 정리하며 계정·클랜·경기 0건 확인을 별도로 기록합니다. 강제 종료 뒤 잔여 데이터는 다음 실행 시작 시 정리합니다. 실행 잠금으로 중복 검사와 동시 초기화를 막습니다. `npm run test:local:clean`으로 수동 정리할 수 있습니다.
 
 선택 브라우저 검사는 기본적으로 개발 서버를 사용합니다. 파일 미지정 전체 검사·CI·`--production`은 프로덕션 빌드를 유지합니다. 인증·권한·보안 쿠키·공통 라우팅 변경에는 선택 검사도 `--production`으로 확인합니다. 전용 3010 서버·worker 1·재시도 0이며 기존 3011 서버를 재사용하지 않습니다. Next는 UTC·`CLANSYNC_E2E=1`·로컬 게임 연결 시뮬레이터로 실행하며 관리 토큰과 Discord 발송 키는 비웁니다. 터미널은 요약·실패 원인만 표시하고 상세 로그와 대시보드 기록은 `.local-tests/runs/`에 남깁니다. 선택 개발 검사의 trace는 기본 OFF이며 `--trace`로 수집합니다. 전체·CI·운영 모드에서는 기존 실패 trace 보관을 유지합니다.
 
-Playwright는 `tsconfig.playwright.json`을 사용합니다. Node에서 서버 조회 함수를 직접 검증할 때 `server-only`를 Next 내장 빈 모듈로 해석하며, 앱 코드의 서버/클라이언트 경계는 유지합니다.
+브라우저 검사와 로직 검사는 `tsconfig.playwright.json`을 사용합니다. Node에서 서버 조회 함수를 직접 검증할 때 `server-only`를 Next 내장 빈 모듈로 해석하며, 앱 코드의 서버/클라이언트 경계는 유지합니다. `playwright.unit.config.ts`는 DB 환경을 읽는 브라우저 설정을 상속하지 않습니다. `test:e2e`와 라이트 설정은 `logic/`를 제외하므로 전체 검증에는 반드시 `test:all`을 사용합니다.
+
+항상 건너뛰던 구형 커뮤니티 시나리오 6개는 [보류 검증 목록](../docs/qa/deferred-community-scenarios.md)으로 옮겼습니다. 활성 상점·모바일·이동 피드백·UI 회귀는 유지하고, 보류 기능 재개 시 목록의 조건과 Git 원본으로 검사를 복원합니다. 개발 전용·대용량 검사의 조건부 건너뛰기는 유지합니다.
 
 프로덕션 세션은 `Secure` 쿠키를 사용한다. HTTP 루프백에서 Chromium이 보내는 이 쿠키를 Playwright의 Node HTTP 클라이언트가 생략할 수 있으므로, 인증된 서버 액션 재전송은 [공감자 조회 테스트](clan-board-reaction-people.spec.ts)처럼 브라우저 안의 `fetch`로 실행한다. 먼저 정상 인자의 성공·실제 결과를 확인한 뒤 위조·삭제·탈퇴를 검사하고, `redirect: "manual"`로 로그인 리다이렉트가 최종 응답에 섞이지 않게 한다. 비로그인 검증은 별도 브라우저 컨텍스트의 요청을 사용한다.
 

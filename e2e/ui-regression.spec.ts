@@ -90,44 +90,6 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
   });
 });
 
-test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
-  test("홈·홍보·LFG·순위·스크림 패널 문구 확인", async ({ page }) => {
-    test.skip(true,"게임 커뮤니티 사용 보류로 기본 게임 주소는 클랜 흐름으로 연결합니다.");
-    await loginAsFixtureRole(page, "Leader");
-    await page.goto("/games/overwatch");
-    await expect(page.getByRole("heading", { name: "오버워치 커뮤니티" })).toBeVisible({
-      timeout: 15_000,
-    });
-
-    await expect(page.getByRole("heading", { name: "클랜 홍보", exact: true })).toBeVisible();
-
-    await page.getByRole("tab", { name: "홍보" }).click();
-    await expect(page.getByTestId("main-game-tab-promo")).toBeVisible({
-      timeout: 10_000,
-    });
-    await expect(page.getByTestId("main-game-tab-promo").locator("select")).toBeVisible();
-
-    await page.getByRole("tab", { name: "LFG" }).click();
-    await page.getByRole("button", { name: "LFG 모집 등록", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "LFG 모집 등록" })).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).not.toBeVisible();
-
-    await page.getByRole("tab", { name: "순위" }).click();
-    await expect(page.getByText("최근 활동한 클랜 순으로 표시합니다.")).toBeVisible();
-
-    await page.getByRole("tab", { name: "스크림" }).click();
-    const scrimTab = page.getByTestId("main-game-tab-scrim");
-    await expect(scrimTab).toBeVisible({ timeout: 10_000 });
-    await expect(
-      scrimTab.getByText(/같은 게임 소속 클랜 간 스크림 방/),
-    ).toBeVisible();
-
-    await page.getByRole("tab", { name: "홈" }).click();
-    await expect(page.getByRole("heading", { name: "클랜 홍보", exact: true })).toBeVisible();
-  });
-});
-
 test.describe("UI 회귀 — 무소속 멤버 픽스처", () => {
   test("오버워치 클랜 온보딩 허브", async ({ page }) => {
     await loginAsFixtureRole(page, "Member");

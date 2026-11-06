@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { drawRevealCount, ROLE_DRAW_DURATION_MS } from "../src/lib/balance/draw-presentation";
-import { MAP_DRAW_TICKS, mapDrawHighlight, mapDrawTickDelay } from "../src/lib/balance/map-draw-presentation";
+import { drawRevealCount, ROLE_DRAW_DURATION_MS } from "../../src/lib/balance/draw-presentation";
+import { MAP_DRAW_TICKS, mapDrawHighlight, mapDrawTickDelay } from "../../src/lib/balance/map-draw-presentation";
 
 test("draw presentation: faster roles preserve reconnect progress", () => {
   const draw = { id: "draw", startedAt: 1000, durationMs: ROLE_DRAW_DURATION_MS, roleMode: "lottery" as const };

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { isValidOwHeroId, owHeroLabel, owHeroRole, resolveTeamHeroBans, type HeroBanVote } from "../src/lib/balance/ow-hero-ban";
-import { OW_HERO_PORTRAITS } from "../src/lib/balance/ow-hero-portraits";
-import { EMPTY_ROSTER } from "../src/lib/balance/roster-schema";
+import { isValidOwHeroId, owHeroLabel, owHeroRole, resolveTeamHeroBans, type HeroBanVote } from "../../src/lib/balance/ow-hero-ban";
+import { OW_HERO_PORTRAITS } from "../../src/lib/balance/ow-hero-portraits";
+import { EMPTY_ROSTER } from "../../src/lib/balance/roster-schema";
 
 test("team hero bans respect each team's votes, limit, abstention and overlap", () => {
   const roster = structuredClone(EMPTY_ROSTER);

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { balanceTeamHeadingResult } from "../src/components/main-clan/clan-balance-roster-board";
+import { balanceTeamHeadingResult } from "../../src/components/main-clan/clan-balance-roster-board";
 import {
   balanceSessionDate,
   calculateBalanceHistoryStats,
@@ -7,11 +7,11 @@ import {
   sortBalanceHistoryStats,
   sortHistoryRounds,
   type BalanceHistoryRound,
-} from "../src/lib/balance/history";
+} from "../../src/lib/balance/history";
 import {
   EMPTY_ROSTER,
   type BalanceRoster,
-} from "../src/lib/balance/roster-schema";
+} from "../../src/lib/balance/roster-schema";
 
 function round(
   number: number,

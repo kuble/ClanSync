@@ -59,7 +59,9 @@ Discord 연결은 클랜 관리의 `알림·연동`에서 설정합니다. 기�
 
 ## 검증
 
-자동 검사는 PC의 전용 로컬 DB를 사용합니다. `npm run test:local:setup`으로 준비하고 `npm run test:dashboard`로 [실시간 현황](http://127.0.0.1:3040)을 엽니다. `npm run test:db`·`npm run test:e2e`는 검사 전후에 전용 로컬 데이터만 정리합니다. 기존 3011 QA 계정·기록은 유지합니다. [사용법](docs/guides/local-test-lab.md).
+로직 검사는 `npm run test:unit`으로 서버·DB 없이 실행합니다. 개별 파일은 `npm run test:unit -- e2e/logic/formation-rules.spec.ts`처럼 선택합니다. 운영 반영 전에는 `npm run test:all`로 린트·타입·로직·DB·프로덕션 E2E를 모두 확인합니다. [로직 검사 범위](e2e/logic/README.md).
+
+DB·브라우저 검사는 PC의 전용 로컬 DB를 사용합니다. `npm run test:local:setup`으로 준비하고 `npm run test:dashboard`로 [실시간 현황](http://127.0.0.1:3040)을 엽니다. `npm run test:db`·`npm run test:e2e`는 검사 전후에 전용 로컬 데이터만 정리합니다. 기존 3011 QA 계정·기록은 유지합니다. [사용법](docs/guides/local-test-lab.md).
 
 로컬 캐시·검증 산출물은 `npm run clean:local`로 대상을 확인하고 `npm run clean:local -- -Apply`로 정리한다. 활성 검증 포트·QA 연결 설정·백업은 보존한다. [정리 기준](docs/maintenance.md) · [현재 DB 구조 색인](docs/02-design/database/current-schema.md). SQL 마이그레이션 이력은 유지한다.
 

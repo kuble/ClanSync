@@ -304,6 +304,6 @@
 - 게임 선택: 인증 × 소속 6가지 조합, 지원 예정, 조회 실패, 다중 게임, 미가입 프로필 접근을 확인한다.
 - 게임 인증: 최초 연결·재연동·이미 연결·운영 미제공·QA 입력 오류·취소/거부·실패·계정 불일치와 안전한 성공/취소 복귀를 구분한다. 실제 OAuth 관련 검증은 해당 기능이 구현된 뒤에만 완료로 기록한다.
 - 클랜 가입: 검색/필터/페이지·모바일 복귀, 메시지 초안, 새 신청·승인 대기·취소·교체 실패·정원 마감·재가입 제한·권한 변경을 별도 임시 사용자/클랜으로 확인한다.
-- 시작점: [온보딩](../../e2e/onboarding.spec.ts), [인증](../../e2e/auth-performance.spec.ts), [세션](../../e2e/session-cookies.spec.ts), [재가입](../../e2e/clan-membership-return.spec.ts), [프로필 탐색](../../e2e/profile-navigation.spec.ts). 테스트가 현재 제안 전체를 이미 검증한다는 뜻은 아니다.
+- 시작점: [온보딩](../../e2e/onboarding.spec.ts), [인증](../../e2e/auth-performance.spec.ts), [세션](../../e2e/logic/session-cookies.spec.ts), [재가입](../../e2e/clan-membership-return.spec.ts), [프로필 탐색](../../e2e/profile-navigation.spec.ts). 테스트가 현재 제안 전체를 이미 검증한다는 뜻은 아니다.
 - [기존 가입 흐름 테스트](../../e2e/join-request-flow.spec.ts)는 공유 QA 계정 변경을 포함하므로 그대로 실행하지 않는다. 필요한 시나리오를 격리된 임시 데이터로 옮긴다. `E2E_SKIP_SEED=1`과 별도 E2E 서버를 사용한다.
 - 인증·권한·공통 라우팅·조회 범위를 실제로 바꾸면 관련 회귀와 빌드를 포함한다. QA 시드 재실행, 운영 DB 적용, 수동 배포는 이번 작업 범위 밖이다.

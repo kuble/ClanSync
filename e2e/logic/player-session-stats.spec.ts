@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 import {
   buildPlayerSessionInfo,
   type PlayerSessionRound,
-} from "../src/lib/balance/player-session-stats";
-import { EMPTY_ROSTER } from "../src/lib/balance/roster-schema";
+} from "../../src/lib/balance/player-session-stats";
+import { EMPTY_ROSTER } from "../../src/lib/balance/roster-schema";
 
 function round(
   number: number,

@@ -22,6 +22,7 @@ const defaultBase = `http://localhost:${E2E_PORT}`;
  */
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: ["**/logic/**"],
   // Node-side loader assertions use Next's server marker without changing app resolution.
   tsconfig: "./tsconfig.playwright.json",
   fullyParallel: false,

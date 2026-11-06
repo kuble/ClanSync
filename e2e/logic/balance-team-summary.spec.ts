@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { isValidBalanceEstimate, predictionContext } from "../src/components/main-clan/balance-team-insights";
-import type { BalanceRoster } from "../src/lib/balance/roster-schema";
-import { analysisWinPercent, buildPredictionModel } from "../src/lib/balance/analysis-prediction";
+import { isValidBalanceEstimate, predictionContext } from "../../src/components/main-clan/balance-team-insights";
+import type { BalanceRoster } from "../../src/lib/balance/roster-schema";
+import { analysisWinPercent, buildPredictionModel } from "../../src/lib/balance/analysis-prediction";
 
 const roster: BalanceRoster = { team1: { tank: "0", dmg: ["1", "2"], sup: ["3", "4"] }, team2: { tank: "5", dmg: ["6", "7"], sup: ["8", "9"] } };
 const scores = Object.fromEntries(Array.from({ length: 10 }, (_, index) => [String(index), { m: 1, a: 2 }]));
