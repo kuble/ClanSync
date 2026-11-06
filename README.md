@@ -77,6 +77,8 @@ QA 게임 ID는 `node scripts/qa-game-identities.mjs`로 미리 확인하고 `--
 
 클랜 페이지 응답 시간은 QA 서버 실행 후 `node scripts/measure-qa-pages.mjs`로 측정합니다. 기존 QA 리더로 홈·로비·통계·이벤트·관리·상점을 3회 요청하며 최초 응답·본문 완료 시간과 압축 해제 후 본문 크기를 출력합니다. 시드·브라우저 렌더 측정은 수행하지 않습니다.
 
+전체 페이지의 브라우저 측정은 `node scripts/measure-all-pages.mjs <결과명>`입니다. 37개 페이지 원본과 관리·게시판 등 58개 진입 상태를 대조하고 기본 2회 측정 결과를 `.local-tests/performance/<결과명>.json`에 저장합니다. `PAGE_MEASURE_RUNS=1`로 횟수, `PAGE_MEASURE_ONLY='진행 중 내전'`으로 대상을 제한할 수 있습니다. 기존 QA 리더를 사용하며 시드·게임/금액 변경은 없습니다. 홍보의 초대 자동 발급 등 기존 진입 동작은 실행되며 외부 Discord 초대 경로는 건너뜁니다. [측정 기준·전체 결과](docs/03-analysis/page-performance-audit-2026-11-06.md).
+
 관리의 특정 메뉴는 `node scripts/measure-qa-pages.mjs '/manage?tab=insights'`처럼 경로를 인자로 지정합니다. `/balance?room=<내전 UUID>` 경로도 지원합니다.
 
 QA_01_Clan의 통계용 과거 데이터는 `node scripts/add-qa-stats-history.mjs`로 추가 예정량을 확인하고 `--apply`로 적용합니다. QA 전용 DB와 기존 12명만 사용하며, 2025-07~2026-09 종료 내전 60회·300경기(무효 10경기 포함)·관전자 예측 600개를 추가합니다. 기존 명단·내전·설정·코인은 보존하고 고정 ID로 중복 생성을 방지합니다. `[통계 QA] 과거 내전`으로 구분하며, 예측 보상은 지급하지 않습니다. 계정/클랜 시드와는 별개입니다.
