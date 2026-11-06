@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
-import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
-import { QA_CLAN_ACCOUNT_EMAILS } from "./fixtures/qa-fixtures.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "../../test-env.mjs";
+import { QA_CLAN_ACCOUNT_EMAILS } from "../../fixtures/qa-fixtures.mjs";
 
 const apply = process.argv.includes("--apply");
 assert(process.argv.slice(2).every(arg => arg === "--apply"), "Use no arguments (preview) or --apply.");

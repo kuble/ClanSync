@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { randomInt } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { loadSharedQaEnv as loadTestEnv } from "./test-env.mjs";
-import { FIXTURE_PASSWORD, QA_SEED_ACCOUNTS, qaFixtureEmail } from "./fixtures/qa-fixtures.mjs";
+import { loadSharedQaEnv as loadTestEnv } from "../../test-env.mjs";
+import { FIXTURE_PASSWORD, QA_SEED_ACCOUNTS, qaFixtureEmail } from "../../fixtures/qa-fixtures.mjs";
 
 const env=loadTestEnv();
 const db=createClient(env.NEXT_PUBLIC_SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
