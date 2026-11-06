@@ -32,7 +32,7 @@ if (process.env.CLANSYNC_E2E === "1" && process.env.NEXT_PUBLIC_SUPABASE_URL ===
     }
     if (state.armed && url.pathname === `/rest/v1/rpc/${state.target}` && state.remaining > 0) {
       write({ ...state, remaining: state.remaining - 1, failures: state.failures + 1 });
-      console.warn("E2E_READ_FAULT", JSON.stringify({ status: 502, afterCommit: true }));
+      console.warn("E2E_READ_FAULT", JSON.stringify({ status: 502, afterCommit: state.writes > 0 }));
       return new Response("<html>502 Bad Gateway</html>", { status: 502, headers: { "Content-Type": "text/html" } });
     }
     return original(input, init);
