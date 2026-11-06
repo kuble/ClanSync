@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 export function ClanBalanceFormation({
   gameSlug, clanId, roundId, revision, drawHistoryLength, state, settings, bans,
-  pool, userId, canManage, readOnly = false, beforeStart, onPendingChange, onConfirmed,
+  pool, userId, canManage, readOnly = false, beforeStart, onPendingChange, onConfirmed, onPrepareMap,
   serverNow, setupPending = false, endSessionControl,
 }: {
   serverNow: number; setupPending?: boolean; endSessionControl?: ReactNode;
@@ -30,6 +30,7 @@ export function ClanBalanceFormation({
   beforeStart?: () => Promise<{ ok: true; revision: number; roster: BalanceRoster } | { ok: false }>;
   onPendingChange?: (pending: boolean) => void;
   onConfirmed: (formation: ConfirmedFormation) => void;
+  onPrepareMap: () => void;
 }) {
   const tx = useTranslator();
   const router = useRouter();
@@ -73,6 +74,10 @@ export function ClanBalanceFormation({
   }, [due, pending, gameSlug, clanId, roundId, revision, deadline, router, retry, onConfirmed]);
 
   function run(command: FormationCommand) {
+    if (bans.mapBan && (command.type === "apply" || command.type === "start" && settings.roles === "manual" && settings.teams === "keep")) {
+      onPrepareMap();
+      return;
+    }
     start(async () => {
       onPendingChange?.(true);
       try {

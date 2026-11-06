@@ -38,6 +38,7 @@ export async function updateFormationAction(
   roundId: string,
   revision: number,
   command: FormationCommand,
+  confirmMapTypes = false,
 ): Promise<FormationActionResult> {
   try {
     const client = await createClient();
@@ -67,6 +68,7 @@ export async function updateFormationAction(
         if (!command.expectedDrawId || state?.draw?.id !== command.expectedDrawId)
           throw new Error("편성이 변경되었습니다. 최신 화면에서 아이템을 선택하십시오.");
         const next = advanceFormation(state, command, { id: user.id, manager }, Date.now(), randomInt);
+        if (current.map_ban_enabled && next.stage === "complete") { next.stage = "review"; delete next.appliedAt; }
         const { data: saved, error: saveError } = await createServiceRoleClient().rpc("commit_balance_formation", {
           p_round_id: roundId,
           p_clan_id: clanId,
@@ -188,6 +190,11 @@ export async function updateFormationAction(
         randomInt,
       );
       roster = next.roster;
+    }
+    if (round.map_ban_enabled && next?.stage === "complete" && (previous?.appliedAt === undefined || command.type === "apply" && manager) &&
+      !(confirmMapTypes && manager && (command.type === "start" || command.type === "apply"))) {
+      next.stage = "review";
+      delete next.appliedAt;
     }
     // Ticks are clock wake-ups, not user inputs. Repeated/early wake-ups must
     // neither increment the revision nor keep an idle session alive.

@@ -31,6 +31,10 @@ export function ClanBalancePrematchControls({
   endSessionControl,
   editingOnly = false,
   mapVoteControl,
+  open,
+  onOpenChange,
+  beforeMapVote,
+  showTrigger = true,
 }: {
   gameSlug: string;
   clanId: string;
@@ -40,6 +44,10 @@ export function ClanBalancePrematchControls({
   endSessionControl?: ReactNode;
   editingOnly?: boolean;
   mapVoteControl?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  beforeMapVote?: () => Promise<boolean>;
+  showTrigger?: boolean;
 }) {
   const tx = useTranslator();
   const router = useRouter();
@@ -72,7 +80,9 @@ export function ClanBalancePrematchControls({
   }
 
   function advance() {
+    if (needsMapVote) setTypePickerOpen(true);
     start(async () => {
+      if (needsMapVote && beforeMapVote && !(await beforeMapVote())) return;
       const result = needsMapVote
         ? await startMapBanPhaseAction(gameSlug, clanId, session.id, types)
         : needsHeroVote
@@ -85,13 +95,13 @@ export function ClanBalancePrematchControls({
   if (needsMapVote || voting) {
     return (
       <section aria-label={tx("경기 준비")}>
-        <div className="flex items-center justify-between gap-3">
+        {showTrigger ? <div className="flex items-center justify-between gap-3">
           {endSessionControl}
-          {canManage || voting ? <Button onClick={() => setTypePickerOpen(true)}>{tx(voting ? "맵 투표" : "맵 유형 선택")}</Button> : (
+          {canManage || voting ? <Button onClick={() => { setTypePickerOpen(true); onOpenChange?.(true); }}>{tx(voting ? "맵 투표" : "맵 유형 선택")}</Button> : (
             <p className="text-xs text-muted-foreground">{tx("운영진이 경기를 준비하고 있습니다.")}</p>
           )}
-        </div>
-        {canManage || voting ? <Dialog open={voting || typePickerOpen} onOpenChange={(open) => { if (!pending) setTypePickerOpen(open); }}>
+        </div> : null}
+        {canManage || voting ? <Dialog open={voting || (open ?? typePickerOpen)} onOpenChange={(value) => { if (!pending) { setTypePickerOpen(value); onOpenChange?.(value); } }}>
           <DialogContent className={voting ? "sm:max-w-4xl" : "sm:max-w-2xl"} aria-describedby={undefined} showCloseButton={!voting}>
             <DialogHeader><DialogTitle>{tx(voting ? "맵 투표" : "맵 유형 선택")}</DialogTitle></DialogHeader>
             {voting ? mapVoteControl : <><MapTypeFilter value={types} onChange={setTypes} disabled={pending} />

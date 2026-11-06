@@ -5,6 +5,7 @@ import {
   loginIsolatedBalanceUser,
 } from "./isolated-balance-fixture";
 import { mapPoolForGameSlug } from "../src/lib/balance/map-pools";
+import { parseRoster, rosterAssignedUserIds } from "../src/lib/balance/roster-schema";
 
 test.use({ actionTimeout: 20_000 });
 
@@ -115,6 +116,7 @@ async function openAndForm(
     // Empty roster slots also occur during the outgoing formation reveal.
     // Wait for the actual map preparation before opening its guide or voting.
     await expect(page.getByRole("dialog", { name: "맵 유형 선택", exact: true })).toBeVisible({ timeout: 20_000 });
+    await expect.poll(async () => rosterAssignedUserIds(parseRoster((await fixture.activeRound()).roster)).length).toBe(10);
   }
   if (!mapBan) await expectMapStage(panel);
   return panel;
@@ -179,7 +181,6 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     expect(applied.formation_state).toEqual(formed.formation_state);
     await member.reload();
     await expect(memberPanel.locator("[data-board-slot]").first()).toBeVisible();
-    await expect(memberPanel.getByRole("region", { name: "경기 준비", exact: true })).toBeVisible();
     await expect(member.getByRole("dialog", { name: "맵 유형 선택", exact: true })).toHaveCount(0);
     const preparation = typeDialog;
     const all = preparation.getByRole("button", { name: "전체", exact: true });
@@ -208,7 +209,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await expect(control).toHaveAttribute("aria-pressed", "false");
     await preparation.getByRole("button", { name: "닫기", exact: true }).click();
     await expect(typeDialog).toBeHidden();
-    await panel.getByRole("button", { name: "맵 유형 선택", exact: true }).click();
+    await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
     await expect(typeDialog).toBeVisible();
     await expect(typeDialog.getByText("예측 승률", { exact: true })).toHaveCount(0);
     await expect(typeDialog.getByRole("button", { name: "세션 종료", exact: true })).toHaveCount(0);
@@ -296,7 +297,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     });
     expect(resolved.hero_ban_deadline_at).not.toBeNull();
     expect(resolved.roster).toEqual(formed.roster);
-    expect(resolved.formation_state).toEqual(applied.formation_state);
+    expect(resolved.formation_state).toEqual(voting.formation_state);
     await member.reload();
     await expect(memberPanel).toHaveAttribute("data-balance-phase", "hero_ban");
     expect((await fixture.activeRound()).resolved_map_label).toBe(expectedMap);

@@ -189,6 +189,8 @@ export function ClanBalanceSessionPanel({
   const [busyFormation, setBusyFormation] = useState(false);
   const [preferencePending, setPreferencePending] = useState(false);
   const [mapSaving, setMapSaving] = useState(false);
+  const [mapTypesOpen, setMapTypesOpen] = useState(false);
+  const onPrepareMap = useCallback(() => setMapTypesOpen(true), []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -247,10 +249,12 @@ export function ClanBalanceSessionPanel({
   const preparingMatch = Boolean(session?.phase === "editing" && mapScreen && session.resolved_map_label);
   const selectingMapTypes = Boolean(session?.phase === "editing" && mapScreen && session.map_ban_enabled && !session.resolved_map_label);
   const teamAdjustment = formation?.stage === "review" && presentationNow >= formationRevealEnd;
-  const mapPreparation = selectingMapTypes || session?.phase === "map_ban";
+  const mapPreparation = (mapTypesOpen && session?.phase === "editing") || selectingMapTypes || session?.phase === "map_ban";
   const preparationRoster = mapPreparation && (formation?.mode === "keep" || formation?.draw?.roleMode === "lottery");
   const editingScreen = mapPreparation || session?.phase === "editing" && (!mapScreen || preparingMatch);
   const settings = parseFormationSettings(session?.formation_settings);
+  const prepareMapTypes = Boolean(canManage && session?.phase === "editing" && session.map_ban_enabled &&
+    (formation?.stage === "review" || !formation && settings.roles === "manual" && settings.teams === "keep"));
   const showPrediction = Boolean(session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled);
   async function flushRoster() {
     const editor = rosterRef.current;
@@ -262,6 +266,38 @@ export function ClanBalanceSessionPanel({
       };
     const result = await editor.flush();
     return result.ok ? { ...result, roster: editor.getRoster() } : result;
+  }
+
+  async function confirmMapTypes() {
+    if (!session) return false;
+    if (formation?.appliedAt !== undefined) return true;
+    setBusyFormation(true);
+    try {
+      const saved = await flushRoster();
+      if (!saved.ok) return false;
+      const command = formation ? { type: "apply" as const } : { type: "start" as const, setup: settings,
+        expectedRoster: saved.roster, expectedBans: { mapBan: session.map_ban_enabled, heroBan: session.hero_ban_enabled },
+        expectedDrawHistoryLength: Array.isArray(session.draw_history) ? session.draw_history.length : 0 };
+      const result = await updateFormationAction(gameSlug, clanId, session.id, Math.max(session.formation_revision, saved.revision), command, true);
+      if (!result.ok) { toast.error(result.error); return false; }
+      if (result.confirmedFormation) onConfirmed(result.confirmedFormation);
+      return true;
+    } catch {
+      toast.error("편성을 확정하지 못했습니다. 다시 시도하십시오.");
+      return false;
+    } finally { setBusyFormation(false); }
+  }
+
+  async function changeMapTypesOpen(open: boolean) {
+    setMapTypesOpen(open);
+    if (open || !session || session.phase !== "editing" || formation?.appliedAt === undefined) return;
+    setBusyFormation(true);
+    try {
+      const command = formation.mode === "keep" && settings.roles === "manual" ? { type: "reset" as const } : { type: "apply" as const };
+      const result = await updateFormationAction(gameSlug, clanId, session.id, session.formation_revision, command);
+      if (!result.ok) toast.error(result.error);
+    } catch { toast.error("편집 상태로 돌아가지 못했습니다. 다시 시도하십시오."); }
+    finally { setBusyFormation(false); }
   }
 
   function onOpenSession(e: FormEvent<HTMLFormElement>) {
@@ -586,7 +622,7 @@ export function ClanBalanceSessionPanel({
                       revision={session.formation_revision}
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
-                      canEdit={!mapPreparation && !busyFormation && !pending}
+                      canEdit={!selectingMapTypes && session.phase === "editing" && !busyFormation && !pending}
                       teamAdjustment={teamAdjustment || Boolean(preparationRoster && settings.roles === "lottery")}
                       scoreControl={teamAdjustment ? undefined : scoreControl}
                       rosterAside={teamAdjustment ? undefined : editorMap}
@@ -674,6 +710,7 @@ export function ClanBalanceSessionPanel({
                   setupPending={preferencePending || mapSaving}
                   onPendingChange={setBusyFormation}
                   onConfirmed={onConfirmed}
+                  onPrepareMap={onPrepareMap}
                 /> : null}
                 {formation && !["complete", "review"].includes(formation.stage) ? <div className="order-last">{endSessionControl}</div> : null}
               </div>
@@ -681,11 +718,15 @@ export function ClanBalanceSessionPanel({
 
             {(mapScreen && !preparingMatch) || session.phase === "match_live" ? <div className="my-4"><AuctionPurchases state={formation} /></div> : null}
 
-            {(session.phase === "editing" && mapScreen) || session.phase === "map_ban" ? (
+            {prepareMapTypes || (session.phase === "editing" && mapScreen) || session.phase === "map_ban" ? (
               session.phase === "editing" && session.resolved_map_label ? (
                 canManage ? <BalanceAutoStartMatch key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} heroBan={session.hero_ban_enabled && session.banned_heroes === null} /> : <BalancePreparationOverlay />
               ) : (
               <ClanBalancePrematchControls
+                open={prepareMapTypes ? mapTypesOpen : undefined}
+                onOpenChange={changeMapTypesOpen}
+                showTrigger={!prepareMapTypes}
+                beforeMapVote={confirmMapTypes}
                 mapVoteControl={session.phase === "map_ban" ? (<div className="space-y-6">
                 {triple ? (
                   <ClanBalanceMapBanClient
