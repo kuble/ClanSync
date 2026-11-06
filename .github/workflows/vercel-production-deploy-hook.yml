@@ -9,7 +9,7 @@
 
 name: Trigger Vercel production (deploy hook)
 
-# push 트리거는 제외: 네이티브 Git 푸시와 중복되므로 deploy hook·CLI는 수동(workflow_dispatch)만.
+# push 트리거는 제외: 네이티브 Git 배포와 중복되지 않도록 Deploy Hook은 수동(workflow_dispatch)만.
 # 수동 디버깅·백업용으로만 사용.
 on:
   workflow_dispatch:

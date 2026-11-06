@@ -1,5 +1,7 @@
 # 구현 진행도 — 작업 세션 로그
 
+- 2026-11-06 CLI 수동 배포 워크플로를 제거하고 [배포 안내](VERCEL_PRODUCTION_SYNC.md)의 실행법·Secret 요구·문서 참조를 Git 자동 배포와 수동 Deploy Hook 기준으로 정리했다. 남은 Hook은 주석만 수정했으며 트리거·실행 내용과 Git 연결·배포 설정·Secret은 유지했다. 문서 링크·참조와 설정 보존을 확인했으며 실제 배포·연결 변경은 실행하지 않았다.
+
 - 2026-11-06 전체 회귀와 실패 재검증을 대조해 활성 브라우저 254개·로직 109개·DB 186항목·Node 단위 46개를 최종 통과로 확인했다. 게시판 이름 조회 502·재시도 버튼·개발 모드 로그인 만료 재조회를 수정하고 검사 경합 2개를 보정했다. 오류 복구 40회와 개발/운영 기록 복구 각 7개 통과, 11개 실행 모두 임시 데이터 0건이다. 기존 린트 경고 1개·제품 보류 6개·운영 반영 보류를 유지한다. [원인·전체 대조](03-analysis/full-local-regression-2026-11-06.md).
 
 - 2026-11-06 Claude 병행 사용을 위해 공통 진입점을 갱신하고 `CLAUDE.md`의 `@AGENTS.md` import를 유지하면서 주요 지침·도구 환경 차이 안내를 추가했다. QA 보호·위험도별 검증·의미별 커밋/푸시·마이그레이션 기준을 연결하고 문서 링크·순환 import 부재를 확인했다. Claude 실제 세션의 지침 로딩은 실행하지 않았다.
@@ -1910,12 +1912,12 @@
 
 ### 2026-05-11 — 프로덕션: 네이티브 Git 푸시 우선, CLI는 수동만
 
-- [x] **CI** — `vercel-deploy-production.yml`: `workflow_dispatch`만(`push` 제거, 네이티브 Git과 이중 빌드 방지).
+- [x] **CI(당시 구현)** — CLI 수동 배포를 `workflow_dispatch`로 제한해 네이티브 Git과 이중 빌드를 방지했다. 해당 워크플로는 2026-11-06 제거했으며 현재 수동 백업은 Deploy Hook이다.
 - [x] **문서** — `VERCEL_PRODUCTION_SYNC.md`를 연동 복구 우선으로 재구성; `docs/README.md` 표 한 줄 동기화.
 
 ### 2026-05-11 — Vercel CLI 프로덕션 배포(고정 프로젝트)
 
-- [x] **CI** — `vercel-deploy-production.yml`: `VERCEL_TOKEN` + 고정 org/project로 `main` 푸시·dispatch 시 `vercel deploy --prod`.
+- [x] **CI(당시 구현)** — 계정 토큰·고정 org/project를 사용하는 CLI 운영 배포 워크플로를 구성했다. 해당 워크플로는 2026-11-06 제거했으며 과거 파일은 Git 이력에서 확인한다.
 - [x] **CI** — Deploy Hook 워크플로는 `workflow_dispatch`만, 잘못된 프로젝트 훅 시 로그 경고.
 - [x] **문서** — `VERCEL_PRODUCTION_SYNC.md`, `README` 표 동기화.
 

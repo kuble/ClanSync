@@ -2,8 +2,10 @@
 
 ## 목표: 예전처럼 `main` 푸시만으로 배포
 
-프로덕션은 **Vercel 프로젝트의 GitHub 연동**(대시보드에서 저장소 연결)이 정상일 때, **`VERCEL_TOKEN` 없이** 푸시 한 번으로 새 Deployment가 생깁니다.  
-이 레포의 GitHub Actions는 **그 연동이 다시 깨졌을 때**만 쓰는 **수동 백업**입니다(아래 참고).
+프로덕션은 **Vercel 프로젝트의 GitHub 연동**(대시보드에서 저장소 연결)이 정상일 때, `main` 푸시로 새 Deployment가 생깁니다.
+이 레포의 GitHub Actions는 **그 연동이 다시 깨졌을 때**만 쓰는 **수동 Deploy Hook 백업**입니다. CLI 수동 배포 워크플로는 2026-11-06 제거했습니다.
+
+운영 반영 전에는 `npm run test:all`을 완료하고, 수동 배포·연결 복구는 사용자의 명시적인 요청이 있을 때만 수행합니다. 워크플로 정리를 위해 기존 Git 연결·Secret·로컬 `.vercel` 설정을 변경하지 않습니다.
 
 고정 식별자(비밀 아님):
 
@@ -53,7 +55,7 @@ npx vercel git connect
 
 1. GitHub `main` 최신 SHA와 Vercel 프로덕션 배포 **Source** SHA를 비교합니다.
 2. **Settings → Git**에 무시 스크립트(Ignored Build Step)나 빌드 스킵 규칙이 없는지 봅니다.
-3. 그래도 안 되면 아래 [보조: Actions로 수동 프로덕션 배포](#보조-actions로-수동-프로덕션-배포-cli)로 한 번 올린 뒤, Vercel 지원·감사 로그로 Git 이벤트 수신 여부를 확인합니다.
+3. 그래도 안 되면 Vercel 지원·감사 로그로 Git 이벤트 수신 여부를 확인합니다. 배포를 명시적으로 요청받았다면 아래 [수동 Deploy Hook](#보조-deploy-hook-수동디버깅)을 사용합니다.
 
 ---
 
@@ -71,8 +73,8 @@ npx vercel git connect
 
 ## 이중 배포 방지
 
-네이티브 Git이 정상이면 푸시마다 Vercel이 이미 빌드합니다.  
-그래서 **`.github/workflows/vercel-deploy-production.yml`은 `push`로는 실행하지 않고**, 필요할 때만 **Actions에서 수동 실행(`workflow_dispatch`)** 합니다.
+네이티브 Git이 정상이면 대상 브랜치 푸시로 Vercel이 빌드합니다.
+그래서 [Deploy Hook 워크플로](../.github/workflows/vercel-production-deploy-hook.yml)는 `push`로 실행하지 않고, 필요할 때만 **Actions에서 수동 실행(`workflow_dispatch`)** 합니다. 브랜치별 배포 허용 여부는 기존 `vercel.json` 설정을 유지합니다.
 
 ---
 
@@ -80,19 +82,9 @@ npx vercel git connect
 
 워크플로: **Trigger Vercel production (deploy hook)** — **`workflow_dispatch` 만**.
 
-훅 URL에 **`/deploy/prj_UwqBACb65GoSqFfqPekMNe15Og8T/`** 가 포함되는지 확인합니다.
-
----
-
-## 보조: Actions로 수동 프로덕션 배포 (CLI)
-
-워크플로: **Deploy production (Vercel CLI)** — **`workflow_dispatch` 만** (자동 `push` 없음).
-
-1. [Vercel Account Tokens](https://vercel.com/account/tokens)에서 토큰 생성.
-2. GitHub **Settings → Secrets and variables → Actions**에 **`VERCEL_TOKEN`** 저장.
-3. **Actions** → **Deploy production (Vercel CLI)** → **Run workflow**.
-
-Git 연동이 고쳐진 뒤에는 이 워크플로를 **자동으로 돌리지 않는 것**을 권장합니다(위 워크플로 파일 참고).
+1. 등록된 GitHub Actions Secret `VERCEL_DEPLOY_HOOK`이 해당 프로젝트의 `main`에 연결된 훅인지 확인합니다. 훅 URL에는 **`/deploy/prj_UwqBACb65GoSqFfqPekMNe15Og8T/`** 가 포함됩니다.
+2. 사용자의 수동 배포 요청과 전체 검증 완료를 확인한 뒤, **Actions → Trigger Vercel production (deploy hook) → Run workflow**로 실행합니다.
+3. 워크플로의 성공은 훅 요청 접수 결과입니다. Vercel **Deployments**에서 실제 빌드·배포 상태와 Source 커밋을 별도로 확인합니다.
 
 ---
 
@@ -109,5 +101,4 @@ Git 연동이 고쳐진 뒤에는 이 워크플로를 **자동으로 돌리지 �
 
 ## 보안
 
-- **`VERCEL_TOKEN`**: 패스워드급. 유출 시 폐기·재발급.
 - **Deploy Hook URL**: URL만으로 빌드 트리거 가능.
