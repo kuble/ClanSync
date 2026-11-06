@@ -4,9 +4,9 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-# 개발 진입점 (Codex)
+# 개발 진입점 (Codex·Claude)
 
-- 주 개발 에이전트는 Codex다. 프로젝트 작업 지침은 이 `AGENTS.md`를 기준으로 한다.
+- 주 개발 에이전트는 Codex이며 Claude도 함께 사용한다. 공통 프로젝트 지침은 이 `AGENTS.md`를 기준으로 하고, `CLAUDE.md`는 이를 가져와 Claude 진입 안내를 제공한다. 공통 정책 변경은 이 파일과 연결 문서에 반영한다.
 - 작업 시작 시 짧은 `docs/TODO.md`에서 현재 상태·우선순위를 확인하고, `docs/README.md`의 기능별 코드·테스트 진입점에서 필요한 파일만 선택한다. 전체 기획·로그·완료 체크리스트를 매번 읽지 않는다.
 - 협업·의사결정·코드 작성·문서 동기화·직접 검수·인계는 [개발 작업 지침](docs/guides/development-rules.md)을 따른다. 해당 작업에 필요한 절만 읽는다.
 - 연결 대상·검증 명령은 루트 `README.md`를 참조한다. CLI 인증과 `.env.local`을 사용하며 비밀값은 문서·커밋에 넣지 않는다.
