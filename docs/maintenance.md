@@ -38,6 +38,8 @@ npm run clean:local -- -Apply -IncludeDevBuild
 
 SQL 마이그레이션은 변경 이력이다. 현재 사용하지 않는 테이블을 생성했던 파일도 이후 제거 이력과 함께 유지한다. QA·운영의 적용 이력이 다르므로 적용된 파일을 삭제·재번호·임의 병합하지 않는다.
 
+루트 `supabase/config.toml`의 `[db.seed]`는 `enabled = false`, `sql_paths = []`로 유지한다. 존재하지 않는 `seed.sql`은 참조하지 않으며 SQL 자동 시드를 실행하지 않는다. `db:seed`의 명시적 픽스처 도구와 `scripts/local-tests/config.toml`의 검사 전용 설정·데이터 준비 경로는 유지한다. 이 설정 정리를 적용하기 위해 DB 초기화·시드·서버 재시작을 실행하지 않는다. 마이그레이션·연결 정보와 활성 QA 데이터는 보존한다.
+
 현재 앱이 기대하는 구조는 [DB 색인](02-design/database/current-schema.md)에서 확인한다. 생성 타입과 QA 구조를 동기화한 뒤 `npm run db:schema:index`로 갱신한다. 이 색인은 테이블·함수 목록이며 RLS나 함수 본문의 전체 SQL 덤프를 대체하지 않는다. 실제 적용 여부는 QA 마이그레이션 목록과 대조하고 운영 DB는 별도 승인 없이 변경하지 않는다.
 
 자동 시작 경로·포트 보호·검증 결과 보관·백업 보존 회귀는 `npm run test:qa-startup`으로 확인한다. PowerShell 검증은 별도의 임시 폴더와 가짜 프로세스 목록을 사용하며 실제 서버나 DB를 변경하지 않는다.
