@@ -130,6 +130,7 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       let confirmedAt = 0;
       const actionPath = "**/balance?room=*";
       const countdown = panel.getByTestId("balance-next-round-countdown");
+      await page.bringToFront();
       if (outcome === "team1") {
         const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
         await page.route(actionPath, async (route) => {
@@ -142,9 +143,20 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
         await confirm.click();
         await expect(dialog).toBeHidden();
         await expect(countdown).toContainText(/초 후 다음 경기로 이동/);
+        const timer = page.getByTestId("balance-next-round-timer");
+        const seconds = timer.getByTestId("balance-next-round-seconds");
+        await expect(seconds).toHaveText("5");
+        const timerBounds = (await timer.boundingBox())!;
+        expect(Math.abs(timerBounds.x + timerBounds.width / 2 - page.viewportSize()!.width / 2)).toBeLessThan(2);
+        expect(Math.abs(timerBounds.y + timerBounds.height / 2 - page.viewportSize()!.height / 2)).toBeLessThan(2);
         await expect(panel.getByTestId("balance-match-result")).toHaveCount(0);
         expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
+        for (const value of [4, 3, 2, 1]) {
+          await expect(seconds).toHaveText(String(value), { timeout: 2500 });
+          if (value === 4) await page.screenshot({ path: test.info().outputPath("result-countdown-center.png") });
+        }
         await expect(countdown).toHaveAttribute("data-remaining", "0", { timeout: 8000 });
+        await expect(timer).toBeHidden();
         await expect(countdown).toContainText("다음 경기 준비 중");
         const savingOverlay = page.getByTestId("balance-result-saving-overlay");
         await expect(savingOverlay).toContainText("결과 저장 중");
@@ -183,6 +195,9 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
         await countdown.getByRole("button", { name: "다시 시도", exact: true }).click();
       }
       if (outcome === "void") {
+        const timerBounds = (await page.getByTestId("balance-next-round-timer").boundingBox())!;
+        expect(timerBounds.x).toBeGreaterThanOrEqual(0);
+        expect(timerBounds.x + timerBounds.width).toBeLessThanOrEqual(390);
         await panel.screenshot({ path: test.info().outputPath("match-result-void-mobile.png") });
         await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
         const closeSession = page.getByRole("dialog", { name: "내전을 종료하시겠습니까?", exact: true });

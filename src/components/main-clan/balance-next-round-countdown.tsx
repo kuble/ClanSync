@@ -17,7 +17,7 @@ export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settled
   const tx = useTranslator();
   const router = useRouter();
   const deadline = (startedAt ?? (settledAt ? Date.parse(settledAt) : serverNow)) + 5000;
-  const now = useServerClock(startedAt ?? serverNow, deadline);
+  const now = useServerClock(startedAt ?? serverNow, deadline, 1000);
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000));
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +38,13 @@ export function BalanceNextRoundCountdown({ gameSlug, clanId, sessionId, settled
     });
   }, [remaining, canManage, paused, saved, sessionId, retry, gameSlug, clanId, router]);
   return <div className="flex flex-wrap items-center justify-end gap-2" data-testid="balance-next-round-countdown" data-remaining={remaining}>
+    {remaining > 0 && !saveError && !error && !paused ? <div data-testid="balance-next-round-timer" aria-hidden="true"
+      className="pointer-events-none fixed top-1/2 left-1/2 z-40 grid w-60 max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 justify-items-center gap-2 rounded-2xl border border-primary/30 bg-card/95 p-5 text-center shadow-xl">
+      <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"><Timer className="size-4" />{tx("다음 경기까지")}</p>
+      <strong key={remaining} data-testid="balance-next-round-seconds"
+        className="font-mono text-7xl leading-none font-bold tabular-nums text-primary motion-safe:animate-in motion-safe:zoom-in-90 motion-safe:duration-200">{remaining}</strong>
+      <span className="text-sm text-muted-foreground">{tx("초")}</span>
+    </div> : null}
     {remaining === 0 && !saved && saving && !saveError ? <BalancePreparationOverlay savingResult /> : null}
     <p role={saveError || error ? "alert" : "status"} className="flex items-center gap-1.5 text-sm text-muted-foreground">
       <Timer className="size-4 shrink-0" aria-hidden="true" />
