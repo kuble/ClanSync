@@ -1,5 +1,7 @@
 # 구현 진행도 — 작업 세션 로그
 
+- 2026-11-06 사용하지 않는 로컬 도구 상태와 편집기 전용 폴더를 제거했다. 필요한 협업·결정·코드·명세·검수·인계 지침은 AGENTS와 개발 작업 안내로, 검증 규칙은 별도 안내로 옮기고 현재 문서와 이력의 참조를 갱신했다. 구형 서버 강제 재시작·전체 검사 반복 안내는 현재 QA·위험도별 검증 기준으로 통합했다. [개발 지침](guides/development-rules.md) · [검증 기준](guides/agent-validation.md).
+
 - 2026-11-06 관리 구형 `#subscription`을 해시 없는 플랜 주소로 정규화하고 초기 라우트 정보를 다시 불러오도록 수정했다. PC/모바일 재진입·탭/이력 이동 회귀와 기존 관리 검사 3개, 타입·린트·빌드 통과. 모바일 검사 메뉴 선택을 공용 도구로 보정했으며 기존 QA 데이터·운영 보류를 유지한다. [원인·검증](TODO_Phase2.md#2026-11-06-관리-구형-플랜-주소-정규화).
 
 - 2026-11-06 로컬 선택 E2E를 개발 서버·trace OFF로 바꾸고 전체·CI·`--production`의 빌드·실패 trace 경로를 유지했다. 터미널은 결과·실패 원인을 요약하고 전체 로그·대시보드·로컬 데이터 정리는 보존한다. 실행기·환경 격리·QA 시작 보호 회귀 12개, 변경 파일 ESLint, 실제 앱 개발 모드 스모크 1개와 종료 후 계정·클랜·경기 0건을 확인했다. 전체 회귀는 실행하지 않았으며 기존 QA와 운영 보류를 유지한다. [실행 기준](guides/local-test-lab.md#검사-실행).
@@ -1950,7 +1952,7 @@
 
 - [x] **규칙** — `agent-auto-tasks.mdc`·`project-context.mdc`·`qa-demo-handoff.mdc`·`AGENTS.md`에 E2E 검증 절차.
 - [x] **문서** — `docs/README.md` 세션 절차에 `test:e2e`.
-- [x] **커맨드** — `.cursor/commands/start.md`: LISTENING 필터, Next 단일 dev 잠금, Playwright 검증 단계.
+- [x] **커맨드** — `docs/guides/development-rules.md#개발-시작`: LISTENING 필터, Next 단일 dev 잠금, Playwright 검증 단계.
 
 ### 2026-05-02 — Playwright CI vs 로컬 서버
 
@@ -2270,7 +2272,7 @@
 - [x] **`TODO.md` 허브 배너 한 줄** — "지금 라이브 / 다음 라이브"를 상단에. 현재 값: "(아직 없음 — Phase 1 목업만) / M2 완료 시 `/` · `/sign-in` · `/sign-up` · `/games`".
 - [x] **현재 순서 유지 · M5 앞당기지 않음** (사용자 선택).
 - **Nano-commit 3개**: `docs: add Phase 2 experience track` / `docs(phase2): UX gate 3 + M1 vercel preview + experience link` / `docs: hub live banner and session log`.
-- 참조 플랜: `.cursor/plans/phase_2_master_plan_*.plan.md`.
+- 참조 플랜: `docs/TODO_Phase2.md(현재 진행도; 당시 마스터 플랜은 Git 이력 참조)`.
 
 ### 2026-04-21 — Phase 2 마스터 플랜 착지 (M0 기반 정비)
 
@@ -2284,13 +2286,13 @@
   - **마일스톤별 체크리스트** — M0(기반), M1(인프라 Supabase 헬퍼·0001_init·middleware 골격·env·db scripts), M2(S01 4라우트·D-AUTH-03/06/07·D-AUTH-01 6칸), M3(S02 OAuth·D-CLAN-01/02/04·RLS 1차), M4(S03 사이드바·hasPermission·플랜 토글·탭 스텁), M5(S08 프로필 D-PROFILE-01~04 병렬), M6a/b/c(통계·이벤트·관리·스토어·밸런스), M7(S07 경량 4탭, 스크림 안내만), M8(Phase 2 감사 + Phase 2+ 이관).
   - **라우트 대응표 15행** — `/` · `/sign-in` · `/sign-up` · `/games` · `/games/[g]/auth` · `/games/[g]/clan` · `/games/[g]/clan/[id]` · 5개 탭 · `/games/[g]` · 스크림 탭/`board` 상세(Phase 2+ 보류 명시) · `/profile`. 각 행에 목업 파일·담당 마일스톤·상태 표기.
 - [x] **허브 갱신** — [TODO.md](./TODO.md) 현재 단계 문구(`마스터 플랜 M0~M8`)·마지막 갱신 + 권장 프롬프트 2종 갱신(**지금 = M1 인프라**, **M2 이후 슬라이스 착수**). [TODO_Phase2.md](./TODO_Phase2.md) M0 첫 2개 체크(`[locale]` 제거·로드맵 문서화) 완료로 표기.
-- [x] **Nano-commit 3개** — `chore(src): drop [locale] segment, land Phase 2 stub` / `docs: TODO_Phase2 master plan (M0-M8 roadmap)` / `docs: hub prompts and TODO last-updated` ([.cursor/rules/git-nano-commit.mdc](../.cursor/rules/git-nano-commit.mdc)).
+- [x] **Nano-commit 3개** — `chore(src): drop [locale] segment, land Phase 2 stub` / `docs: TODO_Phase2 master plan (M0-M8 roadmap)` / `docs: hub prompts and TODO last-updated` ([AGENTS.md](../AGENTS.md)).
 - **다음 세션 목표**: **M1 인프라** — `@supabase/ssr` 도입 · `src/lib/supabase/{server,client,middleware}.ts` · `supabase/migrations/0001_init.sql` · `middleware.ts` 골격 · `.env.local`/`.env.example` · `db:reset/push/gen` scripts. 완료 후 M2 S01 수직 슬라이스(회원가입→로그인→`/games` 클릭스루) 진입.
-- 참조 플랜 파일: `.cursor/plans/phase_2_master_plan_*.plan.md`.
+- 참조 플랜 파일: `docs/TODO_Phase2.md(현재 진행도; 당시 마스터 플랜은 Git 이력 참조)`.
 
 ### 2026-04-21 — D-PRIV-01 종결 (개인 단위 프라이버시 오버라이드 프리셋 α · 범위 R3)
 
-- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+- [x] **결정 컨펌 절차 준수** (`docs/guides/development-rules.md#의사결정`):
   - **4 설계 축 × 프리셋 제시**: 방향(닫기만/양방향)·대상 키(통계 5/6)·역할별 세분(단일/2단)·저장 범위(클랜별/전역) → 조합 α/β/γ/δ 비교표 + β·γ·δ 탈락 근거(β officer 숨김 시 운영 마비·γ 클랜마다 분위기 달라 해상도 손실·δ 프라이버시 감수성 미충족).
   - **범위 R1~R4**: R1 프로필 전면 구현 / R2 결정·스키마만 / R3 결정·스키마 + D-PERM-01 카드 예고 카피 1줄 / R4 프로필 예고 섹션 — 추천 R3.
   - 사용자 선택 = **α + R3**.
@@ -2335,7 +2337,7 @@
 
 ### 2026-04-21 — D-NOTIF-03 종결 (이메일 다이제스트 DROPPED)
 
-- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+- [x] **결정 컨펌 절차 준수** (`docs/guides/development-rules.md#의사결정`):
   - **프리셋 묶음 컨펌**: α Premium 전용 주간 다이제스트 / β 전원 주간 / γ 하이브리드(Free 필수 공지 + Premium 주간) / **δ 도입 보류(DROPPED)**. 범위 R1~R4 병렬 제시.
   - 사용자 1차 응답: "이게뭘 하는건지 모르겠는데?" → 어시스턴트가 **이메일 다이제스트 개념 재설명** (LinkedIn·Notion·GitHub 주간 요약 메일 예시, ClanSync 시뮬레이션 메일 샘플, in-app·브라우저 푸시와 차별점 3열 비교표 제공).
   - 사용자 최종 선택 = **"필요 없어보여"** → **δ = DROPPED**.
@@ -2368,7 +2370,7 @@
 
 ### 2026-04-21 — D-NOTIF-02 종결 (브라우저 ServiceWorker 푸시 프리셋 α · 범위 R3)
 
-- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+- [x] **결정 컨펌 절차 준수** (`docs/guides/development-rules.md#의사결정`):
   - **프리셋 묶음 컨펌**: α 보수적(Premium 전용·카테고리 독립 토글·맥락형 권한 프롬프트·서버 quiet hours) / β 공격적(Free 포함 전체) / γ Free 중요 알림만 하이브리드 / δ 도입 보류. **범위 R1(전면 목업 스텁) / R2(결정·스키마만) / R3(스키마 + 벨 드로워 상단 inert 예고 배너 1줄)** 2축으로 제시 → 사용자 선택 = **α + R3**.
   - β 탈락 근거: D-EVENTS-03 외부 채널 과금 경계(카카오·Discord = Premium) 파괴. γ 탈락 근거: kind×plan 22조합 테스트 부담, 6개월 데이터 누적 후 D-NOTIF-02c로 재검토. δ 탈락 근거: 모바일·탭 닫은 사용자 재참여 경로 0.
 - [x] **D-NOTIF-02 — 브라우저 서비스워커 웹 푸시 도입 정책 (프리셋 α)** (DECIDED 2026-04-21, 사용자 컨펌)
@@ -2409,7 +2411,7 @@
 
 ### 2026-04-21 — D-NOTIF-01 종결 (in-app 알림 센터 통합, 디스코드식 벨+드로워)
 
-- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+- [x] **결정 컨펌 절차 준수** (`docs/guides/development-rules.md#의사결정`):
   - **1차 묶음 컨펌**: 프리셋 4종(α 디스코드식 통합 / β 관리 메뉴 확장 / γ no-op / δ α+푸시) + 범위 미세조정(운영만/운영+개인/일정까지 통합) + 사이드바 점 병존 여부 + 읽음 GC 주기 → 사용자 선택 = **α + 전체 통합 + 병존 + 7일 GC**.
   - **2차 구조 컨펌**: `notification_log`(기존, D-EVENTS-03/04) ↔ 신설 `notifications`의 연결 모델 M1/M2/M3 3옵션 + 개인 결과 알림 동기화(트리거/RPC/하이브리드) 2옵션 제시 → 사용자 선택 = **M1 분리+FK** / **DB 트리거 자동 INSERT**.
   - **중간 용어 정의 질문 응대**: 사용자가 "개인 결과 알림이 뭔지 정확히 설명해줘" 요청 → 수신자 관점 3분류(운영/개인 결과/일정) 매트릭스로 전량 예시 제시 후 질문 재제기.
@@ -2460,7 +2462,7 @@
 
 ### 2026-04-21 — D-STATS-03 종결 ("앱 이용 횟수" = 활동일/person-day)
 
-- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`): 4개 옵션(A 활동일 / B 의미 있는 액션 / C 페이지뷰 / D 세션) + 권장안 A + 미세 후속질문 3건(트리거·컨텍스트·열람 권한)을 사용자에게 동시 제시 → 컨펌 후 진행.
+- [x] **결정 컨펌 절차 준수** (`docs/guides/development-rules.md#의사결정`): 4개 옵션(A 활동일 / B 의미 있는 액션 / C 페이지뷰 / D 세션) + 권장안 A + 미세 후속질문 3건(트리거·컨텍스트·열람 권한)을 사용자에게 동시 제시 → 컨펌 후 진행.
 - [x] **D-STATS-03 — "앱 이용 횟수" = 활동일(person-day)** (DECIDED 2026-04-21, 사용자 컨펌)
   - 컨펌 결과: 단위 = **A 활동일(DAU 합산)** / 트리거 = **첫 페이지뷰**(가벼움 우선) / 컨텍스트 = **자기 클랜 페이지 진입 시에만** / 열람 = **멤버 전체**.
   - 정의: 멤버가 자기 클랜 라우트(`/clan/[clan_id]/...`)에 첫 페이지뷰를 기록한 날 = 1. DAY UNIQUE로 새벽 새로고침·매크로·prefetch 자동 차단. 클랜 `timezone`(없으면 `Asia/Seoul`) 자정 경계.
@@ -2485,7 +2487,7 @@
 
 ### 2026-04-21 — STATS·PERM 묶음 (D-PERM-01 매트릭스 신설 + D-STATS-01/02/04 흡수)
 
-- [x] **메타 결정 — 결정 컨펌 룰 도입**: 사용자 요청 "결정이 필요한 사항은 항상 나에게 컨펌 받도록 기억해줘" → `.cursor/rules/decision-confirm.mdc`(`alwaysApply: true`) 신설. "옵션 2~4개 제시 → 권장안 명시 → 컨펌 대기 → 반영" 절차 + 예외(타이포·사용자 명시 일임 등) 정리.
+- [x] **메타 결정 — 결정 컨펌 룰 도입**: 사용자 요청 "결정이 필요한 사항은 항상 나에게 컨펌 받도록 기억해줘" → `docs/guides/development-rules.md#의사결정`(`alwaysApply: true`) 신설. "옵션 2~4개 제시 → 권장안 명시 → 컨펌 대기 → 반영" 절차 + 예외(타이포·사용자 명시 일임 등) 정리.
 - [x] **D-PERM-01 — 클랜 권한 매트릭스 모델 도입** (DECIDED 2026-04-21, 사용자 컨펌)
   - 사용자 제안: "디스코드처럼 굵직한 권한을 클랜장/운영진/구성원 기준으로 클랜이 직접 정하도록" → 결정마다 토글 1개씩 추가하던 패턴을 권한 매트릭스로 일반화.
   - 6 카테고리 × 21 권한 키: ① 재무·계정(2, 둘 다 잠김) ② 멤버 관리(4, 2 잠김) ③ 평판·통계(5) ④ 경기 운영(2, 1 잠김) ⑤ 홍보·자원(2) ⑥ **개인 정보(6, 사용자 추가 요청)**.
@@ -2992,7 +2994,7 @@
 
 ### 2026-03-28 — 허브 권장 프롬프트 정합 (Phase 1 기본 + Phase 2 보조)
 - [x] `TODO.md` 다음 세션 블록: Phase 1 복사용을 기본으로 두고, Phase 2 착수용은 두 번째 블록으로 분리
-- [x] `.cursor/commands/todo.md` §4 절차를 위 형식에 맞게 정리
+- [x] `docs/guides/development-rules.md#진행도와-인계` §4 절차를 위 형식에 맞게 정리
 
 ### 2026-03-28 — 세션 로그 파일 분리
 - [x] `TODO_LOG.md` 신설, `TODO.md`에서 히스토리 제거(토큰 절약)
@@ -3046,7 +3048,7 @@
 
 ### 2026-03-28 — /todo 커맨드로 진행도 동기화
 - [x] S05·S06 목업 존재 여부 재확인 후 체크·요약표 반영
-- [x] `.cursor/commands/todo.md` 추가 (재실행 시 동일 절차)
+- [x] `docs/guides/development-rules.md#진행도와-인계` 추가 (재실행 시 동일 절차)
 - [x] 다음 세션 권장 프롬프트 섹션 갱신
 
 ### 2026-03-28 — 문서·용어·슬라이스 정리

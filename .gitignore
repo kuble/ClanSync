@@ -46,10 +46,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# bkit — tool-managed local state (PDCA snapshots, memory)
-.bkit/snapshots/
-.bkit/state/
-
 # vendor icon packs — full pack lives on disk for future use, but git only tracks
 # the icons we copy into each pack's `in-use/` subfolder (whitelist).
 # To use an icon: copy the SVG into `<pack>/in-use/...` and commit it.

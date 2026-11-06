@@ -1649,7 +1649,7 @@ flowchart TD
 2. [pages.md §페이지별 가드 체인 표](./01-plan/pages.md)의 대응 경로가 `middleware.ts`·Server Component 가드에서 **전부 통과**.
 3. RLS 정책이 **leader / officer / member / guest** 4역할에서 최소 1 케이스씩 테스트 통과 (`supabase test db` 또는 직접 DB 접근의 허용·거부를 검증하는 테스트).
 4. 본 문서의 **체크리스트·라우트 대응표 갱신**.
-5. Nano-commit([.cursor/rules/git-nano-commit.mdc](../.cursor/rules/git-nano-commit.mdc)) 준수 + 세션 로그([TODO_LOG.md](./TODO_LOG.md)) 블록 추가.
+5. Nano-commit([AGENTS.md](../AGENTS.md)) 준수 + 세션 로그([TODO_LOG.md](./TODO_LOG.md)) 블록 추가.
 
 ### UI/UX 게이트 (3)
 
