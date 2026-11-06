@@ -18,25 +18,19 @@ import { MVP_STORE_SLUGS } from "@/lib/store/mvp-store-slugs";
 import { loadClanSiteVisits } from "@/lib/clan/stats/clan-site-usage";
 import { loadClanPeerNames } from "@/lib/clan/load-clan-peer-names";
 import { loadClanManagementStats } from "@/lib/clan/stats/load-clan-stats";
-import { ClanManageNotices, ClanManageRules } from "./clan-manage-notices";
-import { ClanAppearanceSettings } from "./clan-appearance-settings";
-import { ClanEmojiSettings } from "./clan-emoji-settings";
-import { ClanBalanceAutoCloseSettings } from "./clan-balance-auto-close-settings";
+import { ClanManageNotices, ClanManageRules, ClanAppearanceSettings, ClanEmojiSettings,
+  ClanBalanceAutoCloseSettings, ManageJoinRequestsPanel, ManageMembersTable,
+  ClanManageSubscriptionPanel, ClanManageStoreVoidPanel, ClanFormationStats,
+  ClanSiteUsagePanel, ClanDiscordSettings, ClanCommunityLinksForm, ClanPromotionSettings,
+} from "./clan-manage-panels";
 import { InquiryButton } from "@/components/onboarding/inquiry-button";
-import { ManageJoinRequestsPanel } from "./manage-join-requests-panel";
-import { ManageMembersTable, type ManageMemberRow } from "./manage-members-table";
+import type { ManageMemberRow } from "./manage-members-table";
 import { ClanParticipantData } from "./clan-participant-data";
-import { ClanManageSubscriptionPanel } from "./clan-manage-subscription-panel";
-import { ClanManageStoreVoidPanel, type ManageStoreVoidRowVM } from "./clan-manage-store-void-panel";
-import { ClanFormationStats } from "./clan-formation-stats";
-import { ClanSiteUsagePanel } from "./clan-site-usage-panel";
-import { ClanDiscordSettings } from "./clan-discord-settings";
-import { ClanCommunityLinksForm } from "./clan-community-links-form";
+import type { ManageStoreVoidRowVM } from "./clan-manage-store-void-panel";
 import { readClanCommunityLinks } from "@/lib/clan/community-links";
 import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { discordRoutesForSettings } from "@/lib/clan/discord-notification-settings";
-import { ClanPromotionSettings } from "./clan-promotion-settings";
 import operation from "./clan-operation.module.css";
 
 const panel = "rounded-xl border border-border bg-card p-4 sm:p-5";
